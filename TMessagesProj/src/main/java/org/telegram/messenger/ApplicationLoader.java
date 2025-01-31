@@ -48,6 +48,7 @@ import org.telegram.ui.Components.Premium.boosts.BoostRepository;
 import org.telegram.ui.IUpdateButton;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -263,7 +264,7 @@ public class ApplicationLoader extends Application {
         } catch (Throwable ignore) {
 
         }
-
+        fluffyConfig.init();
         super.onCreate();
 
         if (BuildVars.LOGS_ENABLED) {
