@@ -259,6 +259,7 @@ import org.telegram.ui.bots.BotAdView;
 import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.BulletinHelper;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12288,14 +12289,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             voiceHintTextView.hide();
             return;
         }
-
         if (chatActivityEnterView.hasRecordVideo()) {
-            voiceHintTextView.setText(video ? LocaleController.getString(R.string.HoldToVideo) : LocaleController.getString(R.string.HoldToAudio));
+            if (video) {
+                BulletinHelper.showFrontCameraNotification(LaunchActivity.getSafeLastFragment());
+                voiceHintTextView.hide();
+            } else {
+                voiceHintTextView.setText(LocaleController.getString(R.string.HoldToAudioOnly));
+            }
         } else {
             voiceHintTextView.setText(LocaleController.getString(R.string.HoldToAudioOnly));
         }
 
-        voiceHintTextView.showForView(chatActivityEnterView.getAudioVideoButtonContainer(), true);
+        if (!video) {
+            BulletinHelper.hideFrontCameraNotification();
+            voiceHintTextView.showForView(chatActivityEnterView.getAudioVideoButtonContainer(), true);
+        }
+
     }
 
     public boolean checkSlowMode(View view) {

@@ -9,6 +9,7 @@
 package org.telegram.ui.Components;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.ushastoe.fluffy.fluffyConfig.frontCamera;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -719,6 +720,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         if (textureView != null) {
             return;
         }
+        isFrontface = frontCamera;
 
         if (switchCameraDrawable == null) {
             switchCameraDrawable = new RLottieDrawable(R.raw.roundcamera_flip, "roundcamera_flip", dp(28), dp(28));
@@ -745,9 +747,6 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         cameraReady = false;
         selectedCamera = null;
         if (!fromPaused) {
-            if (!useCamera2) {
-                isFrontface = true;
-            }
             updateFlash();
             recordedTime = 0;
             progress = 0;
@@ -788,7 +787,6 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("InstantCamera show round camera " + cameraFile.getAbsolutePath());
         }
-
         if (useCamera2) {
             bothCameras = DualCameraView.roundDualAvailableStatic(getContext());
             if (bothCameras) {
