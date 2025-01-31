@@ -310,10 +310,16 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             }
             showDivider = true;
         }
-//        if (MessagesController.getInstance(UserConfig.selectedAccount).storiesEnabled()) {
-//            items.add(new Item(17, LocaleController.getString(R.string.ProfileStories), R.drawable.msg_menu_stories));
-//            showDivider = true;
-//        }
+        if (MessagesController.getInstance(UserConfig.selectedAccount).storiesEnabled()) {
+            items.add(new Item(17, LocaleController.getString(R.string.ProfileStories), R.drawable.msg_menu_stories));
+            showDivider = true;
+        }
+
+        items.add(null);
+        items.add(new Item(97, LocaleController.getString(R.string.fluffySettings), R.drawable.msg_settings));
+        items.add(new Item(98, LocaleController.getString(R.string.Devices), R.drawable.menu_devices));
+        items.add(null);
+
         showDivider = true;
         if (ApplicationLoader.applicationLoaderInstance != null) {
             if (ApplicationLoader.applicationLoaderInstance.extendDrawer(items)) {
