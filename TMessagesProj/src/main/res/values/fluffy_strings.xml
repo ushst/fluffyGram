@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fluffySettings">fluffy Settings</string>
+    <string name="RestartAppToTakeEffect">Restart for aplly</string>
+    <string name="ChatTweak">Chat Tweak</string>
+    <string name="SelectCamera">Select Camera</string>
+    <string name="CameraFront">Front camera</string>
+    <string name="CameraBack">Back camera</string>
+</resources>

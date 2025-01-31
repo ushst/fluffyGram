@@ -25,4 +25,8 @@ public class fluffyConfig {
         editor.putBoolean("frontCamera", frontCamera);
         editor.commit();
     }
+    public static void writeCamera() {
+        editor.putBoolean("frontCamera", frontCamera);
+        editor.commit();
+    }
 }
