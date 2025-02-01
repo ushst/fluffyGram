@@ -19,10 +19,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.DownloadController;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.R;
+import org.telegram.messenger.*;
 import org.telegram.ui.*;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -40,6 +37,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.helpers.WhisperHelper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,7 +54,11 @@ public class fluffySettingsActivity extends BaseFragment {
     private ArrayList<File> storageDirs;
 
     private int chatSettingsSectionRow;
+    private int otherSettingsSectionRow;
     private int cameraSelectRow;
+    private int localPremiumRow;
+    private int voiceUseCloudflareRow;
+    private int cfCredentialsRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -76,7 +78,11 @@ public class fluffySettingsActivity extends BaseFragment {
 
         rowCount = 0;
         chatSettingsSectionRow = rowCount++;
+        voiceUseCloudflareRow = rowCount++;
+        cfCredentialsRow = rowCount++;
         cameraSelectRow = rowCount++;
+        otherSettingsSectionRow = rowCount++;
+        localPremiumRow = rowCount++;
 
         if (listAdapter != null && fullNotify) {
             listAdapter.notifyDataSetChanged();
@@ -184,8 +190,17 @@ public class fluffySettingsActivity extends BaseFragment {
                 });
                 setVisibleDialog(dlg);
                 dlg.show();
+            } else if (position == localPremiumRow) {
+                fluffyConfig.togglePremiumMode();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.premiumMode);
+            } else if (position == voiceUseCloudflareRow) {
+                fluffyConfig.toggleVoiceUseCloudflare();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
+            } else if (position == cfCredentialsRow) {
+                WhisperHelper.showCfCredentialsDialog(this);
             }
-
         });
         return fragmentView;
     }
@@ -240,6 +255,9 @@ public class fluffySettingsActivity extends BaseFragment {
                         }
                         textCell.setTextAndValue(LocaleController.getString(R.string.SelectCamera), value, updateCameraSelect, true);
                         updateCameraSelect = false;
+                    } else if (position == cfCredentialsRow) {
+                        textCell.setIcon(0);
+                        textCell.setText(LocaleController.getString(R.string.CloudflareCredentials), true);
                     }
                     break;
                 }
@@ -247,11 +265,18 @@ public class fluffySettingsActivity extends BaseFragment {
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == chatSettingsSectionRow) {
                         headerCell.setText(LocaleController.getString(R.string.ChatTweak));
+                    } else if (position == otherSettingsSectionRow) {
+                        headerCell.setText(LocaleController.getString(R.string.Other));
                     }
                     break;
                 }
                 case 3: {
                     TextCheckCell checkCell = (TextCheckCell) holder.itemView;
+                    if (position == localPremiumRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.LocalPremium), fluffyConfig.premiumMode, true);
+                    } else if (position == voiceUseCloudflareRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
+                    }
                     break;
                 }
                 case 4: {
@@ -271,11 +296,16 @@ public class fluffySettingsActivity extends BaseFragment {
             if (viewType == 3) {
                 TextCheckCell checkCell = (TextCheckCell) holder.itemView;
                 int position = holder.getAdapterPosition();
+                if (position == localPremiumRow) {
+                    checkCell.setChecked(fluffyConfig.premiumMode);
+                } else if (position == voiceUseCloudflareRow) {
+                    checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
+                }
             }
         }
 
         public boolean isRowEnabled(int position) {
-            return position == chatSettingsSectionRow;
+            return position == chatSettingsSectionRow || position == otherSettingsSectionRow || position == localPremiumRow || position == voiceUseCloudflareRow;
         }
 
         @Override
@@ -322,8 +352,10 @@ public class fluffySettingsActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == chatSettingsSectionRow) {
+            if (position == chatSettingsSectionRow || position == otherSettingsSectionRow) {
                 return 2;
+            } else if (position == localPremiumRow || position == voiceUseCloudflareRow) {
+                return 3;
             } else {
                 return 1;
             }

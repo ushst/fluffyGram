@@ -203,6 +203,7 @@ import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.StoryViewer;
 import org.telegram.ui.Stories.recorder.CaptionContainerView;
 import org.telegram.ui.Stories.recorder.DominantColors;
+import org.ushastoe.fluffy.helpers.WhisperHelper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10534,6 +10535,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             seekBarWaveform.setWaveform(waveform);
         }
         useTranscribeButton = (
+            WhisperHelper.useWorkersAi(currentAccount) ||
             currentMessageObject != null &&
             !currentMessageObject.isQuickReply() &&
             !currentMessageObject.isRepostPreview &&
