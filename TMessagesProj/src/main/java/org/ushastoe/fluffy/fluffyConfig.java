@@ -18,6 +18,7 @@ public class fluffyConfig {
 
     public static boolean zodiacShow;
     public static boolean showStories;
+    public static boolean showCallIcon;
 
     public static void init() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences("fluffyConfig", Activity.MODE_PRIVATE);
@@ -33,6 +34,7 @@ public class fluffyConfig {
         cfAccountID = preferences.getString("cfAccountID", "");
         zodiacShow = preferences.getBoolean("zodiacShow", false);
         showStories = preferences.getBoolean("showStories", true);
+        showCallIcon = preferences.getBoolean("showCallIcon", true);
     }
 
     public static void cameraSwitch() {
@@ -42,7 +44,6 @@ public class fluffyConfig {
     public static void writeCamera() {
         editor.putBoolean("frontCamera", frontCamera).apply();
     }
-
     public static void toggleShouldNotTrustMe() {
         shouldNOTTrustMe = !shouldNOTTrustMe;
         editor.putBoolean("shouldNOTTrustMe", shouldNOTTrustMe).apply();
@@ -51,33 +52,30 @@ public class fluffyConfig {
         premiumMode = !premiumMode;
         editor.putBoolean("premiumMode", premiumMode).apply();
     }
-
     public static void toogleZodiacShow() {
         zodiacShow = !zodiacShow;
         editor.putBoolean("zodiacShow", zodiacShow).apply();
     }
-
     public static void toggleVoiceUseCloudflare() {
         voiceUseCloudflare = !voiceUseCloudflare;
         editor.putBoolean("voiceUseCloudflare", voiceUseCloudflare).apply();
     }
-
     public static void setCfAccountID(String accountID) {
         cfAccountID = accountID;
         editor.putString("cfAccountID", cfAccountID).apply();
     }
-
     public static void setCfApiToken(String apiToken) {
         cfApiToken = apiToken;
         editor.putString("cfApiToken", cfApiToken).apply();
     }
-
     public static void toggleShowStories() {
         showStories = !showStories;
         editor.putBoolean("showStories", showStories).apply();
     }
-
-
+    public static void toggleShowCallIcon() {
+        showCallIcon = !showCallIcon;
+        editor.putBoolean("showCallIcon", showCallIcon).apply();
+    }
     public static String getTitleHeader() {
         return "fluffy";
     }

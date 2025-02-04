@@ -60,6 +60,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int localPremiumRow;
     private int zodiacShowRow;
     private int storiesShowRow;
+    private int callShowRow;
 
     private int voiceUseCloudflareRow;
     private int cfCredentialsRow;
@@ -87,6 +88,7 @@ public class fluffySettingsActivity extends BaseFragment {
         zodiacShowRow = rowCount++;
         appearanceSettingsSectionRow = rowCount++;
         storiesShowRow = rowCount++;
+        callShowRow = rowCount++;
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
         if (listAdapter != null && fullNotify) {
@@ -176,23 +178,23 @@ public class fluffySettingsActivity extends BaseFragment {
                     selected = 1;
                 }
                 Dialog dlg = AlertsCreator.createSingleChoiceDialog(getParentActivity(), new String[]{
-                    LocaleController.getString(R.string.CameraFront),
-                    LocaleController.getString(R.string.CameraBack)},
-                    LocaleController.getString(R.string.SelectCamera), selected, (dialog, which) -> {
-                        if (which == 0) {
-                            fluffyConfig.frontCamera = true;
-                        } else {
-                            fluffyConfig.frontCamera = false;
-                        }
-                        updateCameraSelect = true;
-                        writeCamera();
+                                LocaleController.getString(R.string.CameraFront),
+                                LocaleController.getString(R.string.CameraBack)},
+                        LocaleController.getString(R.string.SelectCamera), selected, (dialog, which) -> {
+                            if (which == 0) {
+                                fluffyConfig.frontCamera = true;
+                            } else {
+                                fluffyConfig.frontCamera = false;
+                            }
+                            updateCameraSelect = true;
+                            writeCamera();
 
-                        if (listAdapter != null) {
-                            listAdapter.notifyItemChanged(position);
-                        }
+                            if (listAdapter != null) {
+                                listAdapter.notifyItemChanged(position);
+                            }
 
-                        rebind(cameraSelectRow);
-                });
+                            rebind(cameraSelectRow);
+                        });
                 setVisibleDialog(dlg);
                 dlg.show();
             } else if (position == localPremiumRow) {
@@ -208,6 +210,10 @@ public class fluffySettingsActivity extends BaseFragment {
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.showStories);
                 getNotificationCenter().postNotificationName(NotificationCenter.storiesEnabledUpdate);
+            } else if (position == callShowRow) {
+                fluffyConfig.toggleShowCallIcon();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.showCallIcon);
             } else if (position == voiceUseCloudflareRow) {
                 fluffyConfig.toggleVoiceUseCloudflare();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
@@ -294,6 +300,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.zodiacShow), fluffyConfig.zodiacShow, true);
                     } else if (position == storiesShowRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.storiesShower), fluffyConfig.showStories, true);
+                    } else if (position == callShowRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.callShower), fluffyConfig.showCallIcon, true);
                     } else if (position == voiceUseCloudflareRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
                     }
@@ -322,6 +330,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.zodiacShow);
                 } else if (position == storiesShowRow) {
                     checkCell.setChecked(fluffyConfig.showStories);
+                } else if (position == callShowRow) {
+                    checkCell.setChecked(fluffyConfig.showCallIcon);
                 } else if (position == voiceUseCloudflareRow) {
                     checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
                 }
@@ -329,7 +339,14 @@ public class fluffySettingsActivity extends BaseFragment {
         }
 
         public boolean isRowEnabled(int position) {
-            return position == chatSettingsSectionRow || position == appearanceSettingsSectionRow || position == otherSettingsSectionRow || position == storiesShowRow || position == zodiacShowRow || position == localPremiumRow || position == voiceUseCloudflareRow;
+            return position == chatSettingsSectionRow ||
+                    position == appearanceSettingsSectionRow ||
+                    position == otherSettingsSectionRow ||
+                    position == storiesShowRow ||
+                    position == zodiacShowRow ||
+                    position == localPremiumRow ||
+                    position == voiceUseCloudflareRow ||
+                    position == callShowRow;
         }
 
         @Override
@@ -378,7 +395,12 @@ public class fluffySettingsActivity extends BaseFragment {
         public int getItemViewType(int position) {
             if (position == chatSettingsSectionRow || position == appearanceSettingsSectionRow || position == otherSettingsSectionRow) {
                 return 2;
-            } else if (position == localPremiumRow || position == storiesShowRow || position == zodiacShowRow || position == voiceUseCloudflareRow) {
+            } else if (position == localPremiumRow ||
+                    position == storiesShowRow ||
+                    position == zodiacShowRow ||
+                    position == voiceUseCloudflareRow ||
+                    position == callShowRow
+            ) {
                 return 3;
             } else {
                 return 1;
