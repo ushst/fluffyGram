@@ -207,6 +207,7 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toggleShowStories();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.showStories);
+                getNotificationCenter().postNotificationName(NotificationCenter.storiesEnabledUpdate);
             } else if (position == voiceUseCloudflareRow) {
                 fluffyConfig.toggleVoiceUseCloudflare();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
@@ -375,9 +376,9 @@ public class fluffySettingsActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == chatSettingsSectionRow || position == otherSettingsSectionRow) {
+            if (position == chatSettingsSectionRow || position == appearanceSettingsSectionRow || position == otherSettingsSectionRow) {
                 return 2;
-            } else if (position == localPremiumRow || position == zodiacShowRow || position == voiceUseCloudflareRow) {
+            } else if (position == localPremiumRow || position == storiesShowRow || position == zodiacShowRow || position == voiceUseCloudflareRow) {
                 return 3;
             } else {
                 return 1;
