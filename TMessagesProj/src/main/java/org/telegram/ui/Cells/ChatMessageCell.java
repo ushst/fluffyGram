@@ -10535,7 +10535,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             seekBarWaveform.setWaveform(waveform);
         }
         useTranscribeButton = (
-            WhisperHelper.useWorkersAi(currentAccount) ||
+            WhisperHelper.useWorkersAi() ||
             currentMessageObject != null &&
             !currentMessageObject.isQuickReply() &&
             !currentMessageObject.isRepostPreview &&
