@@ -59,6 +59,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int cameraSelectRow;
     private int localPremiumRow;
     private int zodiacShowRow;
+    private int storiesShowRow;
 
     private int voiceUseCloudflareRow;
     private int cfCredentialsRow;
@@ -85,6 +86,7 @@ public class fluffySettingsActivity extends BaseFragment {
         cameraSelectRow = rowCount++;
         zodiacShowRow = rowCount++;
         appearanceSettingsSectionRow = rowCount++;
+        storiesShowRow = rowCount++;
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
         if (listAdapter != null && fullNotify) {
@@ -197,11 +199,15 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.togglePremiumMode();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.premiumMode);
-            }  else if (position == zodiacShowRow) {
+            } else if (position == zodiacShowRow) {
                 fluffyConfig.toogleZodiacShow();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.zodiacShow);
-            }else if (position == voiceUseCloudflareRow) {
+            } else if (position == storiesShowRow) {
+                fluffyConfig.toggleShowStories();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.showStories);
+            } else if (position == voiceUseCloudflareRow) {
                 fluffyConfig.toggleVoiceUseCloudflare();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
@@ -285,6 +291,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.LocalPremium), fluffyConfig.premiumMode, true);
                     } else if (position == zodiacShowRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.zodiacShow), fluffyConfig.zodiacShow, true);
+                    } else if (position == storiesShowRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.storiesShower), fluffyConfig.showStories, true);
                     } else if (position == voiceUseCloudflareRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
                     }
@@ -311,6 +319,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.premiumMode);
                 } else if (position == zodiacShowRow) {
                     checkCell.setChecked(fluffyConfig.zodiacShow);
+                } else if (position == storiesShowRow) {
+                    checkCell.setChecked(fluffyConfig.showStories);
                 } else if (position == voiceUseCloudflareRow) {
                     checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
                 }
@@ -318,7 +328,7 @@ public class fluffySettingsActivity extends BaseFragment {
         }
 
         public boolean isRowEnabled(int position) {
-            return position == chatSettingsSectionRow || position == appearanceSettingsSectionRow || position == otherSettingsSectionRow ||position == zodiacShowRow || position == localPremiumRow || position == voiceUseCloudflareRow;
+            return position == chatSettingsSectionRow || position == appearanceSettingsSectionRow || position == otherSettingsSectionRow || position == storiesShowRow || position == zodiacShowRow || position == localPremiumRow || position == voiceUseCloudflareRow;
         }
 
         @Override

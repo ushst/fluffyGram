@@ -16,6 +16,7 @@ public class fluffyConfig {
     public static String cfAccountID;
     public static String cfApiToken;
     public static boolean zodiacShow;
+    public static boolean showStories;
 
     public static void init() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences("fluffyConfig", Activity.MODE_PRIVATE);
@@ -30,6 +31,7 @@ public class fluffyConfig {
         cfApiToken = preferences.getString("cfApiToken", "");
         cfAccountID = preferences.getString("cfAccountID", "");
         zodiacShow = preferences.getBoolean("zodiacShow", false);
+        showStories = preferences.getBoolean("showStories", true);
     }
 
     public static void cameraSwitch() {
@@ -77,6 +79,11 @@ public class fluffyConfig {
         editor.apply();
     }
 
+    public static void toggleShowStories() {
+        showStories = !showStories;
+        editor.putBoolean("showStories", showStories);
+        editor.apply();
+    }
 
 
     public static String getTitleHeader() {
