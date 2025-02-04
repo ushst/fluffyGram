@@ -15,6 +15,7 @@ public class fluffyConfig {
     public static boolean voiceUseCloudflare;
     public static String cfAccountID;
     public static String cfApiToken;
+
     public static boolean zodiacShow;
     public static boolean showStories;
 
@@ -36,53 +37,44 @@ public class fluffyConfig {
 
     public static void cameraSwitch() {
         frontCamera = !frontCamera;
-        editor.putBoolean("frontCamera", frontCamera);
-        editor.commit();
+        editor.putBoolean("frontCamera", frontCamera).apply();
     }
     public static void writeCamera() {
-        editor.putBoolean("frontCamera", frontCamera);
-        editor.commit();
+        editor.putBoolean("frontCamera", frontCamera).apply();
     }
 
     public static void toggleShouldNotTrustMe() {
         shouldNOTTrustMe = !shouldNOTTrustMe;
-        editor.putBoolean("shouldNOTTrustMe", shouldNOTTrustMe);
-        editor.commit();
+        editor.putBoolean("shouldNOTTrustMe", shouldNOTTrustMe).apply();
     }
     public static void togglePremiumMode() {
         premiumMode = !premiumMode;
-        editor.putBoolean("premiumMode", premiumMode);
-        editor.commit();
+        editor.putBoolean("premiumMode", premiumMode).apply();
     }
 
     public static void toogleZodiacShow() {
         zodiacShow = !zodiacShow;
-        editor.putBoolean("zodiacShow", zodiacShow);
-        editor.commit();
+        editor.putBoolean("zodiacShow", zodiacShow).apply();
     }
 
     public static void toggleVoiceUseCloudflare() {
         voiceUseCloudflare = !voiceUseCloudflare;
-        editor.putBoolean("voiceUseCloudflare", voiceUseCloudflare);
-        editor.apply();
+        editor.putBoolean("voiceUseCloudflare", voiceUseCloudflare).apply();
     }
 
     public static void setCfAccountID(String accountID) {
         cfAccountID = accountID;
-        editor.putString("cfAccountID", cfAccountID);
-        editor.apply();
+        editor.putString("cfAccountID", cfAccountID).apply();
     }
 
     public static void setCfApiToken(String apiToken) {
         cfApiToken = apiToken;
-        editor.putString("cfApiToken", cfApiToken);
-        editor.apply();
+        editor.putString("cfApiToken", cfApiToken).apply();
     }
 
     public static void toggleShowStories() {
         showStories = !showStories;
-        editor.putBoolean("showStories", showStories);
-        editor.apply();
+        editor.putBoolean("showStories", showStories).apply();
     }
 
 
