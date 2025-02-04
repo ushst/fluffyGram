@@ -57,6 +57,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int otherSettingsSectionRow;
     private int cameraSelectRow;
     private int localPremiumRow;
+    private int zodiacShowRow;
     private int voiceUseCloudflareRow;
     private int cfCredentialsRow;
     private int rowCount;
@@ -75,15 +76,14 @@ public class fluffySettingsActivity extends BaseFragment {
     }
 
     private void updateRows(boolean fullNotify) {
-
         rowCount = 0;
         chatSettingsSectionRow = rowCount++;
         voiceUseCloudflareRow = rowCount++;
         cfCredentialsRow = rowCount++;
         cameraSelectRow = rowCount++;
+        zodiacShowRow = rowCount++;
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
-
         if (listAdapter != null && fullNotify) {
             listAdapter.notifyDataSetChanged();
         }
@@ -194,7 +194,11 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.togglePremiumMode();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.premiumMode);
-            } else if (position == voiceUseCloudflareRow) {
+            }  else if (position == zodiacShowRow) {
+                fluffyConfig.toogleZodiacShow();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.zodiacShow);
+            }else if (position == voiceUseCloudflareRow) {
                 fluffyConfig.toggleVoiceUseCloudflare();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
@@ -274,6 +278,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     TextCheckCell checkCell = (TextCheckCell) holder.itemView;
                     if (position == localPremiumRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.LocalPremium), fluffyConfig.premiumMode, true);
+                    } else if (position == zodiacShowRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.zodiacShow), fluffyConfig.zodiacShow, true);
                     } else if (position == voiceUseCloudflareRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
                     }
@@ -298,6 +304,8 @@ public class fluffySettingsActivity extends BaseFragment {
                 int position = holder.getAdapterPosition();
                 if (position == localPremiumRow) {
                     checkCell.setChecked(fluffyConfig.premiumMode);
+                } else if (position == zodiacShowRow) {
+                    checkCell.setChecked(fluffyConfig.zodiacShow);
                 } else if (position == voiceUseCloudflareRow) {
                     checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
                 }
@@ -305,7 +313,7 @@ public class fluffySettingsActivity extends BaseFragment {
         }
 
         public boolean isRowEnabled(int position) {
-            return position == chatSettingsSectionRow || position == otherSettingsSectionRow || position == localPremiumRow || position == voiceUseCloudflareRow;
+            return position == chatSettingsSectionRow || position == otherSettingsSectionRow ||position == zodiacShowRow || position == localPremiumRow || position == voiceUseCloudflareRow;
         }
 
         @Override
@@ -354,7 +362,7 @@ public class fluffySettingsActivity extends BaseFragment {
         public int getItemViewType(int position) {
             if (position == chatSettingsSectionRow || position == otherSettingsSectionRow) {
                 return 2;
-            } else if (position == localPremiumRow || position == voiceUseCloudflareRow) {
+            } else if (position == localPremiumRow || position == zodiacShowRow || position == voiceUseCloudflareRow) {
                 return 3;
             } else {
                 return 1;

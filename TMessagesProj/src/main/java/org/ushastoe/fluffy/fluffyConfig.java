@@ -15,6 +15,7 @@ public class fluffyConfig {
     public static boolean voiceUseCloudflare;
     public static String cfAccountID;
     public static String cfApiToken;
+    public static boolean zodiacShow;
 
     public static void init() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences("fluffyConfig", Activity.MODE_PRIVATE);
@@ -28,6 +29,7 @@ public class fluffyConfig {
         voiceUseCloudflare = preferences.getBoolean("voiceUseCloudflare", false);
         cfApiToken = preferences.getString("cfApiToken", "");
         cfAccountID = preferences.getString("cfAccountID", "");
+        zodiacShow = preferences.getBoolean("zodiacShow", false);
     }
 
     public static void cameraSwitch() {
@@ -51,6 +53,12 @@ public class fluffyConfig {
         editor.commit();
     }
 
+    public static void toogleZodiacShow() {
+        zodiacShow = !zodiacShow;
+        editor.putBoolean("zodiacShow", zodiacShow);
+        editor.commit();
+    }
+
     public static void toggleVoiceUseCloudflare() {
         voiceUseCloudflare = !voiceUseCloudflare;
         editor.putBoolean("voiceUseCloudflare", voiceUseCloudflare);
@@ -67,6 +75,12 @@ public class fluffyConfig {
         cfApiToken = apiToken;
         editor.putString("cfApiToken", cfApiToken);
         editor.apply();
+    }
+
+
+
+    public static String getTitleHeader() {
+        return "fluffy";
     }
 
 }
