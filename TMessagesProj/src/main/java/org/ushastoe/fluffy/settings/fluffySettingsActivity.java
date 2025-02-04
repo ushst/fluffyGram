@@ -54,10 +54,12 @@ public class fluffySettingsActivity extends BaseFragment {
     private ArrayList<File> storageDirs;
 
     private int chatSettingsSectionRow;
+    private int appearanceSettingsSectionRow;
     private int otherSettingsSectionRow;
     private int cameraSelectRow;
     private int localPremiumRow;
     private int zodiacShowRow;
+
     private int voiceUseCloudflareRow;
     private int cfCredentialsRow;
     private int rowCount;
@@ -82,6 +84,7 @@ public class fluffySettingsActivity extends BaseFragment {
         cfCredentialsRow = rowCount++;
         cameraSelectRow = rowCount++;
         zodiacShowRow = rowCount++;
+        appearanceSettingsSectionRow = rowCount++;
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
         if (listAdapter != null && fullNotify) {
@@ -271,6 +274,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         headerCell.setText(LocaleController.getString(R.string.ChatTweak));
                     } else if (position == otherSettingsSectionRow) {
                         headerCell.setText(LocaleController.getString(R.string.Other));
+                    } else if (position == appearanceSettingsSectionRow) {
+                        headerCell.setText(LocaleController.getString(R.string.appearanceSettings));
                     }
                     break;
                 }
@@ -313,7 +318,7 @@ public class fluffySettingsActivity extends BaseFragment {
         }
 
         public boolean isRowEnabled(int position) {
-            return position == chatSettingsSectionRow || position == otherSettingsSectionRow ||position == zodiacShowRow || position == localPremiumRow || position == voiceUseCloudflareRow;
+            return position == chatSettingsSectionRow || position == appearanceSettingsSectionRow || position == otherSettingsSectionRow ||position == zodiacShowRow || position == localPremiumRow || position == voiceUseCloudflareRow;
         }
 
         @Override
