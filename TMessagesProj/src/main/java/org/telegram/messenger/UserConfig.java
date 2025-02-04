@@ -17,6 +17,7 @@ import android.util.LongSparseArray;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.Arrays;
 
@@ -555,9 +556,16 @@ public class UserConfig extends BaseController {
 
     public boolean isPremium() {
         TLRPC.User user = currentUser;
+
         if (user == null) {
             return false;
         }
+        long userId = UserConfig.getInstance(currentAccount).getCurrentUser().id;
+
+        if ((userId == user.id) && fluffyConfig.premiumMode) {
+            return true;
+        }
+
         return user.premium;
     }
 
