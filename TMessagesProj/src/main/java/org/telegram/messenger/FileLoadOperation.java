@@ -17,6 +17,7 @@ import org.telegram.tgnet.Vector;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Storage.CacheModel;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -285,10 +286,10 @@ public class FileLoadOperation {
     }
 
     private void updateParams() {
-        if ((preloadPrefixSize > 0 || MessagesController.getInstance(currentAccount).getfileExperimentalParams) && !forceSmallChunk) {
-            downloadChunkSizeBig = 1024 * 512;
-            maxDownloadRequests = 8;
-            maxDownloadRequestsBig = 8;
+        if (fluffyConfig.downloadSpeedBoost) {
+            downloadChunkSizeBig = 1024 * 1024;
+            maxDownloadRequests = 12;
+            maxDownloadRequestsBig = 12;
         } else {
             downloadChunkSizeBig = 1024 * 128;
             maxDownloadRequests = 4;

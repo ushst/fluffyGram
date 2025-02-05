@@ -1,8 +1,17 @@
 package org.ushastoe.fluffy;
 
+import static org.telegram.messenger.LocaleController.getString;
+
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
+
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.UserObject;
+import org.telegram.tgnet.TLRPC;
 
 public class fluffyConfig {
     public static SharedPreferences preferences;
@@ -17,6 +26,9 @@ public class fluffyConfig {
     public static String cfApiToken;
 
     public static boolean zodiacShow;
+    public static boolean downloadSpeedBoost;
+    public static boolean disableRoundingNumber;
+    public static int typeTitle;
     public static boolean showStories;
     public static boolean showCallIcon;
 
@@ -34,7 +46,10 @@ public class fluffyConfig {
         cfAccountID = preferences.getString("cfAccountID", "");
         zodiacShow = preferences.getBoolean("zodiacShow", false);
         showStories = preferences.getBoolean("showStories", true);
+        downloadSpeedBoost = preferences.getBoolean("downloadSpeedBoost", false);
         showCallIcon = preferences.getBoolean("showCallIcon", true);
+        typeTitle = preferences.getInt("typeTitle", 0);
+        disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
     }
 
     public static void cameraSwitch() {
@@ -76,8 +91,45 @@ public class fluffyConfig {
         showCallIcon = !showCallIcon;
         editor.putBoolean("showCallIcon", showCallIcon).apply();
     }
+    public static void toogleDownloadSpeedBoost() {
+        downloadSpeedBoost = !downloadSpeedBoost;
+        editor.putBoolean("downloadSpeedBoost", downloadSpeedBoost).apply();
+    }
+
+    public static void toogleRoundingNumber() {
+        disableRoundingNumber = !disableRoundingNumber;
+        editor.putBoolean("roundingNumber", disableRoundingNumber).apply();
+    }
+
+    public static String getUsername() {
+        String title;
+        TLRPC.User user = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
+        if (!TextUtils.isEmpty(UserObject.getPublicUsername(user))) {
+            title = UserObject.getPublicUsername(user);
+        } else {
+            title = UserObject.getFirstName(user);
+        }
+        return title;
+    }
+
     public static String getTitleHeader() {
-        return "fluffy";
+        switch (typeTitle) {
+            case 0:
+                return fluffyConfig.getUsername();
+            case 1:
+                return "fluffy";
+            case 2:
+                return "telegram";
+            case 3:
+                return "Disable";
+            default:
+                return LocaleController.getString(R.string.AppName);
+        }
+    }
+
+    public static void setTypeTitle(int type) {
+        typeTitle = type;
+        editor.putInt("typeTitle", typeTitle).apply();
     }
 
 }

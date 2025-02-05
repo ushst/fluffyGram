@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,17 +23,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.*;
 import org.telegram.ui.*;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.NotificationsCheckCell;
+import org.telegram.ui.Cells.RadioColorCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.AlertsCreator;
+import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -41,7 +45,10 @@ import org.ushastoe.fluffy.helpers.WhisperHelper;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.telegram.messenger.LocaleController.getString;
 import static org.ushastoe.fluffy.fluffyConfig.writeCamera;
 
 public class fluffySettingsActivity extends BaseFragment {
@@ -61,9 +68,12 @@ public class fluffySettingsActivity extends BaseFragment {
     private int zodiacShowRow;
     private int storiesShowRow;
     private int callShowRow;
+    private int downloadSpeedBoostRow;
+    private int selectTitleRow;
 
     private int voiceUseCloudflareRow;
     private int cfCredentialsRow;
+    private int disableRoundRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -86,11 +96,16 @@ public class fluffySettingsActivity extends BaseFragment {
         cfCredentialsRow = rowCount++;
         cameraSelectRow = rowCount++;
         zodiacShowRow = rowCount++;
+
         appearanceSettingsSectionRow = rowCount++;
+        selectTitleRow = rowCount++;
         storiesShowRow = rowCount++;
         callShowRow = rowCount++;
+        disableRoundRow = rowCount++;
+
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
+        downloadSpeedBoostRow = rowCount++;
         if (listAdapter != null && fullNotify) {
             listAdapter.notifyDataSetChanged();
         }
@@ -132,7 +147,7 @@ public class fluffySettingsActivity extends BaseFragment {
     @Override
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setTitle(LocaleController.getString(R.string.fluffySettings));
+        actionBar.setTitle(getString(R.string.fluffySettings));
         if (AndroidUtilities.isTablet()) {
             actionBar.setOccupyStatusBar(false);
         }
@@ -178,9 +193,9 @@ public class fluffySettingsActivity extends BaseFragment {
                     selected = 1;
                 }
                 Dialog dlg = AlertsCreator.createSingleChoiceDialog(getParentActivity(), new String[]{
-                                LocaleController.getString(R.string.CameraFront),
-                                LocaleController.getString(R.string.CameraBack)},
-                        LocaleController.getString(R.string.SelectCamera), selected, (dialog, which) -> {
+                                getString(R.string.CameraFront),
+                                getString(R.string.CameraBack)},
+                        getString(R.string.SelectCamera), selected, (dialog, which) -> {
                             if (which == 0) {
                                 fluffyConfig.frontCamera = true;
                             } else {
@@ -197,6 +212,49 @@ public class fluffySettingsActivity extends BaseFragment {
                         });
                 setVisibleDialog(dlg);
                 dlg.show();
+            } else if (position == selectTitleRow) {
+                if (getParentActivity() == null) {
+                    return;
+                }
+                AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+
+                LinearLayout linearLayout = new LinearLayout(context);
+                linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+                CharSequence[] items = new CharSequence[]{
+                        fluffyConfig.getUsername(),
+                        "fluffy",
+                        "telegram",
+                        "Disable"
+                };
+
+                for (int i = 0; i < items.length; ++i) {
+                    final int index = i;
+                    RadioColorCell cell = new RadioColorCell(getParentActivity());
+                    cell.setPadding(dp(4), 0, dp(4), 0);
+                    cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+                    cell.setTextAndValue(items[index], index == fluffyConfig.typeTitle);
+                    cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+                    linearLayout.addView(cell);
+                    cell.setOnClickListener(v -> {
+                        fluffyConfig.setTypeTitle(index);
+                        getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+                        RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(selectTitleRow);
+                        if (holder != null) {
+                            listAdapter.onBindViewHolder(holder, selectTitleRow);
+                        }
+                        getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+                        dialogRef.get().dismiss();
+                    });
+                }
+
+                Dialog dialog = new AlertDialog.Builder(getParentActivity())
+                        .setTitle(getString(R.string.TitleSelecter))
+                        .setView(linearLayout)
+                        .setNegativeButton(getString("Cancel", R.string.Cancel), null)
+                        .create();
+                dialogRef.set(dialog);
+                showDialog(dialog);
             } else if (position == localPremiumRow) {
                 fluffyConfig.togglePremiumMode();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
@@ -214,12 +272,20 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toggleShowCallIcon();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.showCallIcon);
+            } else if (position == downloadSpeedBoostRow) {
+                fluffyConfig.toogleDownloadSpeedBoost();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.downloadSpeedBoost);
             } else if (position == voiceUseCloudflareRow) {
                 fluffyConfig.toggleVoiceUseCloudflare();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
             } else if (position == cfCredentialsRow) {
                 WhisperHelper.showCfCredentialsDialog(this);
+            } else if (position == disableRoundRow) {
+                fluffyConfig.toogleRoundingNumber();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.disableRoundingNumber);
             }
         });
         return fragmentView;
@@ -269,41 +335,54 @@ public class fluffySettingsActivity extends BaseFragment {
                         textCell.setIcon(0);
                         String value = null;
                         if (fluffyConfig.frontCamera) {
-                            value = LocaleController.getString(R.string.CameraFront);
+                            value = getString(R.string.CameraFront);
                         } else {
-                            value = LocaleController.getString(R.string.CameraBack);
+                            value = getString(R.string.CameraBack);
                         }
-                        textCell.setTextAndValue(LocaleController.getString(R.string.SelectCamera), value, updateCameraSelect, true);
+                        textCell.setTextAndValue(getString(R.string.SelectCamera), value, updateCameraSelect, true);
                         updateCameraSelect = false;
+                    } else if (position == selectTitleRow) {
+                        String value = switch (fluffyConfig.typeTitle) {
+                            case 0 -> fluffyConfig.getUsername();
+                            case 1 -> "fluffy";
+                            case 2 -> "telegram";
+                            case 3 -> "Disable";
+                            default -> LocaleController.getString(R.string.AppName);
+                        };
+                        textCell.setTextAndValue(getString("TitleType", R.string.TitleSelecter), value, false, true);
                     } else if (position == cfCredentialsRow) {
                         textCell.setIcon(0);
-                        textCell.setText(LocaleController.getString(R.string.CloudflareCredentials), true);
+                        textCell.setText(getString(R.string.CloudflareCredentials), true);
                     }
                     break;
                 }
                 case 2: {
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == chatSettingsSectionRow) {
-                        headerCell.setText(LocaleController.getString(R.string.ChatTweak));
+                        headerCell.setText(getString(R.string.ChatTweak));
                     } else if (position == otherSettingsSectionRow) {
-                        headerCell.setText(LocaleController.getString(R.string.Other));
+                        headerCell.setText(getString(R.string.Other));
                     } else if (position == appearanceSettingsSectionRow) {
-                        headerCell.setText(LocaleController.getString(R.string.appearanceSettings));
+                        headerCell.setText(getString(R.string.appearanceSettings));
                     }
                     break;
                 }
                 case 3: {
                     TextCheckCell checkCell = (TextCheckCell) holder.itemView;
                     if (position == localPremiumRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString(R.string.LocalPremium), fluffyConfig.premiumMode, true);
+                        checkCell.setTextAndCheck(getString(R.string.LocalPremium), fluffyConfig.premiumMode, true);
                     } else if (position == zodiacShowRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString(R.string.zodiacShow), fluffyConfig.zodiacShow, true);
+                        checkCell.setTextAndCheck(getString(R.string.zodiacShow), fluffyConfig.zodiacShow, true);
                     } else if (position == storiesShowRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString(R.string.storiesShower), fluffyConfig.showStories, true);
+                        checkCell.setTextAndCheck(getString(R.string.storiesShower), fluffyConfig.showStories, true);
                     } else if (position == callShowRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString(R.string.callShower), fluffyConfig.showCallIcon, true);
+                        checkCell.setTextAndCheck(getString(R.string.callShower), fluffyConfig.showCallIcon, true);
+                    } else if (position == downloadSpeedBoostRow) {
+                        checkCell.setTextAndCheck(getString(R.string.downloadSpeedBoost), fluffyConfig.downloadSpeedBoost, true);
                     } else if (position == voiceUseCloudflareRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
+                        checkCell.setTextAndCheck(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
+                    } else if (position == disableRoundRow) {
+                        checkCell.setTextAndValueAndCheck(getString(R.string.DisableNumberRounding), "4.8K -> 4777", fluffyConfig.disableRoundingNumber, true, true);
                     }
                     break;
                 }
@@ -332,8 +411,12 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.showStories);
                 } else if (position == callShowRow) {
                     checkCell.setChecked(fluffyConfig.showCallIcon);
+                } else if (position == downloadSpeedBoostRow) {
+                    checkCell.setChecked(fluffyConfig.downloadSpeedBoost);
                 } else if (position == voiceUseCloudflareRow) {
                     checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
+                } else if (position == disableRoundRow) {
+                    checkCell.setChecked(fluffyConfig.disableRoundingNumber);
                 }
             }
         }
@@ -346,7 +429,9 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == zodiacShowRow ||
                     position == localPremiumRow ||
                     position == voiceUseCloudflareRow ||
-                    position == callShowRow;
+                    position == callShowRow ||
+                    position == downloadSpeedBoostRow ||
+                    position == disableRoundRow;
         }
 
         @Override
@@ -399,7 +484,9 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == storiesShowRow ||
                     position == zodiacShowRow ||
                     position == voiceUseCloudflareRow ||
-                    position == callShowRow
+                    position == callShowRow ||
+                    position == disableRoundRow ||
+                    position == downloadSpeedBoostRow
             ) {
                 return 3;
             } else {

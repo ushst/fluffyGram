@@ -31,6 +31,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.RestrictedLanguagesSelectActivity;
+import org.ushastoe.fluffy.fluffyConfig;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.BufferedWriter;
@@ -2654,6 +2655,12 @@ public class LocaleController {
     }
 
     public static String formatShortNumber(int number, int[] rounded) {
+        if (fluffyConfig.disableRoundingNumber) {
+            if (rounded != null) {
+                rounded[0] = number;
+            }
+            return String.valueOf(number);
+        }
         StringBuilder K = new StringBuilder();
         int lastDec = 0;
         int KCount = 0;
