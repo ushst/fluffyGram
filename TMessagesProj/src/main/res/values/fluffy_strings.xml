@@ -6,4 +6,35 @@
     <string name="SelectCamera">Select Camera</string>
     <string name="CameraFront">Front camera</string>
     <string name="CameraBack">Back camera</string>
+    <string name="LocalPremium">Premium hack</string>
+    <string name="zodiacShow">Show zodiac sign in profile</string>
+    <string name="idShow">Info</string>
+    <string name="UseCloudflare">Use Cloudflare</string>
+    <string name="ForwardFromSecret">Forward NoSender</string>
+    <string name="CloudflareCredentials">Cloudflare credentials</string>
+    <string name="CloudflareCredentialsNotSet">Cloudflare credentials are not configured.</string>
+    <string name="CloudflareAccountID">Account ID</string>
+    <string name="CloudflareAPIToken">API Token</string>
+    <string name="CloudflareCredentialsDialog">Configure Cloudflare Account ID and API Token.\n**How to obtain?**</string>
+    <string name="TitleSelecter">Select Title Type</string>
+    <string name="Other">Other (experimental)</string>
+    <string name="appearanceSettings">Appearance</string>
+    <string name="storiesShower">Show stories</string>
+    <string name="downloadSpeedBoost">Enable Download boost</string>
+    <string name="DisableNumberRounding">Disable number rounding</string>
+    <string name="callShower">Show call icon in chat</string>
+    <string name="zodiacSign">Zodiac</string>
+    <string name="zodiac_capricorn">♑ Capricorn</string>
+    <string name="zodiac_aquarius">♒ Aquarius</string>
+    <string name="zodiac_pisces">♓ Pisces</string>
+    <string name="zodiac_aries">♈ Aries</string>
+    <string name="zodiac_taurus">♉ Taurus</string>
+    <string name="zodiac_gemini">♊ Gemini</string>
+    <string name="zodiac_cancer">♋ Cancer</string>
+    <string name="zodiac_leo">♌ Leo</string>
+    <string name="zodiac_virgo">♍ Virgo</string>
+    <string name="zodiac_libra">♎ Libra</string>
+    <string name="zodiac_scorpio">♏ Scorpio</string>
+    <string name="zodiac_sagittarius">♐ Sagittarius</string>
+
 </resources>
