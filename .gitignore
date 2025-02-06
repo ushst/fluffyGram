@@ -13,3 +13,5 @@ TMessagesProj_App/afat/
 TMessagesProj_AppHockeyApp/afat/
 TMessagesProj_AppStandalone/afat/
 TMessagesProj_AppHuawei/afat/
+TMessagesProj/google-services.json
+TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
