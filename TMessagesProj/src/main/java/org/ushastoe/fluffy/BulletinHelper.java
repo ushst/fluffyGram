@@ -7,6 +7,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
 
+import static org.telegram.messenger.LocaleController.getString;
 import static org.ushastoe.fluffy.fluffyConfig.frontCamera;
 
 public class BulletinHelper {
@@ -32,6 +33,19 @@ public class BulletinHelper {
         }
     }
 
+    public static void showRestartNotification(@NonNull BaseFragment fragment) {
+        try {
+            Drawable drawable = fragment.getContext().getDrawable(R.drawable.filled_info);
+            String text = getString(R.string.restartAlarm);
+            currentBulletin = BulletinFactory.of(fragment).createSimpleBulletin(
+                    drawable,
+                    text
+            );
+            currentBulletin.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public static void hideFrontCameraNotification() {
         if (currentBulletin != null) {
             currentBulletin.hide();
