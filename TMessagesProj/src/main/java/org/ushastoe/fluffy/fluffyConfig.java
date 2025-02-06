@@ -29,6 +29,7 @@ public class fluffyConfig {
     public static boolean downloadSpeedBoost;
     public static boolean disableRoundingNumber;
     public static int typeTitle;
+    public static boolean centerTitle;
     public static boolean showStories;
     public static boolean showCallIcon;
 
@@ -50,6 +51,7 @@ public class fluffyConfig {
         showCallIcon = preferences.getBoolean("showCallIcon", true);
         typeTitle = preferences.getInt("typeTitle", 0);
         disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
+        centerTitle = preferences.getBoolean("centerTitle", false);
     }
 
     public static void cameraSwitch() {
@@ -95,7 +97,10 @@ public class fluffyConfig {
         downloadSpeedBoost = !downloadSpeedBoost;
         editor.putBoolean("downloadSpeedBoost", downloadSpeedBoost).apply();
     }
-
+    public static void toggleCenterTitle() {
+        centerTitle = !centerTitle;
+        editor.putBoolean("centerTitle", centerTitle).apply();
+    }
     public static void toogleRoundingNumber() {
         disableRoundingNumber = !disableRoundingNumber;
         editor.putBoolean("roundingNumber", disableRoundingNumber).apply();

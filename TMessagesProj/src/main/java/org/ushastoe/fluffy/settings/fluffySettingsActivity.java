@@ -40,6 +40,7 @@ import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
@@ -68,6 +69,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int zodiacShowRow;
     private int storiesShowRow;
     private int callShowRow;
+    private int centerTitleRow;
     private int downloadSpeedBoostRow;
     private int selectTitleRow;
 
@@ -101,6 +103,7 @@ public class fluffySettingsActivity extends BaseFragment {
         selectTitleRow = rowCount++;
         storiesShowRow = rowCount++;
         callShowRow = rowCount++;
+        centerTitleRow = rowCount++;
         disableRoundRow = rowCount++;
 
         otherSettingsSectionRow = rowCount++;
@@ -243,6 +246,10 @@ public class fluffySettingsActivity extends BaseFragment {
                         if (holder != null) {
                             listAdapter.onBindViewHolder(holder, selectTitleRow);
                         }
+
+                        if (LaunchActivity.getSafeLastFragment() != null) {
+                            BulletinHelper.showRestartNotification(LaunchActivity.getSafeLastFragment());
+                        }
                         getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
                         dialogRef.get().dismiss();
                     });
@@ -272,6 +279,14 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toggleShowCallIcon();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.showCallIcon);
+            } else if (position == centerTitleRow) {
+                fluffyConfig.toggleCenterTitle();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.centerTitle);
+                if (LaunchActivity.getSafeLastFragment() != null) {
+                    BulletinHelper.showRestartNotification(LaunchActivity.getSafeLastFragment());
+                }
+                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
             } else if (position == downloadSpeedBoostRow) {
                 fluffyConfig.toogleDownloadSpeedBoost();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
@@ -377,6 +392,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(getString(R.string.storiesShower), fluffyConfig.showStories, true);
                     } else if (position == callShowRow) {
                         checkCell.setTextAndCheck(getString(R.string.callShower), fluffyConfig.showCallIcon, true);
+                    } else if (position == centerTitleRow) {
+                        checkCell.setTextAndCheck(getString(R.string.centerTitle), fluffyConfig.centerTitle, true);
                     } else if (position == downloadSpeedBoostRow) {
                         checkCell.setTextAndCheck(getString(R.string.downloadSpeedBoost), fluffyConfig.downloadSpeedBoost, true);
                     } else if (position == voiceUseCloudflareRow) {
@@ -411,6 +428,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.showStories);
                 } else if (position == callShowRow) {
                     checkCell.setChecked(fluffyConfig.showCallIcon);
+                } else if (position == centerTitleRow) {
+                    checkCell.setChecked(fluffyConfig.centerTitle);
                 } else if (position == downloadSpeedBoostRow) {
                     checkCell.setChecked(fluffyConfig.downloadSpeedBoost);
                 } else if (position == voiceUseCloudflareRow) {
@@ -430,6 +449,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == localPremiumRow ||
                     position == voiceUseCloudflareRow ||
                     position == callShowRow ||
+                    position == centerTitleRow ||
                     position == downloadSpeedBoostRow ||
                     position == disableRoundRow;
         }
@@ -486,6 +506,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == voiceUseCloudflareRow ||
                     position == callShowRow ||
                     position == disableRoundRow ||
+                    position == centerTitleRow ||
                     position == downloadSpeedBoostRow
             ) {
                 return 3;

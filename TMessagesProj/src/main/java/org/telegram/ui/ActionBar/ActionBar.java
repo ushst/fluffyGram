@@ -60,6 +60,7 @@ import org.telegram.ui.Components.FireworksEffect;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.SnowflakesEffect;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
 
@@ -414,7 +415,7 @@ public class ActionBar extends FrameLayout {
             return;
         }
         titleTextView[i] = new SimpleTextView(getContext());
-        titleTextView[i].setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        titleTextView[i].setGravity((fluffyConfig.centerTitle ? Gravity.CENTER : Gravity.LEFT)| Gravity.CENTER_VERTICAL);
         if (titleColorToSet != 0) {
             titleTextView[i].setTextColor(titleColorToSet);
         } else {
@@ -426,7 +427,7 @@ public class ActionBar extends FrameLayout {
         titleTextView[i].setPadding(0, dp(8), 0, dp(8));
         titleTextView[i].setRightDrawableTopPadding(-dp(1));
         if (useContainerForTitles) {
-            titlesContainer.addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
+            titlesContainer.addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (fluffyConfig.centerTitle ? Gravity.CENTER : Gravity.LEFT) | Gravity.TOP));
         } else {
             addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
         }
