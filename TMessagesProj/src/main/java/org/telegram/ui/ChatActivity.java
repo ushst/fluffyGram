@@ -9,6 +9,7 @@
 package org.telegram.ui;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.telegram.messenger.AndroidUtilities.getActivity;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
 
@@ -287,6 +288,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.ushastoe.fluffy.helpers.IpApiHelper;
+import org.ushastoe.fluffy.helpers.MessageHelper;
 
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider, InstantCameraView.Delegate {
@@ -40456,6 +40460,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final boolean isHashtag = str.startsWith("#") || str.startsWith("$");
         final boolean isMail = str.startsWith("mailto:");
 
+        System.out.println("str: " + str);
+        String ipPattern = "^(https?:\\/\\/)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(:\\d{1,5})?$";
+        final boolean isIp = str.matches(ipPattern);
+        System.out.println("isIp: " + isIp);
+
         if (!isMail) {
             options.add(R.drawable.msg_openin, getString(customTabs && !isHashtag ? R.string.OpenInTelegramBrowser : R.string.Open), () -> {
                 if (str.startsWith("video?")) {
@@ -40469,11 +40478,31 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             });
         }
 
-        if (customTabs && !isHashtag || isMail) {
-            options.add(R.drawable.msg_language, getString(R.string.OpenInSystemBrowser), () -> {
-                Browser.openInExternalBrowser(getParentActivity(), str, false);
+        if (isIp) {
+            options.add(R.drawable.msg_info, getString(R.string.checkIp), () -> {
+                IpApiHelper.getIpInfo(str, (ipInfo, exception) -> {
+                    String textDialog;
+                    if (exception != null) {
+                        textDialog = "Error fetching IP info: " + exception;
+                    } else {
+                        textDialog = ipInfo.toString();
+                    }
+
+                    // Обновляем UI в главном потоке
+                    getActivity().runOnUiThread(() -> {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                        builder.setTitle(LocaleController.getString(R.string.checkIp));
+                        builder.setMessage(textDialog);
+                        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialogInterface, i) -> {
+                            dialogInterface.dismiss();
+                        });
+
+                        builder.show();
+                    });
+                });
             });
         }
+
 
         TLRPC.MessageMedia media = MessageObject.getMedia(messageObject);
         if (media instanceof TLRPC.TL_messageMediaWebPage && media.webpage != null && media.webpage.cached_page != null && TextUtils.equals(media.webpage.url, str)) {
