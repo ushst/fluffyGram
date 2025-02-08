@@ -76,6 +76,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int voiceUseCloudflareRow;
     private int cfCredentialsRow;
     private int disableRoundRow;
+    private int formatTimeWithSecondsRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -105,6 +106,7 @@ public class fluffySettingsActivity extends BaseFragment {
         callShowRow = rowCount++;
         centerTitleRow = rowCount++;
         disableRoundRow = rowCount++;
+        formatTimeWithSecondsRow = rowCount++;
 
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
@@ -301,6 +303,10 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toogleRoundingNumber();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.disableRoundingNumber);
+            } else if (position == formatTimeWithSecondsRow) {
+                fluffyConfig.toogleFormatTimeWithSeconds();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.formatTimeWithSeconds);
             }
         });
         return fragmentView;
@@ -400,6 +406,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
                     } else if (position == disableRoundRow) {
                         checkCell.setTextAndValueAndCheck(getString(R.string.DisableNumberRounding), "4.8K -> 4777", fluffyConfig.disableRoundingNumber, true, true);
+                    } else if (position == formatTimeWithSecondsRow) {
+                        checkCell.setTextAndCheck(getString(R.string.formatTime), fluffyConfig.formatTimeWithSeconds, true);
                     }
                     break;
                 }
@@ -436,6 +444,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
                 } else if (position == disableRoundRow) {
                     checkCell.setChecked(fluffyConfig.disableRoundingNumber);
+                } else if (position == formatTimeWithSecondsRow) {
+                    checkCell.setChecked(fluffyConfig.formatTimeWithSeconds);
                 }
             }
         }
@@ -451,7 +461,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == callShowRow ||
                     position == centerTitleRow ||
                     position == downloadSpeedBoostRow ||
-                    position == disableRoundRow;
+                    position == disableRoundRow ||
+                    position == formatTimeWithSecondsRow;
         }
 
         @Override
@@ -507,6 +518,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == callShowRow ||
                     position == disableRoundRow ||
                     position == centerTitleRow ||
+                    position == formatTimeWithSecondsRow ||
                     position == downloadSpeedBoostRow
             ) {
                 return 3;

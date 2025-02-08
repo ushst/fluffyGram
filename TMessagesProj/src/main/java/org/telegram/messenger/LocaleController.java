@@ -64,6 +64,9 @@ public class LocaleController {
 
     private volatile FastDateFormat formatterDay;
     public FastDateFormat getFormatterDay() {
+        if (fluffyConfig.formatTimeWithSeconds) {
+            return getFormatterDayWithSeconds();
+        }
         if (formatterDay == null) {
             synchronized (this) {
                 if (formatterDay == null) {
@@ -78,6 +81,24 @@ public class LocaleController {
             }
         }
         return formatterDay;
+    }
+
+    private volatile FastDateFormat formatterDayWithSeconds;
+    public FastDateFormat getFormatterDayWithSeconds() {
+        if (formatterDayWithSeconds == null) {
+            synchronized (this) {
+                if (formatterDayWithSeconds == null) {
+                    final Locale locale = currentLocale == null ? Locale.getDefault() : currentLocale;
+                    String lang = locale.getLanguage();
+                    if (lang == null) {
+                        lang = "en";
+                    }
+                    lang = lang.toLowerCase();
+                    formatterDayWithSeconds = createFormatter(lang.toLowerCase().equals("ar") || lang.toLowerCase().equals("ko") ? locale : Locale.US, is24HourFormat ? getStringInternal("formatterDay24HSec", R.string.formatterDay24HSec) : getStringInternal("formatterDay12HSec", R.string.formatterDay12HSec), is24HourFormat ? "HH:mm:ss" : "h:mm:ss a");
+                }
+            }
+        }
+        return formatterDayWithSeconds;
     }
 
     private volatile FastDateFormat formatterConstDay;

@@ -28,6 +28,7 @@ public class fluffyConfig {
     public static boolean zodiacShow;
     public static boolean downloadSpeedBoost;
     public static boolean disableRoundingNumber;
+    public static boolean formatTimeWithSeconds;
     public static int typeTitle;
     public static boolean centerTitle;
     public static boolean showStories;
@@ -51,6 +52,7 @@ public class fluffyConfig {
         showCallIcon = preferences.getBoolean("showCallIcon", true);
         typeTitle = preferences.getInt("typeTitle", 0);
         disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
+        formatTimeWithSeconds = preferences.getBoolean("formatTimeWithSeconds", false);
         centerTitle = preferences.getBoolean("centerTitle", false);
     }
 
@@ -105,7 +107,10 @@ public class fluffyConfig {
         disableRoundingNumber = !disableRoundingNumber;
         editor.putBoolean("roundingNumber", disableRoundingNumber).apply();
     }
-
+    public static void toogleFormatTimeWithSeconds() {
+        formatTimeWithSeconds = !formatTimeWithSeconds;
+        editor.putBoolean("formatTimeWithSeconds", formatTimeWithSeconds).apply();
+    }
     public static String getUsername() {
         String title;
         TLRPC.User user = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
