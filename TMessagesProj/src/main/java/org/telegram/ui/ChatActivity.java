@@ -40478,6 +40478,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             });
         }
 
+        if (customTabs && !isHashtag || isMail) {
+            options.add(R.drawable.msg_language, getString(R.string.OpenInSystemBrowser), () -> {
+                Browser.openInExternalBrowser(getParentActivity(), str, false);
+            });
+        }
+
         if (isIp) {
             options.add(R.drawable.msg_info, getString(R.string.checkIp), () -> {
                 IpApiHelper.getIpInfo(str, (ipInfo, exception) -> {
