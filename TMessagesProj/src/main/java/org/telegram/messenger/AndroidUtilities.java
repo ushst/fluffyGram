@@ -169,6 +169,8 @@ import org.telegram.ui.Stories.PeerStoriesView;
 import org.telegram.ui.Stories.StoryMediaAreasView;
 import org.telegram.ui.ThemePreviewActivity;
 import org.telegram.ui.WallpapersListActivity;
+import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.helpers.FontUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -225,6 +227,9 @@ public class AndroidUtilities {
     public final static int REPLACING_TAG_TYPE_LINK_NBSP = 3;
     public final static int REPLACING_TAG_TYPE_UNDERLINE = 4;
 
+    public final static String TYPEFACE_ROBOTO_CONDENSED_BOLD = "fonts/rcondensedbold.ttf";
+    public final static String TYPEFACE_ROBOTO_REGULAR = "fonts/rregular.ttf";
+    public final static String TYPEFACE_ROBOTO_ITALIC = "fonts/ritalic.ttf";
     public final static String TYPEFACE_ROBOTO_MEDIUM = "fonts/rmedium.ttf";
     public final static String TYPEFACE_ROBOTO_MEDIUM_ITALIC = "fonts/rmediumitalic.ttf";
     public final static String TYPEFACE_ROBOTO_MONO = "fonts/rmono.ttf";
@@ -2275,27 +2280,59 @@ public class AndroidUtilities {
     public static Typeface getTypeface(String assetPath) {
         synchronized (typefaceCache) {
             if (!typefaceCache.containsKey(assetPath)) {
+                Typeface t = null;
                 try {
-                    Typeface t;
-                    if (Build.VERSION.SDK_INT >= 26) {
-                        Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
-                        if (assetPath.contains("medium")) {
-                            builder.setWeight(700);
+                    if (fluffyConfig.useSystemFonts) {
+                        switch (assetPath) {
+                            case TYPEFACE_ROBOTO_MONO:
+                                t = Typeface.MONOSPACE;
+                                break;
+                            case TYPEFACE_ROBOTO_CONDENSED_BOLD:
+                                t = Typeface.create("sans-serif-condensed", Typeface.BOLD);
+                                break;
+                            case TYPEFACE_ROBOTO_MEDIUM_ITALIC:
+                                if (FontUtils.isMediumWeightSupported()) {
+                                    t = Typeface.create("sans-serif-medium", Typeface.ITALIC);
+                                } else {
+                                    t = Typeface.create("sans-serif", Typeface.BOLD_ITALIC);
+                                }
+                                break;
+                            case TYPEFACE_ROBOTO_MEDIUM:
+                                if (FontUtils.isMediumWeightSupported()) {
+                                    t = Typeface.create("sans-serif-medium", Typeface.NORMAL);
+                                } else {
+                                    t = Typeface.create("sans-serif", Typeface.BOLD);
+                                }
+                                break;
+                            case TYPEFACE_ROBOTO_ITALIC:
+                                t = Build.VERSION.SDK_INT >= 28 ? Typeface.create(Typeface.SANS_SERIF, 400, true) : Typeface.create("sans-serif", Typeface.ITALIC);
+                                break;
+                            default:
+                                t = Build.VERSION.SDK_INT >= 28 ? Typeface.create(Typeface.SANS_SERIF, 400, false) : Typeface.create("sans-serif", Typeface.NORMAL);
+                                break;
                         }
-                        if (assetPath.contains("italic")) {
-                            builder.setItalic(true);
-                        }
-                        t = builder.build();
                     } else {
-                        t = Typeface.createFromAsset(ApplicationLoader.applicationContext.getAssets(), assetPath);
+                        if (Build.VERSION.SDK_INT >= 26) {
+                            Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
+                            if (assetPath.contains("medium")) {
+                                builder.setWeight(700);
+                            }
+                            if (assetPath.contains("italic")) {
+                                builder.setItalic(true);
+                            }
+                            t = builder.build();
+                        } else {
+                            t = Typeface.createFromAsset(ApplicationLoader.applicationContext.getAssets(), assetPath);
+                        }
                     }
-                    typefaceCache.put(assetPath, t);
                 } catch (Exception e) {
                     if (BuildVars.LOGS_ENABLED) {
                         FileLog.e("Could not get typeface '" + assetPath + "' because " + e.getMessage());
                     }
                     return null;
                 }
+                typefaceCache.put(assetPath, t);
+                return t;
             }
             return typefaceCache.get(assetPath);
         }
@@ -2309,6 +2346,11 @@ public class AndroidUtilities {
         return value;
     }
 
+    public static void clearTypefaceCache() {
+        synchronized (typefaceCache) {
+            typefaceCache.clear();
+        }
+    }
     public static void setWaitingForSms(boolean value) {
         synchronized (smsLock) {
             waitingForSms = value;

@@ -29,6 +29,7 @@ public class fluffyConfig {
     public static boolean downloadSpeedBoost;
     public static boolean disableRoundingNumber;
     public static boolean formatTimeWithSeconds;
+    public static boolean useSystemFonts;
     public static int typeTitle;
     public static boolean centerTitle;
     public static boolean showStories;
@@ -54,6 +55,7 @@ public class fluffyConfig {
         disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
         formatTimeWithSeconds = preferences.getBoolean("formatTimeWithSeconds", false);
         centerTitle = preferences.getBoolean("centerTitle", false);
+        useSystemFonts = preferences.getBoolean("useSystemFonts", false);
     }
 
     public static void cameraSwitch() {
@@ -110,6 +112,10 @@ public class fluffyConfig {
     public static void toogleFormatTimeWithSeconds() {
         formatTimeWithSeconds = !formatTimeWithSeconds;
         editor.putBoolean("formatTimeWithSeconds", formatTimeWithSeconds).apply();
+    }
+    public static void toogleUseSystemFonts() {
+        useSystemFonts = !useSystemFonts;
+        editor.putBoolean("useSystemFonts", useSystemFonts).apply();
     }
     public static String getUsername() {
         String title;
