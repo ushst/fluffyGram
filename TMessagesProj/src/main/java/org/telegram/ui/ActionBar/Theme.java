@@ -3326,6 +3326,8 @@ public class Theme {
     public static Drawable chat_commentArrowDrawable;
     public static Drawable chat_gradientLeftDrawable;
     public static Drawable chat_gradientRightDrawable;
+    public static Drawable chat_editDrawable;
+
     public static Drawable[] chat_msgInCallDrawable = new Drawable[2];
     public static Drawable[] chat_msgInCallSelectedDrawable = new Drawable[2];
     public static Drawable[] chat_msgOutCallDrawable = new Drawable[2];
@@ -8784,6 +8786,9 @@ public class Theme {
             chat_muteIconDrawable = resources.getDrawable(R.drawable.list_mute).mutate();
             chat_lockIconDrawable = resources.getDrawable(R.drawable.ic_lock_header);
             chat_msgInCallDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();
+
+            chat_editDrawable = resources.getDrawable(R.drawable.edit_pencil).mutate();
+
             chat_msgInCallSelectedDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();
             chat_msgOutCallDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();
             chat_msgOutCallSelectedDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();
