@@ -36,7 +36,6 @@ import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.AlertsCreator;
-import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -80,6 +79,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int formatTimeWithSecondsRow;
     private int doubleTapInActionRow;
     private int doubleTapOutActionRow;
+    private int moreInfoOnlineRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -113,6 +113,7 @@ public class fluffySettingsActivity extends BaseFragment {
         formatTimeWithSecondsRow = rowCount++;
         doubleTapInActionRow = rowCount++;
         doubleTapOutActionRow = rowCount++;
+        moreInfoOnlineRow = rowCount++;
 
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
@@ -321,6 +322,10 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toogleFormatTimeWithSeconds();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.formatTimeWithSeconds);
+            } else if (position == moreInfoOnlineRow) {
+                fluffyConfig.toggleMoreInfoOnline();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.moreInfoOnline);
             } else if (position == doubleTapInActionRow) {
                 if (getParentActivity() == null) {
                     return;
@@ -560,6 +565,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
                     } else if (position == disableRoundRow) {
                         checkCell.setTextAndValueAndCheck(getString(R.string.DisableNumberRounding), "4.8K -> 4777", fluffyConfig.disableRoundingNumber, true, true);
+                    } else if (position == moreInfoOnlineRow) {
+                        checkCell.setTextAndCheck(getString(R.string.ExtendedStatusOnline), fluffyConfig.disableRoundingNumber, true);
                     } else if (position == systemTypefaceRow) {
                         checkCell.setTextAndCheck(getString(R.string.UseSystemTypeface), fluffyConfig.useSystemFonts, true);
                     } else if (position == formatTimeWithSecondsRow) {
@@ -600,6 +607,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
                 } else if (position == disableRoundRow) {
                     checkCell.setChecked(fluffyConfig.disableRoundingNumber);
+                } else if (position == moreInfoOnlineRow) {
+                    checkCell.setChecked(fluffyConfig.moreInfoOnline);
                 } else if (position == systemTypefaceRow) {
                     checkCell.setChecked(fluffyConfig.useSystemFonts);
                 } else if (position == formatTimeWithSecondsRow) {
@@ -620,6 +629,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == centerTitleRow ||
                     position == downloadSpeedBoostRow ||
                     position == disableRoundRow ||
+                    position == moreInfoOnlineRow ||
                     position == systemTypefaceRow ||
                     position == formatTimeWithSecondsRow;
         }
@@ -676,6 +686,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == voiceUseCloudflareRow ||
                     position == callShowRow ||
                     position == disableRoundRow ||
+                    position == moreInfoOnlineRow ||
                     position == centerTitleRow ||
                     position == systemTypefaceRow ||
                     position == formatTimeWithSecondsRow ||

@@ -35,6 +35,7 @@ public class fluffyConfig {
     public static boolean centerTitle;
     public static boolean showStories;
     public static boolean showCallIcon;
+    public static boolean moreInfoOnline;
 
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
@@ -62,6 +63,7 @@ public class fluffyConfig {
         showStories = preferences.getBoolean("showStories", true);
         downloadSpeedBoost = preferences.getBoolean("downloadSpeedBoost", false);
         showCallIcon = preferences.getBoolean("showCallIcon", true);
+        moreInfoOnline = preferences.getBoolean("moreInfoOnline", false);
         typeTitle = preferences.getInt("typeTitle", 0);
         disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
         formatTimeWithSeconds = preferences.getBoolean("formatTimeWithSeconds", false);
@@ -111,6 +113,10 @@ public class fluffyConfig {
     public static void toggleShowCallIcon() {
         showCallIcon = !showCallIcon;
         editor.putBoolean("showCallIcon", showCallIcon).apply();
+    }
+    public static void toggleMoreInfoOnline() {
+        moreInfoOnline = !moreInfoOnline;
+        editor.putBoolean("moreInfoOnline", moreInfoOnline).apply();
     }
     public static void toogleDownloadSpeedBoost() {
         downloadSpeedBoost = !downloadSpeedBoost;
