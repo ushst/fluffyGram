@@ -12,6 +12,9 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
+import org.ushastoe.fluffy.helpers.BaseIconSet;
+import org.ushastoe.fluffy.helpers.EmptyIconSet;
+import org.ushastoe.fluffy.helpers.SolarIconSet;
 
 public class fluffyConfig {
     public static SharedPreferences preferences;
@@ -33,6 +36,7 @@ public class fluffyConfig {
     public static boolean hideTopBar;
     public static int typeTitle;
     public static boolean centerTitle;
+    public static boolean useSolarIcons;
     public static boolean showStories;
     public static boolean showCallIcon;
     public static boolean moreInfoOnline;
@@ -61,6 +65,7 @@ public class fluffyConfig {
         cfAccountID = preferences.getString("cfAccountID", "");
         zodiacShow = preferences.getBoolean("zodiacShow", false);
         showStories = preferences.getBoolean("showStories", true);
+        useSolarIcons = preferences.getBoolean("useSolarIcons", true);
         downloadSpeedBoost = preferences.getBoolean("downloadSpeedBoost", false);
         showCallIcon = preferences.getBoolean("showCallIcon", true);
         moreInfoOnline = preferences.getBoolean("moreInfoOnline", false);
@@ -110,6 +115,10 @@ public class fluffyConfig {
         showStories = !showStories;
         editor.putBoolean("showStories", showStories).apply();
     }
+    public static void toggleUseSolarIcons() {
+        useSolarIcons = !useSolarIcons;
+        editor.putBoolean("useSolarIcons", useSolarIcons).apply();
+    }
     public static void toggleShowCallIcon() {
         showCallIcon = !showCallIcon;
         editor.putBoolean("showCallIcon", showCallIcon).apply();
@@ -151,6 +160,10 @@ public class fluffyConfig {
     public static void setDoubleTapOutAction(int action) {
         doubleTapOutAction = action;
         editor.putInt("doubleTapOutAction", doubleTapOutAction).apply();
+    }
+
+    public static BaseIconSet getIconPack() {
+        return useSolarIcons ? new SolarIconSet() : new EmptyIconSet();
     }
 
     public static String getUsername() {

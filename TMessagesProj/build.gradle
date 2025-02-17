@@ -67,6 +67,12 @@ android {
     compileSdkVersion 34
     ndkVersion "21.4.7075529"
 
+    sourceSets {
+        main {
+            res.srcDirs += 'src/main/res-solar'
+        }
+    }
+
     buildFeatures {
         buildConfig true
     }

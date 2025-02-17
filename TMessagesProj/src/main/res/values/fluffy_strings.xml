@@ -25,6 +25,7 @@
     <string name="DisableNumberRounding">Disable number rounding</string>
     <string name="ExtendedStatusOnline">Extended online status</string>
     <string name="UseSystemTypeface">Use system font</string>
+    <string name="useSolarIcons">Use solar icons</string>
     <string name="callShower">Show call icon in chat</string>
     <string name="HideThisBar">Hide this bar</string>
     <string name="centerTitle">Center title</string>

@@ -76,6 +76,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int cfCredentialsRow;
     private int disableRoundRow;
     private int systemTypefaceRow;
+    private int useSolarIconsRow;
     private int formatTimeWithSecondsRow;
     private int doubleTapInActionRow;
     private int doubleTapOutActionRow;
@@ -110,6 +111,7 @@ public class fluffySettingsActivity extends BaseFragment {
         centerTitleRow = rowCount++;
         disableRoundRow = rowCount++;
         systemTypefaceRow = rowCount++;
+        useSolarIconsRow = rowCount++;
         formatTimeWithSecondsRow = rowCount++;
         doubleTapInActionRow = rowCount++;
         doubleTapOutActionRow = rowCount++;
@@ -322,6 +324,10 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toogleFormatTimeWithSeconds();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.formatTimeWithSeconds);
+            } else if (position == useSolarIconsRow) {
+                fluffyConfig.toggleUseSolarIcons();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.useSolarIcons);
             } else if (position == moreInfoOnlineRow) {
                 fluffyConfig.toggleMoreInfoOnline();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
@@ -569,6 +575,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(getString(R.string.ExtendedStatusOnline), fluffyConfig.disableRoundingNumber, true);
                     } else if (position == systemTypefaceRow) {
                         checkCell.setTextAndCheck(getString(R.string.UseSystemTypeface), fluffyConfig.useSystemFonts, true);
+                    } else if (position == useSolarIconsRow) {
+                        checkCell.setTextAndCheck(getString(R.string.useSolarIcons), fluffyConfig.useSolarIcons, true);
                     } else if (position == formatTimeWithSecondsRow) {
                         checkCell.setTextAndCheck(getString(R.string.formatTime), fluffyConfig.formatTimeWithSeconds, true);
                     }
@@ -611,6 +619,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.moreInfoOnline);
                 } else if (position == systemTypefaceRow) {
                     checkCell.setChecked(fluffyConfig.useSystemFonts);
+                } else if (position == useSolarIconsRow) {
+                    checkCell.setChecked(fluffyConfig.useSolarIcons);
                 } else if (position == formatTimeWithSecondsRow) {
                     checkCell.setChecked(fluffyConfig.formatTimeWithSeconds);
                 }
@@ -631,6 +641,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == disableRoundRow ||
                     position == moreInfoOnlineRow ||
                     position == systemTypefaceRow ||
+                    position == useSolarIconsRow ||
                     position == formatTimeWithSecondsRow;
         }
 
@@ -689,6 +700,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == moreInfoOnlineRow ||
                     position == centerTitleRow ||
                     position == systemTypefaceRow ||
+                    position == useSolarIconsRow ||
                     position == formatTimeWithSecondsRow ||
                     position == downloadSpeedBoostRow
             ) {
