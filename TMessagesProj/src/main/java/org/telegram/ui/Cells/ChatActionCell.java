@@ -1810,22 +1810,13 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                 textHeight = 0;
                 textY = 0;
             } else if (messageObject.type == MessageObject.TYPE_ACTION_WALLPAPER) {
-                TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(messageObject.isOutOwner() ? 0 : messageObject.getDialogId());
                 CharSequence description;
                 String action = null;
                 boolean actionClickableAsImage = true;
-                if (messageObject.getDialogId() < 0) {
-                    description = messageObject.messageText;
-                } else if (!messageObject.isOutOwner() && messageObject.isWallpaperForBoth() && messageObject.isCurrentWallpaper()) {
-                    description = messageObject.messageText;
-                    action = getString(R.string.RemoveWallpaperAction);
-                    actionClickableAsImage = false;
-                } else if (user != null && user.id == UserConfig.getInstance(currentAccount).clientUserId) {
-                    description = messageObject.messageText;
-                } else {
-                    description = messageObject.messageText;
-                    action = getString(R.string.ViewWallpaperAction);
-                }
+
+                description = messageObject.messageText;
+                action = getString(R.string.ViewWallpaperAction);
+
                 createGiftPremiumLayouts(null, null, description, false, action, 11, null, giftRectSize, actionClickableAsImage);
                 textLayout = null;
                 textHeight = 0;
