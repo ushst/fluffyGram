@@ -25,6 +25,7 @@
     <string name="DisableNumberRounding">Disable number rounding</string>
     <string name="UseSystemTypeface">Use system font</string>
     <string name="callShower">Show call icon in chat</string>
+    <string name="HideThisBar">Hide this bar</string>
     <string name="centerTitle">Center title</string>
     <string name="checkIp">Check GEO</string>
     <string name="formatterDay12HSec">h:mm:ss a</string>
@@ -44,5 +45,8 @@
     <string name="zodiac_libra">♎ Libra</string>
     <string name="zodiac_scorpio">♏ Scorpio</string>
     <string name="zodiac_sagittarius">♐ Sagittarius</string>
-
+    <string name="Repeat">Repeat</string>
+    <string name="AddToSavedMessages">Save message</string>
+    <string name="doubleTapInAction">Double tap on not my message</string>
+    <string name="doubleTapOutAction">Double tap on my message</string>
 </resources>
