@@ -1,5 +1,7 @@
 package org.telegram.ui.Stories;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -70,6 +72,7 @@ import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -216,6 +219,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         recyclerListView.setAdapter(adapter);
         addView(recyclerListView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, FAKE_TOP_PADDING, 0, 0));
 
+
         titleView = new AnimatedTextView(getContext(), true, true, false);
         titleView.setGravity(Gravity.LEFT);
         titleView.setTextColor(getTextColor());
@@ -223,6 +227,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8));
         titleView.setTextSize(AndroidUtilities.dp(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20));
+
+
         addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         titleView.setAlpha(0f);
@@ -476,10 +482,10 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                     currentTitle = str;
                 }
             } else {
-                currentTitle = LocaleController.getString(R.string.MyStory);
+                currentTitle = fluffyConfig.getTitleHeader();
             }
         } else {
-            currentTitle = LocaleController.formatPluralString("Stories", totalCount);
+            currentTitle = fluffyConfig.getTitleHeader();
         }
 
         if (!hasOverlayText) {

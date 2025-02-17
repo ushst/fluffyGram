@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import static org.ushastoe.fluffy.helpers.SystemHelper.checkTheme;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
@@ -652,7 +654,7 @@ public class ApplicationLoader extends Application {
     }
 
     public void onResume() {
-
+        checkTheme();
     }
 
     public boolean onPause() {
