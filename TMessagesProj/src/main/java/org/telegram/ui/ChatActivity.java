@@ -12,6 +12,7 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.getActivity;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
+import static org.ushastoe.fluffy.helpers.MessageHelper.getTextOrBase64;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -36978,11 +36979,33 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 didLongPressCopyButton(((TLRPC.TL_keyboardButtonCopy) button).copy_text);
                 return;
             }
-            if (button instanceof TLRPC.TL_keyboardButtonUrl) {
+
+            if (!TextUtils.isEmpty(button.url)) {
                 openClickableLink(null, button.url, true, cell, cell.getMessageObject(), false);
-                try {
-                    cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                } catch (Exception ignore) {}
+            } else {
+                BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity(), false, themeDelegate);
+
+                builder.setItems(new CharSequence[]{
+                        button.text,
+                        button.data != null ? getTextOrBase64(button.data) : null,
+                        button.query != null ? LocaleController.getString(R.string.CopyInlineQuery) : null,
+                        button.user_id != 0 ? LocaleController.getString(R.string.CopyID) : null}, (dialog, which) -> {
+                    if (which == 0) {
+                        AndroidUtilities.addToClipboard(button.text);
+                    } else if (which == 1) {
+                        AndroidUtilities.addToClipboard(getTextOrBase64(button.data));
+                    } else if (which == 2) {
+                        AndroidUtilities.addToClipboard(button.query);
+                    } else if (which == 3) {
+                        AndroidUtilities.addToClipboard(String.valueOf(button.user_id));
+                    }
+                    createUndoView();
+                    if (undoView == null) {
+                        return;
+                    }
+                    undoView.showWithAction(0, UndoView.ACTION_TEXT_COPIED, null);
+                });
+                showDialog(builder.create());
             }
         }
 

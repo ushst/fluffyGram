@@ -29,10 +29,16 @@
     <string name="HideThisBar">Hide this bar</string>
     <string name="centerTitle">Center title</string>
     <string name="checkIp">Check GEO</string>
+    <string name="CopyInlineQuery">Copy Inline Query</string>
+    <string name="CopyID">Copy ID</string>
+
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="formatterDay24HSec">HH:mm:ss</string>
+
     <string name="restartAlarm">Restart app for apply</string>
     <string name="restart">Restart</string>
+
+
     <string name="zodiacSign">Zodiac</string>
     <string name="zodiac_capricorn">♑ Capricorn</string>
     <string name="zodiac_aquarius">♒ Aquarius</string>
