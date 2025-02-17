@@ -137,7 +137,7 @@ public class DefaultThemesPreviewCell extends LinearLayout {
                 editor.commit();
             }
 
-            Theme.turnOffAutoNight(parentFragment);
+//            Theme.turnOffAutoNight(parentFragment);
         });
 
         progressView = new FlickerLoadingView(getContext(), null);
@@ -274,7 +274,7 @@ public class DefaultThemesPreviewCell extends LinearLayout {
                             dayNightCell.setTextAndIcon(LocaleController.getString(R.string.SettingsSwitchToDayMode), darkThemeDrawable, true);
                         }
 
-                        Theme.turnOffAutoNight(parentFragment);
+//                        Theme.turnOffAutoNight(parentFragment);
                     };
 
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, themeInfo, false, pos, -1, toDark, dayNightCell.getImageView(), dayNightCell, then);
