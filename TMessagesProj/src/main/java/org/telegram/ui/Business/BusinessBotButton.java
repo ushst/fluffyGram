@@ -30,6 +30,7 @@ import org.telegram.ui.Components.ClickableAnimatedTextView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
+import org.ushastoe.fluffy.fluffyConfig;
 
 public class BusinessBotButton extends FrameLayout {
 
@@ -151,6 +152,12 @@ public class BusinessBotButton extends FrameLayout {
                     Browser.openUrl(getContext(), manageUrl);
                 });
             }
+            itemOptions.add(R.drawable.msg_cancel, LocaleController.getString(R.string.HideThisBar), false, () -> {
+                fluffyConfig.toogleHideTopBar();
+                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.peerSettingsDidLoad, dialogId);
+                BusinessChatbotController.getInstance(currentAccount).invalidate(false);
+
+            });
             itemOptions.translate(dp(10), dp(7));
             itemOptions.setDimAlpha(0);
             itemOptions.show();
