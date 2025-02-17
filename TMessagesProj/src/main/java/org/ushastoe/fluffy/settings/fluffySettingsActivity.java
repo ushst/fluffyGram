@@ -78,6 +78,8 @@ public class fluffySettingsActivity extends BaseFragment {
     private int disableRoundRow;
     private int systemTypefaceRow;
     private int formatTimeWithSecondsRow;
+    private int doubleTapInActionRow;
+    private int doubleTapOutActionRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -109,6 +111,8 @@ public class fluffySettingsActivity extends BaseFragment {
         disableRoundRow = rowCount++;
         systemTypefaceRow = rowCount++;
         formatTimeWithSecondsRow = rowCount++;
+        doubleTapInActionRow = rowCount++;
+        doubleTapOutActionRow = rowCount++;
 
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
@@ -317,6 +321,100 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toogleFormatTimeWithSeconds();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.formatTimeWithSeconds);
+            } else if (position == doubleTapInActionRow) {
+                if (getParentActivity() == null) {
+                    return;
+                }
+
+                AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+
+                LinearLayout linearLayout = new LinearLayout(context);
+                linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+                CharSequence[] items = new CharSequence[]{
+                        "None", // DOUBLE_TAP_ACTION_NONE
+                        "Reaction", // DOUBLE_TAP_ACTION_REACTION
+                        "Reply", // DOUBLE_TAP_ACTION_REPLY
+                        "Save", // DOUBLE_TAP_ACTION_SAVE
+                        "Repeat", // DOUBLE_TAP_ACTION_REPEAT
+                        "Edit" // DOUBLE_TAP_ACTION_EDIT
+                };
+
+                for (int i = 0; i < items.length; ++i) {
+                    final int index = i;
+                    RadioColorCell cell = new RadioColorCell(getParentActivity());
+                    cell.setPadding(dp(4), 0, dp(4), 0);
+                    cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+                    cell.setTextAndValue(items[index], index == fluffyConfig.doubleTapInAction); // Проверяем текущее выбранное действие
+                    cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+                    linearLayout.addView(cell);
+                    cell.setOnClickListener(v -> {
+                        fluffyConfig.setDoubleTapInAction(index);
+                        getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+
+                        RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(doubleTapInActionRow);
+                        if (holder != null) {
+                            listAdapter.onBindViewHolder(holder, doubleTapInActionRow);
+                        }
+
+                        dialogRef.get().dismiss();
+                    });
+                }
+
+                Dialog dialog = new AlertDialog.Builder(getParentActivity())
+                        .setTitle("Select Double Tap Action")
+                        .setView(linearLayout)
+                        .setNegativeButton("Cancel", null)
+                        .create();
+                dialogRef.set(dialog);
+                showDialog(dialog);
+            } else if (position == doubleTapOutActionRow) {
+                if (getParentActivity() == null) {
+                    return;
+                }
+
+                AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+
+                LinearLayout linearLayout = new LinearLayout(context);
+                linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+                CharSequence[] items = new CharSequence[]{
+                        "None", // DOUBLE_TAP_ACTION_NONE
+                        "Reaction", // DOUBLE_TAP_ACTION_REACTION
+                        "Reply", // DOUBLE_TAP_ACTION_REPLY
+                        "Save", // DOUBLE_TAP_ACTION_SAVE
+                        "Repeat", // DOUBLE_TAP_ACTION_REPEAT
+                        "Edit" // DOUBLE_TAP_ACTION_EDIT
+                };
+
+                for (int i = 0; i < items.length; ++i) {
+                    final int index = i;
+                    RadioColorCell cell = new RadioColorCell(getParentActivity());
+                    cell.setPadding(dp(4), 0, dp(4), 0);
+                    cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+                    cell.setTextAndValue(items[index], index == fluffyConfig.doubleTapOutAction);
+                    cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+                    linearLayout.addView(cell);
+                    cell.setOnClickListener(v -> {
+                        fluffyConfig.setDoubleTapOutAction(index);
+                        getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+
+                        RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(doubleTapOutActionRow);
+                        if (holder != null) {
+                            listAdapter.onBindViewHolder(holder, doubleTapOutActionRow);
+                        }
+
+                        dialogRef.get().dismiss();
+                    });
+                }
+
+                Dialog dialog = new AlertDialog.Builder(getParentActivity())
+                        .setTitle("Select Double Tap Action")
+                        .setView(linearLayout)
+                        .setNegativeButton("Cancel", null)
+                        .create();
+                dialogRef.set(dialog);
+                showDialog(dialog);
             }
         });
         return fragmentView;
@@ -384,6 +482,52 @@ public class fluffySettingsActivity extends BaseFragment {
                     } else if (position == cfCredentialsRow) {
                         textCell.setIcon(0);
                         textCell.setText(getString(R.string.CloudflareCredentials), true);
+                    } else if (position == doubleTapInActionRow) {
+                        CharSequence[] items = new CharSequence[]{
+                                "None", // DOUBLE_TAP_ACTION_NONE (0)
+                                "Reaction", // DOUBLE_TAP_ACTION_REACTION (1)
+                                "Reply", // DOUBLE_TAP_ACTION_REPLY (3)
+                                "Save", // DOUBLE_TAP_ACTION_SAVE (4)
+                                "Repeat", // DOUBLE_TAP_ACTION_REPEAT (5)
+                                "Edit" // DOUBLE_TAP_ACTION_EDIT (6)
+                        };
+
+                        String value;
+                        if (fluffyConfig.doubleTapInAction >= 0 && fluffyConfig.doubleTapInAction < items.length) {
+                            value = items[fluffyConfig.doubleTapInAction].toString();
+                        } else {
+                            value = LocaleController.getString(R.string.AppName);
+                        }
+
+                        textCell.setTextAndValue(
+                                getString("doubleTapInAction", R.string.doubleTapInAction),
+                                value, // Значение
+                                false, // Показывать разделитель?
+                                true // Показывать стрелку?
+                        );
+                    } else if (position == doubleTapOutActionRow) {
+                        CharSequence[] items = new CharSequence[]{
+                                "None", // DOUBLE_TAP_ACTION_NONE (0)
+                                "Reaction", // DOUBLE_TAP_ACTION_REACTION (1)
+                                "Reply", // DOUBLE_TAP_ACTION_REPLY (3)
+                                "Save", // DOUBLE_TAP_ACTION_SAVE (4)
+                                "Repeat", // DOUBLE_TAP_ACTION_REPEAT (5)
+                                "Edit" // DOUBLE_TAP_ACTION_EDIT (6)
+                        };
+
+                        String value;
+                        if (fluffyConfig.doubleTapOutAction >= 0 && fluffyConfig.doubleTapOutAction < items.length) {
+                            value = items[fluffyConfig.doubleTapOutAction].toString();
+                        } else {
+                            value = LocaleController.getString(R.string.AppName);
+                        }
+
+                        textCell.setTextAndValue(
+                                getString("doubleTapInAction", R.string.doubleTapOutAction),
+                                value, // Значение
+                                false, // Показывать разделитель?
+                                true // Показывать стрелку?
+                        );
                     }
                     break;
                 }

@@ -30,10 +30,21 @@ public class fluffyConfig {
     public static boolean disableRoundingNumber;
     public static boolean formatTimeWithSeconds;
     public static boolean useSystemFonts;
+    public static boolean hideTopBar;
     public static int typeTitle;
     public static boolean centerTitle;
     public static boolean showStories;
     public static boolean showCallIcon;
+
+    public static final int DOUBLE_TAP_ACTION_NONE = 0;
+    public static final int DOUBLE_TAP_ACTION_REACTION = 1;
+    public static final int DOUBLE_TAP_ACTION_REPLY = 2;
+    public static final int DOUBLE_TAP_ACTION_SAVE = 3;
+    public static final int DOUBLE_TAP_ACTION_REPEAT = 4;
+    public static final int DOUBLE_TAP_ACTION_EDIT = 5;
+
+    public static int doubleTapInAction;
+    public static int doubleTapOutAction;
 
     public static void init() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences("fluffyConfig", Activity.MODE_PRIVATE);
@@ -56,6 +67,10 @@ public class fluffyConfig {
         formatTimeWithSeconds = preferences.getBoolean("formatTimeWithSeconds", false);
         centerTitle = preferences.getBoolean("centerTitle", false);
         useSystemFonts = preferences.getBoolean("useSystemFonts", false);
+        hideTopBar = preferences.getBoolean("hideTopBar", false);
+        doubleTapInAction = preferences.getInt("doubleTapAction", DOUBLE_TAP_ACTION_REACTION);
+        doubleTapOutAction = preferences.getInt("doubleTapOutAction", DOUBLE_TAP_ACTION_REACTION);
+
     }
 
     public static void cameraSwitch() {
@@ -117,6 +132,21 @@ public class fluffyConfig {
         useSystemFonts = !useSystemFonts;
         editor.putBoolean("useSystemFonts", useSystemFonts).apply();
     }
+    public static void toogleHideTopBar() {
+        hideTopBar = !hideTopBar;
+        editor.putBoolean("hideTopBar", hideTopBar).apply();
+    }
+
+    public static void setDoubleTapInAction(int action) {
+        doubleTapInAction = action;
+        editor.putInt("doubleTapInAction", doubleTapInAction).apply();
+    }
+
+    public static void setDoubleTapOutAction(int action) {
+        doubleTapOutAction = action;
+        editor.putInt("doubleTapOutAction", doubleTapOutAction).apply();
+    }
+
     public static String getUsername() {
         String title;
         TLRPC.User user = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
