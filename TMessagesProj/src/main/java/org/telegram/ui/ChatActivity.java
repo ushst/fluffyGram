@@ -1084,6 +1084,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int OPTION_EDIT_PRICE = 107;
     private final static int OPTION_GIFT = 108;
 
+    private final static int OPTION_SAVE_MESSAGE = 93;
+    private final static int OPTION_REPEAT = 94;
+
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
             NotificationCenter.threadMessagesRead,
@@ -1694,72 +1697,129 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public boolean hasDoubleTap(View view, int position) {
             if (chatMode == MODE_QUICK_REPLIES) return false;
-            String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
-            TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
-            if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
+            if (!(view instanceof ChatMessageCell)) {
                 return false;
             }
-            boolean available = dialog_id >= 0;
-            if (!available && chatInfo != null) {
-                available = ChatObject.reactionIsAvailable(chatInfo, reaction == null ? reactionStringSetting : reaction.reaction);
-            }
-            if (!available) {
+            var cell = (ChatMessageCell) view;
+            var message = cell.getMessageObject();
+            var doubleTapAction = message.isOut() ? fluffyConfig.doubleTapOutAction : fluffyConfig.doubleTapInAction;
+            if (doubleTapAction == fluffyConfig.DOUBLE_TAP_ACTION_NONE) {
                 return false;
             }
-            MessageObject messageObject;
-            if (view instanceof ChatMessageCell) {
-                messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
-            } else if (view instanceof ChatActionCell) {
-                messageObject = ((ChatActionCell) view).getMessageObject();
+            if (doubleTapAction == fluffyConfig.DOUBLE_TAP_ACTION_REACTION) {
+                if (getDialogId() == getUserConfig().getClientUserId() && !getUserConfig().isPremium()) {
+                    return false;
+                }
+                String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
+                TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
+                if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
+                    return false;
+                }
+                boolean available = dialog_id >= 0;
+                if (!available && chatInfo != null) {
+                    available = ChatObject.reactionIsAvailable(chatInfo, reaction == null ? reactionStringSetting : reaction.reaction);
+                }
+                if (!available || !(view instanceof ChatMessageCell)) {
+                    return false;
+                }
+                return !cell.getMessageObject().isSending() && !cell.getMessageObject().isEditing() && cell.getMessageObject().type != MessageObject.TYPE_PHONE_CALL && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !cell.getMessageObject().isSponsored();
             } else {
-                return false;
+                var messageGroup = getValidGroupedMessage(message);
+                var noforwards = getMessagesController().isChatNoForwards(currentChat) || message.messageOwner.noforwards;
+                boolean allowChatActions = chatMode != MODE_SCHEDULED && (threadMessageObjects == null || !threadMessageObjects.contains(message)) &&
+                        !message.isSponsored() && (getMessageType(message) != 1 || message.getDialogId() != mergeDialogId) &&
+                        !(message.messageOwner.action instanceof TLRPC.TL_messageActionSecureValuesSent) &&
+                        (currentEncryptedChat != null || message.getId() >= 0) &&
+                        (bottomOverlayChat == null || bottomOverlayChat.getVisibility() != View.VISIBLE || bottomOverlayChatWaitsReply && selectedObject != null && (MessageObject.getTopicId(currentAccount, selectedObject.messageOwner, ChatObject.isForum(currentChat)) != 0 || selectedObject.wasJustSent)) &&
+                        (currentChat == null || ((!ChatObject.isNotInChat(currentChat) || isThreadChat()) && (!ChatObject.isChannel(currentChat) || ChatObject.canPost(currentChat) || currentChat.megagroup) && ChatObject.canSendMessages(currentChat)));
+                boolean allowEdit = message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId;
+                if (allowEdit && messageGroup != null) {
+                    int captionsCount = 0;
+                    for (int a = 0, N = messageGroup.messages.size(); a < N; a++) {
+                        MessageObject messageObject = messageGroup.messages.get(a);
+                        if (a == 0 || !TextUtils.isEmpty(messageObject.caption)) {
+                            selectedObjectToEditCaption = messageObject;
+                            if (!TextUtils.isEmpty(messageObject.caption)) {
+                                captionsCount++;
+                            }
+                        }
+                    }
+                    allowEdit = captionsCount < 2;
+                }
+                switch (doubleTapAction) {
+                    case fluffyConfig.DOUBLE_TAP_ACTION_REPLY:
+                        return message.getId() > 0 && allowChatActions;
+                    case fluffyConfig.DOUBLE_TAP_ACTION_SAVE:
+                        return !message.isSponsored() && chatMode != MODE_SCHEDULED && (!message.needDrawBluredPreview() || message.hasExtendedMediaPreview()) && !message.isLiveLocation() && message.type != MessageObject.TYPE_PHONE_CALL && !noforwards && message.type != MessageObject.TYPE_GIFT_PREMIUM && !UserObject.isUserSelf(currentUser);
+                    case fluffyConfig.DOUBLE_TAP_ACTION_EDIT:
+                        return allowEdit;
+                }
             }
-            return messageObject != null && !messageObject.isDateObject && !messageObject.isSending() && messageObject.canSetReaction() && !messageObject.isEditing() && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !messageObject.isSponsored();
+            return false;
         }
 
         @Override
         public void onDoubleTap(View view, int position, float x, float y) {
-            if (getParentActivity() == null || isSecretChat() || isInScheduleMode() || isInPreviewMode() || chatMode == MODE_QUICK_REPLIES) {
+            if (!(view instanceof ChatMessageCell) || getParentActivity() == null || isSecretChat() || isInScheduleMode() || isInPreviewMode() || chatMode == MODE_QUICK_REPLIES) {
                 return;
             }
-            MessageObject messageObject;
-            if (view instanceof ChatMessageCell) {
-                messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
-            } else if (view instanceof ChatActionCell) {
-                messageObject = ((ChatActionCell) view).getMessageObject();
-                if (messageObject.isDateObject) {
+
+            var cell = (ChatMessageCell) view;
+            var message = cell.getMessageObject();
+            var doubleTapAction = message.isOut() ? fluffyConfig.doubleTapOutAction : fluffyConfig.doubleTapInAction;
+            if (doubleTapAction == fluffyConfig.DOUBLE_TAP_ACTION_NONE) {
+                return;
+            }
+            if (doubleTapAction == fluffyConfig.DOUBLE_TAP_ACTION_REACTION) {
+                if (isSecretChat() || isInScheduleMode()) {
                     return;
+                }
+                MessageObject primaryMessage = cell.getPrimaryMessageObject();
+                if (primaryMessage.isSecretMedia() || primaryMessage.isExpiredStory() || primaryMessage.type == MessageObject.TYPE_JOINED_CHANNEL) {
+                    return;
+                }
+                ReactionsEffectOverlay.removeCurrent(false);
+                String reactionString = getMediaDataController().getDoubleTapReaction();
+                if (reactionString.startsWith("animated_")) {
+                    boolean available = dialog_id >= 0;
+                    if (!available && chatInfo != null) {
+                        available = ChatObject.reactionIsAvailable(chatInfo, reactionString);
+                    }
+                    if (!available) {
+                        return;
+                    }
+                    selectReaction(cell, primaryMessage, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
+                } else {
+                    TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionString);
+                    if (reaction == null || cell.getMessageObject().isSponsored()) {
+                        return;
+                    }
+                    boolean available = dialog_id >= 0;
+                    if (!available && chatInfo != null) {
+                        available = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
+                    }
+                    if (!available) {
+                        return;
+                    }
+                    selectReaction(cell, primaryMessage, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reaction), true, false, false, false);
                 }
             } else {
-                return;
-            }
-            if (messageObject.isSecretMedia() || !messageObject.canSetReaction() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
-                return;
-            }
-            ReactionsEffectOverlay.removeCurrent(false);
-            String reactionString = getMediaDataController().getDoubleTapReaction();
-            if (reactionString.startsWith("animated_")) {
-                boolean available = dialog_id >= 0;
-                if (!available && chatInfo != null) {
-                    available = ChatObject.reactionIsAvailable(chatInfo, reactionString);
+                selectedObject = message;
+                selectedObjectGroup = getValidGroupedMessage(message);
+                switch (doubleTapAction) {
+                    case fluffyConfig.DOUBLE_TAP_ACTION_REPLY:
+                        processSelectedOption(OPTION_REPLY);
+                        break;
+                    case fluffyConfig.DOUBLE_TAP_ACTION_SAVE:
+                        processSelectedOption(OPTION_SAVE_MESSAGE);
+                        break;
+                    case fluffyConfig.DOUBLE_TAP_ACTION_REPEAT:
+                        processSelectedOption(OPTION_REPEAT);
+                        break;
+                    case fluffyConfig.DOUBLE_TAP_ACTION_EDIT:
+                        processSelectedOption(OPTION_EDIT);
+                        break;
                 }
-                if (!available) {
-                    return;
-                }
-                selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
-            } else {
-                TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionString);
-                if (reaction == null || messageObject.isSponsored()) {
-                    return;
-                }
-                boolean available = dialog_id >= 0;
-                if (!available && chatInfo != null) {
-                    available = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
-                }
-                if (!available) {
-                    return;
-                }
-                selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reaction), true, false, false, false);
             }
         }
     };
@@ -3550,6 +3610,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     clearSelectionMode();
                 } else if (id == edit) {
                     MessageObject messageObject = null;
+
                     for (int a = 1; a >= 0; a--) {
                         if (messageObject == null && selectedMessagesIds[a].size() == 1) {
                             ArrayList<Integer> ids = new ArrayList<>();
@@ -27015,6 +27076,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private boolean shownRestartTopic, shownTranslateTopic;
     private boolean shownBotVerification;
     private void updateTopPanel(boolean animated) {
+        System.out.println("updateTopPanel");
         if (chatMode != 0) {
             return;
         }
@@ -27059,7 +27121,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 getMessagesController().getTranslateController().isDialogTranslatable(getDialogId()) && !getMessagesController().getTranslateController().isTranslateDialogHidden(getDialogId()) :
                 !getMessagesController().premiumFeaturesBlocked() && preferences.getInt("dialog_show_translate_count" + did, 5) <= 0
         );
-        boolean showBizBot = currentEncryptedChat == null && getUserConfig().isPremium() && preferences.getLong("dialog_botid" + did, 0) != 0;
+        boolean showBizBot = currentEncryptedChat == null && getUserConfig().isPremium() && preferences.getLong("dialog_botid" + did, 0) != 0 && !fluffyConfig.hideTopBar;
         boolean showBotAd = currentUser != null && currentUser.bot && messages.size() >= 2 && botSponsoredMessage != null;
         if (showRestartTopic) {
             shownRestartTopic = true;
@@ -31249,6 +31311,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (messageObject == null || getParentActivity() == null) {
             return;
         }
+
         if (selectionReactionsOverlay != null && selectionReactionsOverlay.isVisible()) {
             selectionReactionsOverlay.setHiddenByScroll(true);
         }
@@ -31256,7 +31319,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             actionBar.closeSearchField();
             chatActivityEnterView.setFieldFocused();
         }
-
         mentionContainer.getAdapter().setNeedBotContext(false);
         chatActivityEnterView.setVisibility(View.VISIBLE);
         showFieldPanelForEdit(true, messageObject);
@@ -31267,6 +31329,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         updatePinnedMessageView(true);
         updateVisibleRows();
+
 
         if (!messageObject.scheduled && !messageObject.isQuickReply()) {
             TLRPC.TL_messages_getMessageEditData req = new TLRPC.TL_messages_getMessageEditData();
@@ -31774,6 +31837,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 } else {
                     startEditingMessageObject(selectedObject);
                 }
+
                 selectedObject = null;
                 selectedObjectGroup = null;
                 selectedObjectToEditCaption = null;
@@ -40460,10 +40524,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final boolean isHashtag = str.startsWith("#") || str.startsWith("$");
         final boolean isMail = str.startsWith("mailto:");
 
-        System.out.println("str: " + str);
         String ipPattern = "^(https?:\\/\\/)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(:\\d{1,5})?$";
         final boolean isIp = str.matches(ipPattern);
-        System.out.println("isIp: " + isIp);
 
         if (!isMail) {
             options.add(R.drawable.msg_openin, getString(customTabs && !isHashtag ? R.string.OpenInTelegramBrowser : R.string.Open), () -> {
