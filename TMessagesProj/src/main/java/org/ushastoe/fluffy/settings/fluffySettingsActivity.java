@@ -81,6 +81,7 @@ public class fluffySettingsActivity extends BaseFragment {
     private int doubleTapInActionRow;
     private int doubleTapOutActionRow;
     private int moreInfoOnlineRow;
+    private int unmuteVideoWithVolumeRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -116,6 +117,7 @@ public class fluffySettingsActivity extends BaseFragment {
         doubleTapInActionRow = rowCount++;
         doubleTapOutActionRow = rowCount++;
         moreInfoOnlineRow = rowCount++;
+        unmuteVideoWithVolumeRow = rowCount++;
 
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
@@ -332,6 +334,10 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toggleMoreInfoOnline();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.moreInfoOnline);
+            } else if (position == unmuteVideoWithVolumeRow) {
+                fluffyConfig.toggleUnmuteVideoWithVolume();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
             } else if (position == doubleTapInActionRow) {
                 if (getParentActivity() == null) {
                     return;
@@ -573,6 +579,8 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndValueAndCheck(getString(R.string.DisableNumberRounding), "4.8K -> 4777", fluffyConfig.disableRoundingNumber, true, true);
                     } else if (position == moreInfoOnlineRow) {
                         checkCell.setTextAndCheck(getString(R.string.ExtendedStatusOnline), fluffyConfig.disableRoundingNumber, true);
+                    } else if (position == unmuteVideoWithVolumeRow) {
+                        checkCell.setTextAndCheck(getString(R.string.unmuteVideoWithVolume), fluffyConfig.unmuteVideoWithVolume, true);
                     } else if (position == systemTypefaceRow) {
                         checkCell.setTextAndCheck(getString(R.string.UseSystemTypeface), fluffyConfig.useSystemFonts, true);
                     } else if (position == useSolarIconsRow) {
@@ -617,6 +625,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.disableRoundingNumber);
                 } else if (position == moreInfoOnlineRow) {
                     checkCell.setChecked(fluffyConfig.moreInfoOnline);
+                } else if (position == unmuteVideoWithVolumeRow) {
+                    checkCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
                 } else if (position == systemTypefaceRow) {
                     checkCell.setChecked(fluffyConfig.useSystemFonts);
                 } else if (position == useSolarIconsRow) {
@@ -640,6 +650,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == downloadSpeedBoostRow ||
                     position == disableRoundRow ||
                     position == moreInfoOnlineRow ||
+                    position == unmuteVideoWithVolumeRow ||
                     position == systemTypefaceRow ||
                     position == useSolarIconsRow ||
                     position == formatTimeWithSecondsRow;
@@ -698,6 +709,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == callShowRow ||
                     position == disableRoundRow ||
                     position == moreInfoOnlineRow ||
+                    position == unmuteVideoWithVolumeRow ||
                     position == centerTitleRow ||
                     position == systemTypefaceRow ||
                     position == useSolarIconsRow ||

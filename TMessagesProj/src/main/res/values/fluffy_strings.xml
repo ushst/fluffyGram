@@ -32,6 +32,7 @@
     <string name="checkIp">Check GEO</string>
     <string name="CopyInlineQuery">Copy Inline Query</string>
     <string name="CopyID">Copy ID</string>
+    <string name="unmuteVideoWithVolume">Unmute Video with Volume</string>
 
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="formatterDay24HSec">HH:mm:ss</string>

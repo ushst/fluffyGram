@@ -34,12 +34,14 @@ public class fluffyConfig {
     public static boolean formatTimeWithSeconds;
     public static boolean useSystemFonts;
     public static boolean hideTopBar;
-    public static int typeTitle;
     public static boolean centerTitle;
     public static boolean useSolarIcons;
     public static boolean showStories;
     public static boolean showCallIcon;
     public static boolean moreInfoOnline;
+    public static boolean unmuteVideoWithVolume;
+
+    public static int typeTitle;
 
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
@@ -69,6 +71,7 @@ public class fluffyConfig {
         downloadSpeedBoost = preferences.getBoolean("downloadSpeedBoost", false);
         showCallIcon = preferences.getBoolean("showCallIcon", true);
         moreInfoOnline = preferences.getBoolean("moreInfoOnline", false);
+        unmuteVideoWithVolume = preferences.getBoolean("unmuteVideoWithVolume", true);
         typeTitle = preferences.getInt("typeTitle", 0);
         disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
         formatTimeWithSeconds = preferences.getBoolean("formatTimeWithSeconds", false);
@@ -126,6 +129,10 @@ public class fluffyConfig {
     public static void toggleMoreInfoOnline() {
         moreInfoOnline = !moreInfoOnline;
         editor.putBoolean("moreInfoOnline", moreInfoOnline).apply();
+    }
+    public static void toggleUnmuteVideoWithVolume() {
+        unmuteVideoWithVolume = !unmuteVideoWithVolume;
+        editor.putBoolean("unmuteVideoWithVolume", unmuteVideoWithVolume).apply();
     }
     public static void toogleDownloadSpeedBoost() {
         downloadSpeedBoost = !downloadSpeedBoost;

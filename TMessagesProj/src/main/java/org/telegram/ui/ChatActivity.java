@@ -292,6 +292,7 @@ import java.util.stream.Collectors;
 
 import org.ushastoe.fluffy.helpers.IpApiHelper;
 import org.ushastoe.fluffy.helpers.MessageHelper;
+import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider, InstantCameraView.Delegate {
@@ -1497,6 +1498,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int delete_business_link = 68;
 
     private final static int share = 69;
+
+    private final static int open_settings_fluffy = 999;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3753,6 +3756,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (button != null) {
                         button.setTextColor(getThemedColor(Theme.key_text_RedBold));
                     }
+                } else if (id == open_settings_fluffy) {
+                    presentFragment(new fluffySettingsActivity());
                 }
             }
         });
