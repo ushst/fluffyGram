@@ -162,6 +162,7 @@ android {
             cmake {
                 version '3.10.2'
                 arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-16'
+                abiFilters 'arm64-v8a'
             }
         }
     }
