@@ -33,6 +33,25 @@
     <string name="CopyInlineQuery">Copy Inline Query</string>
     <string name="CopyID">Copy ID</string>
     <string name="unmuteVideoWithVolume">Unmute Video with Volume</string>
+    <string name="MessageDetails">Details</string>
+    <string name="idRow">ID</string>
+    <string name="dateRow">Date</string>
+    <string name="editDateRow">Edited Date</string>
+    <string name="captionRow">Caption</string>
+    <string name="scheduleRow">from Schedule</string>
+    <string name="silenceRow">Silence</string>
+    <string name="textRow">Text</string>
+    <string name="forwardRow">Forwarded For</string>
+    <string name="ownerIdRow">Owner ID Message</string>
+    <string name="ownerRow">Owner Data Message</string>
+    <string name="ownerChannelRow">Owner Channel Data Message</string>
+    <string name="getInfo">Get Info</string>
+    <string name="docIdRow">Document ID</string>
+    <string name="fileNameRow">File name</string>
+    <string name="filePathRow">File path</string>
+    <string name="viaBotRow">via bot</string>
+    <string name="EditsHistoryMenuText">View History</string>
+    <string name="EditsHistoryTitle">Edits history</string>
 
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="formatterDay24HSec">HH:mm:ss</string>

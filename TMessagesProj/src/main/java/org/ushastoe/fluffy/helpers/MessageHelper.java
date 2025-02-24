@@ -54,16 +54,40 @@ public class MessageHelper {
 
     private static final SpannableStringBuilder[] spannedStrings = new SpannableStringBuilder[5];
 
-    public static CharSequence createEditedString(MessageObject messageObject) {
-        if (spannedStrings[1] == null) {
-            spannedStrings[1] = new SpannableStringBuilder("\u200B");
-            spannedStrings[1].setSpan(new ColoredImageSpan(Theme.chat_editDrawable), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
+    public static CharSequence createNewString(MessageObject messageObject) {
         var spannableStringBuilder = new SpannableStringBuilder();
-        spannableStringBuilder
-                .append(spannedStrings[1])
-                .append(' ')
-                .append(LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
+
+        if (messageObject.messageOwner.silent) {
+            if (spannedStrings[2] == null) {
+                spannedStrings[2] = new SpannableStringBuilder("s");
+            }
+            spannableStringBuilder
+                    .append(spannedStrings[2])
+                    .append(' ');
+
+        }
+
+        if (messageObject.messageOwner.from_scheduled) {
+            if (spannedStrings[2] == null) {
+                spannedStrings[2] = new SpannableStringBuilder("t");
+            }
+            spannableStringBuilder
+                    .append(spannedStrings[2])
+                    .append(' ');
+
+        }
+
+        if (messageObject.isEdited()) {
+            if (spannedStrings[1] == null) {
+                spannedStrings[1] = new SpannableStringBuilder("\u200B");
+                spannedStrings[1].setSpan(new ColoredImageSpan(Theme.chat_editDrawable), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            spannableStringBuilder
+                    .append(spannedStrings[1])
+                    .append(' ');
+        }
+
+        spannableStringBuilder.append(LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
         return spannableStringBuilder;
     }
 }

@@ -293,6 +293,7 @@ import java.util.stream.Collectors;
 import org.ushastoe.fluffy.helpers.IpApiHelper;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.settings.fluffySettingsActivity;
+import org.ushastoe.fluffy.activities.MessageDetailsActivity;
 
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider, InstantCameraView.Delegate {
@@ -1085,11 +1086,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int OPTION_FACT_CHECK = 106;
     private final static int OPTION_EDIT_PRICE = 107;
     private final static int OPTION_GIFT = 108;
+    private final static int OPTION_DETAILS = 109;
 
     private final static int OPTION_SAVE_MESSAGE = 93;
     private final static int OPTION_REPEAT = 94;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
+
             NotificationCenter.messagesRead,
             NotificationCenter.threadMessagesRead,
             NotificationCenter.commentsRead,
@@ -3158,6 +3161,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.availableEffectsUpdate);
         getNotificationCenter().removeObserver(this, NotificationCenter.starReactionAnonymousUpdate);
         getNotificationCenter().removeObserver(this, NotificationCenter.factCheckLoaded);
+
         if (chatMode == MODE_EDIT_BUSINESS_LINK) {
             getNotificationCenter().removeObserver(this, NotificationCenter.businessLinksUpdated);
         }
@@ -3943,7 +3947,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             headerItem = menu.addItem(chat_menu_options, R.drawable.ic_ab_other, themeDelegate);
             headerItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
-
+            headerItem.lazilyAddSubItem(open_settings_fluffy, R.drawable.msg_settings, LocaleController.getString(R.string.fluffySettings));
             if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
                 savedChatsItem = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.SavedViewAsChats));
                 savedChatsGap = headerItem.lazilyAddColoredGap();
@@ -29548,6 +29552,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         icons.add(selectedObject.messageOwner.ttl_period != 0 ? R.drawable.msg_delete_auto : R.drawable.msg_delete);
                     }
                 }
+                items.add(LocaleController.getString(R.string.MessageDetails));
+                options.add(OPTION_DETAILS);
+                icons.add(R.drawable.msg_info);
             }
 
             if (selectedObject != null && selectedObject.isHiddenSensitive() && !selectedObject.isMediaSpoilersRevealed) {
@@ -32243,6 +32250,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             case OPTION_FACT_CHECK: {
                 MessageObject msg = selectedObjectGroup != null ? selectedObjectGroup.findPrimaryMessageObject() : selectedObject;
                 FactCheckController.getInstance(currentAccount).openFactCheckEditor(getContext(), getResourceProvider(), msg, false);
+                break;
+            }
+            case OPTION_DETAILS: {
+                presentFragment(new MessageDetailsActivity(selectedObject));
                 break;
             }
         }

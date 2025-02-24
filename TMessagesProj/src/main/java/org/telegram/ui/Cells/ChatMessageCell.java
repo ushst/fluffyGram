@@ -16049,9 +16049,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = LocaleController.formatSmallDateChat(currentMessageObject.realDate) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (currentMessageObject.realDate) * 1000);
         } else if (currentMessageObject.isRepostPreview) {
             timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.date) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
-        } else if (edited) {
-            timeString = MessageHelper.createEditedString(currentMessageObject);
-            customDrawableWidth = Theme.chat_editDrawable.getIntrinsicWidth();
+        } else if (edited || currentMessageObject.messageOwner.silent || currentMessageObject.messageOwner.from_scheduled) {
+            timeString = MessageHelper.createNewString(currentMessageObject);
+            if (edited) {
+                customDrawableWidth = Theme.chat_editDrawable.getIntrinsicWidth();
+            }
         } else if (currentMessageObject.isSaved && currentMessageObject.messageOwner.fwd_from != null && (currentMessageObject.messageOwner.fwd_from.date != 0 || currentMessageObject.messageOwner.fwd_from.saved_date != 0)) {
             int date = currentMessageObject.messageOwner.fwd_from.saved_date;
             if (date == 0) {
