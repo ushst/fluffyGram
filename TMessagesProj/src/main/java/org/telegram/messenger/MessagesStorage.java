@@ -21,6 +21,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.util.Base64;
 import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
@@ -36,7 +37,6 @@ import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
-import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.Vector;
@@ -49,6 +49,7 @@ import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.EditWidgetActivity;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -311,6 +312,9 @@ public class MessagesStorage extends BaseController {
             database.executeFast("PRAGMA temp_store = MEMORY").stepThis().dispose();
             database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
             database.executeFast("PRAGMA journal_size_limit = 10485760").stepThis().dispose();
+
+            database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_history(dialogId INTEGER, mid INTEGER, date INTEGER, message TEXT, PRIMARY KEY(mid, dialogId));").stepThis().dispose();
+            database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_deletions(dialogId INTEGER, mid INTEGER, isDel INTEGER, PRIMARY KEY(dialogId, mid));").stepThis().dispose();
 
             if (createTable) {
                 if (BuildVars.LOGS_ENABLED) {
@@ -857,8 +861,7 @@ public class MessagesStorage extends BaseController {
             if (recoverDatabase()) {
                 tryRecover = false;
                 clearLoadingDialogsOffsets();
-                AndroidUtilities.runOnUIThread(() -> {
-                   getNotificationCenter().postNotificationName(NotificationCenter.onDatabaseReset);
+                AndroidUtilities.runOnUIThread(() -> {getNotificationCenter().postNotificationName(NotificationCenter.onDatabaseReset);
                 });
                 FileLog.e(new Exception("database restored!!"));
             } else {
@@ -1733,11 +1736,11 @@ public class MessagesStorage extends BaseController {
 
                             NativeByteBuffer data2 = cursor.byteBufferValue(2);
                             //if (data2 != null) {
-                                topic.topicStartMessage = TLRPC.Message.TLdeserialize(data2, data2.readInt32(false), false);
-                                if (data2 != null) {
-                                    data2.reuse();
-                                }
-                           // }
+                            topic.topicStartMessage = TLRPC.Message.TLdeserialize(data2, data2.readInt32(false), false);
+                            if (data2 != null) {
+                                data2.reuse();
+                            }
+                            // }
                             topic.unread_count = cursor.intValue(3);
                             topic.read_inbox_max_id = cursor.intValue(4);
                             topic.unread_mentions_count = cursor.intValue(5);
@@ -1781,9 +1784,9 @@ public class MessagesStorage extends BaseController {
 
                             try {
                                 if (message != null && message.reply_to != null && message.reply_to.reply_to_msg_id != 0 && (
-                                    message.action instanceof TLRPC.TL_messageActionPinMessage ||
-                                    message.action instanceof TLRPC.TL_messageActionPaymentSent ||
-                                    message.action instanceof TLRPC.TL_messageActionGameScore
+                                        message.action instanceof TLRPC.TL_messageActionPinMessage ||
+                                                message.action instanceof TLRPC.TL_messageActionPaymentSent ||
+                                                message.action instanceof TLRPC.TL_messageActionGameScore
                                 )) {
                                     if (!cursor2.isNull(2)) {
                                         NativeByteBuffer data2 = cursor2.byteBufferValue(2);
@@ -2103,7 +2106,7 @@ public class MessagesStorage extends BaseController {
             getNotificationCenter().postNotificationName(NotificationCenter.didClearDatabase);
             getMediaDataController().loadAttachMenuBots(false, true);
             getNotificationCenter().postNotificationName(NotificationCenter.onDatabaseReset);
-            
+
             getMessagesController().getStoriesController().cleanup();
         });
     }
@@ -13018,6 +13021,622 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    public void saveFlHistory(long dialogId, long mid, long date, String message) {
+        try {
+            String query = String.format(Locale.US,
+                    "insert into fluffy_message_history values(%d,%d,%d,'%s');"
+                    , dialogId
+                    , mid
+                    , date
+                    , android.util.Base64.encodeToString(message.getBytes(), Base64.DEFAULT)
+            );
+            database.executeFast(query).stepThis().dispose();
+        } catch (Exception e) {
+//            FileLog.e(e);
+        }
+    }
+
+    public void wipeFlHistory() {
+        try {
+            database.executeFast("delete from fluffy_message_history;").stepThis().dispose();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    public Map<Long, String> loadFlHistory(long dialogId, long mid) {
+        Map<Long, String> map = new LinkedHashMap<>();
+        try {
+            SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "select date,message from fluffy_message_history where dialogId=%d and mid=%d order by date desc;", dialogId, mid));
+            while (cursor.next()) {
+                map.put(cursor.longValue(0), cursor.stringValue(1));
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return map;
+    }
+
+    public Boolean checkDeleted(TLRPC.Message message) {
+        try {
+            SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US,
+                    "SELECT 1 FROM fluffy_message_deletions WHERE dialogId=%d AND mid=%d LIMIT 1;",
+                    message.dialog_id, message.id));
+
+            if (cursor.next()) {
+                int result = cursor.intValue(0);
+                return true;
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return false;
+    }
+
+    public Boolean checkEdited(MessageObject message) {
+        try {
+            SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US,
+                    "SELECT 1 FROM fluffy_message_history WHERE dialogId=%d AND mid=%d LIMIT 1;",
+                    message.messageOwner.dialog_id, message.messageOwner.id));
+            return cursor.next();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return false;
+    }
+    private ArrayList<Long> markMessagesAsDeletedInternal(long dialogId, ArrayList<Integer> messages, boolean deleteFiles, boolean scheduled) {
+        SQLiteCursor cursor = null;
+        SQLitePreparedStatement state = null;
+        try {
+            ArrayList<Long> dialogsIds = new ArrayList<>();
+            if (scheduled) {
+                String ids = TextUtils.join(",", messages);
+
+                ArrayList<Long> dialogsToUpdate = new ArrayList<>();
+
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid FROM scheduled_messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));
+                try {
+                    while (cursor.next()) {
+                        long did = cursor.longValue(0);
+                        if (!dialogsToUpdate.contains(did)) {
+                            dialogsToUpdate.add(did);
+                        }
+                    }
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                cursor.dispose();
+                cursor = null;
+
+                database.executeFast(String.format(Locale.US, "DELETE FROM scheduled_messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId)).stepThis().dispose();
+                for (int a = 0, N = dialogsToUpdate.size(); a < N; a++) {
+                    broadcastScheduledMessagesChange(dialogsToUpdate.get(a));
+                }
+            } else {
+                ArrayList<Integer> unknownMessages = new ArrayList<>(messages);
+                ArrayList<Integer> unknownMessagesInTopics = new ArrayList<>(messages);
+                LongSparseArray<Integer[]> dialogsToUpdate = new LongSparseArray<>();
+                HashMap<TopicKey, int[]> topicsMessagesToUpdate = new HashMap<>();
+                LongSparseArray<ArrayList<Integer>> messagesByDialogs = new LongSparseArray<>();
+                String ids = TextUtils.join(",", messages);
+                ArrayList<File> filesToDelete = new ArrayList<>();
+                ArrayList<String> namesToDelete = new ArrayList<>();
+                ArrayList<Pair<Long, Integer>> idsToDelete = new ArrayList<>();
+                ArrayList<TopicsController.TopicUpdate> topicUpdatesInUi = null;
+
+                long currentUser = getUserConfig().getClientUserId();
+                if (dialogId != 0) {
+                    cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, data, read_state, out, mention, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));
+                } else {
+                    cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, data, read_state, out, mention, mid FROM messages_v2 WHERE mid IN(%s) AND is_channel = 0", ids));
+                }
+
+                try {
+                    while (cursor.next()) {
+                        long did = cursor.longValue(0);
+                        int mid = cursor.intValue(5);
+                        unknownMessages.remove((Integer) mid);
+                        ArrayList<Integer> mids = messagesByDialogs.get(did);
+                        if (mids == null) {
+                            mids = new ArrayList<>();
+                            messagesByDialogs.put(did, mids);
+                        }
+                        mids.add(mid);
+                        if (did != currentUser) {
+                            int read_state = cursor.intValue(2);
+                            if (cursor.intValue(3) == 0) {
+                                Integer[] unread_count = dialogsToUpdate.get(did);
+                                if (unread_count == null) {
+                                    unread_count = new Integer[]{0, 0};
+                                    dialogsToUpdate.put(did, unread_count);
+                                }
+                                if (read_state < 2) {
+                                    unread_count[1]++;
+                                }
+                                if (read_state == 0 || read_state == 2) {
+                                    unread_count[0]++;
+                                }
+                            }
+                        }
+                        if (!DialogObject.isEncryptedDialog(did) && !deleteFiles) {
+                            continue;
+                        }
+                        NativeByteBuffer data = cursor.byteBufferValue(1);
+                        if (data != null) {
+                            TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                            message.readAttachPath(data, getUserConfig().clientUserId);
+                            data.reuse();
+                            addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
+                        }
+                    }
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                cursor.dispose();
+                cursor = null;
+
+                ArrayList<TopicKey> topicsToDelete = null;
+                if (dialogId < 0) {
+                    cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, data, read_state, out, mention, mid FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, dialogId));
+
+                    try {
+                        while (cursor.next()) {
+                            long did = cursor.longValue(0);
+                            int mid = cursor.intValue(5);
+                            long topicId = 0L;
+                            unknownMessagesInTopics.remove((Integer) mid);
+
+                            NativeByteBuffer data = cursor.byteBufferValue(1);
+                            if (data != null) {
+                                TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                                message.readAttachPath(data, getUserConfig().clientUserId);
+                                data.reuse();
+                                addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
+                                if (message.action instanceof TLRPC.TL_messageActionTopicCreate) {
+                                    if (topicsToDelete == null) {
+                                        topicsToDelete = new ArrayList<>();
+                                    }
+                                    topicsToDelete.add(TopicKey.of(did, message.id));
+                                }
+                                topicId = MessageObject.getTopicId(UserConfig.selectedAccount, message, isForum(did));
+                            }
+                            if (topicId != 0L) {
+                                TopicKey topicKey = TopicKey.of(dialogId, topicId);
+
+                                int read_state = cursor.intValue(2);
+                                int[] count = topicsMessagesToUpdate.get(topicKey);
+                                if (count == null) {
+                                    count = new int[3];
+                                    topicsMessagesToUpdate.put(topicKey, count);
+                                }
+                                count[2]++;
+                                if (cursor.intValue(3) == 0) {
+                                    if (read_state < 2) {
+                                        count[1]++;
+                                    }
+                                    if (read_state == 0 || read_state == 2) {
+                                        count[0]++;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                    cursor.dispose();
+                    cursor = null;
+                }
+
+                database.beginTransaction();
+                for (int i = 0; i < 3; i++) {
+                    if (i == 0) {
+                        if (dialogId != 0) {
+                            state = getMessagesStorage().getDatabase().executeFast("UPDATE messages_v2 SET replydata = ? WHERE reply_to_message_id IN(?) AND uid = ?");
+                        } else {
+                            state = getMessagesStorage().getDatabase().executeFast("UPDATE messages_v2 SET replydata = ? WHERE reply_to_message_id IN(?) AND is_channel = 0");
+                        }
+                    } else if (i == 1) {
+                        if (dialogId != 0) {
+                            state = getMessagesStorage().getDatabase().executeFast("UPDATE scheduled_messages_v2 SET replydata = ? WHERE reply_to_message_id IN(?) AND uid = ?");
+                        } else {
+                            state = getMessagesStorage().getDatabase().executeFast("UPDATE scheduled_messages_v2 SET replydata = ? WHERE reply_to_message_id IN(?)");
+                        }
+                    } else {
+                        if (dialogId == 0) {
+                            continue;
+                        }
+                        state = getMessagesStorage().getDatabase().executeFast("UPDATE messages_topics SET replydata = ? WHERE reply_to_message_id IN(?) AND uid = ?");
+                    }
+                    TLRPC.TL_messageEmpty emptyMessage = new TLRPC.TL_messageEmpty();
+                    NativeByteBuffer data = new NativeByteBuffer(emptyMessage.getObjectSize());
+                    emptyMessage.serializeToStream(data);
+
+                    state.requery();
+                    state.bindByteBuffer(1, data);
+                    state.bindString(2, ids);
+                    if (dialogId != 0) {
+                        state.bindLong(3, dialogId);
+                    }
+                    state.step();
+                    state.dispose();
+                    state = null;
+                    database.commitTransaction();
+                    data.reuse();
+                }
+
+                deleteFromDownloadQueue(idsToDelete, true);
+                AndroidUtilities.runOnUIThread(() -> getFileLoader().cancelLoadFiles(namesToDelete));
+                getFileLoader().deleteFiles(filesToDelete, 0);
+
+                for (int a = 0; a < dialogsToUpdate.size(); a++) {
+                    long did = dialogsToUpdate.keyAt(a);
+                    Integer[] counts = dialogsToUpdate.valueAt(a);
+
+                    cursor = database.queryFinalized("SELECT unread_count, unread_count_i FROM dialogs WHERE did = " + did);
+                    int old_unread_count = 0;
+                    int old_mentions_count = 0;
+                    if (cursor.next()) {
+                        old_unread_count = cursor.intValue(0);
+                        old_mentions_count = cursor.intValue(1);
+                    }
+                    cursor.dispose();
+                    cursor = null;
+
+                    dialogsIds.add(did);
+                    state = database.executeFast("UPDATE dialogs SET unread_count = ?, unread_count_i = ? WHERE did = ?");
+                    state.requery();
+                    state.bindInteger(1, Math.max(0, old_unread_count - counts[0]));
+                    state.bindInteger(2, Math.max(0, old_mentions_count - counts[1]));
+                    state.bindLong(3, did);
+                    state.step();
+                    state.dispose();
+                    state = null;
+                }
+
+                if (!topicsMessagesToUpdate.isEmpty()) {
+                    HashSet<Long> dialogsToCheck = null;
+                    for (TopicKey topicKey : topicsMessagesToUpdate.keySet()) {
+                        cursor = database.queryFinalized(String.format(Locale.US, "SELECT unread_count, unread_mentions, total_messages_count FROM topics WHERE did = %d AND topic_id = %d", topicKey.dialogId, topicKey.topicId));
+                        int old_unread_count = 0;
+                        int old_mentions_count = 0;
+                        int old_total_count = 0;
+                        if (cursor.next()) {
+                            old_unread_count = cursor.intValue(0);
+                            old_mentions_count = cursor.intValue(1);
+                            old_total_count = cursor.intValue(2);
+                        }
+                        cursor.dispose();
+                        cursor = null;
+
+                        int[] counts = topicsMessagesToUpdate.get(topicKey);
+                        int newUnreadCount = Math.max(0, old_unread_count - counts[0]);
+                        int newUnreadMentionsCount = Math.max(0, old_mentions_count - counts[1]);
+                        int newTotalCount = Math.max(0, old_total_count - counts[2]);
+                        if (BuildVars.DEBUG_PRIVATE_VERSION && newUnreadMentionsCount > 0) {
+                            FileLog.d("(markMessagesAsDeletedInternal) new unread mentions " + newUnreadMentionsCount + " for dialog_id=" + topicKey.dialogId + " topic_id=" + topicKey.topicId);
+                        }
+                        state = database.executeFast("UPDATE topics SET unread_count = ?, unread_mentions = ?, total_messages_count = ? WHERE did = ? AND topic_id = ?");
+                        state.requery();
+                        state.bindInteger(1, newUnreadCount);
+                        state.bindInteger(2, newUnreadMentionsCount);
+                        state.bindLong(3, newTotalCount);
+                        state.bindLong(4, topicKey.dialogId);
+                        state.bindLong(5, topicKey.topicId);
+
+                        state.step();
+                        state.dispose();
+                        state = null;
+
+                        if (newUnreadCount == 0) {
+                            if (dialogsToCheck == null) {
+                                dialogsToCheck = new HashSet<>();
+                            }
+                            dialogsToCheck.add(topicKey.dialogId);
+                        }
+
+                        TopicsController.TopicUpdate topicUpdate = new TopicsController.TopicUpdate();
+                        topicUpdate.dialogId = topicKey.dialogId;
+                        topicUpdate.topicId = topicKey.topicId;
+                        topicUpdate.unreadCount = newUnreadCount;
+                        topicUpdate.totalMessagesCount = newTotalCount;
+                        topicUpdate.onlyCounters = true;
+                        if (topicUpdatesInUi == null) {
+                            topicUpdatesInUi = new ArrayList<>();
+                        }
+                        topicUpdatesInUi.add(topicUpdate);
+                    }
+                    if (dialogsToCheck != null) {
+                        for (Long dialogToResert : dialogsToCheck) {
+                            resetForumBadgeIfNeed(dialogToResert);
+                        }
+                    }
+                }
+
+                for (int a = 0, N = messagesByDialogs.size(); a < N; a++) {
+                    long did = messagesByDialogs.keyAt(a);
+                    ArrayList<Integer> mids = messagesByDialogs.valueAt(a);
+                    String idsStr = TextUtils.join(",", mids);
+                    if (!DialogObject.isEncryptedDialog(did)) {
+                        if (DialogObject.isChatDialog(did)) {
+                            database.executeFast(String.format(Locale.US, "UPDATE chat_settings_v2 SET pinned = 0 WHERE uid = %d AND pinned IN (%s)", -did, idsStr)).stepThis().dispose();
+                        } else {
+                            database.executeFast(String.format(Locale.US, "UPDATE user_settings SET pinned = 0 WHERE uid = %d AND pinned IN (%s)", did, idsStr)).stepThis().dispose();
+                        }
+                    }
+                    database.executeFast(String.format(Locale.US, "DELETE FROM chat_pinned_v2 WHERE uid = %d AND mid IN(%s)", did, idsStr)).stepThis().dispose();
+                    int updatedCount = 0;
+                    cursor = database.queryFinalized("SELECT changes()");
+                    if (cursor.next()) {
+                        updatedCount = cursor.intValue(0);
+                    }
+                    cursor.dispose();
+                    cursor = null;
+                    if (updatedCount > 0) {
+                        cursor = database.queryFinalized(String.format(Locale.US, "SELECT count FROM chat_pinned_count WHERE uid = %d", did));
+                        if (cursor.next()) {
+                            int count = cursor.intValue(0);
+                            state = database.executeFast("UPDATE chat_pinned_count SET count = ? WHERE uid = ?");
+                            state.requery();
+                            state.bindInteger(1, Math.max(0, count - updatedCount));
+                            state.bindLong(2, did);
+                            state.step();
+                            state.dispose();
+                        }
+                        cursor.dispose();
+                        cursor = null;
+                    }
+                    database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM polls_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    if (unknownMessages.isEmpty()) {
+                        cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, type FROM media_v4 WHERE mid IN(%s) AND uid = %d", ids, did));
+                        SparseArray<LongSparseArray<Integer>> mediaCounts = null;
+                        while (cursor.next()) {
+                            long uid = cursor.longValue(0);
+                            int type = cursor.intValue(1);
+                            if (mediaCounts == null) {
+                                mediaCounts = new SparseArray<>();
+                            }
+                            LongSparseArray<Integer> counts = mediaCounts.get(type);
+                            Integer count;
+                            if (counts == null) {
+                                counts = new LongSparseArray<>();
+                                count = 0;
+                                mediaCounts.put(type, counts);
+                            } else {
+                                count = counts.get(uid);
+                            }
+                            if (count == null) {
+                                count = 0;
+                            }
+                            count++;
+                            counts.put(uid, count);
+                        }
+                        cursor.dispose();
+                        cursor = null;
+                        if (mediaCounts != null) {
+                            state = database.executeFast("REPLACE INTO media_counts_v2 VALUES(?, ?, ?, ?)");
+                            for (int c = 0, N3 = mediaCounts.size(); c < N3; c++) {
+                                int type = mediaCounts.keyAt(c);
+                                LongSparseArray<Integer> value = mediaCounts.valueAt(c);
+                                for (int b = 0, N2 = value.size(); b < N2; b++) {
+                                    long uid = value.keyAt(b);
+                                    int count = -1;
+                                    int old = 0;
+                                    cursor = database.queryFinalized(String.format(Locale.US, "SELECT count, old FROM media_counts_v2 WHERE uid = %d AND type = %d LIMIT 1", uid, type));
+                                    if (cursor.next()) {
+                                        count = cursor.intValue(0);
+                                        old = cursor.intValue(1);
+                                    }
+                                    cursor.dispose();
+                                    if (count != -1) {
+                                        state.requery();
+                                        count = Math.max(0, count - value.valueAt(b));
+                                        state.bindLong(1, uid);
+                                        state.bindInteger(2, type);
+                                        state.bindInteger(3, count);
+                                        state.bindInteger(4, old);
+                                        state.step();
+                                    }
+                                }
+                            }
+                            state.dispose();
+                            state = null;
+                        }
+                    }
+                    if (unknownMessagesInTopics.isEmpty()) {
+                        cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, topic_id, type FROM media_topics WHERE mid IN(%s) AND uid = %d", ids, did));
+                        SparseArray<HashMap<TopicKey, Integer>> mediaCounts = null;
+                        while (cursor.next()) {
+                            long uid = cursor.longValue(0);
+                            int topicId = cursor.intValue(1);
+                            int type = cursor.intValue(2);
+                            TopicKey topicKey = TopicKey.of(uid, topicId);
+                            if (mediaCounts == null) {
+                                mediaCounts = new SparseArray<>();
+                            }
+                            HashMap<TopicKey, Integer> counts = mediaCounts.get(type);
+                            Integer count;
+                            if (counts == null) {
+                                counts = new HashMap<>();
+                                count = 0;
+                                mediaCounts.put(type, counts);
+                            } else {
+                                count = counts.get(topicKey);
+                            }
+                            if (count == null) {
+                                count = 0;
+                            }
+                            count++;
+                            counts.put(topicKey, count);
+                        }
+                        cursor.dispose();
+                        cursor = null;
+                        if (mediaCounts != null) {
+                            state = database.executeFast("REPLACE INTO media_counts_topics VALUES(?, ?, ?, ?, ?)");
+                            for (int c = 0, N3 = mediaCounts.size(); c < N3; c++) {
+                                int type = mediaCounts.keyAt(c);
+                                HashMap<TopicKey, Integer> value = mediaCounts.valueAt(c);
+                                Iterator<TopicKey> iterator = value.keySet().iterator();
+                                while (iterator.hasNext()) {
+                                    TopicKey topicKey = iterator.next();
+                                    int count = -1;
+                                    int old = 0;
+                                    cursor = database.queryFinalized(String.format(Locale.US, "SELECT count, old FROM media_counts_topics WHERE uid = %d AND topic_id = %d AND type = %d LIMIT 1", topicKey.dialogId, topicKey.topicId, type));
+                                    if (cursor.next()) {
+                                        count = cursor.intValue(0);
+                                        old = cursor.intValue(1);
+                                    }
+                                    cursor.dispose();
+                                    if (count != -1) {
+                                        state.requery();
+                                        count = Math.max(0, count - value.get(topicKey));
+                                        state.bindLong(1, topicKey.dialogId);
+                                        state.bindLong(2, topicKey.topicId);
+                                        state.bindInteger(3, type);
+                                        state.bindInteger(4, count);
+                                        state.bindInteger(5, old);
+                                        state.step();
+                                    }
+                                }
+                            }
+                            state.dispose();
+                            state = null;
+                        }
+                    }
+                    database.executeFast(String.format(Locale.US, "DELETE FROM media_v4 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM media_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                }
+                database.executeFast(String.format(Locale.US, "DELETE FROM messages_seq WHERE mid IN(%s)", ids)).stepThis().dispose();
+                if (!unknownMessages.isEmpty()) {
+                    if (dialogId == 0) {
+                        database.executeFast("UPDATE media_counts_v2 SET old = 1 WHERE 1").stepThis().dispose();
+                    } else {
+                        database.executeFast(String.format(Locale.US, "UPDATE media_counts_v2 SET old = 1 WHERE uid = %d", dialogId)).stepThis().dispose();
+                    }
+                }
+                if (!unknownMessagesInTopics.isEmpty()) {
+                    if (dialogId == 0) {
+                        database.executeFast("UPDATE media_counts_topics SET old = 1 WHERE 1").stepThis().dispose();
+                    } else {
+                        database.executeFast(String.format(Locale.US, "UPDATE media_counts_topics SET old = 1 WHERE uid = %d", dialogId)).stepThis().dispose();
+                    }
+                }
+//                getMediaDataController().clearBotKeyboardN(0, messages);
+
+                if (dialogsToUpdate.size() != 0) {
+                    resetAllUnreadCounters(false);
+                }
+                updateWidgets(dialogsIds);
+
+                if (topicsToDelete != null) {
+                    for (int i = 0; i < topicsToDelete.size(); i++) {
+                        TopicKey topicKey = topicsToDelete.get(i);
+                        database.executeFast(String.format(Locale.US, "DELETE FROM topics WHERE did = %d AND topic_id = %d", topicKey.dialogId, topicKey.topicId)).stepThis().dispose();
+                    }
+                    getMessagesController().getTopicsController().onTopicsDeletedServerSide(topicsToDelete);
+                }
+                if (topicUpdatesInUi != null) {
+                    getMessagesController().getTopicsController().processUpdate(topicUpdatesInUi);
+                }
+            }
+            return dialogsIds;
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            if (database != null) {
+                database.commitTransaction();
+            }
+            if (cursor != null) {
+                cursor.dispose();
+            }
+            if (state != null) {
+                state.dispose();
+            }
+        }
+        return null;
+    }
+    public void markMessageAsDeleted(TLRPC.Message message) {
+        try {
+            long dialogId = message.dialog_id;
+            int messageId = message.id;
+
+            database.executeFast(String.format(Locale.US,
+                    "INSERT INTO fluffy_message_deletions VALUES (%d, %d, 1);",
+                    dialogId, messageId)).stepThis().dispose();
+
+        } catch (Exception e) {
+            // Игнорируем ошибки уникального ключа
+            FileLog.e(e);
+        }
+    }
+
+    public void markMessagesAsIsDeletedInternal(Long dialogId, int message) {
+        try {
+            SQLiteCursor cursor;
+            String ids = String.valueOf(message);
+
+            if (dialogId != 0) {
+                cursor = database.queryFinalized(String.format(Locale.US,
+                        "SELECT uid, mid FROM messages_v2 WHERE mid = %s AND uid = %d", ids, dialogId));
+            } else {
+                cursor = database.queryFinalized(String.format(Locale.US,
+                        "SELECT uid, mid FROM messages_v2 WHERE mid = %s AND is_channel = 0", ids));
+            }
+
+            while (cursor.next()) {
+                try {
+                    long did = cursor.longValue(0);
+                    int mid = cursor.intValue(1);
+                    database.executeFast(String.format(Locale.US,
+                                    "INSERT INTO fluffy_message_deletions values (%d,%d,1);", did, mid))
+                            .stepThis()
+                            .dispose();
+                } catch (Exception e) {
+                    // Игнорируем ошибки уникального ключа
+                }
+            }
+
+            cursor.dispose();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    public ArrayList<Long> getDialogIdsToUpdate(long dialogId, ArrayList<Integer> messages) {
+        try {
+            SQLiteCursor cursor;
+            String ids = TextUtils.join(",", messages);
+            var dialogsToUpdate = new HashSet<Long>();
+            if (dialogId != 0) {
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));
+            } else {
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, mid FROM messages_v2 WHERE mid IN(%s) AND is_channel = 0", ids));
+            }
+            while (cursor.next()) {
+                long did = cursor.longValue(0);
+                dialogsToUpdate.add(did);
+            }
+            cursor.dispose();
+            return new ArrayList<>(dialogsToUpdate);
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
+    public void markEcryptedMessagesIsDeleted(long did, int messagesOnly) {//TODO REFAIRE not used anymore
+        storageQueue.postRunnable(() -> {
+            try {
+                database.executeFast(String.format(Locale.US, "UPDATE messages_v2 SET isdel=1 WHERE uid = %d;", did)).stepThis().dispose();
+                updateWidgets(did);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        });
+    }
+
     public void markMessagesContentAsRead(long dialogId, ArrayList<Integer> mids, int currentDate, int readDate) {
         if (isEmpty(mids)) {
             return;
@@ -13109,6 +13728,7 @@ public class MessagesStorage extends BaseController {
                         ArrayList<Integer> mids = dialogs.valueAt(a);
                         AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, mids, 0L, false));
                         updateDialogsWithReadMessagesInternal(mids, null, null, null, null);
+//                        markMessagesAsIsDeletedInternal(dialogId, mids);
                         markMessagesAsDeletedInternal(dialogId, mids, true, 0, 0);
                         updateDialogsWithDeletedMessagesInternal(dialogId, 0, mids, null);
                     }
@@ -13951,8 +14571,10 @@ public class MessagesStorage extends BaseController {
         }
         if (useQueue) {
             storageQueue.postRunnable(() -> markMessagesAsDeletedInternal(dialogId, messages, deleteFiles, mode, topicId));
+//            storageQueue.postRunnable(() -> markMessagesAsIsDeletedInternal(dialogId, messages));
         } else {
             return markMessagesAsDeletedInternal(dialogId, messages, deleteFiles, mode, topicId);
+//            return markMessagesAsIsDeletedInternal(dialogId, messages);
         }
         return null;
     }
@@ -14085,8 +14707,10 @@ public class MessagesStorage extends BaseController {
     public ArrayList<Long> markMessagesAsDeleted(long channelId, int mid, boolean useQueue, boolean deleteFiles) {
         if (useQueue) {
             storageQueue.postRunnable(() -> markMessagesAsDeletedInternal(channelId, mid, deleteFiles));
+//            storageQueue.postRunnable(() -> markMessagesAsIsDeletedInternal(channelId, mid, deleteFiles));
         } else {
             return markMessagesAsDeletedInternal(channelId, mid, deleteFiles);
+//            return markMessagesAsIsDeletedInternal(channelId, mid);
         }
         return null;
     }
@@ -14876,6 +15500,9 @@ public class MessagesStorage extends BaseController {
                                 if (data != null) {
                                     TLRPC.Message oldMessage = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                                     oldMessage.readAttachPath(data, getUserConfig().clientUserId);
+                                    if (!oldMessage.message.equals(message.message) && message.from_id != null && fluffyConfig.saveEdit) {
+                                        saveFlHistory(message.dialog_id, message.id, getConnectionsManager().getCurrentTime(), oldMessage.message);
+                                    }
                                     data.reuse();
                                     if (reactionUpdates != null) {
                                         reactionUpdates.add(new SavedReactionsUpdate(selfId, oldMessage, message));

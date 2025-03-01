@@ -78,6 +78,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.URLSpan;
+import android.util.Log;
 import android.util.Pair;
 import android.util.Property;
 import android.util.SparseArray;
@@ -262,6 +263,7 @@ import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.ThMessageHistoryActivity;
 import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.BufferedReader;
@@ -1092,6 +1094,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int OPTION_REPEAT = 94;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
+            fluffyConfig.MESSAGES_DELETED_NOTIFICATION,
 
             NotificationCenter.messagesRead,
             NotificationCenter.threadMessagesRead,
@@ -2733,6 +2736,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.quickRepliesDeleted);
         getNotificationCenter().addObserver(this, NotificationCenter.quickRepliesUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.factCheckLoaded);
+        getNotificationCenter().addObserver(this, fluffyConfig.MESSAGES_DELETED_NOTIFICATION);
         if (chatMode == MODE_EDIT_BUSINESS_LINK) {
             getNotificationCenter().addObserver(this, NotificationCenter.businessLinksUpdated);
         }
@@ -3161,6 +3165,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.availableEffectsUpdate);
         getNotificationCenter().removeObserver(this, NotificationCenter.starReactionAnonymousUpdate);
         getNotificationCenter().removeObserver(this, NotificationCenter.factCheckLoaded);
+        getNotificationCenter().removeObserver(this, fluffyConfig.MESSAGES_DELETED_NOTIFICATION);
 
         if (chatMode == MODE_EDIT_BUSINESS_LINK) {
             getNotificationCenter().removeObserver(this, NotificationCenter.businessLinksUpdated);
@@ -22884,7 +22889,23 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (messageObject != null) {
                 messageObject.setMyPaidReactionAnonymous(anonymous);
             }
+        } else if (fluffyConfig.saveDel && id == fluffyConfig.MESSAGES_DELETED_NOTIFICATION) {
+            long dialogId = (Long) args[0];
+            if (dialogId != dialog_id && (ChatObject.isChannel(currentChat) || dialogId != 0)) {
+                return;
+            }
+            ArrayList<Integer> messageIds = (ArrayList<Integer>) args[1];
+            for (int a = 0, N = messageIds.size(); a < N; a++) {
+                int mid = messageIds.get(a);
+                MessageObject currentMessage = messagesDict[0].get(mid);
+                if (currentMessage != null) {
+                    if (chatAdapter != null) {
+                        chatAdapter.updateRowWithMessageObject(currentMessage, false, true);
+                    }
+                }
+            }
         }
+
     }
 
     private AlertDialog quoteMessageUpdateAlert;
@@ -29587,6 +29608,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 return false;
             }
 
+            if ((message != null
+                    && ((message.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || message.isEditing())
+                    && message.messageOwner.from_id != null) && getMessagesStorage().checkEdited(message)) {
+                items.add(LocaleController.getString(R.string.THHistory));
+                options.add(420_001);
+                icons.add(R.drawable.msg_log);
+            }
             final AtomicBoolean waitForLangDetection = new AtomicBoolean(false);
             final AtomicReference<Runnable> onLangDetectionDone = new AtomicReference(null);
 
@@ -31524,6 +31552,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         boolean preserveDim = false;
         switch (option) {
+            case 420_001: {
+                presentFragment(new ThMessageHistoryActivity(selectedObject));
+                break;
+            }
             case OPTION_RETRY: {
                 if (selectedObjectGroup != null) {
                     boolean success = true;

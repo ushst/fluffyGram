@@ -145,6 +145,9 @@ public class MessageDetailsActivity extends BaseFragment {
             TLRPC.User user = getMessagesController().getUser(forwardFromPeer.user_id);
             rowDataList.add(new RowData(rowCount++, getString(R.string.forwardRow), user.id + " " + user.username ));
         }
+        if (messageObject.messageOwner.isDeleted()) {
+            rowDataList.add(new RowData(rowCount++, getString(R.string.deleteRow), "true"));
+        }
 
         if (MessageObject.getMedia(messageObject.messageOwner) != null && MessageObject.getMedia(messageObject.messageOwner).document != null) {
             for (var attribute : MessageObject.getMedia(messageObject.messageOwner).document.attributes) {

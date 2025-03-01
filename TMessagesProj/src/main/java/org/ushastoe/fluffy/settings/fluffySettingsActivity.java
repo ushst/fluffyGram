@@ -82,6 +82,8 @@ public class fluffySettingsActivity extends BaseFragment {
     private int doubleTapOutActionRow;
     private int moreInfoOnlineRow;
     private int unmuteVideoWithVolumeRow;
+    private int saveEditRow;
+    private int saveDelRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -118,6 +120,8 @@ public class fluffySettingsActivity extends BaseFragment {
         doubleTapOutActionRow = rowCount++;
         moreInfoOnlineRow = rowCount++;
         unmuteVideoWithVolumeRow = rowCount++;
+        saveDelRow = rowCount++;
+        saveEditRow = rowCount++;
 
         otherSettingsSectionRow = rowCount++;
         localPremiumRow = rowCount++;
@@ -338,6 +342,14 @@ public class fluffySettingsActivity extends BaseFragment {
                 fluffyConfig.toggleUnmuteVideoWithVolume();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
+            } else if (position == saveEditRow) {
+                fluffyConfig.saveEditSwitch();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.saveEdit);
+            } else if (position == saveDelRow) {
+                fluffyConfig.saveDelSwitch();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(fluffyConfig.saveDel);
             } else if (position == doubleTapInActionRow) {
                 if (getParentActivity() == null) {
                     return;
@@ -581,6 +593,10 @@ public class fluffySettingsActivity extends BaseFragment {
                         checkCell.setTextAndCheck(getString(R.string.ExtendedStatusOnline), fluffyConfig.disableRoundingNumber, true);
                     } else if (position == unmuteVideoWithVolumeRow) {
                         checkCell.setTextAndCheck(getString(R.string.unmuteVideoWithVolume), fluffyConfig.unmuteVideoWithVolume, true);
+                    }  else if (position == saveDelRow) {
+                        checkCell.setTextAndCheck(getString(R.string.saveDelRow), fluffyConfig.saveDel, true);
+                    }  else if (position == saveEditRow) {
+                        checkCell.setTextAndCheck(getString(R.string.saveEditRow), fluffyConfig.saveEdit, true);
                     } else if (position == systemTypefaceRow) {
                         checkCell.setTextAndCheck(getString(R.string.UseSystemTypeface), fluffyConfig.useSystemFonts, true);
                     } else if (position == useSolarIconsRow) {
@@ -627,6 +643,10 @@ public class fluffySettingsActivity extends BaseFragment {
                     checkCell.setChecked(fluffyConfig.moreInfoOnline);
                 } else if (position == unmuteVideoWithVolumeRow) {
                     checkCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
+                }  else if (position == saveDelRow) {
+                    checkCell.setChecked(fluffyConfig.saveDel);
+                }  else if (position == saveEditRow) {
+                    checkCell.setChecked(fluffyConfig.saveEdit);
                 } else if (position == systemTypefaceRow) {
                     checkCell.setChecked(fluffyConfig.useSystemFonts);
                 } else if (position == useSolarIconsRow) {
@@ -651,6 +671,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == disableRoundRow ||
                     position == moreInfoOnlineRow ||
                     position == unmuteVideoWithVolumeRow ||
+                    position == saveEditRow ||
+                    position == saveDelRow ||
                     position == systemTypefaceRow ||
                     position == useSolarIconsRow ||
                     position == formatTimeWithSecondsRow;
@@ -711,6 +733,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == moreInfoOnlineRow ||
                     position == unmuteVideoWithVolumeRow ||
                     position == centerTitleRow ||
+                    position == saveEditRow ||
+                    position == saveDelRow ||
                     position == systemTypefaceRow ||
                     position == useSolarIconsRow ||
                     position == formatTimeWithSecondsRow ||

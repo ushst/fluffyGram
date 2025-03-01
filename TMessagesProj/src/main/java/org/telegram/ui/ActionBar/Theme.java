@@ -3327,6 +3327,7 @@ public class Theme {
     public static Drawable chat_gradientLeftDrawable;
     public static Drawable chat_gradientRightDrawable;
     public static Drawable chat_editDrawable;
+    public static Drawable chat_deleteDrawable;
 
     public static Drawable[] chat_msgInCallDrawable = new Drawable[2];
     public static Drawable[] chat_msgInCallSelectedDrawable = new Drawable[2];
@@ -8788,6 +8789,7 @@ public class Theme {
             chat_msgInCallDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();
 
             chat_editDrawable = resources.getDrawable(R.drawable.edit_pencil).mutate();
+            chat_deleteDrawable = resources.getDrawable(R.drawable.msg_delete_filled).mutate();
 
             chat_msgInCallSelectedDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();
             chat_msgOutCallDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();

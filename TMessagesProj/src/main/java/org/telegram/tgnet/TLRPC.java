@@ -25,7 +25,9 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.SvgHelper;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.tgnet.tl.TL_bots;
@@ -57711,6 +57713,10 @@ public class TLRPC {
         public TL_textWithEntities translatedText; // custom
         public TL_stories.StoryItem replyStory; //custom
         public InputQuickReplyShortcut quick_reply_shortcut; //custom
+
+        public boolean isDeleted() {
+            return MessagesStorage.getInstance(UserConfig.selectedAccount).checkDeleted(this);
+        }
 
         public static Message TLdeserialize(InputSerializedData stream, int constructor, boolean exception) {
             Message result = null;

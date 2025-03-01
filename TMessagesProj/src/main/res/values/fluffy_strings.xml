@@ -33,10 +33,13 @@
     <string name="CopyInlineQuery">Copy Inline Query</string>
     <string name="CopyID">Copy ID</string>
     <string name="unmuteVideoWithVolume">Unmute Video with Volume</string>
+    <string name="saveEditRow">Save edited history</string>
+    <string name="saveDelRow">Save delete message</string>
     <string name="MessageDetails">Details</string>
     <string name="idRow">ID</string>
     <string name="dateRow">Date</string>
     <string name="editDateRow">Edited Date</string>
+    <string name="deleteRow">deleted</string>
     <string name="captionRow">Caption</string>
     <string name="scheduleRow">from Schedule</string>
     <string name="silenceRow">Silence</string>
@@ -52,6 +55,8 @@
     <string name="viaBotRow">via bot</string>
     <string name="EditsHistoryMenuText">View History</string>
     <string name="EditsHistoryTitle">Edits history</string>
+    <string name="THHistory">History</string>
+    <string name="refreshRow">Refresh</string>
 
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="formatterDay24HSec">HH:mm:ss</string>

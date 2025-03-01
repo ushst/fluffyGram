@@ -40,6 +40,8 @@ public class fluffyConfig {
     public static boolean showCallIcon;
     public static boolean moreInfoOnline;
     public static boolean unmuteVideoWithVolume;
+    public static boolean saveDel;
+    public static boolean saveEdit;
 
     public static int typeTitle;
 
@@ -49,6 +51,7 @@ public class fluffyConfig {
     public static final int DOUBLE_TAP_ACTION_SAVE = 3;
     public static final int DOUBLE_TAP_ACTION_REPEAT = 4;
     public static final int DOUBLE_TAP_ACTION_EDIT = 5;
+    public static final int MESSAGES_DELETED_NOTIFICATION = 6969;
 
     public static int doubleTapInAction;
     public static int doubleTapOutAction;
@@ -80,12 +83,22 @@ public class fluffyConfig {
         hideTopBar = preferences.getBoolean("hideTopBar", false);
         doubleTapInAction = preferences.getInt("doubleTapAction", DOUBLE_TAP_ACTION_REACTION);
         doubleTapOutAction = preferences.getInt("doubleTapOutAction", DOUBLE_TAP_ACTION_REACTION);
+        saveDel = preferences.getBoolean("saveDel", false);
+        saveEdit = preferences.getBoolean("saveEdit", false);
 
     }
 
     public static void cameraSwitch() {
         frontCamera = !frontCamera;
         editor.putBoolean("frontCamera", frontCamera).apply();
+    }
+    public static void saveDelSwitch() {
+        saveDel = !saveDel;
+        editor.putBoolean("saveDel", saveDel).apply();
+    }
+    public static void saveEditSwitch() {
+        saveEdit = !saveEdit;
+        editor.putBoolean("saveEdit", saveEdit).apply();
     }
     public static void writeCamera() {
         editor.putBoolean("frontCamera", frontCamera).apply();

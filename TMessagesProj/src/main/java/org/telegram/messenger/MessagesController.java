@@ -103,6 +103,7 @@ import org.telegram.ui.TopicsFragment;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18001,6 +18002,29 @@ public class MessagesController extends BaseController implements NotificationCe
                     printChanged = true;
                 }
             }
+        }
+
+        if (deletedMessages != null && fluffyConfig.saveDel) {
+            for (int a = 0, size = deletedMessages.size(); a < size; a++) {
+                var dialogId = deletedMessages.keyAt(a);
+                var messageIds = deletedMessages.valueAt(a);
+
+                if (dialogId == 0) {
+                    // Telegram sometimes won't give us dialog id directly...
+                    dialogId = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds).get(0);
+                }
+
+                for (var msgId : messageIds) {
+                    getMessagesStorage().markMessagesAsIsDeletedInternal(dialogId, msgId);
+                }
+
+                long finalDialogId = dialogId;
+                AndroidUtilities.runOnUIThread(() -> {
+                    getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, finalDialogId, messageIds);
+                });
+            }
+
+            deletedMessages.clear();
         }
 
         if (printChanged) {
