@@ -313,7 +313,7 @@ public class MessagesStorage extends BaseController {
             database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
             database.executeFast("PRAGMA journal_size_limit = 10485760").stepThis().dispose();
 
-            database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_history(dialogId INTEGER, mid INTEGER, date INTEGER, message TEXT, PRIMARY KEY(mid, dialogId));").stepThis().dispose();
+            database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_history(dialogId INTEGER, mid INTEGER, date INTEGER, message TEXT);").stepThis().dispose();
             database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_deletions(dialogId INTEGER, mid INTEGER, isDel INTEGER, PRIMARY KEY(dialogId, mid));").stepThis().dispose();
 
             if (createTable) {
