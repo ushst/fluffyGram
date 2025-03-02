@@ -31,6 +31,7 @@ import android.os.SystemClock;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
@@ -16025,14 +16026,10 @@ public class MessagesController extends BaseController implements NotificationCe
     protected void deleteMessagesByPush(long dialogId, ArrayList<Integer> ids, long channelId) {
         getMessagesStorage().getStorageQueue().postRunnable(() -> {
             AndroidUtilities.runOnUIThread(() -> {
-                getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, ids, channelId, false);
                 if (channelId == 0) {
                     for (int b = 0, size2 = ids.size(); b < size2; b++) {
                         Integer id = ids.get(b);
-                        MessageObject obj = dialogMessagesByIds.get(id);
-                        if (obj != null) {
-                            obj.deleted = true;
-                        }
+                        getMessagesStorage().markMessagesAsIsDeletedInternal(dialogId, id);
                     }
                 } else {
                     ArrayList<MessageObject> objs = dialogMessage.get(-channelId);
@@ -16040,18 +16037,13 @@ public class MessagesController extends BaseController implements NotificationCe
                         for (int i = 0; i < objs.size(); ++i) {
                             MessageObject obj = objs.get(i);
                             for (int b = 0, size2 = ids.size(); b < size2; b++) {
-                                if (obj.getId() == ids.get(b)) {
-                                    obj.deleted = true;
-                                    break;
-                                }
+                                Integer id = ids.get(b);
+                                getMessagesStorage().markMessagesAsIsDeletedInternal(channelId, id);
                             }
                         }
                     }
                 }
             });
-            getMessagesStorage().deletePushMessages(dialogId, ids);
-            ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(dialogId, ids, false, true, 0, 0);
-            getMessagesStorage().updateDialogsWithDeletedMessages(dialogId, channelId, ids, dialogIds, false);
         });
     }
 
@@ -18006,22 +17998,29 @@ public class MessagesController extends BaseController implements NotificationCe
 
         if (deletedMessages != null && fluffyConfig.saveDel) {
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
-                var dialogId = deletedMessages.keyAt(a);
-                var messageIds = deletedMessages.valueAt(a);
+                try {
 
-                if (dialogId == 0) {
-                    // Telegram sometimes won't give us dialog id directly...
-                    dialogId = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds).get(0);
+                    var dialogId = deletedMessages.keyAt(a);
+                    var messageIds = deletedMessages.valueAt(a);
+
+                    if (dialogId == 0) {
+                        // Telegram sometimes won't give us dialog id directly...
+                        dialogId = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds).get(0);
+                    }
+
+                    for (var msgId : messageIds) {
+                        getMessagesStorage().markMessagesAsIsDeletedInternal(dialogId, msgId);
+                    }
+
+                    long finalDialogId = dialogId;
+                    Log.d("fluffyLog", "Saved deleted message: " + dialogId + " " + messageIds);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, finalDialogId, messageIds);
+                    });
+
+                } catch (Exception e) {
+                    Log.d("fluffyLog", "Error while saving deleted messages: " + e);
                 }
-
-                for (var msgId : messageIds) {
-                    getMessagesStorage().markMessagesAsIsDeletedInternal(dialogId, msgId);
-                }
-
-                long finalDialogId = dialogId;
-                AndroidUtilities.runOnUIThread(() -> {
-                    getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, finalDialogId, messageIds);
-                });
             }
 
             deletedMessages.clear();
@@ -19114,7 +19113,6 @@ public class MessagesController extends BaseController implements NotificationCe
                 ImageLoader.getInstance().putThumbsToCache(updateMessageThumbs);
             }
         });
-
         LongSparseIntArray markAsReadMessagesInboxFinal = markAsReadMessagesInbox;
         LongSparseIntArray markAsReadMessagesOutboxFinal = markAsReadMessagesOutbox;
         LongSparseArray<ArrayList<Integer>> markContentAsReadMessagesFinal = markContentAsReadMessages;

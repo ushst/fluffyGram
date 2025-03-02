@@ -86,11 +86,18 @@ public class MessageHelper {
         }
     }
 
+    public static String decodeBase64(String encodedString) throws IllegalArgumentException {
+        byte[] decodedBytes = Base64.decode(encodedString, Base64.DEFAULT);
+        return new String(decodedBytes, StandardCharsets.UTF_8);
+    }
+
 
     private static final SpannableStringBuilder[] spannedStrings = new SpannableStringBuilder[5];
 
     public static CharSequence createNewString(MessageObject messageObject) {
         var spannableStringBuilder = new SpannableStringBuilder();
+
+        Log.d("messageObject", "nStr: " + messageObject.messageOwner.dialog_id);
 
         if (messageObject.messageOwner.silent) {
             if (spannedStrings[0] == null) {
@@ -109,7 +116,6 @@ public class MessageHelper {
                     .append(spannedStrings[1])
                     .append(' ');
         }
-        Log.d("fluffyLog", "createNewString" + messageObject.messageOwner.isDeleted());
 
         if (messageObject.messageOwner.isDeleted() ) {
             if (spannedStrings[2] == null) {

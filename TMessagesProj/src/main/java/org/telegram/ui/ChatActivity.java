@@ -263,7 +263,7 @@ import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.BulletinHelper;
-import org.ushastoe.fluffy.activities.ThMessageHistoryActivity;
+import org.ushastoe.fluffy.activities.fluffyMessageHistory;
 import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.BufferedReader;
@@ -31553,7 +31553,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         boolean preserveDim = false;
         switch (option) {
             case 420_001: {
-                presentFragment(new ThMessageHistoryActivity(selectedObject));
+                presentFragment(new fluffyMessageHistory(selectedObject));
                 break;
             }
             case OPTION_RETRY: {
