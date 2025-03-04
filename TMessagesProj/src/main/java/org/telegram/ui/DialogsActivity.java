@@ -9794,12 +9794,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         }
         if (addToFolderItem != null) {
-            if (folderId == 1 || filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE && filterTabsView.currentTabIsDefault() && !FiltersListBottomSheet.getCanAddDialogFilters(this, selectedDialogs).isEmpty()) {
-                addToFolderItem.setVisibility(View.VISIBLE);
-            } else {
-                addToFolderItem.setVisibility(View.GONE);
-            }
+            addToFolderItem.setVisibility(View.VISIBLE);
         }
+
         if (muteItem != null) {
             if (canUnmuteCount != 0) {
                 muteItem.setIcon(R.drawable.msg_unmute);
