@@ -29,7 +29,7 @@ public class headerSettingsCell extends FrameLayout {
         Drawable arrow = ContextCompat.getDrawable(context, R.drawable.fluffy_icon).mutate();
         int color = ContextCompat.getColor(context, R.color.mRed200);
 
-        arrow.setAlpha((int) (70 * 2.55f));
+//        arrow.setAlpha((int) (70 * 2.55f));
 
         ImageView logo = new ImageView(context);
         logo.setScaleType(ImageView.ScaleType.CENTER);
@@ -40,7 +40,7 @@ public class headerSettingsCell extends FrameLayout {
 
         titleTextView = new TextView(context);
         titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
+//        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
         titleTextView.setText("fluffy");
         titleTextView.setLines(1);
@@ -52,7 +52,7 @@ public class headerSettingsCell extends FrameLayout {
 
         TextView subtitleTextView = new TextView(context);
         subtitleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
-        subtitleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_REGULAR));
+//        subtitleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_REGULAR));
         subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitleTextView.setLineSpacing(AndroidUtilities.dp(2), 1f);
         subtitleTextView.setText(getString(R.string.ownerChannelRow));
