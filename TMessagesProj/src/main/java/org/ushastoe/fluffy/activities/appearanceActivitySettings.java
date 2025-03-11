@@ -396,7 +396,14 @@ public class appearanceActivitySettings extends BaseFragment {
                 case 6:
                     TextCell textCell6 = (TextCell) holder.itemView;
                     if (position == selectTitleRow) {
-                        textCell6.setTextAndIcon(getString("TitleType", R.string.TitleSelecter), R.drawable.menu_tag_rename, true);
+                        String value = switch (fluffyConfig.typeTitle) {
+                            case 0 -> fluffyConfig.getUsername();
+                            case 1 -> "fluffy";
+                            case 2 -> "telegram";
+                            case 3 -> "Disable";
+                            default -> LocaleController.getString(R.string.AppName);
+                        };
+                        textCell6.setTextAndValueAndIcon(getString("TitleType", R.string.TitleSelecter), value, R.drawable.menu_tag_rename, true);
                     }
                     break;
                 case 7:
