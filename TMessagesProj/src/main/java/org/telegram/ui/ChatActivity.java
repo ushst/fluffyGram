@@ -3976,7 +3976,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             headerItem = menu.addItem(chat_menu_options, R.drawable.ic_ab_other, themeDelegate);
             headerItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
-            headerItem.lazilyAddSubItem(open_settings_fluffy, R.drawable.msg_settings, LocaleController.getString(R.string.fluffySettings));
+            headerItem.lazilyAddSubItem(open_settings_fluffy, R.drawable.msg_emoji_cat, LocaleController.getString(R.string.fluffySettings));
             if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
                 savedChatsItem = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.SavedViewAsChats));
                 savedChatsGap = headerItem.lazilyAddColoredGap();

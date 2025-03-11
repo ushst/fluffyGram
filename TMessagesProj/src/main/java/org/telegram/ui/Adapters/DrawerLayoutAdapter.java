@@ -316,7 +316,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         }
 
         items.add(null);
-        items.add(new Item(97, LocaleController.getString(R.string.fluffySettings), R.drawable.msg_settings));
+        items.add(new Item(97, LocaleController.getString(R.string.fluffySettings), R.drawable.msg_emoji_cat));
         items.add(new Item(98, LocaleController.getString(R.string.Devices), R.drawable.menu_devices));
         items.add(null);
 
