@@ -1,5 +1,6 @@
 package org.ushastoe.fluffy.activities;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.animation.Animator;
@@ -15,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -23,15 +25,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.CacheControlActivity;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.NotificationsCheckCell;
+import org.telegram.ui.Cells.RadioColorCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
@@ -40,6 +45,8 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.LaunchActivity;
+import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.elements.actionBarSettingsCell;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
 import org.ushastoe.fluffy.fluffyConfig;
@@ -50,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class generalActivitySettings extends BaseFragment {
     private ListAdapter listAdapter;
@@ -162,10 +170,55 @@ public class generalActivitySettings extends BaseFragment {
                 textCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
             } else if (position == voiceRecognitionRow) {
                 WhisperHelper.showCfCredentialsDialog(this);
+            } else if (position == voiceRecognitionSelecterRow) {
+                selectProvider(context);
+                textCell.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
             }
         });
         return fragmentView;
     }
+
+    private void selectProvider(Context context) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        CharSequence[] items = new CharSequence[]{
+                "Cloudflare",
+                "Telegram"
+        };
+
+        for (int i = 0; i < items.length; ++i) {
+            final int index = i;
+            RadioColorCell cell = new RadioColorCell(getParentActivity());
+            cell.setPadding(dp(4), 0, dp(4), 0);
+            cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+            cell.setTextAndValue(items[index], index == fluffyConfig.typeTitle);
+            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            linearLayout.addView(cell);
+            cell.setOnClickListener(v -> {
+                fluffyConfig.setProviderVoice(index);
+                RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(voiceRecognitionSelecterRow);
+                if (holder != null) {
+                    listAdapter.onBindViewHolder(holder, voiceRecognitionSelecterRow);
+                }
+                dialogRef.get().dismiss();
+            });
+        }
+
+        Dialog dialog = new AlertDialog.Builder(getParentActivity())
+                .setTitle(getString(R.string.UseCloudflare))
+                .setView(linearLayout)
+                .setNegativeButton(getString("Cancel", R.string.Cancel), null)
+                .create();
+        dialogRef.set(dialog);
+        showDialog(dialog);
+    }
+
 
     @Override
     public void onResume() {
@@ -198,7 +251,7 @@ public class generalActivitySettings extends BaseFragment {
                     if (position == voiceRecognitionRow) {
                         textCellc.setTextAndIcon(getString(R.string.CloudflareCredentials), R.drawable.msg_voicechat_solar, true);
                     } else if (position == voiceRecognitionSelecterRow) {
-                        textCellc.setTextAndValueAndIcon(getString(R.string.SourceCode), "GitHub", R.drawable.msg_delete, false);
+                        textCellc.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
                     }
                     break;
                 case 3:

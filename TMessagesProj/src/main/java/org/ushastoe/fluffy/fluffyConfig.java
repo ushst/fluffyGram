@@ -117,10 +117,6 @@ public class fluffyConfig {
         zodiacShow = !zodiacShow;
         editor.putBoolean("zodiacShow", zodiacShow).apply();
     }
-    public static void toggleVoiceUseCloudflare() {
-        voiceUseCloudflare = !voiceUseCloudflare;
-        editor.putBoolean("voiceUseCloudflare", voiceUseCloudflare).apply();
-    }
     public static void setCfAccountID(String accountID) {
         cfAccountID = accountID;
         editor.putString("cfAccountID", cfAccountID).apply();
@@ -217,6 +213,11 @@ public class fluffyConfig {
     public static void setTypeTitle(int type) {
         typeTitle = type;
         editor.putInt("typeTitle", typeTitle).apply();
+    }
+
+    public static void setProviderVoice(int type) {
+        fluffyConfig.voiceUseCloudflare = type == 1;
+        editor.putBoolean("voiceUseCloudflare", fluffyConfig.voiceUseCloudflare).apply();
     }
 
 }

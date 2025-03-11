@@ -312,7 +312,6 @@ public class fluffySettingsActivity extends BaseFragment {
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.downloadSpeedBoost);
             } else if (position == voiceUseCloudflareRow) {
-                fluffyConfig.toggleVoiceUseCloudflare();
                 TextCheckCell textCheckCell = (TextCheckCell) view;
                 textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
             } else if (position == cfCredentialsRow) {

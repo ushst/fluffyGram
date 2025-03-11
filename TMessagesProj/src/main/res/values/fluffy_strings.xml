@@ -11,7 +11,7 @@
     <string name="zodiacShow">Show zodiac sign in profile</string>
     <string name="Profile">Profile</string>
     <string name="idShow">Info</string>
-    <string name="UseCloudflare">Use Cloudflare</string>
+    <string name="UseCloudflare">Provider voice</string>
     <string name="ForwardFromSecret">Forward NoSender</string>
     <string name="formatTime">Format time with seconds</string>
     <string name="CloudflareCredentials">Cloudflare credentials</string>
