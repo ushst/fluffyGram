@@ -313,7 +313,7 @@ public class fluffySettingsActivity extends BaseFragment {
                 textCheckCell.setChecked(fluffyConfig.downloadSpeedBoost);
             } else if (position == voiceUseCloudflareRow) {
                 TextCheckCell textCheckCell = (TextCheckCell) view;
-                textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
+//                textCheckCell.setChecked(fluffyConfig.voiceUseCloudflare);
             } else if (position == cfCredentialsRow) {
                 WhisperHelper.showCfCredentialsDialog(this);
             } else if (position == disableRoundRow) {
@@ -509,7 +509,7 @@ public class fluffySettingsActivity extends BaseFragment {
                             case 3 -> "Disable";
                             default -> LocaleController.getString(R.string.AppName);
                         };
-                        textCell.setTextAndValue(getString("TitleType", R.string.TitleSelecter), value, false, true);
+                        textCell.setTextAndValue(getString(R.string.TitleSelecter), value, false, true);
                     } else if (position == cfCredentialsRow) {
                         textCell.setIcon(0);
                         textCell.setText(getString(R.string.CloudflareCredentials), true);
@@ -588,7 +588,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     } else if (position == downloadSpeedBoostRow) {
                         checkCell.setTextAndCheck(getString(R.string.downloadSpeedBoost), fluffyConfig.downloadSpeedBoost, true);
                     } else if (position == voiceUseCloudflareRow) {
-                        checkCell.setTextAndCheck(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
+//                        checkCell.setTextAndCheck(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare, true);
                     } else if (position == disableRoundRow) {
                         checkCell.setTextAndValueAndCheck(getString(R.string.DisableNumberRounding), "4.8K -> 4777", fluffyConfig.disableRoundingNumber, true, true);
                     } else if (position == moreInfoOnlineRow) {
@@ -639,7 +639,7 @@ public class fluffySettingsActivity extends BaseFragment {
                 } else if (position == downloadSpeedBoostRow) {
                     checkCell.setChecked(fluffyConfig.downloadSpeedBoost);
                 } else if (position == voiceUseCloudflareRow) {
-                    checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
+//                    checkCell.setChecked(fluffyConfig.voiceUseCloudflare);
                 } else if (position == disableRoundRow) {
                     checkCell.setChecked(fluffyConfig.disableRoundingNumber);
                 } else if (position == moreInfoOnlineRow) {

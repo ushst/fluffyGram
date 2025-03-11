@@ -57,7 +57,7 @@ public class WhisperHelper {
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public static boolean useWorkersAi() {
-        return fluffyConfig.voiceUseCloudflare;
+        return fluffyConfig.useCloudFlare();
     }
 
     public static void showErrorDialog(Exception e) {

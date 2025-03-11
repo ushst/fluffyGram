@@ -26,6 +26,7 @@
     <string name="downloadSpeedBoost">Enable Download boost</string>
     <string name="DisableNumberRounding">Disable number rounding</string>
     <string name="ExtendedStatusOnline">Extended online status</string>
+    <string name="NewMaterialSwith">Material3 switch</string>
     <string name="UseSystemTypeface">Use system font</string>
     <string name="useSolarIcons">Use solar icons</string>
     <string name="callShower">Show call icon in chat</string>

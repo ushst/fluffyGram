@@ -6490,15 +6490,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             popupWindow.dimBehind();
             return true;
         } else if (position == idAccountRow) {
-            var user = getMessagesController().getUser(userId);
-            String stringID = "";
-
-            if (user != null) {
-                if (user.bot) { stringID += "-100"; }
-                stringID += String.valueOf(user.id);
-
-                AndroidUtilities.addToClipboard(String.valueOf(stringID));
+            long id = 0;
+            String dc = "";
+            if (userId != 0) {
+                TLRPC.User user = getMessagesController().getUser(userId);
+                id = userId;
+                dc = "DC: " + String.valueOf(user.photo != null && user.photo.dc_id != 0 ? user.photo.dc_id : UserObject.isUserSelf(user) ? getConnectionsManager().getCurrentDatacenterId() : 0);
+            } else if (chatId != 0) {
+                TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                if (ChatObject.isChannel(chat)) {
+                    id = -1000000000000L - chat.id;
+                } else {
+                    id = -chat.id;
+                }
+                dc = "ID";
             }
+            AndroidUtilities.addToClipboard(String.valueOf(id));
         } else if (position == channelInfoRow || position == userInfoRow || position == locationRow || position == bioRow) {
             if (position == bioRow && (userInfo == null || TextUtils.isEmpty(userInfo.about))) {
                 return false;
@@ -9053,7 +9060,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 emptyRow = rowCount++;
             }
             TLRPC.User user = getMessagesController().getUser(userId);
-
+            idAccountRow = rowCount++;
             if (UserObject.isUserSelf(user) && !myProfile) {
                 if (avatarBig == null && (user.photo == null || !(user.photo.photo_big instanceof TLRPC.TL_fileLocation_layer97) && !(user.photo.photo_big instanceof TLRPC.TL_fileLocationToBeDeprecated)) && (avatarsViewPager == null || avatarsViewPager.getRealCount() == 0)) {
                     setAvatarRow = rowCount++;
@@ -9137,7 +9144,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 infoStartRow = rowCount;
                 infoHeaderRow = rowCount++;
-                idAccountRow = rowCount++;
                 if (!isBot && (hasPhone || !hasInfo)) {
                     phoneRow = rowCount++;
                 }
@@ -9248,6 +9254,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         } else if (isTopic) {
+            idAccountRow = rowCount++;
             infoHeaderRow = rowCount++;
             usernameRow = rowCount++;
             notificationsSimpleRow = rowCount++;
@@ -9256,6 +9263,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 sharedMediaRow = rowCount++;
             }
         } else if (chatId != 0) {
+            idAccountRow = rowCount++;
             if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.about) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat)) {
                 if (LocaleController.isRTL && ChatObject.isChannel(currentChat) && chatInfo != null && !currentChat.megagroup && chatInfo.linked_chat_id != 0) {
                     emptyRow = rowCount++;
@@ -11556,22 +11564,24 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             containsGift = !myProfile && today && !getMessagesController().premiumPurchaseBlocked();
                         }
                     } else if (position == idAccountRow) {
-                        String stringID = "";
-                        var user = getMessagesController().getUser(userId);
-                        if (user != null) {
-                            stringID += "ID: ";
-                            if (user.bot) { stringID += "-100"; }
-                            stringID += user.id;
-
-                            int dc = user.photo != null && user.photo.dc_id != 0 ? user.photo.dc_id : UserObject.isUserSelf(user) ? getConnectionsManager().getCurrentDatacenterId() : 0;
-                            stringID += ", DC: " + dc;
+                        long id = 0;
+                        String dc = "";
+                        if (userId != 0) {
+                            TLRPC.User user = getMessagesController().getUser(userId);
+                            id = userId;
+                            dc = "DC: " + String.valueOf(user.photo != null && user.photo.dc_id != 0 ? user.photo.dc_id : UserObject.isUserSelf(user) ? getConnectionsManager().getCurrentDatacenterId() : 0);
+                        } else if (chatId != 0) {
+                            TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                            if (ChatObject.isChannel(chat)) {
+                                id = -1000000000000L - chat.id;
+                            } else {
+                                id = -chat.id;
+                            }
                         }
-
-                        detailCell.setTextAndValue(
-                                stringID,
-                                getString(R.string.idShow),
-                                true
-                        );
+                        if (dc.isEmpty()) {
+                            dc = "ID";
+                        }
+                        detailCell.setTextAndValue(id + "", dc, true);
                     } else if (position == phoneRow) {
                         String text;
                         TLRPC.User user = getMessagesController().getUser(userId);

@@ -155,6 +155,9 @@ public class generalActivitySettings extends BaseFragment {
         itemAnimator.setSupportsChangeAnimations(false);
         listView.setItemAnimator(itemAnimator);
         listView.setOnItemClickListener((view, position, x, y) -> {
+            if (position == mainRow || position == divider2 || position == chatRow) {
+                return;
+            }
             TextCell textCell = (TextCell) view;
             if (position == downloadSpeedBoostRow) {
                 fluffyConfig.toogleDownloadSpeedBoost();
@@ -172,7 +175,7 @@ public class generalActivitySettings extends BaseFragment {
                 WhisperHelper.showCfCredentialsDialog(this);
             } else if (position == voiceRecognitionSelecterRow) {
                 selectProvider(context);
-                textCell.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
+                textCell.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.useCloudFlare() ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
             }
         });
         return fragmentView;
@@ -188,8 +191,8 @@ public class generalActivitySettings extends BaseFragment {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
         CharSequence[] items = new CharSequence[]{
-                "Cloudflare",
-                "Telegram"
+                "Telegram",
+                "Cloudflare"
         };
 
         for (int i = 0; i < items.length; ++i) {
@@ -197,7 +200,7 @@ public class generalActivitySettings extends BaseFragment {
             RadioColorCell cell = new RadioColorCell(getParentActivity());
             cell.setPadding(dp(4), 0, dp(4), 0);
             cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
-            cell.setTextAndValue(items[index], index == fluffyConfig.typeTitle);
+            cell.setTextAndValue(items[index], index == fluffyConfig.voiceUseCloudflare);
             cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
@@ -251,7 +254,7 @@ public class generalActivitySettings extends BaseFragment {
                     if (position == voiceRecognitionRow) {
                         textCellc.setTextAndIcon(getString(R.string.CloudflareCredentials), R.drawable.msg_voicechat_solar, true);
                     } else if (position == voiceRecognitionSelecterRow) {
-                        textCellc.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.voiceUseCloudflare ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
+                        textCellc.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.useCloudFlare() ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
                     }
                     break;
                 case 3:

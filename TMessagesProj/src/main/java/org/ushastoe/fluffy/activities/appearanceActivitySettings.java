@@ -7,6 +7,7 @@ import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -91,12 +92,14 @@ public class appearanceActivitySettings extends BaseFragment {
     private int centerTitleRow;
     private int disableRoundRow;
     private int selectTitleRow;
+    private int newSwitchStyleRow;
     private int moreInfoRow;
     private int systemTypefaceRow;
     private int useSolarIconsRow;
     private int formatTimeWithSecondsRow;
     private int doubleTapRow;
 
+    private Parcelable recyclerViewState = null;
 
     @Override
     public boolean onFragmentCreate() {
@@ -118,6 +121,7 @@ public class appearanceActivitySettings extends BaseFragment {
         selectTitleRow = rowCount++;
         systemTypefaceRow = rowCount++;
         useSolarIconsRow = rowCount++;
+        newSwitchStyleRow = rowCount++;
         divider = rowCount++;
         mainRow = rowCount++;
         zodiacShowRow = rowCount++;
@@ -205,6 +209,11 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleMoreInfoOnline();
                 TextCell textCell = (TextCell) view;
                 textCell.setChecked(fluffyConfig.moreInfoOnline);
+            } else if (position == newSwitchStyleRow) {
+                fluffyConfig.toogleNewSwitchStyle();
+                TextCell textCell = (TextCell) view;
+                textCell.setChecked(fluffyConfig.newSwitchStyle);
+                updateRows(true);
             } else if (position == systemTypefaceRow) {
                 fluffyConfig.toogleUseSystemFonts();
                 TextCell textCell = (TextCell) view;
@@ -431,6 +440,8 @@ public class appearanceActivitySettings extends BaseFragment {
                     } else if (position == moreInfoRow) {
                         textCell.setTextAndCheckAndIcon(getString(R.string.ExtendedStatusOnline), fluffyConfig.disableRoundingNumber, R.drawable.msg_contacts_time, true);
                         textCell.setSubtitle("last seen at * PM -> * (2h 13m)");
+                    } else if (position == newSwitchStyleRow) {
+                        textCell.setTextAndCheckAndIcon(getString(R.string.NewMaterialSwith), fluffyConfig.newSwitchStyle, R.drawable.msg_photo_switch2, true);
                     } else if (position == formatTimeWithSecondsRow) {
                         textCell.setTextAndCheckAndIcon(getString(R.string.formatTime), fluffyConfig.formatTimeWithSeconds, R.drawable.menu_premium_clock, true);
                         textCell.setSubtitle("12:34 PM -> 12:34:56 PM");
@@ -469,7 +480,6 @@ public class appearanceActivitySettings extends BaseFragment {
                     break;
                 case 7:
                     view = new DoubleTapCell(mContext);
-//                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 1:
                 default:
@@ -487,7 +497,8 @@ public class appearanceActivitySettings extends BaseFragment {
             Set<Integer> settingsRows = new HashSet<>(Arrays.asList(
                     zodiacShowRow, storiesShowRow, callShowRow,
                     centerTitleRow, systemTypefaceRow, disableRoundRow,
-                    moreInfoRow, useSolarIconsRow, formatTimeWithSecondsRow
+                    moreInfoRow, useSolarIconsRow, formatTimeWithSecondsRow,
+                    newSwitchStyleRow
 
             ));
 

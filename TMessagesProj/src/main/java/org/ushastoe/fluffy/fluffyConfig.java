@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -24,7 +25,7 @@ public class fluffyConfig {
     public static boolean shouldNOTTrustMe;
 
     public static boolean premiumMode;
-    public static boolean voiceUseCloudflare;
+    public static int voiceUseCloudflare;
     public static String cfAccountID;
     public static String cfApiToken;
 
@@ -38,6 +39,7 @@ public class fluffyConfig {
     public static boolean useSolarIcons;
     public static boolean showStories;
     public static boolean showCallIcon;
+    public static boolean newSwitchStyle;
     public static boolean moreInfoOnline;
     public static boolean unmuteVideoWithVolume;
     public static boolean saveDel;
@@ -67,7 +69,7 @@ public class fluffyConfig {
     public static void load() {
         frontCamera = preferences.getBoolean("frontCamera", true);
         premiumMode = preferences.getBoolean("premiumMode", false);
-        voiceUseCloudflare = preferences.getBoolean("voiceUseCloudflare", false);
+        voiceUseCloudflare = preferences.getInt("voiceUseCloudflare", 0);
         cfApiToken = preferences.getString("cfApiToken", "");
         cfAccountID = preferences.getString("cfAccountID", "");
         zodiacShow = preferences.getBoolean("zodiacShow", false);
@@ -87,87 +89,111 @@ public class fluffyConfig {
         doubleTapOutAction = preferences.getInt("doubleTapOutAction", DOUBLE_TAP_ACTION_REACTION);
         saveDel = preferences.getBoolean("saveDel", false);
         saveEdit = preferences.getBoolean("saveEdit", false);
-
+        newSwitchStyle = preferences.getBoolean("newSwitchStyle", false);
     }
 
     public static void cameraSwitch() {
         frontCamera = !frontCamera;
         editor.putBoolean("frontCamera", frontCamera).apply();
     }
+
     public static void saveDelSwitch() {
         saveDel = !saveDel;
         editor.putBoolean("saveDel", saveDel).apply();
     }
+
     public static void saveEditSwitch() {
         saveEdit = !saveEdit;
         editor.putBoolean("saveEdit", saveEdit).apply();
     }
+
     public static void writeCamera() {
         editor.putBoolean("frontCamera", frontCamera).apply();
     }
+
     public static void toggleShouldNotTrustMe() {
         shouldNOTTrustMe = !shouldNOTTrustMe;
         editor.putBoolean("shouldNOTTrustMe", shouldNOTTrustMe).apply();
     }
+
     public static void togglePremiumMode() {
         premiumMode = !premiumMode;
         editor.putBoolean("premiumMode", premiumMode).apply();
     }
+
     public static void toogleZodiacShow() {
         zodiacShow = !zodiacShow;
         editor.putBoolean("zodiacShow", zodiacShow).apply();
     }
+
     public static void setCfAccountID(String accountID) {
         cfAccountID = accountID;
         editor.putString("cfAccountID", cfAccountID).apply();
     }
+
     public static void setCfApiToken(String apiToken) {
         cfApiToken = apiToken;
         editor.putString("cfApiToken", cfApiToken).apply();
     }
+
     public static void toggleShowStories() {
         showStories = !showStories;
         editor.putBoolean("showStories", showStories).apply();
     }
+
     public static void toggleUseSolarIcons() {
         useSolarIcons = !useSolarIcons;
         editor.putBoolean("useSolarIcons", useSolarIcons).apply();
     }
+
     public static void toggleShowCallIcon() {
         showCallIcon = !showCallIcon;
         editor.putBoolean("showCallIcon", showCallIcon).apply();
     }
+
     public static void toggleMoreInfoOnline() {
         moreInfoOnline = !moreInfoOnline;
         editor.putBoolean("moreInfoOnline", moreInfoOnline).apply();
     }
+
     public static void toggleUnmuteVideoWithVolume() {
         unmuteVideoWithVolume = !unmuteVideoWithVolume;
         editor.putBoolean("unmuteVideoWithVolume", unmuteVideoWithVolume).apply();
     }
+
     public static void toogleDownloadSpeedBoost() {
         downloadSpeedBoost = !downloadSpeedBoost;
         editor.putBoolean("downloadSpeedBoost", downloadSpeedBoost).apply();
     }
+
     public static void toggleCenterTitle() {
         centerTitle = !centerTitle;
         editor.putBoolean("centerTitle", centerTitle).apply();
     }
+
     public static void toogleRoundingNumber() {
         disableRoundingNumber = !disableRoundingNumber;
         editor.putBoolean("roundingNumber", disableRoundingNumber).apply();
     }
+
     public static void toogleFormatTimeWithSeconds() {
         formatTimeWithSeconds = !formatTimeWithSeconds;
         editor.putBoolean("formatTimeWithSeconds", formatTimeWithSeconds).apply();
     }
+
     public static void toogleUseSystemFonts() {
         useSystemFonts = !useSystemFonts;
         editor.putBoolean("useSystemFonts", useSystemFonts).apply();
     }
+
     public static void toogleHideTopBar() {
         hideTopBar = !hideTopBar;
         editor.putBoolean("hideTopBar", hideTopBar).apply();
+    }
+
+    public static void toogleNewSwitchStyle() {
+        newSwitchStyle = !newSwitchStyle;
+        editor.putBoolean("newSwitchStyle", newSwitchStyle).apply();
     }
 
     public static void setDoubleTapInAction(int action) {
@@ -216,8 +242,11 @@ public class fluffyConfig {
     }
 
     public static void setProviderVoice(int type) {
-        fluffyConfig.voiceUseCloudflare = type == 1;
-        editor.putBoolean("voiceUseCloudflare", fluffyConfig.voiceUseCloudflare).apply();
+        fluffyConfig.voiceUseCloudflare = type;
+        editor.putInt("voiceUseCloudflare", fluffyConfig.voiceUseCloudflare).apply();
     }
 
+    public static Boolean useCloudFlare() {
+        return fluffyConfig.voiceUseCloudflare == 1;
+    }
 }

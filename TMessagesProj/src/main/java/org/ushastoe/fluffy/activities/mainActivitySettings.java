@@ -174,7 +174,6 @@ public class mainActivitySettings extends BaseFragment {
             } else if (position == appearanceSettingsRow) {
                 presentFragment(new appearanceActivitySettings());
             }
-
         });
 
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
