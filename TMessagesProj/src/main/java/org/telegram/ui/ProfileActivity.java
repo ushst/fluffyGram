@@ -289,8 +289,8 @@ import org.telegram.ui.bots.BotLocation;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
+import org.ushastoe.fluffy.activities.mainActivitySettings;
 import org.ushastoe.fluffy.fluffyConfig;
-import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -566,7 +566,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int numberSectionRow;
     private int numberRow;
     public int birthdayRow;
-    public int zodiacRow;
     private int setUsernameRow;
     private int bioRow;
     private int phoneSuggestionSectionRow;
@@ -4064,7 +4063,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else if (position == notificationRow) {
                 presentFragment(new NotificationsSettingsActivity());
             } else if (position == fluffyRow) {
-                presentFragment(new fluffySettingsActivity());
+                presentFragment(new mainActivitySettings());
             } else if (position == privacyRow) {
                 presentFragment(new PrivacySettingsActivity().setCurrentPassword(currentPassword));
             } else if (position == dataRow) {
@@ -8829,7 +8828,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         numberSectionRow = -1;
         numberRow = -1;
         birthdayRow = -1;
-        zodiacRow = -1;
         setUsernameRow = -1;
         bioRow = -1;
         channelRow = -1;
@@ -9066,7 +9064,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (userInfo != null) {
                     if (userInfo.birthday != null) {
                         birthdayRow = rowCount++;
-                        if (fluffyConfig.zodiacShow) { zodiacRow = rowCount++; }
                     }
                     if (userInfo.business_work_hours != null) {
                         bizHoursRow = rowCount++;
@@ -11438,29 +11435,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             } else {
                                 text = formatString(today ? R.string.ProfileBirthdayTodayValue : R.string.ProfileBirthdayValue, text);
                             }
+                            var value = getString(today ? R.string.ProfileBirthdayToday : R.string.ProfileBirthday);
+                            if (fluffyConfig.zodiacShow) {
+                                String zodiacSign = BirthdayHelper.getZodiacSign(userFull.birthday.month, userFull.birthday.day);
+                                value += " (" + zodiacSign + ")";
+                            }
 
                             detailCell.setTextAndValue(
                                 Emoji.replaceWithRestrictedEmoji(text, detailCell.textView, () -> {
                                     if (holder.getAdapterPosition() == position && birthdayRow == position && holder.getItemViewType() == VIEW_TYPE_TEXT_DETAIL) {
                                         onBindViewHolder(holder, position);
                                     }
-                                }),
-                                getString(today ? R.string.ProfileBirthdayToday : R.string.ProfileBirthday),
+                                }), value,
                                 isTopic || bizHoursRow != -1 || bizLocationRow != -1
                             );
 
                             containsGift = !myProfile && today && !getMessagesController().premiumPurchaseBlocked();
-                        }
-                    } else if (position == zodiacRow) {
-                        TLRPC.UserFull userFull = getMessagesController().getUserFull(userId);
-                        if (userFull != null && userFull.birthday != null) {
-                            String zodiacSign = BirthdayHelper.getZodiacSign(userFull.birthday.month, userFull.birthday.day);
-
-                            detailCell.setTextAndValue(
-                                    zodiacSign,
-                                    getString(R.string.zodiacSign),
-                                    isTopic || bizHoursRow != -1 || bizLocationRow != -1
-                            );
                         }
                     } else if (position == idAccountRow) {
                         String stringID = "";
@@ -12203,7 +12193,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         position == clearLogsRow || position == switchBackendRow || position == setAvatarRow ||
                         position == addToGroupButtonRow || position == premiumRow || position == premiumGiftingRow ||
                         position == businessRow || position == liteModeRow || position == birthdayRow || position == channelRow ||
-                        position == starsRow || position == fluffyRow || position == zodiacRow || position == idAccountRow;
+                        position == starsRow || position == fluffyRow || position == idAccountRow;
             }
             if (holder.itemView instanceof UserCell) {
                 UserCell userCell = (UserCell) holder.itemView;
@@ -12231,7 +12221,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == zodiacRow || position == idAccountRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == idAccountRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -13580,7 +13570,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, bizHoursRow, sparseIntArray);
             put(++pointer, bizLocationRow, sparseIntArray);
             put(++pointer, birthdayRow, sparseIntArray);
-            put(++pointer, zodiacRow, sparseIntArray);
             put(++pointer, idAccountRow, sparseIntArray);
             put(++pointer, channelRow, sparseIntArray);
             put(++pointer, botStarsBalanceRow, sparseIntArray);

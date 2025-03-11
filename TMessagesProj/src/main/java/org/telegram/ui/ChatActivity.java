@@ -264,6 +264,7 @@ import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.fluffyMessageHistory;
+import org.ushastoe.fluffy.activities.mainActivitySettings;
 import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.BufferedReader;
@@ -294,7 +295,6 @@ import java.util.stream.Collectors;
 
 import org.ushastoe.fluffy.helpers.IpApiHelper;
 import org.ushastoe.fluffy.helpers.MessageHelper;
-import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 import org.ushastoe.fluffy.activities.MessageDetailsActivity;
 
 @SuppressWarnings("unchecked")
@@ -1820,14 +1820,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     case fluffyConfig.DOUBLE_TAP_ACTION_REPLY:
                         processSelectedOption(OPTION_REPLY);
                         break;
-                    case fluffyConfig.DOUBLE_TAP_ACTION_SAVE:
-                        processSelectedOption(OPTION_SAVE_MESSAGE);
+                    case fluffyConfig.DOUBLE_TAP_ACTION_COPY:
+                        processSelectedOption(OPTION_COPY);
                         break;
-                    case fluffyConfig.DOUBLE_TAP_ACTION_REPEAT:
-                        processSelectedOption(OPTION_REPEAT);
+                    case fluffyConfig.DOUBLE_TAP_ACTION_FORWARD:
+                        processSelectedOption(OPTION_FORWARD);
                         break;
                     case fluffyConfig.DOUBLE_TAP_ACTION_EDIT:
                         processSelectedOption(OPTION_EDIT);
+                        break;
+                    case fluffyConfig.DOUBLE_TAP_ACTION_SAVE:
+                        processSelectedOption(OPTION_SAVE_MESSAGE);
+                        break;
+                    case fluffyConfig.DOUBLE_TAP_ACTION_DELETE:
+                        processSelectedOption(OPTION_DELETE);
                         break;
                 }
             }
@@ -3766,7 +3772,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         button.setTextColor(getThemedColor(Theme.key_text_RedBold));
                     }
                 } else if (id == open_settings_fluffy) {
-                    presentFragment(new fluffySettingsActivity());
+                    presentFragment(new mainActivitySettings());
                 }
             }
         });

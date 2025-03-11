@@ -40,6 +40,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
@@ -58,8 +59,7 @@ public class fluffySettingsActivity extends BaseFragment {
     @SuppressWarnings("FieldCanBeLocal")
     private LinearLayoutManager layoutManager;
 
-    private ArrayList<File> storageDirs;
-
+    private headerSettingsCell headerSettingsCell;
     private int chatSettingsSectionRow;
     private int appearanceSettingsSectionRow;
     private int otherSettingsSectionRow;
@@ -84,6 +84,8 @@ public class fluffySettingsActivity extends BaseFragment {
     private int unmuteVideoWithVolumeRow;
     private int saveEditRow;
     private int saveDelRow;
+
+    private int aboutFluffyRow;
     private int rowCount;
 
     private boolean updateCameraSelect;
@@ -590,7 +592,7 @@ public class fluffySettingsActivity extends BaseFragment {
                     } else if (position == disableRoundRow) {
                         checkCell.setTextAndValueAndCheck(getString(R.string.DisableNumberRounding), "4.8K -> 4777", fluffyConfig.disableRoundingNumber, true, true);
                     } else if (position == moreInfoOnlineRow) {
-                        checkCell.setTextAndCheck(getString(R.string.ExtendedStatusOnline), fluffyConfig.disableRoundingNumber, true);
+                        checkCell.setTextAndCheck(getString(R.string.ExtendedStatusOnline), fluffyConfig.moreInfoOnline, true);
                     } else if (position == unmuteVideoWithVolumeRow) {
                         checkCell.setTextAndCheck(getString(R.string.unmuteVideoWithVolume), fluffyConfig.unmuteVideoWithVolume, true);
                     }  else if (position == saveDelRow) {
@@ -607,7 +609,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     break;
                 }
                 case 4: {
-                    TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+                    headerSettingsCell = (headerSettingsCell) holder.itemView;
+                    headerSettingsCell.setPadding(0, ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) - AndroidUtilities.dp(40), 0, 0);
                     break;
                 }
                 case 5: {
@@ -703,8 +706,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 4:
-                    view = new TextInfoPrivacyCell(mContext);
-                    view.setBackgroundDrawable(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                    view = new headerSettingsCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 5:
                     view = new NotificationsCheckCell(mContext);
@@ -741,6 +744,8 @@ public class fluffySettingsActivity extends BaseFragment {
                     position == downloadSpeedBoostRow
             ) {
                 return 3;
+            } else if (position == aboutFluffyRow) {
+                return 4;
             } else {
                 return 1;
             }

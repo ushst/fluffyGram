@@ -48,9 +48,11 @@ public class fluffyConfig {
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
     public static final int DOUBLE_TAP_ACTION_REPLY = 2;
-    public static final int DOUBLE_TAP_ACTION_SAVE = 3;
-    public static final int DOUBLE_TAP_ACTION_REPEAT = 4;
+    public static final int DOUBLE_TAP_ACTION_COPY = 3;
+    public static final int DOUBLE_TAP_ACTION_FORWARD = 4;
     public static final int DOUBLE_TAP_ACTION_EDIT = 5;
+    public static final int DOUBLE_TAP_ACTION_SAVE = 6;
+    public static final int DOUBLE_TAP_ACTION_DELETE = 7;
     public static final int MESSAGES_DELETED_NOTIFICATION = 6969;
 
     public static int doubleTapInAction;

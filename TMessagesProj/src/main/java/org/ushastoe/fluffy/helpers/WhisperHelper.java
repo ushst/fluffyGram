@@ -33,9 +33,13 @@ import org.telegram.ui.LaunchActivity;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
@@ -43,6 +47,8 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
+
 import org.ushastoe.fluffy.fluffyConfig;
 
 public class WhisperHelper {
@@ -129,9 +135,11 @@ public class WhisperHelper {
         builder.setView(ll);
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        builder.setNeutralButton(LocaleController.getString(R.string.Test), null);
         var dialog = builder.create();
         fragment.showDialog(dialog);
         var button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
         if (button != null) {
             button.setOnClickListener(v -> {
                 var accountId = editTextAccountId.getText();
@@ -149,6 +157,33 @@ public class WhisperHelper {
                 fluffyConfig.setCfAccountID(accountId == null ? "" : accountId.toString());
                 fluffyConfig.setCfApiToken(apiToken == null ? "" : apiToken.toString());
                 dialog.dismiss();
+            });
+        }
+        var neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        if (neutralButton != null) {
+            neutralButton.setOnClickListener(v -> {
+                var apiToken = editTextApiToken.getText().toString().trim();
+                if (TextUtils.isEmpty(apiToken)) {
+                    AndroidUtilities.shakeViewSpring(editTextApiToken, -6);
+                    BotWebViewVibrationEffect.APP_ERROR.vibrate();
+                    return;
+                }
+
+                // Запускаем тест API токена
+                new Thread(() -> {
+                    var result = testWorkersAi(apiToken);
+                    var isSuccess = result.keySet().iterator().next();
+                    var message = result.get(isSuccess);
+
+                    AndroidUtilities.runOnUIThread(() -> {
+                        AlertDialog.Builder resultDialog = new AlertDialog.Builder(context, resourcesProvider);
+                        resultDialog.setTitle(isSuccess ? LocaleController.getString(R.string.Success)
+                                : LocaleController.getString(R.string.Error));
+                        resultDialog.setMessage(message);
+                        resultDialog.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                        resultDialog.show();
+                    });
+                }).start();
             });
         }
     }
@@ -211,6 +246,33 @@ public class WhisperHelper {
         muxer.stop();
         muxer.release();
         extractor.release();
+    }
+
+    public static Map<Boolean, String> testWorkersAi(String cfApiToken) {
+        Future<Map<Boolean, String>> future = executorService.submit(() -> {
+            var client = getOkHttpClient();
+            var request = new Request.Builder()
+                    .url("https://api.cloudflare.com/client/v4/user/tokens/verify")
+                    .header("Authorization", "Bearer " + cfApiToken)
+                    .header("Content-Type", "application/json")
+                    .get()
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                Map<Boolean, String> result = new HashMap<>();
+                result.put(response.isSuccessful(), response.body().string());
+                return result;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Collections.singletonMap(false, e.getMessage());
+            }
+        });
+
+        try {
+            return future.get(); // Ожидаем завершения задачи и получаем результат
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.singletonMap(false, "Ошибка выполнения");
+        }
     }
 
     public static void requestWorkersAi(String path, boolean video, BiConsumer<String, Exception> callback) {

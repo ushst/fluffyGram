@@ -205,6 +205,7 @@ import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.activities.mainActivitySettings;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
@@ -673,7 +674,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     presentFragment(new SessionsActivity(0));
                     drawerLayoutContainer.closeDrawer(true);
                 } else if (id == 97 ) {
-                    presentFragment(new fluffySettingsActivity());
+                    presentFragment(new mainActivitySettings());
                     drawerLayoutContainer.closeDrawer(true);
                 }
             }
