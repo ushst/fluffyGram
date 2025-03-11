@@ -10,6 +10,7 @@ package org.ushastoe.fluffy.settings;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -182,7 +183,7 @@ public class fluffySettingsActivity extends BaseFragment {
                 }
             }
         });
-
+        actionBar.createMenu().addItem(1000, (Drawable) null).setVisibility(View.INVISIBLE);
         listAdapter = new ListAdapter(context);
 
         fragmentView = new FrameLayout(context);

@@ -10,6 +10,7 @@ package org.ushastoe.fluffy.activities;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -235,6 +236,7 @@ public class MessageDetailsActivity extends BaseFragment {
                 }
             }
         });
+        actionBar.createMenu().addItem(1000, (Drawable) null).setVisibility(View.INVISIBLE);
 
         listAdapter = new ListAdapter(context);
 

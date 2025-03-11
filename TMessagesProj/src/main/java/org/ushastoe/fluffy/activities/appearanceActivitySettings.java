@@ -6,6 +6,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -144,6 +145,7 @@ public class appearanceActivitySettings extends BaseFragment {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setTitle(getString(R.string.Appearance));
         actionBar.setAllowOverlayTitle(true);
+        actionBar.createMenu().addItem(1000, (Drawable) null).setVisibility(View.INVISIBLE);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
