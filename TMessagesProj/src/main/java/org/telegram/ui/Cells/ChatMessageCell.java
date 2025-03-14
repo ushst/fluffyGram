@@ -16225,7 +16225,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         }
-        float customDrawableWidth = 0;
+        int customDrawableWidth = 0;
         if (currentMessageObject.notime || currentMessageObject.isSponsored() || currentMessageObject.isQuickReply()) {
             timeString = "";
         } else if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {
@@ -16235,8 +16235,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else if (currentMessageObject.isRepostPreview) {
             timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.date) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
         } else if (edited || currentMessageObject.messageOwner.isDeleted() || currentMessageObject.messageOwner.silent || currentMessageObject.messageOwner.from_scheduled) {
-            timeString = MessageHelper.createNewString(currentMessageObject);
-            customDrawableWidth = Theme.chat_editDrawable.getIntrinsicWidth();
+            MessageHelper.SpannableResult result = MessageHelper.createNewString(currentMessageObject);
+            timeString = result.text;
+            customDrawableWidth = result.width;
         } else if (currentMessageObject.isSaved && currentMessageObject.messageOwner.fwd_from != null && (currentMessageObject.messageOwner.fwd_from.date != 0 || currentMessageObject.messageOwner.fwd_from.saved_date != 0)) {
             int date = currentMessageObject.messageOwner.fwd_from.saved_date;
             if (date == 0) {
@@ -16267,7 +16268,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
         if (customDrawableWidth != 0) {
-            timeTextWidth = timeWidth += customDrawableWidth * (Theme.chat_timePaint.getTextSize() - AndroidUtilities.dp(2)) / customDrawableWidth;
+            timeWidth += customDrawableWidth;
+            timeTextWidth = timeWidth + customDrawableWidth;
         }
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {
             timeWidth -= dp(8);
@@ -16364,6 +16366,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             signWidth = 0;
         }
+        Log.d("fluffy", "timeTextWidth = " + timeTextWidth + " timeWidth = " + timeWidth);
     }
 
     private boolean shouldDrawSelectionOverlay() {

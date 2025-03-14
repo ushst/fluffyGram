@@ -2,6 +2,7 @@ package org.ushastoe.fluffy.helpers;
 
 import static org.telegram.messenger.LocaleController.getString;
 
+import android.graphics.drawable.Drawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -91,58 +92,47 @@ public class MessageHelper {
         return new String(decodedBytes, StandardCharsets.UTF_8);
     }
 
+    public static class SpannableResult {
+        public final CharSequence text;
+        public final int width;
 
-    private static final SpannableStringBuilder[] spannedStrings = new SpannableStringBuilder[5];
+        public SpannableResult(CharSequence text, int width) {
+            this.text = text;
+            this.width = width;
+        }
+    }
 
-    public static CharSequence createNewString(MessageObject messageObject) {
+    public static SpannableResult createNewString(MessageObject messageObject) {
         var spannableStringBuilder = new SpannableStringBuilder();
+        final SpannableStringBuilder[] spannedStrings = new SpannableStringBuilder[4];
+        final Drawable[] icons = {
+                messageObject.messageOwner.isDeleted() ? Theme.chat_deleteDrawable : null,
+                messageObject.isEdited() ? Theme.chat_editDrawable : null,
+                messageObject.messageOwner.silent ? Theme.chat_silentDrawable : null,
+                messageObject.messageOwner.from_scheduled ? Theme.chat_sheduleDrawable : null
+        };
 
-        Log.d("messageObject", "nStr: " + messageObject.messageOwner.dialog_id);
+        int totalWidth = 0;
 
-        if (messageObject.messageOwner.silent) {
-            if (spannedStrings[0] == null) {
-                spannedStrings[0] = new SpannableStringBuilder("s");
+        for (int i = 0; i < icons.length; i++) {
+            if (icons[i] != null) {
+                spannedStrings[i] = new SpannableStringBuilder("\u200B");
+                ColoredImageSpan iconSpan = new ColoredImageSpan(icons[i]);
+                iconSpan.setSize(30);
+                spannedStrings[i].setSpan(iconSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                totalWidth += 30;
             }
-            spannableStringBuilder
-                    .append(spannedStrings[0])
-                    .append(' ');
         }
 
-        if (messageObject.messageOwner.from_scheduled) {
-            if (spannedStrings[1] == null) {
-                spannedStrings[1] = new SpannableStringBuilder("t");
+        for (SpannableStringBuilder spannedString : spannedStrings) {
+            if (spannedString != null) {
+                spannableStringBuilder.append(spannedString).append(" ");
             }
-            spannableStringBuilder
-                    .append(spannedStrings[1])
-                    .append(' ');
         }
-
-        if (messageObject.messageOwner.isDeleted() ) {
-            if (spannedStrings[2] == null) {
-                spannedStrings[2] = new SpannableStringBuilder("\u200B");
-                ColoredImageSpan icon = new ColoredImageSpan(Theme.chat_deleteDrawable);
-                icon.setSize(40);
-                spannedStrings[2].setSpan(icon, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            spannableStringBuilder
-                    .append(spannedStrings[2])
-                    .append(' ');
-        }
-
-        if (messageObject.isEdited() && !messageObject.messageOwner.isDeleted()) {
-            if (spannedStrings[3] == null) {
-                spannedStrings[3] = new SpannableStringBuilder("\u200B");
-                ColoredImageSpan edit_icon = new ColoredImageSpan(Theme.chat_editDrawable);
-                edit_icon.setSize(30);
-                spannedStrings[3].setSpan(edit_icon, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            spannableStringBuilder
-                    .append(spannedStrings[3])
-                    .append(' ');
-        }
-
 
         spannableStringBuilder.append(LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
-        return spannableStringBuilder;
+        Log.d("fluffy", String.valueOf(totalWidth));
+        return new SpannableResult(spannableStringBuilder, totalWidth);
     }
+
 }
