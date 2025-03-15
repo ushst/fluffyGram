@@ -38,6 +38,8 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.telegram.ui.Components.AvatarDrawable;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,12 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
         dialogId = messageObject.messageOwner.dialog_id;
         messageId = messageObject.messageOwner.id;
         messageIds = new ArrayList<>(messages.keySet());
+
+        long currentMessageKey = System.currentTimeMillis() / 1000;
+        messages.put(currentMessageKey, MessageHelper.encodeBase64(messageObject.messageOwner.message));
+
+        messageIds.add(0, currentMessageKey);
+
         rowCount = messages.size();
     }
 
@@ -112,7 +120,7 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
         listView.setAdapter(adapter = new ListAdapter(context));
 
         if (!messageIds.isEmpty()) {
-            listView.scrollToPosition(0);
+            listView.scrollToPosition(messageIds.size() - 1); // Прокручиваем к последнему элементу
         }
 
         boolean isChatMode = true;

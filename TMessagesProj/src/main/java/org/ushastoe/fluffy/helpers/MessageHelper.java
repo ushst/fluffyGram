@@ -65,7 +65,6 @@ public class MessageHelper {
         return path;
     }
 
-
     public static  MessageObject.GroupedMessages getValidGroupedMessage(MessageObject message) {
         LongSparseArray<MessageObject.GroupedMessages> groupedMessagesMap = new LongSparseArray<>();
 
@@ -86,7 +85,12 @@ public class MessageHelper {
             return Base64.encodeToString(data, Base64.NO_PADDING | Base64.NO_WRAP);
         }
     }
-
+    public static String encodeBase64(String text) {
+        if (text == null) {
+            return null;
+        }
+        return Base64.encodeToString(text.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
+    }
     public static String decodeBase64(String encodedString) throws IllegalArgumentException {
         byte[] decodedBytes = Base64.decode(encodedString, Base64.DEFAULT);
         return new String(decodedBytes, StandardCharsets.UTF_8);
