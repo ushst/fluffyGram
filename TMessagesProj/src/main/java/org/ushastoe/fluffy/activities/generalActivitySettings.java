@@ -27,9 +27,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -94,6 +96,7 @@ public class generalActivitySettings extends BaseFragment {
         UNMUTE_WITH_VOLUME,
         PAUSE_MUSIC_ON_MEDIA,
         EDGE_TO_EDGE_MODE,
+        OPEN_LINKS_IN_SYSTEM_BROWSER,
         BIG_PHOTO_SEND,
         TRANSCRIBE_DISABLE_LISTEN_SIGNAL,
         VOICE_PROVIDER_SELECTOR,
@@ -220,7 +223,8 @@ public class generalActivitySettings extends BaseFragment {
 
         addCategory(RowIdentifier.GENERAL_DISPLAY_HEADER, "Display",
                 asList(
-                        new Row(RowIdentifier.EDGE_TO_EDGE_MODE, RowType.TEXT_CELL, R.string.EdgeToEdgeMode, R.drawable.msg_theme)
+                        new Row(RowIdentifier.EDGE_TO_EDGE_MODE, RowType.TEXT_CELL, R.string.EdgeToEdgeMode, R.drawable.msg_theme),
+                        new Row(RowIdentifier.OPEN_LINKS_IN_SYSTEM_BROWSER, RowType.TEXT_CHECK, R.string.DisableDefaultInAppBrowser, R.drawable.msg_link)
                 ), true);
 
         addCategory(RowIdentifier.GENERAL_HISTORY_HEADER, "History",
@@ -401,6 +405,14 @@ public class generalActivitySettings extends BaseFragment {
                 case EDGE_TO_EDGE_MODE:
                     showEdgeToEdgeModeDialog();
                     break;
+                case OPEN_LINKS_IN_SYSTEM_BROWSER: {
+                    SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+                    boolean currentValue = preferences.getBoolean("disableDefaultInAppBrowser", BuildConfig.SKIP_INTERNAL_BROWSER_BY_DEFAULT);
+                    boolean newValue = !currentValue;
+                    preferences.edit().putBoolean("disableDefaultInAppBrowser", newValue).apply();
+                    textCell.setChecked(newValue);
+                    break;
+                }
                 case BIG_PHOTO_SEND:
                     fluffyConfig.toggleLargePhoto();
                     textCell.setChecked(fluffyConfig.largePhoto);
@@ -991,6 +1003,10 @@ public class generalActivitySettings extends BaseFragment {
                         break;
                     case PAUSE_MUSIC_ON_MEDIA:
                         checked = fluffyConfig.pauseMusicOnMedia;
+                        break;
+                    case OPEN_LINKS_IN_SYSTEM_BROWSER:
+                        checked = MessagesController.getGlobalMainSettings()
+                                .getBoolean("disableDefaultInAppBrowser", BuildConfig.SKIP_INTERNAL_BROWSER_BY_DEFAULT);
                         break;
                     case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
                         checked = fluffyConfig.transcribeDisableListenSignal;

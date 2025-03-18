@@ -129,6 +129,7 @@ android {
 
         multiDexEnabled true
 
+        buildConfigField 'boolean', 'SKIP_INTERNAL_BROWSER_BY_DEFAULT', 'false'
         externalNativeBuild {
             cmake {
                 version '3.10.2'

@@ -8421,6 +8421,7 @@
     <string name="BrowserSettingsNeverOpenInAdd">Add Website</string>
     <string name="BrowserSettingsNeverOpenInClearList">Clear List</string>
     <string name="BrowserSettingsNeverOpenInInfo">Telegram will always open links from these websites in the external browser.</string>
+    <string name="DisableDefaultInAppBrowser">Open links in system browser</string>
     <string name="BrowserSettingsAddTitle">Add Website</string>
     <string name="BrowserSettingsAddText">Enter a domain that you don’t want to be opened in the in-app browser.</string>
     <string name="BrowserSettingsAddHint">Enter URL</string>

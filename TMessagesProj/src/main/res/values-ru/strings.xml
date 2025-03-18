@@ -263,4 +263,5 @@
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
     <string name="TranslitMessage">Транслит</string>
     <string name="TranslitResultPrefix">перевод сообщения:</string>
+    <string name="DisableDefaultInAppBrowser">Открывать ссылки в системном браузере</string>
 </resources>
