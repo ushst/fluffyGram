@@ -20,6 +20,7 @@
     <string name="CloudflareAPIToken">API Token</string>
     <string name="CloudflareCredentialsDialog">Configure Cloudflare Account ID and API Token.\n**How to obtain?**</string>
     <string name="TitleSelecter">Select Title Type</string>
+    <string name="TimestampSelecter">Select Sticker TimeStamp </string>
     <string name="Other">Other (experimental)</string>
     <string name="appearanceSettings">Appearance</string>
     <string name="storiesShower">Show stories</string>
@@ -65,6 +66,9 @@
     <string name="Test">Test</string>
     <string name="Success">Success</string>
     <string name="Error">Error</string>
+    <string name="ReadStatus">Read Status</string>
+    <string name="TimeWithReadStatus">Time With Read Status</string>
+
 
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="formatterDay24HSec">HH:mm:ss</string>

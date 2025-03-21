@@ -45,6 +45,8 @@ public class fluffyConfig {
     public static boolean saveDel;
     public static boolean saveEdit;
 
+    public static int readSticker;
+
     public static int typeTitle;
 
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
@@ -80,6 +82,7 @@ public class fluffyConfig {
         moreInfoOnline = preferences.getBoolean("moreInfoOnline", false);
         unmuteVideoWithVolume = preferences.getBoolean("unmuteVideoWithVolume", true);
         typeTitle = preferences.getInt("typeTitle", 0);
+        readSticker = preferences.getInt("readSticker", 0);
         disableRoundingNumber = preferences.getBoolean("roundingNumber", false);
         formatTimeWithSeconds = preferences.getBoolean("formatTimeWithSeconds", false);
         centerTitle = preferences.getBoolean("centerTitle", false);
@@ -239,6 +242,10 @@ public class fluffyConfig {
     public static void setTypeTitle(int type) {
         typeTitle = type;
         editor.putInt("typeTitle", typeTitle).apply();
+    }
+    public static void setReadSticker(int type) {
+        readSticker = type;
+        editor.putInt("readSticker", readSticker).apply();
     }
 
     public static void setProviderVoice(int type) {

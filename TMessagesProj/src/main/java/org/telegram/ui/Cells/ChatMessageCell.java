@@ -207,6 +207,7 @@ import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.StoryViewer;
 import org.telegram.ui.Stories.recorder.CaptionContainerView;
 import org.telegram.ui.Stories.recorder.DominantColors;
+import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
@@ -16244,12 +16245,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 date = currentMessageObject.messageOwner.fwd_from.date;
             }
             timeString = LocaleController.formatSeenDate(date);
+        } else if (currentMessageObject.isSticker() && fluffyConfig.readSticker == 1) {
+            timeString = "";
         } else {
             timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
         }
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = LocaleController.formatString(R.string.ScheduledTimeApprox, timeString);
         }
+
         if (signString != null) {
             if (messageObject.messageOwner.via_business_bot_id != 0) {
                 currentTimeString = timeString + ", ";
@@ -16261,6 +16265,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             currentTimeString = timeString;
         }
+
         final long starsPrice = currentMessageObject.getDialogId() < 0 ? getStarsPrice() : 0;
         if (starsPrice > 0) {
             currentTimeString = TextUtils.concat("⭐️", AndroidUtilities.formatWholeNumber((int) starsPrice, 0), ", ", currentTimeString);
@@ -16366,7 +16371,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             signWidth = 0;
         }
-        Log.d("fluffy", "timeTextWidth = " + timeTextWidth + " timeWidth = " + timeWidth);
     }
 
     private boolean shouldDrawSelectionOverlay() {
@@ -20775,6 +20779,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public void drawTime(Canvas canvas, float alpha, boolean fromParent) {
         if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
+            return;
+        }
+        if (fluffyConfig.readSticker == 2 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground()) {
             return;
         }
         if (currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {

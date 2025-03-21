@@ -98,6 +98,7 @@ public class appearanceActivitySettings extends BaseFragment {
     private int useSolarIconsRow;
     private int formatTimeWithSecondsRow;
     private int doubleTapRow;
+    private int stickerTimeStampRow;
 
     private Parcelable recyclerViewState = null;
 
@@ -132,6 +133,7 @@ public class appearanceActivitySettings extends BaseFragment {
         callShowRow = rowCount++;
         moreInfoRow = rowCount++;
         formatTimeWithSecondsRow = rowCount++;
+        stickerTimeStampRow = rowCount++;
 
         if (listAdapter != null && fullNotify) {
             listAdapter.notifyDataSetChanged();
@@ -230,6 +232,8 @@ public class appearanceActivitySettings extends BaseFragment {
                 titleSelecter(context);
             } else if (position == doubleTapRow) {
                 selectorReaction();
+            } else if (position == stickerTimeStampRow) {
+                timeStampSelecter(context);
             }
         });
         return fragmentView;
@@ -354,6 +358,51 @@ public class appearanceActivitySettings extends BaseFragment {
         dialogRef.set(dialog);
         showDialog(dialog);
     }
+
+    private void timeStampSelecter(Context context) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        CharSequence[] items = new CharSequence[]{
+            "Time with Read Status",
+            "Read Status",
+            "None"
+        };
+
+        for (int i = 0; i < items.length; ++i) {
+            final int index = i;
+            RadioColorCell cell = new RadioColorCell(getParentActivity());
+            cell.setPadding(dp(4), 0, dp(4), 0);
+            cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+            cell.setTextAndValue(items[index], index == fluffyConfig.readSticker);
+            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            linearLayout.addView(cell);
+            cell.setOnClickListener(v -> {
+                fluffyConfig.setReadSticker(index);
+                RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(stickerTimeStampRow);
+                if (holder != null) {
+                    listAdapter.onBindViewHolder(holder, stickerTimeStampRow);
+                }
+
+                dialogRef.get().dismiss();
+                chatListPreviewCell.updateTitle(true);
+            });
+        }
+
+        Dialog dialog = new AlertDialog.Builder(getParentActivity())
+                .setTitle(getString(R.string.TimestampSelecter))
+                .setView(linearLayout)
+                .setNegativeButton(getString(R.string.Cancel), null)
+                .create();
+        dialogRef.set(dialog);
+        showDialog(dialog);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -412,7 +461,15 @@ public class appearanceActivitySettings extends BaseFragment {
                             case 3 -> "Disable";
                             default -> LocaleController.getString(R.string.AppName);
                         };
-                        textCell6.setTextAndValueAndIcon(getString("TitleType", R.string.TitleSelecter), value, R.drawable.menu_tag_rename, true);
+                        textCell6.setTextAndValueAndIcon(getString(R.string.TitleSelecter), value, R.drawable.menu_tag_rename, true);
+                    } else if (position == stickerTimeStampRow) {
+                        String value = switch (fluffyConfig.readSticker) {
+                            case 0 -> getString(R.string.TimeWithReadStatus);
+                            case 1 -> getString(R.string.ReadStatus);
+                            case 2 -> getString(R.string.None);
+                            default -> getString(R.string.None);
+                        };
+                        textCell6.setTextAndValueAndIcon(getString(R.string.TimestampSelecter), value, R.drawable.msg2_sticker, true);
                     }
                     break;
                 case 7:
@@ -521,7 +578,7 @@ public class appearanceActivitySettings extends BaseFragment {
             if (headersRows.contains(position)) {
                 return 3;
             }
-            if (position == selectTitleRow) {
+            if (position == selectTitleRow || position == stickerTimeStampRow) {
                 return 6;
             }
             if (position == doubleTapRow) {
