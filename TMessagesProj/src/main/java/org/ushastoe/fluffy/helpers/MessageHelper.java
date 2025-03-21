@@ -135,7 +135,6 @@ public class MessageHelper {
         }
 
         spannableStringBuilder.append(LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
-        Log.d("fluffy", String.valueOf(totalWidth));
         return new SpannableResult(spannableStringBuilder, totalWidth);
     }
 
