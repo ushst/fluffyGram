@@ -85,7 +85,7 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
             avatarContainer.setChatAvatar(((TLRPC.Chat) peer));
             name = ((TLRPC.Chat) peer).title;
         } else {
-            name = LocaleController.getString("EditsHistoryTitle", R.string.EditsHistoryTitle);
+            name = LocaleController.getString(R.string.EditsHistoryTitle);
         }
         avatarContainer.setTitle(name);
         avatarContainer.setSubtitle(String.valueOf(messageId));

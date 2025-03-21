@@ -19,6 +19,11 @@
     <color name="mGreen500">#4CAF50</color>
     <color name="mGreen800">#2E7D32</color>
 
+    <color name="monetRedLight">#B3261E</color>
+    <color name="monetRedDark">#F2B8B5</color>
+    <color name="monetRedCall">#4CAF50</color>
+    <color name="monetGreenCall">#EF5350</color>
+
     <color name="ic_background_monet">#EF9A9A</color>
     <color name="ic_foreground_monet">#999999</color>
 </resources>

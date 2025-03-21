@@ -207,6 +207,7 @@ import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.activities.mainActivitySettings;
 import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.helpers.MonetHelper;
 import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
@@ -968,6 +969,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 AlertsCreator.createBackgroundActivityDialog(this).show();
                 SharedConfig.BackgroundActivityPrefs.setLastCheckedBackgroundActivity(System.currentTimeMillis());
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MonetHelper.registerReceiver(this);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -6509,6 +6514,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     @Override
     protected void onDestroy() {
         isActive = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MonetHelper.unregisterReceiver(this);
+        }
         if (PhotoViewer.getPipInstance() != null) {
             PhotoViewer.getPipInstance().destroyPhotoViewer();
         }
