@@ -17,6 +17,11 @@ import org.ushastoe.fluffy.helpers.BaseIconSet;
 import org.ushastoe.fluffy.helpers.EmptyIconSet;
 import org.ushastoe.fluffy.helpers.SolarIconSet;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class fluffyConfig {
     public static SharedPreferences preferences;
     public static SharedPreferences.Editor editor;
@@ -256,4 +261,39 @@ public class fluffyConfig {
     public static Boolean useCloudFlare() {
         return fluffyConfig.voiceUseCloudflare == 1;
     }
+
+    public static void toggleIdInWallpaperChat(long id) {
+        String idHideWallpaper = preferences.getString("idHideWallpaper", "");
+        List<String> ids = parseIds(idHideWallpaper);
+
+        String idString = String.valueOf(id);
+
+        if (ids.contains(idString)) {
+            ids.remove(idString);
+        } else {
+            ids.add(idString);
+        }
+
+        String updatedIds = String.join(";", ids);
+        editor.putString("idHideWallpaper", updatedIds).apply();
+    }
+
+    public static boolean ShowWallpaperChat(long id) {
+        String idHideWallpaper = preferences.getString("idHideWallpaper", "");
+        List<String> ids = parseIds(idHideWallpaper);
+
+        if (ids.isEmpty()) {
+            return true;
+        }
+
+        return !ids.contains(String.valueOf(id));
+    }
+
+    public static List<String> parseIds(String input) {
+        if (input == null || input.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Arrays.asList(input.split(";")));
+    }
+
 }

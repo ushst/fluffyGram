@@ -393,6 +393,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private SuggestEmojiView suggestEmojiPanel;
     private ActionBarMenuItem.Item muteItem;
     private ActionBarMenuItem.Item muteItemGap;
+    private ActionBarMenuItem.Item wallpaperItem;
     private ChatNotificationsPopupWrapper chatNotificationsPopupWrapper;
     private float pagedownButtonEnterProgress;
     private float searchUpDownEnterProgress;
@@ -1510,6 +1511,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private final static int share = 69;
 
+    private final static int wallpaperShower = 998;
     private final static int open_settings_fluffy = 999;
 
     private final static int id_chat_compose_panel = 1000;
@@ -3791,6 +3793,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 } else if (id == open_settings_fluffy) {
                     presentFragment(new mainActivitySettings());
+                } else if (id == wallpaperShower) {
+                    fluffyConfig.toggleIdInWallpaperChat(currentUser.id);
+                    wallpaperItem.setText(fluffyConfig.ShowWallpaperChat(currentUser.id) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
+                    wallpaperItem.setIcon(fluffyConfig.ShowWallpaperChat(currentUser.id) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views);
                 }
             }
         });
@@ -39987,6 +39993,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (themeDelegate == null || parentThemeDelegate != null) {
             return;
         }
+
+//        if (fluffyConfig.ShowWallpaperChat(currentUser.id)) {
+//            return;
+//        }
+
         ChatThemeController chatThemeController = ChatThemeController.getInstance(currentAccount);
         chatThemeController.setDialogTheme(dialog_id, emoticon, false);
         if (!TextUtils.isEmpty(emoticon)) {
@@ -39994,7 +40005,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 themeDelegate.setCurrentTheme(result, themeDelegate.wallpaper,openAnimationStartTime != 0, null);
             });
         }
-        TLRPC.WallPaper wallPaper = chatThemeController.getDialogWallpaper(dialog_id);
+        TLRPC.WallPaper wallPaper;
+        if (currentUser != null) {
+            wallPaper = fluffyConfig.ShowWallpaperChat(currentUser.id) ? chatThemeController.getDialogWallpaper(dialog_id) : null;
+        } else {
+            wallPaper = chatThemeController.getDialogWallpaper(dialog_id);
+        }
+
         themeDelegate.setCurrentTheme(themeDelegate.chatTheme, wallPaper, openAnimationStartTime != 0, null);
     }
 

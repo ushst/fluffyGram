@@ -96,6 +96,10 @@
     <string name="zodiac_scorpio">Scorpio</string>
     <string name="zodiac_sagittarius">Sagittarius</string>
 
+
+    <string name="ShowWallpaperInChat">Show Wallpaper</string>
+    <string name="DontShowWallpaperInChat">Don\'t Show Wallpaper</string>
+
     <string name="Repeat">Repeat</string>
     <string name="AddToSavedMessages">Save message</string>
     <string name="doubleTapInAction">Double tap on not my message</string>
