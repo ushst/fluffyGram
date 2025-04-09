@@ -2,4 +2,10 @@
 <resources>
     <color name="ic_background_monet">@android:color/system_accent1_100</color>
     <color name="ic_foreground_monet">@android:color/system_neutral2_700</color>
+
+
+    <color name="monetRedLight">#ffb3261e</color>
+    <color name="monetRedDark">#fff2b8b5</color>
+    <color name="monetRedCall">#4CAF50</color>
+    <color name="monetGreenCall">#EF5350</color>
 </resources>

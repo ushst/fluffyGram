@@ -2288,7 +2288,7 @@ public class Theme {
         }
 
         public boolean isMonet() {
-            return "Monet Dark".equals(name) || "Monet Light".equals(name) || "Monet AMOLED".equals(name);
+            return "Monet Dark".equals(name) || "Monet Light".equals(name) ;
         }
 
         JSONObject getSaveJson() {
@@ -4710,7 +4710,7 @@ public class Theme {
             themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_50");
             themeInfo.previewInColor = MonetHelper.getColor("a2_50");
             themeInfo.previewOutColor = MonetHelper.getColor("a1_600");
-            themeInfo.sortIndex = 6;
+            themeInfo.sortIndex = 5;
             themes.add(themeInfo);
             themesDict.put("Monet Light", themeInfo);
 
@@ -4720,19 +4720,9 @@ public class Theme {
             themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_900");
             themeInfo.previewInColor = MonetHelper.getColor("n2_800");
             themeInfo.previewOutColor = MonetHelper.getColor("a1_100");
-            themeInfo.sortIndex = 7;
+            themeInfo.sortIndex = 6;
             themes.add(themeInfo);
             themesDict.put("Monet Dark", themeInfo);
-
-            themeInfo = new ThemeInfo();
-            themeInfo.name = "Monet AMOLED";
-            themeInfo.assetName = "monet_dark.attheme";
-            themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_1000");
-            themeInfo.previewInColor = MonetHelper.getColor("n2_800");
-            themeInfo.previewOutColor = MonetHelper.getColor("a1_100");
-            themeInfo.sortIndex = 8;
-            themes.add(themeInfo);
-            themesDict.put("Monet AMOLED", themeInfo);
         }
 
         String themesString = themeConfig.getString("themes2", null);
@@ -8238,7 +8228,7 @@ public class Theme {
                                     } catch (Exception ignore) {
                                         value = Utilities.parseInt(param);
                                     }
-                                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (param.startsWith("a") || param.startsWith("n"))) {
+                                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (param.startsWith("a") || param.startsWith("n") || param.startsWith("monet"))) {
                                     value = MonetHelper.getColor(param.trim());
                                 } else {
                                     value = Utilities.parseInt(param);

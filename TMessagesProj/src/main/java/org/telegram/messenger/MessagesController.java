@@ -18111,7 +18111,6 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
 
                     long finalDialogId = dialogId;
-                    Log.d("fluffyLog", "Saved deleted message: " + dialogId + " " + messageIds);
                     AndroidUtilities.runOnUIThread(() -> {
                         getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, finalDialogId, messageIds);
                     });

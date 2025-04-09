@@ -296,9 +296,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             return;
         }
         if (isAvatarVisible) {
-            Log.d("fluffyLog", "setAvatar");
             if (messageObject.customAvatarDrawable != null) {
-                Log.d("fluffyLog", "messageObject.customAvatarDrawable != null");
                 avatarImage.setImageBitmap(messageObject.customAvatarDrawable);
             } else if (currentUser != null) {
                 if (currentUser.photo != null) {
@@ -5700,7 +5698,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             pinnedBottom = bottomNear;
             pinnedTop = topNear;
             currentMessageObject = messageObject;
-            Log.d("fluffyLog", " messageObject.forceAvatar" + messageObject.forceAvatar);
             currentMessagesGroup = groupedMessages;
             lastTime = -2;
             lastPostAuthor = messageObject.messageOwner.post_author;
@@ -5758,7 +5755,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             isAvatarVisible = needDrawAvatar() && (currentPosition == null || currentPosition.edge);
             boolean drawAvatar = needDrawAvatar();
             if (messageObject.customAvatarDrawable != null || messageObject.forceAvatar) {
-                Log.d("fluffyLog", "messageObject.customAvatarDrawable условие");
                 isAvatarVisible = true;
                 drawAvatar = true;
             }
@@ -20784,6 +20780,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (fluffyConfig.readSticker == 2 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground()) {
             return;
         }
+        if (fluffyConfig.readSticker == 1 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground() && !currentMessageObject.isOut()) {
+            return;
+        }
         if (currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
             return;
         }
@@ -25263,8 +25262,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public boolean needDrawAvatar() {
-        Log.d("fluffyLog", "needDrawAvatar - "  + currentMessageObject.forceAvatar + " - " + (currentMessageObject != null));
-        return (
+         return (
             isChat && !isSavedPreviewChat && (!isThreadPost || isForum) && (
                 currentMessageObject != null && !currentMessageObject.isOutOwner() && currentMessageObject.needDrawAvatar()
             ) ||
