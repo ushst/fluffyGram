@@ -1,5 +1,7 @@
 package org.ushastoe.fluffy.helpers;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -20,6 +22,7 @@ public class IpApiHelper {
 
     public static void getIpInfo(String ipAddress, BiConsumer<IpInfoResponse, Exception> callback) {
         String cleanIp = ipAddress.replaceFirst("^(https?://)", "");
+        Log.d("fluffy", "querying " + cleanIp);
         executorService.submit(() -> {
             var client = getOkHttpClient();
             var request = new Request.Builder()
@@ -29,6 +32,7 @@ public class IpApiHelper {
 
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d("fluffy", "response: " + response.body());
                     var responseBody = response.body().string();
                     IpInfoResponse ipInfo = gson.fromJson(responseBody, IpInfoResponse.class);
                     callback.accept(ipInfo, null);
@@ -83,7 +87,7 @@ public class IpApiHelper {
 
         @SerializedName("zip")
         @Expose
-        public double zip;
+        public String zip;
 
         @SerializedName("lat")
         @Expose
