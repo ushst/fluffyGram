@@ -8823,7 +8823,7 @@ public class Theme {
 
             chat_editDrawable = resources.getDrawable(R.drawable.msg_edit).mutate();
             chat_deleteDrawable = resources.getDrawable(R.drawable.msg_delete_filled).mutate();
-            chat_silentDrawable = resources.getDrawable(R.drawable.msg_silent).mutate();
+            chat_silentDrawable = resources.getDrawable(R.drawable.msg_silent_solar).mutate();
             chat_sheduleDrawable = resources.getDrawable(R.drawable.msg_calendar2).mutate();
 
             chat_msgInCallSelectedDrawable[0] = resources.getDrawable(R.drawable.chat_calls_voice).mutate();

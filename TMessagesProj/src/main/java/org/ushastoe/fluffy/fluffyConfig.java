@@ -53,6 +53,7 @@ public class fluffyConfig {
     public static int readSticker;
 
     public static int typeTitle;
+    public static int transparency;
 
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
@@ -98,6 +99,7 @@ public class fluffyConfig {
         saveDel = preferences.getBoolean("saveDel", false);
         saveEdit = preferences.getBoolean("saveEdit", false);
         newSwitchStyle = preferences.getBoolean("newSwitchStyle", false);
+        transparency = preferences.getInt("transparency", 255);
     }
 
     public static void cameraSwitch() {
@@ -142,6 +144,11 @@ public class fluffyConfig {
     public static void setCfApiToken(String apiToken) {
         cfApiToken = apiToken;
         editor.putString("cfApiToken", cfApiToken).apply();
+    }
+
+    public static void setTransparency(int val) {
+        transparency = val;
+        editor.putInt("transparency", transparency).apply();
     }
 
     public static void toggleShowStories() {

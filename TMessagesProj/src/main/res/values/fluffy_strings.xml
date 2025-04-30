@@ -104,4 +104,10 @@
     <string name="AddToSavedMessages">Save message</string>
     <string name="doubleTapInAction">Double tap on not my message</string>
     <string name="doubleTapOutAction">Double tap on my message</string>
+
+    <string name="Transparency">Transparency</string>
+    <string name="EnterValueBetween0And255">Enter a value between 0 and 255</string>
+    <string name="InvalidValue">Invalid value</string>
+    <string name="InvalidInput">Invalid input</string>
+    <string name="PleaseEnterNumber">Please enter a numeric value.</string>
 </resources>

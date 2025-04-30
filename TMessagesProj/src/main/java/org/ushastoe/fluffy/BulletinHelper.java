@@ -46,6 +46,33 @@ public class BulletinHelper {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Displays a simple bulletin with a title and subtitle using BulletinFactory.
+     *
+     * @param fragment The BaseFragment to display the bulletin on.
+     * @param title    The title text for the bulletin.
+     * @param subtitle The subtitle text for the bulletin (can be null).
+     */
+    public static void showSimpleBulletin(@NonNull BaseFragment fragment, CharSequence title, CharSequence subtitle) {
+        if (fragment.getParentActivity() == null) {
+            return;
+        }
+
+        try {
+            // BulletinFactory.createSimpleBulletin(icon, title, subtitle)
+            currentBulletin = BulletinFactory.of(fragment).createSimpleBulletin(
+                    null, // В этом случае иконка не нужна для простого сообщения
+                    title,
+                    subtitle
+            );
+            currentBulletin.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public static void hideFrontCameraNotification() {
         if (currentBulletin != null) {
             currentBulletin.hide();

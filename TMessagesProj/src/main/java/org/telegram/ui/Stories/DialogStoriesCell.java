@@ -21,7 +21,6 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -47,7 +46,6 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -57,7 +55,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -188,7 +185,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         recyclerListView.setClipToPadding(false);
         recyclerListView.setClipChildren(false);
         miniItemsClickArea.setDelegate(() -> {
-           onMiniListClicked();
+            onMiniListClicked();
         });
         recyclerListView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -223,16 +220,15 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         addView(recyclerListView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, FAKE_TOP_PADDING, 0, 0));
 
         titleView = new AnimatedTextView(getContext(), true, true, false);
-        titleView.setGravity(Gravity.LEFT);
+        titleView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         titleView.setTextColor(getTextColor());
         titleView.setEllipsizeByGradient(true);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setPadding(0, dp(8), 0, dp(8));
         titleView.setTextSize(dp(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20));
-
-
         addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-//        titleView.setAlpha(0f);
+
+        titleView.setAlpha(0f);
 
         grayPaint.setColor(0xffD5DADE);
         grayPaint.setStyle(Paint.Style.STROKE);
@@ -682,18 +678,19 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         if (progress != 0) {
             float offset = (titleView.getMeasuredHeight() - titleView.getTextHeight()) / 2f;
             titleView.setTranslationY(y + dp(14) - offset + dp(FAKE_TOP_PADDING));
-            int cellWidth = dp(72);
-            lastViewRight += -cellWidth + dp(6) + getAvatarRight(cellWidth, collapsedProgress) + dp(12);
+            int cellWidth = dp(ITEM_WIDTH); // Предполагаем, что ITEM_WIDTH - это ширина ячейки
+            float totalItemsWidth = dp(ITEM_WIDTH) * animateToDialogIds.size() - dp(COLLAPSED_DIS) * Math.max(0, animateToDialogIds.size() - 1); // Ширина всех свернутых аватарок
 
-            // float toX = AndroidUtilities.dp(28) * Math.min(1, animateToCount) + AndroidUtilities.dp(14) * Math.max(0, animateToCount - 1);
-            titleView.setTranslationX(lastViewRight);
+            // Рассчитываем X для центрирования текста
+            float centerX = (getMeasuredWidth() - totalItemsWidth) / 2f - dp(8); // Центр между краем экрана и правым краем аватарок
+
+            titleView.setTranslationX(centerX - titleView.getLeft()); // Корректируем положение
             titleView.getDrawable().setRightPadding(lastViewRight + actionBar.menu.getItemsMeasuredWidth(false) * progress);
             titleView.setAlpha(progress);
             titleView.setVisibility(View.VISIBLE);
         } else {
             titleView.setVisibility(View.GONE);
         }
-
         super.dispatchDraw(canvas);
         if (currentState >= 0 && currentState != COLLAPSED_STATE) {
             Collections.sort(viewsDrawInParent, comparator);
@@ -923,9 +920,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                 progressDialog.dismiss();
                 if (canSend) {
                     StoryRecorder.getInstance(fragment.getParentActivity(), currentAccount)
-                        .selectedPeerId(dialogId)
-                        .canChangePeer(false)
-                        .open(StoryRecorder.SourceView.fromStoryCell(finalCell));
+                            .selectedPeerId(dialogId)
+                            .canChangePeer(false)
+                            .open(StoryRecorder.SourceView.fromStoryCell(finalCell));
                 }
             }, true, resourcesProvider);
         } else {
@@ -1167,7 +1164,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         private void createTextView() {
             textView = new SimpleTextView(getContext());
             textView.setTypeface(AndroidUtilities.bold());
-            textView.setGravity(Gravity.LEFT);
+            textView.setGravity(Gravity.CENTER);
             textView.setTextSize(11);
             textView.setTextColor(getTextColor());
             NotificationCenter.listenEmojiLoading(textView);
@@ -1804,10 +1801,10 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             return premiumHint;
         }
         premiumHint = new HintView2(getContext(), HintView2.DIRECTION_TOP)
-            .setBgColor(Theme.getColor(Theme.key_undo_background))
-            .setMultilineText(true)
-            .setTextAlign(Layout.Alignment.ALIGN_CENTER)
-            .setJoint(0, 37 - 8);
+                .setBgColor(Theme.getColor(Theme.key_undo_background))
+                .setMultilineText(true)
+                .setTextAlign(Layout.Alignment.ALIGN_CENTER)
+                .setJoint(0, 37 - 8);
         Spannable text = AndroidUtilities.replaceSingleTag(LocaleController.getString("StoriesPremiumHint2").replace('\n', ' '), Theme.key_undo_cancelColor, 0, () -> {
             if (premiumHint != null) {
                 premiumHint.hide();

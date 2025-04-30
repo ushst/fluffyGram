@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color; // Импортируем класс Color
 import android.os.Build;
 import android.os.PatternMatcher;
 
@@ -13,6 +14,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.HashMap;
 
@@ -88,19 +90,36 @@ public class MonetHelper {
         put("monetRedLight", R.color.monetRedLight);
         put("monetRedCall", R.color.monetRedCall);
         put("monetGreenCall", R.color.monetGreenCall);
+        // Нет необходимости добавлять специальные записи для _50 здесь
     }};
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final OverlayChangeReceiver overlayChangeReceiver = new OverlayChangeReceiver();
 
     public static int getColor(String color) {
-        return getColor(color, false);
-    }
-
-    public static int getColor(String color, boolean amoled) {
         try {
-            //noinspection ConstantConditions
-            int id = ids.getOrDefault(amoled && "n1_900".equals(color) ? "n1_1000" : color, 0);
-            return ApplicationLoader.applicationContext.getColor(id);
+            String effectiveColorKey = color;
+            boolean isFiftyPercentTransparent = effectiveColorKey.endsWith("_t");
+            String baseColorKey = effectiveColorKey;
+
+            if (isFiftyPercentTransparent) {
+                baseColorKey = effectiveColorKey.substring(0, effectiveColorKey.length() - 2);
+            }
+
+            Integer id = ids.get(baseColorKey);
+
+            if (id != null) {
+                int baseColor = ApplicationLoader.applicationContext.getColor(id);
+
+                if (isFiftyPercentTransparent) {
+                    return Color.argb(fluffyConfig.transparency, Color.red(baseColor), Color.green(baseColor), Color.blue(baseColor));
+                } else {
+                    return baseColor;
+                }
+            }
+
+            FileLog.e("Color ID not found for key: " + effectiveColorKey);
+            return 0;
+
         } catch (Exception e) {
             FileLog.e("Error loading color " + color, e);
             return 0;

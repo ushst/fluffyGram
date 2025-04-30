@@ -2,16 +2,21 @@ package org.ushastoe.fluffy.activities;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
+import static org.telegram.ui.LaunchActivity.getLastFragment;
+import static org.ushastoe.fluffy.BulletinHelper.showRestartNotification;
 
 import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
+import android.text.InputFilter;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
@@ -88,6 +93,7 @@ public class appearanceActivitySettings extends BaseFragment {
     private int chatRow;
     private int callShowRow;
     private int chatListPreviewRow;
+    private int transparencyRow;
 
     private int centerTitleRow;
     private int disableRoundRow;
@@ -134,6 +140,7 @@ public class appearanceActivitySettings extends BaseFragment {
         moreInfoRow = rowCount++;
         formatTimeWithSecondsRow = rowCount++;
         stickerTimeStampRow = rowCount++;
+        transparencyRow = rowCount++;
 
         if (listAdapter != null && fullNotify) {
             listAdapter.notifyDataSetChanged();
@@ -234,6 +241,8 @@ public class appearanceActivitySettings extends BaseFragment {
                 selectorReaction();
             } else if (position == stickerTimeStampRow) {
                 timeStampSelecter(context);
+            } else if (position == transparencyRow) { // Обработка нажатия на новую строку
+                showTransparencyDialog(context); // Вызываем метод для показа диалога
             }
         });
         return fragmentView;
@@ -342,7 +351,7 @@ public class appearanceActivitySettings extends BaseFragment {
                 }
 
                 if (LaunchActivity.getSafeLastFragment() != null) {
-                    BulletinHelper.showRestartNotification(LaunchActivity.getSafeLastFragment());
+                    showRestartNotification(LaunchActivity.getSafeLastFragment());
                 }
                 getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
                 dialogRef.get().dismiss();
@@ -357,6 +366,50 @@ public class appearanceActivitySettings extends BaseFragment {
                 .create();
         dialogRef.set(dialog);
         showDialog(dialog);
+    }
+
+    private void showTransparencyDialog(Context context) {
+        if (getParentActivity() == null) {
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(getString(R.string.Transparency)); // Заголовок диалога
+        builder.setMessage(getString(R.string.EnterValueBetween0And255)); // Информационное сообщение
+
+        final EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER); // Устанавливаем ввод только цифр
+        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)}); // Ограничиваем ввод 3 символами
+        input.setHint("0-255"); // Подсказка
+
+        // Устанавливаем текущее значение в поле ввода
+        input.setText(String.valueOf(fluffyConfig.transparency));
+
+        builder.setView(input);
+
+        builder.setPositiveButton(getString(R.string.OK), (dialog, which) -> {
+            try {
+                int value = Integer.parseInt(input.getText().toString());
+                if (value >= 0 && value <= 255) {
+                    fluffyConfig.setTransparency(value); // Устанавливаем значение в fluffyConfig
+                    showRestartNotification(LaunchActivity.getSafeLastFragment());
+                    // Опционально: обновить текст в ячейке списка, если нужно
+
+                    RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(transparencyRow);
+                    if (holder != null) {
+                        listAdapter.onBindViewHolder(holder, transparencyRow);
+                    }
+                } else {
+                    BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.InvalidValue), getString(R.string.EnterValueBetween0And255));
+                }
+            } catch (NumberFormatException e) {
+                BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.InvalidInput), getString(R.string.PleaseEnterNumber));
+            }
+        });
+
+        builder.setNegativeButton(getString(R.string.Cancel), (dialog, which) -> dialog.cancel());
+
+        showDialog(builder.create());
     }
 
     private void timeStampSelecter(Context context) {
@@ -470,6 +523,8 @@ public class appearanceActivitySettings extends BaseFragment {
                             default -> getString(R.string.None);
                         };
                         textCell6.setTextAndValueAndIcon(getString(R.string.TimestampSelecter), value, R.drawable.msg2_sticker, true);
+                    }  else if (position == transparencyRow) {
+                        textCell6.setTextAndValueAndIcon(getString(R.string.Transparency), String.valueOf(fluffyConfig.transparency), R.drawable.msg_blur_radial, true);
                     }
                     break;
                 case 7:
@@ -556,7 +611,6 @@ public class appearanceActivitySettings extends BaseFragment {
                     centerTitleRow, systemTypefaceRow, disableRoundRow,
                     moreInfoRow, useSolarIconsRow, formatTimeWithSecondsRow,
                     newSwitchStyleRow
-
             ));
 
             Set<Integer> privacyRows = new HashSet<>(Arrays.asList(
@@ -578,7 +632,7 @@ public class appearanceActivitySettings extends BaseFragment {
             if (headersRows.contains(position)) {
                 return 3;
             }
-            if (position == selectTitleRow || position == stickerTimeStampRow) {
+            if (position == selectTitleRow || position == stickerTimeStampRow || position == transparencyRow) {
                 return 6;
             }
             if (position == doubleTapRow) {
