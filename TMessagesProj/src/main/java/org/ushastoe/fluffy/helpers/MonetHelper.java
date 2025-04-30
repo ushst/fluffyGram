@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.graphics.Color; // Импортируем класс Color
 import android.os.Build;
 import android.os.PatternMatcher;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -111,7 +112,9 @@ public class MonetHelper {
                 int baseColor = ApplicationLoader.applicationContext.getColor(id);
 
                 if (isFiftyPercentTransparent) {
-                    return Color.argb(fluffyConfig.transparency, Color.red(baseColor), Color.green(baseColor), Color.blue(baseColor));
+                    int colorT = Color.argb(fluffyConfig.transparency, Color.red(baseColor), Color.green(baseColor), Color.blue(baseColor));
+                    Log.d("Fluffy", "Color: " + colorT);
+                    return colorT;
                 } else {
                     return baseColor;
                 }
