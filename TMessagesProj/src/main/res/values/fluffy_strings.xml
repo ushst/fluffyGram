@@ -96,6 +96,9 @@
     <string name="zodiac_scorpio">Scorpio</string>
     <string name="zodiac_sagittarius">Sagittarius</string>
 
+    <string name="ExtendedStatusOnlineSubtitle">(e.g., last seen at * PM -> * (2h 13m))</string>
+    <string name="formatTimeSubtitle">(e.g., 12:34 PM -> 12:34:56 PM)</string>
+    <string name="DisableNumberRoundingSubtitle">(e.g., 4.8K -> 4777)</string>
 
     <string name="ShowWallpaperInChat">Show Wallpaper</string>
     <string name="DontShowWallpaperInChat">Don\'t Show Wallpaper</string>
@@ -110,4 +113,7 @@
     <string name="InvalidValue">Invalid value</string>
     <string name="InvalidInput">Invalid input</string>
     <string name="PleaseEnterNumber">Please enter a numeric value.</string>
+
+    <string name="HideGiftFromInput">Hide Gift Icon From Input</string>
+    <string name="HideFloatingButton">Hide Floating Button</string>
 </resources>

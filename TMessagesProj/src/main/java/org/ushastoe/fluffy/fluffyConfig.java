@@ -42,6 +42,7 @@ public class fluffyConfig {
     public static boolean hideTopBar;
     public static boolean centerTitle;
     public static boolean useSolarIcons;
+    public static boolean hideButtonWrite;
     public static boolean showStories;
     public static boolean showCallIcon;
     public static boolean newSwitchStyle;
@@ -49,6 +50,7 @@ public class fluffyConfig {
     public static boolean unmuteVideoWithVolume;
     public static boolean saveDel;
     public static boolean saveEdit;
+    public static boolean hideGift;
 
     public static int readSticker;
 
@@ -98,8 +100,10 @@ public class fluffyConfig {
         doubleTapOutAction = preferences.getInt("doubleTapOutAction", DOUBLE_TAP_ACTION_REACTION);
         saveDel = preferences.getBoolean("saveDel", false);
         saveEdit = preferences.getBoolean("saveEdit", false);
+        hideGift = preferences.getBoolean("hideGift", false);
         newSwitchStyle = preferences.getBoolean("newSwitchStyle", false);
         transparency = preferences.getInt("transparency", 255);
+        hideButtonWrite = preferences.getBoolean("hideButton", false);
     }
 
     public static void cameraSwitch() {
@@ -115,6 +119,15 @@ public class fluffyConfig {
     public static void saveEditSwitch() {
         saveEdit = !saveEdit;
         editor.putBoolean("saveEdit", saveEdit).apply();
+    }
+
+    public static void toggleGiftSwitch() {
+        hideGift = !hideGift;
+        editor.putBoolean("hideGift", hideGift).apply();
+    }
+    public static void togglehideButtonWrite() {
+        hideButtonWrite = !hideButtonWrite;
+        editor.putBoolean("hideButtonWrite", hideButtonWrite).apply();
     }
 
     public static void writeCamera() {

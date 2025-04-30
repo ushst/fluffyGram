@@ -2544,9 +2544,6 @@ public class LocaleController {
             } else {
                 if (dateDay == day && year == dateYear) {
                     return LocaleController.formatString("LastSeenFormatted", R.string.LastSeenFormatted, LocaleController.formatString("TodayAtFormatted", R.string.TodayAtFormatted, getInstance().getFormatterDay().format(new Date(date))));
-
-            if (dateDay == day && year == dateYear) {
-                return LocaleController.formatString(R.string.LastSeenFormatted, LocaleController.formatString("TodayAtFormatted", R.string.TodayAtFormatted, getInstance().getFormatterDay().format(new Date(date))));
                 /*int diff = (int) (ConnectionsManager.getInstance().getCurrentTime() - date) / 60;
                 if (diff < 1) {
                     return LocaleController.getString(R.string.LastSeenNow);
@@ -2571,15 +2568,6 @@ public class LocaleController {
                 } else {
                     String format = LocaleController.formatString("formatDateAtTime", R.string.formatDateAtTime, getInstance().getFormatterYear().format(new Date(date)), getInstance().getFormatterDay().format(new Date(date)));
                     return LocaleController.formatString("LastSeenDateFormatted", R.string.LastSeenDateFormatted, format);
-            } else if (dateDay + 1 == day && year == dateYear) {
-                if (madeShorter != null) {
-                    madeShorter[0] = true;
-                    if (hour <= 6 && dateHour > 18 && is24HourFormat) {
-                        return LocaleController.formatString(R.string.LastSeenFormatted, getInstance().getFormatterDay().format(new Date(date)));
-                    }
-                    return LocaleController.formatString(R.string.YesterdayAtFormatted, getInstance().getFormatterDay().format(new Date(date)));
-                } else {
-                    return LocaleController.formatString(R.string.LastSeenFormatted, LocaleController.formatString("YesterdayAtFormatted", R.string.YesterdayAtFormatted, getInstance().getFormatterDay().format(new Date(date))));
                 }
             }
         } catch (Exception e) {

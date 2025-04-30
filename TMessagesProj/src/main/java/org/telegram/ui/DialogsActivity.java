@@ -13,6 +13,7 @@ import static org.telegram.messenger.LocaleController.formatPluralStringComma;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
 import static org.telegram.ui.Components.AlertsCreator.createClearOrDeleteDialogsAlert;
+import static org.ushastoe.fluffy.fluffyConfig.hideButtonWrite;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -5408,6 +5409,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         contentView.addView(rightSlidingDialogContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         contentView.addView(dialogStoriesCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogStoriesCell.HEIGHT_IN_DP));
         updateStoriesVisibility(false);
+        hideFloatingButton(hideButtonWrite);
         return fragmentView;
     }
 
@@ -11231,6 +11233,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void hideFloatingButton(boolean hide) {
+        hide = hideButtonWrite;
         if (rightSlidingDialogContainer.hasFragment()) {
             hide = true;
         }
