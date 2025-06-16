@@ -43,6 +43,12 @@ public class TranscribeButton {
 
     private final static int[] pressedState = new int[]{android.R.attr.state_enabled, android.R.attr.state_pressed};
 
+    private static final String VOSK_APP_PACKAGE_NAME = "org.vosk.demo";
+    private static final String VOSK_ACTIVITY_CLASS_NAME = "org.vosk.demo.VoskActivity";
+    private static final String ACTION_TRANSCRIBE_OGG_FILE = "org.vosk.demo.action.TRANSCRIBE_OGG_FILE";
+    private static final String EXTRA_TRANSCRIBED_TEXT = "org.vosk.demo.TRANSCRIBED_TEXT";
+    private static final int REQUEST_CODE_TRANSCRIBE_VOSK = 1001;
+
     private int backgroundColor, color, iconColor, rippleColor;
     private float backgroundBack;
     private Paint backgroundPaint, strokePaint;

@@ -2,6 +2,7 @@
 <resources>
     <string name="fluffySettings">fluffy Settings</string>
     <string name="fluffy">fluffy</string>
+    <string name="meow">Meow</string>
     <string name="RestartAppToTakeEffect">Restart for aplly</string>
     <string name="ChatTweak">Chat Tweak</string>
     <string name="SelectCamera">Select Camera</string>
@@ -116,4 +117,10 @@
 
     <string name="HideGiftFromInput">Hide Gift Icon From Input</string>
     <string name="HideFloatingButton">Hide Floating Button</string>
+
+    <string name="StickerSizeDialogMessage">Oh so cute! A cat!</string>
+    <string name="StickerSizeDialogMessageReplyTo">Meow</string>
+
+    <string name="Stickers">Stickers</string>
+
 </resources>

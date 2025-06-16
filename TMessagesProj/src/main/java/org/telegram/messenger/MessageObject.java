@@ -527,7 +527,7 @@ public class MessageObject {
 
     public boolean isWallpaperForBoth() {
         return isWallpaperAction() && messageOwner != null && messageOwner.action instanceof TLRPC.TL_messageActionSetChatWallPaper && ((TLRPC.TL_messageActionSetChatWallPaper) messageOwner.action).for_both;
-    }
+    } 
 
     public boolean isCurrentWallpaper() {
         if (!isWallpaperAction() || messageOwner == null || messageOwner.action == null || messageOwner.action.wallpaper == null)

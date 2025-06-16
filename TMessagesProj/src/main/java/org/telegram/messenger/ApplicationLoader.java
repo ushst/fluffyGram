@@ -52,6 +52,7 @@ import org.telegram.ui.IUpdateButton;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
 import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.services.UserStatusLoggerService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -333,6 +334,14 @@ public class ApplicationLoader extends Application {
 
         LauncherIconController.tryFixLauncherIconIfNeeded();
         ProxyRotationController.init();
+
+        try {
+            Intent intent = new Intent(ApplicationLoader.applicationContext, UserStatusLoggerService.class);
+            ApplicationLoader.applicationContext.startService(intent);
+            FileLog.d("UserStatusLoggerService started from ApplicationLoader");
+        } catch (Throwable e) {
+            FileLog.e("Failed to start UserStatusLoggerService", e);
+        }
     }
 
     public static void startPushService() {

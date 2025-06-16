@@ -2736,6 +2736,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             currentConnectionState = getConnectionsManager().getConnectionState();
 
             getNotificationCenter().addObserver(this, NotificationCenter.dialogsNeedReload);
+            getNotificationCenter().addObserver(this, NotificationCenter.fluffy_floatingButtonSettingsChanged);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
             if (!onlySelect) {
                 NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.closeSearchByActiveAction);
@@ -2902,6 +2903,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+        getNotificationCenter().removeObserver(this, NotificationCenter.fluffy_floatingButtonSettingsChanged);
+
         if (searchString == null) {
             getNotificationCenter().removeObserver(this, NotificationCenter.dialogsNeedReload);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
@@ -10803,6 +10806,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             updateDialogsHint();
         } else if (id == NotificationCenter.appConfigUpdated) {
             updateDialogsHint();
+        }  else if (id == NotificationCenter.fluffy_floatingButtonSettingsChanged) {
+            if (floatingButton != null) {
+                floatingButton.setVisibility(fluffyConfig.hideButtonWrite ? View.GONE : View.VISIBLE);
+            }
         }
     }
 

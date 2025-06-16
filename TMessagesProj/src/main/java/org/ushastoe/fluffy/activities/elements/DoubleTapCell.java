@@ -85,12 +85,12 @@ public class DoubleTapCell extends LinearLayout {
         setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         setPadding(AndroidUtilities.dp(13), 0, AndroidUtilities.dp(13), AndroidUtilities.dp(10));
 
-        TextView titleTextView = new TextView(context);
-        titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        titleTextView.setText(getString(R.string.DoubleTapAction));
-        titleTextView.setGravity(Gravity.CENTER);
-        addView(titleTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
+//        TextView titleTextView = new TextView(context);
+//        titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+//        titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+//        titleTextView.setText(getString(R.string.DoubleTapAction));
+//        titleTextView.setGravity(Gravity.CENTER);
+//        addView(titleTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
 
 
         outlinePaint.setStyle(Paint.Style.STROKE);
@@ -187,7 +187,7 @@ public class DoubleTapCell extends LinearLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(200), MeasureSpec.EXACTLY));
+        super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(170), MeasureSpec.EXACTLY));
     }
 
     public static class SetReactionCell extends FrameLayout {

@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
-import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -57,6 +56,9 @@ public class fluffyConfig {
     public static int typeTitle;
     public static int transparency;
 
+    public static int stickerSize;
+    public static int stickerRadius;
+
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
     public static final int DOUBLE_TAP_ACTION_REPLY = 2;
@@ -67,12 +69,15 @@ public class fluffyConfig {
     public static final int DOUBLE_TAP_ACTION_DELETE = 7;
     public static final int MESSAGES_DELETED_NOTIFICATION = 6969;
 
+    public static ArrayList<Long> blockSticker = new ArrayList<>();
+
     public static int doubleTapInAction;
     public static int doubleTapOutAction;
 
     public static void init() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences("fluffyConfig", Activity.MODE_PRIVATE);
         editor = preferences.edit();
+        blockSticker.add(5314569068664091371L);
         load();
     }
 
@@ -103,6 +108,8 @@ public class fluffyConfig {
         hideGift = preferences.getBoolean("hideGift", false);
         newSwitchStyle = preferences.getBoolean("newSwitchStyle", false);
         transparency = preferences.getInt("transparency", 255);
+        stickerSize = preferences.getInt("stickerSize", 20);
+        stickerRadius = preferences.getInt("stickerRadius", 0);
         hideButtonWrite = preferences.getBoolean("hideButton", false);
     }
 
@@ -162,6 +169,24 @@ public class fluffyConfig {
     public static void setTransparency(int val) {
         transparency = val;
         editor.putInt("transparency", transparency).apply();
+    }
+
+    public static void setStickerSize(int val) {
+        stickerSize = val;
+        editor.putInt("stickerSize", stickerSize).apply();
+    }
+
+    public static int getStickerSize() {
+        return stickerSize;
+    }
+
+    public static int getStickerRadius() {
+        return stickerRadius;
+    }
+
+    public static void setStickerRadius(int val) {
+        stickerRadius = val;
+        editor.putInt("stickerRadius", stickerRadius).apply();
     }
 
     public static void toggleShowStories() {
@@ -247,6 +272,11 @@ public class fluffyConfig {
             title = UserObject.getFirstName(user);
         }
         return title;
+    }
+
+    public static String getFirstName() {
+        TLRPC.User user = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
+        return UserObject.getFirstName(user);
     }
 
     public static String getTitleHeader() {

@@ -353,6 +353,8 @@ public class NotificationCenter {
     public static final int storiesReadUpdated = totalEvents++;
     public static final int nearEarEvent = totalEvents++;
 
+    public static final int fluffy_floatingButtonSettingsChanged  = totalEvents++;
+
     public static boolean alreadyLogged;
 
     private final SparseArray<ArrayList<NotificationCenterDelegate>> observers = new SparseArray<>();

@@ -8,17 +8,20 @@ import static org.ushastoe.fluffy.BulletinHelper.showRestartNotification;
 import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,9 +30,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -50,17 +56,22 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.ThemePreviewMessagesCell;
 import org.telegram.ui.Cells.ThemeTypeCell;
 import org.telegram.ui.Cells.ThemesHorizontalListCell;
+import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
 import org.telegram.ui.DefaultThemesPreviewCell;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PeerColorActivity;
+import org.telegram.ui.SelectAnimatedEmojiDialog;
 import org.telegram.ui.ThemeActivity;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.elements.ChatListPreviewCell;
 import org.ushastoe.fluffy.activities.elements.DoubleTapCell;
+import org.ushastoe.fluffy.activities.elements.StickerSizePreviewMessagesCell;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell; // Не используется, можно удалить
 import org.ushastoe.fluffy.fluffyConfig;
 
@@ -68,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -76,15 +88,12 @@ public class appearanceActivitySettings extends BaseFragment {
     private RecyclerListView listView;
     private LinearLayoutManager layoutManager;
 
-    private ChatListPreviewCell chatListPreviewCell; // Может быть null до создания View
-    private DoubleTapCell doubleTapCell; // Может быть null до создания View
+    private ChatListPreviewCell chatListPreviewCell;
+    private DoubleTapCell doubleTapCell;
+    private SetDefaultReactionCell setDefaultReactionCell;
+    private StickerSizePreviewMessagesCell stickerSizePreview;
+    private String TAG = "fluffy";
 
-    // Удалены неиспользуемые переменные
-    // private View actionBarBackground;
-    // private AnimatorSet actionBarAnimator;
-    // private int[] location = new int[2];
-
-    // Используем перечисление для типов строк
     private enum RowType {
         HEADER,
         TEXT_CHECK,
@@ -93,7 +102,11 @@ public class appearanceActivitySettings extends BaseFragment {
         SHADOW_SECTION,
         CHAT_LIST_PREVIEW,
         DOUBLE_TAP_CELL,
-        NOTIFICATIONS_CHECK // Не используется, можно удалить если не планируется
+        QUICK_SWITCHER,
+        STICKER_SIZE_PREVIEW,
+        STICKER_SIZE_SEEKBAR,
+        STICKER_RADIUS_SEEKBAR,
+        NOTIFICATIONS_CHECK
     }
 
     // Класс для представления строки
@@ -129,7 +142,7 @@ public class appearanceActivitySettings extends BaseFragment {
     // Список всех строк в порядке отображения
     private List<Row> rows = new ArrayList<>();
 
-    // Уникальные идентификаторы для каждой строки
+    // Уникальные идентификаторы для каждой строки (ID после 23 были перенумерованы)
     private static final int ID_GENERAL_HEADER = 1;
     private static final int ID_CHAT_LIST_PREVIEW = 2;
     private static final int ID_CENTER_TITLE = 3;
@@ -144,16 +157,25 @@ public class appearanceActivitySettings extends BaseFragment {
     private static final int ID_DIVIDER_2 = 12;
     private static final int ID_CHAT_HEADER = 13;
     private static final int ID_DOUBLE_TAP = 14;
-    private static final int ID_DISABLE_ROUND = 15;
-    private static final int ID_CALL_SHOW = 16;
-    private static final int ID_MORE_INFO = 17;
-    private static final int ID_FORMAT_TIME_WITH_SECONDS = 18;
-    private static final int ID_STICKER_TIME_STAMP = 19;
-    private static final int ID_TRANSPARENCY = 20;
-    private static final int ID_REMOVE_GIFTS = 21;
-    private static final int ID_REMOVE_BUTTON = 22;
-    // Добавьте новые идентификаторы для новых параметров
+    private static final int ID_STICKER_SIZE = 15;
+    private static final int ID_STICKER_SIZE_SEEKBAR = 16;
+    private static final int ID_DISABLE_ROUND = 17;
+    private static final int ID_CALL_SHOW = 18;
+    private static final int ID_MORE_INFO = 19;
+    private static final int ID_FORMAT_TIME_WITH_SECONDS = 20;
+    private static final int ID_STICKER_TIME_STAMP = 21;
+    private static final int ID_TRANSPARENCY = 22;
+    private static final int ID_REMOVE_GIFTS = 23;
+    private static final int ID_REMOVE_BUTTON = 24;
+    private static final int ID_STICKER_HEADER = 25;
+    private static final int ID_DIVIDER_3 = 26;
+    private static final int ID_STICKER_RADIUS_SEEKBAR = 27;
+    private static final int ID_DOUBLE_TAP_HEADER = 28;
+    private static final int ID_DIVIDER_4 = 29;
 
+    private static final int ID_QUICK_SWITCHER = 30;
+
+    private static final int stickerRaduisMax = 130;
     private Parcelable recyclerViewState = null;
 
     @Override
@@ -187,18 +209,26 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(ID_ZODIAC_SHOW, RowType.TEXT_CHECK, R.string.zodiacShow, R.drawable.msg_calendar2));
         rows.add(new Row(ID_DIVIDER_2, RowType.SHADOW_SECTION));
 
-        rows.add(new Row(ID_CHAT_HEADER, RowType.HEADER, R.string.Chats));
+        rows.add(new Row(ID_STICKER_HEADER, RowType.HEADER, R.string.Stickers));
+        rows.add(new Row(ID_STICKER_SIZE_SEEKBAR, RowType.STICKER_SIZE_SEEKBAR));
+        rows.add(new Row(ID_STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
+        rows.add(new Row(ID_STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
+        rows.add(new Row(ID_STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
+        rows.add(new Row(ID_DIVIDER_3, RowType.SHADOW_SECTION));
+
+        rows.add(new Row(ID_DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
         rows.add(new Row(ID_DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
+        rows.add(new Row(ID_QUICK_SWITCHER, RowType.QUICK_SWITCHER));
+        rows.add(new Row(ID_DIVIDER_4, RowType.SHADOW_SECTION));
+
+        rows.add(new Row(ID_CHAT_HEADER, RowType.HEADER, R.string.Chats));
         rows.add(new Row(ID_DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle)); // Пример добавления подзаголовка
         rows.add(new Row(ID_CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
         rows.add(new Row(ID_MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle)); // Пример добавления подзаголовка
         rows.add(new Row(ID_FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle)); // Пример добавления подзаголовка
-        rows.add(new Row(ID_STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
         rows.add(new Row(ID_TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
         rows.add(new Row(ID_REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
         rows.add(new Row(ID_REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
-
-        // При добавлении новой строки, добавьте её в этот список
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
@@ -209,7 +239,7 @@ public class appearanceActivitySettings extends BaseFragment {
     }
 
     // Метод для поиска строки по идентификатору
-    private Row getRowById(int id) {
+      private Row getRowById(int id) {
         for (Row row : rows) {
             if (row.id == id) {
                 return row;
@@ -370,12 +400,18 @@ public class appearanceActivitySettings extends BaseFragment {
             case ID_DOUBLE_TAP:
                 selectorReaction();
                 break;
+            case ID_QUICK_SWITCHER:
+                if (view instanceof SetDefaultReactionCell) {
+                    showSelectStatusDialog((SetDefaultReactionCell) view);
+                }
+                break;
             case ID_STICKER_TIME_STAMP:
                 timeStampSelecter(context);
                 break;
             case ID_TRANSPARENCY:
                 showTransparencyDialog(context);
                 break;
+
             // Добавьте обработку кликов для новых строк
         }
     }
@@ -598,6 +634,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 if (chatListPreviewCell != null) {
                     chatListPreviewCell.updateTitle(true); // Возможно, это не влияет на chatListPreviewCell, проверьте
                 }
+                if (stickerSizePreview != null) {
+                    stickerSizePreview.invalidate();
+                    stickerSizePreview.rebuildStickerPreview();
+                } else {
+                    Log.w(TAG, "stickerSizePreview is null, can't invalidate");
+                }
             });
         }
 
@@ -613,7 +655,268 @@ public class appearanceActivitySettings extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        updateRows(); // Обновляем строки при возобновлении фрагмента
+        updateRows();
+    }
+
+    private class SetDefaultReactionCell extends FrameLayout {
+
+        private TextView textView;
+        private AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable imageDrawable;
+
+        public SetDefaultReactionCell(Context context) {
+            super(context);
+
+            setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+
+            textView = new TextView(context);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+            textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
+            textView.setText(LocaleController.getString(R.string.DoubleTapSetting));
+            addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.FILL_HORIZONTAL, 20, 0, 48, 0));
+
+            imageDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(this, AndroidUtilities.dp(24));
+        }
+
+        public void update(boolean animated) {
+            String reactionString = MediaDataController.getInstance(currentAccount).getDoubleTapReaction();
+            if (reactionString != null && reactionString.startsWith("animated_")) {
+                try {
+                    long documentId = Long.parseLong(reactionString.substring(9));
+                    imageDrawable.set(documentId, animated);
+                    return;
+                } catch (Exception ignore) {}
+            }
+            TLRPC.TL_availableReaction reaction = MediaDataController.getInstance(currentAccount).getReactionsMap().get(reactionString);
+            if (reaction != null) {
+                imageDrawable.set(reaction.static_icon, animated);
+            }
+        }
+
+        public void updateImageBounds() {
+            imageDrawable.setBounds(
+                    getWidth() - imageDrawable.getIntrinsicWidth() - AndroidUtilities.dp(21),
+                    (getHeight() - imageDrawable.getIntrinsicHeight()) / 2,
+                    getWidth() - AndroidUtilities.dp(21),
+                    (getHeight() + imageDrawable.getIntrinsicHeight()) / 2
+            );
+        }
+
+        @Override
+        protected void dispatchDraw(Canvas canvas) {
+            super.dispatchDraw(canvas);
+            updateImageBounds();
+            imageDrawable.draw(canvas);
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            super.onMeasure(
+                    MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(50), MeasureSpec.EXACTLY)
+            );
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            imageDrawable.detach();
+        }
+
+        @Override
+        protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+            imageDrawable.attach();
+        }
+    }
+
+    private List<TLRPC.TL_availableReaction> getAvailableReactions() {
+        return getMediaDataController().getReactionsList();
+    }
+    private SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialog;
+    public void showSelectStatusDialog(SetDefaultReactionCell cell) {
+        if (selectAnimatedEmojiDialog != null) {
+            return;
+        }
+        final SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] popup = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[1];
+        int xoff = 0, yoff = 0;
+        AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable scrimDrawable = null;
+        View scrimDrawableParent = null;
+        if (cell != null) {
+            scrimDrawable = cell.imageDrawable;
+            scrimDrawableParent = cell;
+            if (cell.imageDrawable != null) {
+                cell.imageDrawable.play();
+                cell.updateImageBounds();
+                AndroidUtilities.rectTmp2.set(cell.imageDrawable.getBounds());
+                yoff = -(cell.getHeight() - AndroidUtilities.rectTmp2.centerY()) - AndroidUtilities.dp(16);
+                int popupWidth = (int) Math.min(AndroidUtilities.dp(340 - 16), AndroidUtilities.displaySize.x * .95f);
+                xoff = AndroidUtilities.rectTmp2.centerX() - (AndroidUtilities.displaySize.x - popupWidth);
+            }
+        }
+        SelectAnimatedEmojiDialog popupLayout = new SelectAnimatedEmojiDialog(this, getContext(), false, xoff, SelectAnimatedEmojiDialog.TYPE_SET_DEFAULT_REACTION, null) {
+            @Override
+            protected void onEmojiSelected(View emojiView, Long documentId, TLRPC.Document document, TL_stars.TL_starGiftUnique gift, Integer until) {
+                if (documentId == null) {
+                    return;
+                }
+                // Сохраняем выбранную анимированную реакцию
+                MediaDataController.getInstance(currentAccount).setDoubleTapReaction("animated_" + documentId);
+                if (cell != null) {
+                    cell.update(true);
+                }
+                if (popup[0] != null) {
+                    selectAnimatedEmojiDialog = null;
+                    popup[0].dismiss();
+                }
+            }
+
+            @Override
+            protected void onReactionClick(ImageViewEmoji emoji, ReactionsLayoutInBubble.VisibleReaction reaction) {
+                // Сохраняем выбранную обычную реакцию
+                MediaDataController.getInstance(currentAccount).setDoubleTapReaction(reaction.emojicon);
+                if (cell != null) {
+                    cell.update(true);
+                }
+                if (popup[0] != null) {
+                    selectAnimatedEmojiDialog = null;
+                    popup[0].dismiss();
+                }
+            }
+        };
+        String selectedReaction = getMediaDataController().getDoubleTapReaction();
+        if (selectedReaction != null && selectedReaction.startsWith("animated_")) {
+            try {
+                popupLayout.setSelected(Long.parseLong(selectedReaction.substring(9)));
+            } catch (Exception e) {}
+        }
+        List<TLRPC.TL_availableReaction> availableReactions = getAvailableReactions();
+        ArrayList<ReactionsLayoutInBubble.VisibleReaction> reactions = new ArrayList<>(20);
+        for (int i = 0; i < availableReactions.size(); ++i) {
+            ReactionsLayoutInBubble.VisibleReaction reaction = new ReactionsLayoutInBubble.VisibleReaction();
+            TLRPC.TL_availableReaction tlreaction = availableReactions.get(i);
+            reaction.emojicon = tlreaction.reaction;
+            reactions.add(reaction);
+        }
+        popupLayout.setRecentReactions(reactions);
+        popupLayout.setSaveState(3);
+        popupLayout.setScrimDrawable(scrimDrawable, scrimDrawableParent);
+        popup[0] = selectAnimatedEmojiDialog = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow(popupLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
+            @Override
+            public void dismiss() {
+                super.dismiss();
+                selectAnimatedEmojiDialog = null;
+            }
+        };
+        popup[0].showAsDropDown(cell, 0, yoff, Gravity.TOP | Gravity.RIGHT);
+        popup[0].dimBehind();
+    }
+    public class StickerSizeSeekBarCell extends FrameLayout {
+        private TextView titleView;        private TextView valueView;
+        private SeekBarView seekBarView;
+
+        public StickerSizeSeekBarCell(Context context) {
+            super(context);
+            setWillNotDraw(false);
+            setPadding(dp(21), 0, dp(21), 0);
+
+            // HORIZONTAL LAYOUT FOR TITLE + VALUE
+            LinearLayout hLayout = new LinearLayout(context);
+            hLayout.setOrientation(LinearLayout.HORIZONTAL);
+            hLayout.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+
+            titleView = new TextView(context);
+            titleView.setText("Stickers Size");
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            titleView.setTextSize(15);
+            hLayout.addView(titleView, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+
+            valueView = new TextView(context);
+            valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
+            valueView.setTextSize(13);
+            valueView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+            hLayout.addView(valueView, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+            // Добавить горизонтальный layout в корень
+            addView(hLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.START, 0, 8, 0, 0));
+
+            // SeekBar ниже
+            seekBarView = new SeekBarView(context);
+            seekBarView.setReportChanges(true);
+
+            seekBarView.setDelegate((stop, progress) -> {
+                int value = (int) (5 + 15 * progress); // Диапазон 5–20
+                valueView.setText(String.format(Locale.US, "%d", value));
+                // (твой остальной код)
+            });
+            addView(seekBarView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.START, 0, 34, 0, 0));
+        }
+
+        public void setOnValueChange(SeekBarView.SeekBarViewDelegate delegate) {
+            seekBarView.setDelegate(delegate);
+        }
+
+        public void setValue(int value) {
+            valueView.setText(String.format(Locale.US, "%d", value));
+            float progress = (value - 5) / 15.0f;
+            seekBarView.setProgress(progress, false);
+        }
+
+        public TextView getValueView() {
+            return valueView;
+        }
+    }
+    public class StickerRadiusSeekBarCell extends FrameLayout {
+        private TextView titleView;
+        private TextView valueView;
+        private SeekBarView seekBarView;
+
+        public StickerRadiusSeekBarCell(Context context) {
+            super(context);
+            setWillNotDraw(false);
+            setPadding(dp(21), 0, dp(21), 0);
+
+            // HORIZONTAL LAYOUT FOR TITLE + VALUE
+            LinearLayout hLayout = new LinearLayout(context);
+            hLayout.setOrientation(LinearLayout.HORIZONTAL);
+            hLayout.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+
+            titleView = new TextView(context);
+            titleView.setText("Sticker Radius");
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            titleView.setTextSize(15);
+            hLayout.addView(titleView, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+
+            valueView = new TextView(context);
+            valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
+            valueView.setTextSize(13);
+            valueView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+            hLayout.addView(valueView, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+            addView(hLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.START, 0, 8, 0, 0));
+
+            seekBarView = new SeekBarView(context);
+            seekBarView.setReportChanges(true);
+
+            seekBarView.setDelegate((stop, progress) -> {
+                int value = (int) (stickerRaduisMax * progress);
+                valueView.setText(String.format(Locale.US, "%d", value));
+            });
+            addView(seekBarView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.START, 0, 34, 0, 0));
+        }
+
+        public void setOnValueChange(SeekBarView.SeekBarViewDelegate delegate) {
+            seekBarView.setDelegate(delegate);
+        }
+
+        public void setValue(int value) {
+            valueView.setText(String.format(Locale.US, "%d", value));
+            float progress = value / (float) stickerRaduisMax;
+            seekBarView.setProgress(progress, false);
+        }
+
+        public TextView getValueView() {
+            return valueView;
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -684,10 +987,65 @@ public class appearanceActivitySettings extends BaseFragment {
                 case DOUBLE_TAP_CELL:
                     doubleTapCell = (DoubleTapCell) holder.itemView;
                     break;
+                case QUICK_SWITCHER:
+                    setDefaultReactionCell = (SetDefaultReactionCell) holder.itemView;
+                    setDefaultReactionCell.update(false);
+                    break;
+                case STICKER_SIZE_PREVIEW:
+                    stickerSizePreview = (StickerSizePreviewMessagesCell) holder.itemView;
+                    break;
+                case STICKER_SIZE_SEEKBAR:
+                    StickerSizeSeekBarCell seekBarCell = (StickerSizeSeekBarCell) holder.itemView;
+                    int currentSize = fluffyConfig.getStickerSize();
+                    seekBarCell.setValue(currentSize);
+                    seekBarCell.setOnValueChange((stop, progress) -> {
+                        int newValue = (int) (5 + 15 * progress);
+                        Log.d(TAG, "SeekBar changed: progress=" + progress + ", newValue=" + newValue);
+
+                        seekBarCell.getValueView().setText(String.format(Locale.US, "%d", newValue));
+                        fluffyConfig.setStickerSize(newValue);
+
+                        if (stickerSizePreview != null) {
+                            Log.d(TAG, "Invalidate stickerSizePreview (size=" + newValue + ")");
+                            Log.d(TAG, "stickerSizePreview: " + stickerSizePreview);
+                            stickerSizePreview.invalidate();
+                            stickerSizePreview.rebuildStickerPreview();
+                        } else {
+                            Log.w(TAG, "stickerSizePreview is null, can't invalidate");
+                        }
+                    });
+                    break;
+                case STICKER_RADIUS_SEEKBAR:
+                    StickerRadiusSeekBarCell seekRadiusBarCell = (StickerRadiusSeekBarCell) holder.itemView;
+                    int currentRadius = fluffyConfig.getStickerRadius();
+                    seekRadiusBarCell.setValue(currentRadius);
+                    seekRadiusBarCell.setOnValueChange((stop, progress) -> {
+                        int newValue = (int) (stickerRaduisMax * progress);
+                        Log.d(TAG, "SeekBar changed: progress=" + progress + ", newValue=" + newValue);
+
+                        seekRadiusBarCell.getValueView().setText(String.format(Locale.US, "%d", newValue));
+                        fluffyConfig.setStickerRadius(newValue);
+
+                        if (stickerSizePreview != null) {
+                            Log.d(TAG, "Invalidate stickerSizePreview (size=" + newValue + ")");
+                            Log.d(TAG, "stickerSizePreview: " + stickerSizePreview);
+                            stickerSizePreview.invalidate();
+                            stickerSizePreview.rebuildStickerPreview();
+                        } else {
+                            Log.w(TAG, "stickerSizePreview is null, can't invalidate");
+                        }
+                    });
+                    break;
                 case TEXT_CHECK:
                     TextCell textCell = (TextCell) holder.itemView;
                     textCell.setEnabled(true);
                     boolean checked = false;
+
+                    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+
+                    // По умолчанию считаем, что подзаголовка нет
+                    String subtitle = null;
+
                     switch (row.id) {
                         case ID_ZODIAC_SHOW:
                             checked = fluffyConfig.zodiacShow;
@@ -709,7 +1067,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case ID_DISABLE_ROUND:
                             checked = fluffyConfig.disableRoundingNumber;
-                            textCell.setSubtitle(getString(row.subtitleResId));
+                            if (row.subtitleResId != 0) {
+                                subtitle = getString(row.subtitleResId);
+                            }
                             break;
                         case ID_REMOVE_GIFTS:
                             checked = fluffyConfig.hideGift;
@@ -719,18 +1079,26 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case ID_MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;
-                            textCell.setSubtitle(getString(row.subtitleResId));
+                            // Если у строки есть подзаголовок, получаем его
+                            if (row.subtitleResId != 0) {
+                                subtitle = getString(row.subtitleResId);
+                            }
                             break;
                         case ID_NEW_SWITCH_STYLE:
                             checked = fluffyConfig.newSwitchStyle;
                             break;
                         case ID_FORMAT_TIME_WITH_SECONDS:
                             checked = fluffyConfig.formatTimeWithSeconds;
-                            textCell.setSubtitle(getString(row.subtitleResId));
+                            // Если у строки есть подзаголовок, получаем его
+                            if (row.subtitleResId != 0) {
+                                subtitle = getString(row.subtitleResId);
+                            }
                             break;
                         // Добавьте логику для определения checked состояния новых TextCheck строк
                     }
                     textCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
+
+                    textCell.setSubtitle(subtitle);
                     break;
             }
         }
@@ -738,6 +1106,10 @@ public class appearanceActivitySettings extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             Row row = rows.get(holder.getAdapterPosition());
+            // SeekBar и предпросмотр не должны быть кликабельными
+            if (row.type == RowType.STICKER_SIZE_PREVIEW || row.type == RowType.STICKER_SIZE_SEEKBAR || row.type == RowType.STICKER_RADIUS_SEEKBAR) {
+                return false;
+            }
             return row.type != RowType.SHADOW_SECTION && row.type != RowType.HEADER && row.type != RowType.TEXT_INFO_PRIVACY;
         }
 
@@ -772,8 +1144,22 @@ public class appearanceActivitySettings extends BaseFragment {
                 case 7:
                     view = new DoubleTapCell(mContext);
                     break;
+                case 8:
+                    view = new StickerSizePreviewMessagesCell(mContext, appearanceActivitySettings.this);
+                    break;
+                case 9:
+                    view = new StickerSizeSeekBarCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case 10:
+                    view = new StickerRadiusSeekBarCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case 11:
+                    view = new SetDefaultReactionCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
                 default:
-                    // Добавьте создание View для новых типов строк
                     view = new View(mContext); // Заглушка
                     break;
             }
@@ -794,6 +1180,10 @@ public class appearanceActivitySettings extends BaseFragment {
                 case CHAT_LIST_PREVIEW: return 5;
                 case TEXT_CELL: return 6;
                 case DOUBLE_TAP_CELL: return 7;
+                case STICKER_SIZE_PREVIEW: return 8;
+                case STICKER_SIZE_SEEKBAR: return 9; // <-- Новый тип View
+                case STICKER_RADIUS_SEEKBAR: return 10; // <-- Новый тип View
+                case QUICK_SWITCHER: return 11;
                 default: return -1; // Неизвестный тип
             }
         }
@@ -803,7 +1193,7 @@ public class appearanceActivitySettings extends BaseFragment {
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class, ChatListPreviewCell.class, DoubleTapCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class, ChatListPreviewCell.class, DoubleTapCell.class, StickerSizePreviewMessagesCell.class, StickerSizeSeekBarCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
@@ -840,8 +1230,13 @@ public class appearanceActivitySettings extends BaseFragment {
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
 
-        // Добавьте ThemeDescription для новых типов ячеек, если они имеют свои уникальные стили
+        // Добавление ThemeDescription для новой ячейки
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class}, new String[]{"seekBarView"}, null, null, null, Theme.key_player_progressBackground));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class}, new String[]{"seekBarView"}, null, null, null, Theme.key_player_progress));
 
         return themeDescriptions;
     }
+
+
 }

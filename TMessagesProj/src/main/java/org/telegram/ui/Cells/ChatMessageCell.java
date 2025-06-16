@@ -236,7 +236,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public boolean shouldCheckVisibleOnScreen;
     public float parentBoundsTop;
     public int parentBoundsBottom;
-
+    boolean shouldBlurBlockedSticker;
     public ExpiredStoryView expiredStoryView;
     private boolean skipFrameUpdate;
 
@@ -8732,11 +8732,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         additionHeight -= dp(17);
                     }
                 } else if (messageObject.isAnyKindOfSticker()) {
+                    shouldBlurBlockedSticker = false;
 
                     drawBackground = false;
                     boolean isWebpSticker = messageObject.type == MessageObject.TYPE_STICKER;
                     TLRPC.Document stickerDocument = messageObject.getDocument();
                     if (stickerDocument != null) {
+                        Log.d("fluffy", String.valueOf(stickerDocument.id));
+                        if (fluffyConfig.blockSticker.contains(stickerDocument.id)) {
+                            shouldBlurBlockedSticker = true;
+                        }
+
                         for (int a = 0; a < stickerDocument.attributes.size(); a++) {
                             TLRPC.DocumentAttribute attribute = stickerDocument.attributes.get(a);
                             if (attribute instanceof TLRPC.TL_documentAttributeImageSize) {
@@ -8764,9 +8770,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     float maxHeight;
                     int maxWidth;
                     if (AndroidUtilities.isTablet()) {
-                        maxHeight = maxWidth = (int) (AndroidUtilities.getMinTabletSide() * 0.4f);
+                        maxHeight = maxWidth = (int) (AndroidUtilities.getMinTabletSide() * (0.4f + (fluffyConfig.stickerSize - 14.0f) / 40));
                     } else {
-                        maxHeight = maxWidth = (int) (Math.min(getParentWidth(), AndroidUtilities.displaySize.y) * 0.5f);
+                        maxHeight = maxWidth = (int) (Math.min(getParentWidth(), AndroidUtilities.displaySize.y) * (0.5f + (fluffyConfig.stickerSize - 14.0f) / 30));
                     }
                     String filter;
                     if (messageObject.isAnimatedEmoji() || messageObject.isDice()) {
@@ -8849,7 +8855,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     availableTimeWidth = photoWidth - dp(14);
                     backgroundWidth = photoWidth + dp(12);
 
-                    photoImage.setRoundRadius(0);
+                    photoImage.setRoundRadius(AndroidUtilities.dp(fluffyConfig.stickerRadius));
+
                     canChangeRadius = false;
                     if (!messageObject.isOutOwner() && MessageObject.isPremiumSticker(messageObject.getDocument())) {
                         flipImage = true;
@@ -9569,7 +9576,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     blurredPhotoImage.getBitmap().recycle();
                     blurredPhotoImage.setImageBitmap((Bitmap) null);
                 }
-                if (photoImage.getBitmap() != null && !photoImage.getBitmap().isRecycled() && (currentMessageObject.hasMediaSpoilers() && !currentMessageObject.isMediaSpoilersRevealed || fitPhotoImage)) {
+                if (photoImage.getBitmap() != null && !photoImage.getBitmap().isRecycled() && (currentMessageObject.hasMediaSpoilers() && !currentMessageObject.isMediaSpoilersRevealed || fitPhotoImage || shouldBlurBlockedSticker)) {
+                    Log.d("fluffy", "блюрим");
                     blurredPhotoImage.setImageBitmap(Utilities.stackBlurBitmapMax(photoImage.getBitmap(), currentMessageObject.isRoundVideo()));
                     blurredPhotoImage.setColorFilter(getFancyBlurFilter());
                 }
@@ -16369,6 +16377,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
 
         if (signString != null) {
+
             if (messageObject.messageOwner.via_business_bot_id != 0) {
                 currentTimeString = timeString + ", ";
             } else if (messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.imported) {
@@ -16378,6 +16387,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         } else {
             currentTimeString = timeString;
+
         }
 
         final long starsPrice = currentMessageObject.getDialogId() < 0 ? getStarsPrice() : 0;
