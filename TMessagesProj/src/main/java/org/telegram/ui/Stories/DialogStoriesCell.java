@@ -55,6 +55,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -131,6 +132,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
     LinearLayoutManager layoutManager;
     AnimatedTextView titleView;
     boolean drawCircleForce;
+
+    private AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable statusDrawable;
+
     ArrayList<Runnable> afterNextLayout = new ArrayList<>();
     private float collapsedProgress1 = -1;
     private float collapsedProgress2;
@@ -151,6 +155,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
 
     public DialogStoriesCell(@NonNull Context context, BaseFragment fragment, int currentAccount, int type) {
         super(context);
+
+        statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleView, true, AndroidUtilities.dp(20), AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS);
+
         this.type = type;
         this.currentAccount = currentAccount;
         this.fragment = fragment;
@@ -485,6 +492,19 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             currentTitle = fluffyConfig.getTitleHeader();
         }
 
+        TLRPC.User currentUser = UserConfig.getInstance(currentAccount).getCurrentUser();
+        long statusDocumentId = 0;
+        if (currentUser != null && currentUser.emoji_status instanceof TLRPC.TL_emojiStatus) {
+            statusDocumentId = ((TLRPC.TL_emojiStatus) currentUser.emoji_status).document_id;
+        }
+
+        if (statusDocumentId != 0) {
+            statusDrawable.set(statusDocumentId, animated);
+            titleView.setRightDrawable(statusDrawable);
+        } else {
+            titleView.setRightDrawable(null);
+        }
+
         if (!hasOverlayText) {
             titleView.setText(currentTitle, animated && !LocaleController.isRTL);
         }
@@ -710,6 +730,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         super.onAttachedToWindow();
         updateItems(false, false);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storiesUpdated);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.userEmojiStatusUpdated);
         ellipsizeSpanAnimator.onAttachedToWindow();
     }
 
@@ -717,6 +738,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.storiesUpdated);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.userEmojiStatusUpdated);
         ellipsizeSpanAnimator.onDetachedFromWindow();
         if (globalCancelable != null) {
             globalCancelable.cancel();
@@ -740,6 +762,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                 AndroidUtilities.runOnUIThread(() -> {
                     checkLoadMore();
                 });
+            } else if (id == NotificationCenter.userEmojiStatusUpdated) {
+                updateItems(true, false);
             }
         }
     }

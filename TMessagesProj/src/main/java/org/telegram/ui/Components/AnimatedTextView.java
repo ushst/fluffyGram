@@ -65,6 +65,13 @@ public class AnimatedTextView extends View {
         private Part[] oldParts;
         private CharSequence oldText;
 
+        // --- ДОБАВЛЕНО ---
+        private Drawable rightDrawable;
+        private int drawablePadding = AndroidUtilities.dp(4);
+        private int rightDrawableWidth;
+        private float rightDrawableAlpha = 1f;
+        // --- КОНЕЦ ---
+
         public void setSplitByWords(boolean b) {
             splitByWords = b;
         }
@@ -198,6 +205,26 @@ public class AnimatedTextView extends View {
 
         public boolean centerY = true;
 
+        // --- ДОБАВЛЕНО ---
+        public void setRightDrawable(Drawable drawable) {
+            if (this.rightDrawable == drawable) {
+                return;
+            }
+            if (this.rightDrawable != null) {
+                this.rightDrawable.setCallback(null);
+            }
+            this.rightDrawable = drawable;
+            if (this.rightDrawable != null) {
+                this.rightDrawable.setCallback(getCallback());
+                this.rightDrawableWidth = this.rightDrawable.getIntrinsicWidth();
+            } else {
+                this.rightDrawableWidth = 0;
+            }
+            // Force relayout
+            setText(currentText, false);
+        }
+        // --- КОНЕЦ ---
+
         @Override
         public void draw(@NonNull Canvas canvas) {
             if (ellipsizeByGradient) {
@@ -209,46 +236,71 @@ public class AnimatedTextView extends View {
             canvas.translate(bounds.left, bounds.top);
             int fullWidth = bounds.width();
             int fullHeight = bounds.height();
+
+            // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+
+            // 1. Рассчитываем общую ширину блока (текст + иконка)
+            float textAndIconWidth = getCurrentWidth();
+            float textWidth = textAndIconWidth - (rightDrawable != null ? rightDrawableWidth + drawablePadding : 0);
+
+            // 2. Определяем стартовую позицию X для всего блока
+            float blockStartX = 0;
+            int horizontalGravity = gravity & Gravity.HORIZONTAL_GRAVITY_MASK;
+            if (horizontalGravity == Gravity.RIGHT) {
+                blockStartX = fullWidth - textAndIconWidth;
+            } else if (horizontalGravity == Gravity.CENTER_HORIZONTAL) {
+                blockStartX = (fullWidth - textAndIconWidth) / 2f;
+            } else if (isRTL && !ignoreRTL) {
+                blockStartX = fullWidth - textAndIconWidth;
+            }
+
             if (currentParts != null && oldParts != null && t != 1) {
-                float width = lerp(oldWidth, currentWidth, t);
-                float height = lerp(oldHeight, currentHeight, t);
-                if (centerY) canvas.translate(0, (fullHeight - height) / 2f);
+                float oldTextAndIconWidth = getWidth() - (rightDrawable != null ? rightDrawableWidth + drawablePadding : 0);
+                float oldTextWidth = oldTextAndIconWidth;
+                float oldBlockStartX = 0;
+                if (horizontalGravity == Gravity.RIGHT) {
+                    oldBlockStartX = fullWidth - oldTextAndIconWidth;
+                } else if (horizontalGravity == Gravity.CENTER_HORIZONTAL) {
+                    oldBlockStartX = (fullWidth - oldTextAndIconWidth) / 2f;
+                } else if (isRTL && !ignoreRTL) {
+                    oldBlockStartX = fullWidth - oldTextAndIconWidth;
+                }
+
+                // --- Цикл для отрисовки ТЕКУЩИХ частей (анимация появления) ---
                 for (int i = 0; i < currentParts.length; ++i) {
                     Part current = currentParts[i];
                     int j = current.toOppositeIndex;
-                    float x = current.offset, y = 0;
+                    float x = current.offset;
                     if (isRTL && !ignoreRTL) {
                         x = currentWidth - (x + current.width);
                     }
+
                     float localT = t;
                     if (animateWave > 0) {
                         localT = AndroidUtilities.cascade(t, i, currentParts.length, animateWave);
                     }
+
+                    // 3. Вертикальное выравнивание
+                    float y = (fullHeight - current.layout.getHeight()) / 2f;
+                    float verticalMove = 0;
+
                     if (j >= 0) {
                         Part old = oldParts[j];
                         float oldX = old.offset;
                         if (isRTL && !ignoreRTL) {
                             oldX = oldWidth - (oldX + old.width);
                         }
-                        x = lerp(oldX - old.left, x - current.left, t);
+                        x = lerp(oldBlockStartX + oldX - old.left,   blockStartX + x - current.left, t);
                         applyAlphaInternal(1f);
                     } else {
-                        x -= current.left;
-                        y = -textPaint.getTextSize() * moveAmplitude * (1f - localT) * (moveDown ? 1f : -1f);
+                        x = blockStartX + x - current.left;
+                        verticalMove = -textPaint.getTextSize() * moveAmplitude * (1f - localT) * (moveDown ? 1f : -1f);
                         applyAlphaInternal(localT);
                     }
+
                     canvas.save();
-                    float lwidth = j >= 0 ? width : currentWidth;
-                    if ((gravity | ~Gravity.LEFT) != ~0) {
-                        if ((gravity | ~Gravity.RIGHT) == ~0) {
-                            x += fullWidth - lwidth;
-                        } else if ((gravity | ~Gravity.CENTER_HORIZONTAL) == ~0) {
-                            x += (fullWidth - lwidth) / 2f;
-                        } else if (isRTL && !ignoreRTL) {
-                            x += fullWidth - lwidth;
-                        }
-                    }
-                    canvas.translate(x, y);
+                    canvas.translate(x, y + verticalMove);
+
                     if (j < 0 && scaleAmplitude > 0) {
                         final float s = lerp(1f - scaleAmplitude, 1f, t);
                         canvas.scale(s, s, current.width / 2f, current.layout.getHeight() / 2f);
@@ -256,34 +308,33 @@ public class AnimatedTextView extends View {
                     current.draw(canvas, j >= 0 ? 1f : t);
                     canvas.restore();
                 }
+
+                // --- Цикл для отрисовки СТАРЫХ частей (анимация исчезновения) ---
                 for (int i = 0; i < oldParts.length; ++i) {
                     Part old = oldParts[i];
-                    int j = old.toOppositeIndex;
-                    if (j >= 0) {
+                    if (old.toOppositeIndex >= 0) {
                         continue;
                     }
+
                     float localT = t;
                     if (animateWave > 0) {
                         localT = AndroidUtilities.cascade(t, i, oldParts.length, animateWave);
                     }
+
                     float x = old.offset;
-                    float y = textPaint.getTextSize() * moveAmplitude * localT * (moveDown ? 1f : -1f);
-                    applyAlphaInternal(1f - localT);
-                    canvas.save();
                     if (isRTL && !ignoreRTL) {
                         x = oldWidth - (x + old.width);
                     }
-                    x -= old.left;
-                    if ((gravity | ~Gravity.LEFT) != ~0) {
-                        if ((gravity | ~Gravity.RIGHT) == ~0) {
-                            x += fullWidth - oldWidth;
-                        } else if ((gravity | ~Gravity.CENTER_HORIZONTAL) == ~0) {
-                            x += (fullWidth - oldWidth) / 2f;
-                        } else if (isRTL && !ignoreRTL) {
-                            x += fullWidth - oldWidth;
-                        }
-                    }
-                    canvas.translate(x, y);
+                    x = oldBlockStartX + x - old.left;
+
+                    // 3. Вертикальное выравнивание
+                    float y = (fullHeight - old.layout.getHeight()) / 2f;
+                    float verticalMove = textPaint.getTextSize() * moveAmplitude * localT * (moveDown ? 1f : -1f);
+                    applyAlphaInternal(1f - localT);
+
+                    canvas.save();
+                    canvas.translate(x, y + verticalMove);
+
                     if (scaleAmplitude > 0) {
                         final float s = lerp(1f, 1f - scaleAmplitude, t);
                         canvas.scale(s, s, old.width / 2f, old.layout.getHeight() / 2f);
@@ -291,8 +342,7 @@ public class AnimatedTextView extends View {
                     old.draw(canvas, 1f - localT);
                     canvas.restore();
                 }
-            } else {
-                if (centerY) canvas.translate(0, (fullHeight - currentHeight) / 2f);
+            } else { // --- Статичная отрисовка без анимации ---
                 if (currentParts != null) {
                     applyAlphaInternal(1f);
                     for (int i = 0; i < currentParts.length; ++i) {
@@ -302,27 +352,38 @@ public class AnimatedTextView extends View {
                         if (isRTL && !ignoreRTL) {
                             x = currentWidth - (x + current.width);
                         }
-                        x -= current.left;
-                        if ((gravity | ~Gravity.LEFT) != ~0) {
-                            if ((gravity | ~Gravity.RIGHT) == ~0) {
-                                x += fullWidth - currentWidth;
-                            } else if ((gravity | ~Gravity.CENTER_HORIZONTAL) == ~0) {
-                                x += (fullWidth - currentWidth) / 2f;
-                            } else if (isRTL && !ignoreRTL) {
-                                x += fullWidth - currentWidth;
-                            }
-                        }
-                        canvas.translate(x, 0);
+                        x = blockStartX + x - current.left;
+
+                        // 3. Вертикальное выравнивание
+                        float y = (fullHeight - current.layout.getHeight()) / 2f;
+                        canvas.translate(x, y);
+
                         current.draw(canvas, 1f);
                         canvas.restore();
                     }
                 }
             }
+
+            // --- Отрисовка ИКОНКИ (rightDrawable) ---
+            if (rightDrawable != null) {
+                float iconX = blockStartX + textWidth + drawablePadding;
+                float iconY = (fullHeight - rightDrawable.getIntrinsicHeight()) / 2f;
+
+                canvas.save();
+                canvas.translate(iconX, iconY);
+                rightDrawable.setAlpha((int) (255 * alpha * rightDrawableAlpha));
+                rightDrawable.setBounds(0, 0, rightDrawable.getIntrinsicWidth(), rightDrawable.getIntrinsicHeight());
+                rightDrawable.draw(canvas);
+                canvas.restore();
+            }
+
+            // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
             canvas.restore();
             if (ellipsizeByGradient) {
                 final float w = AndroidUtilities.dp(16);
                 if (ellipsizeGradient == null) {
-                    ellipsizeGradient = new LinearGradient(0, 0, w, 0, new int[] {0x00ff0000, 0xffff0000}, new float[] {0, 1}, Shader.TileMode.CLAMP);
+                    ellipsizeGradient = new LinearGradient(0, 0, w, 0, new int[]{0x00ff0000, 0xffff0000}, new float[]{0, 1}, Shader.TileMode.CLAMP);
                     ellipsizeGradientMatrix = new Matrix();
                     ellipsizePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
                     ellipsizePaint.setShader(ellipsizeGradient);
@@ -337,7 +398,6 @@ public class AnimatedTextView extends View {
                 canvas.restore();
             }
         }
-
         public void setRightPadding(float rightPadding) {
             this.rightPadding = rightPadding;
             invalidateSelf();
@@ -495,7 +555,7 @@ public class AnimatedTextView extends View {
                 toSetTextMoveDown = false;
                 t = 0;
 
-                if (!text.equals(currentText)) {
+                if (!text.equals(currentText) || rightDrawable != null) { // --- ИЗМЕНЕНО: добавлена проверка rightDrawable для принудительного relayout ---
                     clearCurrentParts();
                     currentParts = new Part[1];
                     currentParts[0] = new Part(makeLayout(currentText = text, width), 0, -1);
@@ -538,19 +598,35 @@ public class AnimatedTextView extends View {
             return currentText;
         }
 
+        // --- ИЗМЕНЕНО: методы getWidth и getCurrentWidth ---
         public float getWidth() {
-            return Math.max(currentWidth, oldWidth);
+            float width = Math.max(currentWidth, oldWidth);
+            if (rightDrawable != null) {
+                width += rightDrawableWidth + drawablePadding;
+            }
+            return width;
         }
 
         public float getCurrentWidth() {
+            float width;
             if (currentParts != null && oldParts != null) {
-                return lerp(oldWidth, currentWidth, t);
+                width = lerp(oldWidth, currentWidth, t);
+            } else {
+                width = currentWidth;
             }
-            return currentWidth;
+            if (rightDrawable != null) {
+                width += rightDrawableWidth + drawablePadding;
+            }
+            return width;
         }
+        // --- КОНЕЦ ---
 
         public float getAnimateToWidth() {
-            return currentWidth;
+            float width = currentWidth;
+            if (rightDrawable != null) {
+                width += rightDrawableWidth + drawablePadding;
+            }
+            return width;
         }
 
         public float getMaxWidth(AnimatedTextDrawable otherTextDrawable) {
@@ -558,9 +634,9 @@ public class AnimatedTextView extends View {
                 return Math.max(getCurrentWidth(), otherTextDrawable.getCurrentWidth());
             }
             return lerp(
-                Math.max(oldWidth, otherTextDrawable.oldWidth),
-                Math.max(currentWidth, otherTextDrawable.currentWidth),
-                Math.max(t, otherTextDrawable.t)
+                    Math.max(oldWidth, otherTextDrawable.oldWidth),
+                    Math.max(currentWidth, otherTextDrawable.currentWidth),
+                    Math.max(t, otherTextDrawable.t)
             );
         }
 
@@ -568,9 +644,13 @@ public class AnimatedTextView extends View {
             return currentHeight;
         }
 
+        // --- ИЗМЕНЕНО: метод makeLayout ---
         private StaticLayout makeLayout(CharSequence textPart, int width) {
             if (width <= 0) {
                 width = Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y);
+            }
+            if (rightDrawable != null) {
+                width -= (rightDrawableWidth + drawablePadding);
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 return StaticLayout.Builder.obtain(textPart, 0, textPart.length(), textPaint, width)
@@ -583,19 +663,20 @@ public class AnimatedTextView extends View {
                         .build();
             } else {
                 return new StaticLayout(
-                    textPart,
-                    0, textPart.length(),
-                    textPaint,
-                    width,
-                    Layout.Alignment.ALIGN_NORMAL,
-                    1,
-                    0,
-                    includeFontPadding,
-                    TextUtils.TruncateAt.END,
-                    width
+                        textPart,
+                        0, textPart.length(),
+                        textPaint,
+                        width,
+                        Layout.Alignment.ALIGN_NORMAL,
+                        1,
+                        0,
+                        includeFontPadding,
+                        TextUtils.TruncateAt.END,
+                        width
                 );
             }
         }
+        // --- КОНЕЦ ---
 
         private static class WordSequence implements CharSequence {
             private static final char SPACE = ' ';
@@ -1114,9 +1195,9 @@ public class AnimatedTextView extends View {
 
         public float isNotEmpty() {
             return lerp(
-                oldText == null || oldText.length() <= 0 ? 0f : 1f,
-                currentText == null || currentText.length() <= 0 ? 0f : 1f,
-                oldText == null ? 1f : t
+                    oldText == null || oldText.length() <= 0 ? 0f : 1f,
+                    currentText == null || currentText.length() <= 0 ? 0f : 1f,
+                    oldText == null ? 1f : t
             );
         }
 
@@ -1266,6 +1347,8 @@ public class AnimatedTextView extends View {
         invalidate();
     }
 
+
+
     public void setEmojiColor(int color, boolean animated) {
         drawable.setEmojiColor(color, animated);
         invalidate();
@@ -1305,8 +1388,20 @@ public class AnimatedTextView extends View {
     @Override
     public void invalidateDrawable(@NonNull Drawable drawable) {
         super.invalidateDrawable(drawable);
+        if (drawable == this.drawable.rightDrawable) {
+            invalidate();
+        } else {
+            invalidate();
+        }
+    }
+
+    // --- ДОБАВЛЕНО ---
+    public void setRightDrawable(Drawable drawable) {
+        this.drawable.setRightDrawable(drawable);
+        requestLayout();
         invalidate();
     }
+    // --- КОНЕЦ ---
 
     @Override
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
