@@ -180,7 +180,7 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
     private void updateCells() {
         Log.d(LOG_TAG, "updateCells called");
         for (int i = 0; i < cells.length; i++) {
-            cells[i].setMessageObject(messageObjects[i], null, false, false);
+            cells[i].setMessageObject(messageObjects[i], null, false, false, false);
             cells[i].invalidate();
         }
     }

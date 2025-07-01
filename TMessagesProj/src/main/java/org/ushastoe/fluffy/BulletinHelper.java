@@ -57,14 +57,10 @@ public class BulletinHelper {
         if (fragment.getParentActivity() == null) {
             return;
         }
-
+        Drawable nullDr = null;
         try {
             // BulletinFactory.createSimpleBulletin(icon, title, subtitle)
-            currentBulletin = BulletinFactory.of(fragment).createSimpleBulletin(
-                    null, // В этом случае иконка не нужна для простого сообщения
-                    title,
-                    subtitle
-            );
+            currentBulletin = BulletinFactory.of(fragment).createSimpleBulletin(nullDr, title, subtitle);
             currentBulletin.show();
         } catch (Exception e) {
             e.printStackTrace();

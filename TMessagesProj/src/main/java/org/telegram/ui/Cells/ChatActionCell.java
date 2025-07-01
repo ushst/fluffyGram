@@ -2060,6 +2060,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                 titleHeight = 0;
                 textY = 0;
             } else if (messageObject.type == MessageObject.TYPE_ACTION_WALLPAPER) {
+                TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(messageObject.messageOwner.media.user_id);
                 CharSequence description;
                 String action = null;
                 boolean actionClickableAsImage = true;

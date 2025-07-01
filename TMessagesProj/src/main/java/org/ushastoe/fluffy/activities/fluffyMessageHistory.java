@@ -273,7 +273,7 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
                     MessageObject messageObject = new MessageObject(currentAccount, msg, true, false);
                     messageObject.forceAvatar = true;
 
-                    fluffyMessageDetailCell.setMessageObject(messageObject, null, false, false);
+                    fluffyMessageDetailCell.setMessageObject(messageObject, null, false, false, false);
                     fluffyMessageDetailCell.isChat = true;
             }
         }
