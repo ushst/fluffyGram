@@ -4373,6 +4373,8 @@ public class AndroidUtilities {
                 }
             }
             return stringBuilder;
+        } else if (original == null) {
+            return null;
         }
         return original.toString().replace('\n', ' ');
     }
@@ -5069,6 +5071,28 @@ public class AndroidUtilities {
 
     public static float lerp(float[] ab, float f) {
         return lerp(ab[0], ab[1], f);
+    }
+
+    public static void lerp(Rect a, RectF b, float f, RectF to) {
+        if (to != null) {
+            to.set(
+                lerp(a.left, b.left, f),
+                lerp(a.top, b.top, f),
+                lerp(a.right, b.right, f),
+                lerp(a.bottom, b.bottom, f)
+            );
+        }
+    }
+
+    public static void lerp(RectF a, Rect b, float f, RectF to) {
+        if (to != null) {
+            to.set(
+                lerp(a.left, b.left, f),
+                lerp(a.top, b.top, f),
+                lerp(a.right, b.right, f),
+                lerp(a.bottom, b.bottom, f)
+            );
+        }
     }
 
     public static void lerp(RectF a, RectF b, float f, RectF to) {
@@ -6645,5 +6669,21 @@ public class AndroidUtilities {
             FileLog.e(e);
         }
         return false;
+    }
+
+    private static void printStackTrace(String tag) {
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        for (int a = 0; a < elements.length; a++) {
+            FileLog.d("[" + tag + "] " + elements[a]);
+        }
+    }
+
+    public static void logFlagSecure() {
+        if (!BuildConfig.DEBUG_VERSION) {
+            return;
+        }
+
+        FileLog.d("[FLAG_SECURE]");
+        printStackTrace("FLAG_SECURE");
     }
 }
