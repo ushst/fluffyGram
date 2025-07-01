@@ -19,3 +19,4 @@ TMessagesProj/google-services.json
 TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
 TMessagesProj_App/google-services.json
 .vscode/settings.json
+google-services.json
