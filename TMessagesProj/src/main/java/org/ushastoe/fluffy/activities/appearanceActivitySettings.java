@@ -142,7 +142,7 @@ public class appearanceActivitySettings extends BaseFragment {
     // Список всех строк в порядке отображения
     private List<Row> rows = new ArrayList<>();
 
-    // Уникальные идентификаторы для каждой строки (ID после 23 были перенумерованы)
+    // Уникальные идентификаторы для каждой строки
     private static final int ID_GENERAL_HEADER = 1;
     private static final int ID_CHAT_LIST_PREVIEW = 2;
     private static final int ID_CENTER_TITLE = 3;
@@ -172,8 +172,13 @@ public class appearanceActivitySettings extends BaseFragment {
     private static final int ID_STICKER_RADIUS_SEEKBAR = 27;
     private static final int ID_DOUBLE_TAP_HEADER = 28;
     private static final int ID_DIVIDER_4 = 29;
-
     private static final int ID_QUICK_SWITCHER = 30;
+
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+    private static final int ID_MENU_HEADER = 31;
+    private static final int ID_MENU_CUSTOMIZATION = 32;
+    private static final int ID_DIVIDER_5 = 33;
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
     private static final int stickerRaduisMax = 130;
     private Parcelable recyclerViewState = null;
@@ -194,7 +199,7 @@ public class appearanceActivitySettings extends BaseFragment {
 
         rows.clear();
 
-        // Пример добавления строк:
+        // ОБЩИЕ
         rows.add(new Row(ID_GENERAL_HEADER, RowType.HEADER, R.string.General));
         rows.add(new Row(ID_CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
         rows.add(new Row(ID_CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
@@ -205,10 +210,12 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(ID_NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
         rows.add(new Row(ID_DIVIDER_1, RowType.SHADOW_SECTION));
 
+        // ПРОФИЛЬ
         rows.add(new Row(ID_MAIN_HEADER, RowType.HEADER, R.string.Profile));
         rows.add(new Row(ID_ZODIAC_SHOW, RowType.TEXT_CHECK, R.string.zodiacShow, R.drawable.msg_calendar2));
         rows.add(new Row(ID_DIVIDER_2, RowType.SHADOW_SECTION));
 
+        // СТИКЕРЫ
         rows.add(new Row(ID_STICKER_HEADER, RowType.HEADER, R.string.Stickers));
         rows.add(new Row(ID_STICKER_SIZE_SEEKBAR, RowType.STICKER_SIZE_SEEKBAR));
         rows.add(new Row(ID_STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
@@ -216,16 +223,26 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(ID_STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
         rows.add(new Row(ID_DIVIDER_3, RowType.SHADOW_SECTION));
 
+        // ДВОЙНОЕ НАЖАТИЕ
         rows.add(new Row(ID_DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
         rows.add(new Row(ID_DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
         rows.add(new Row(ID_QUICK_SWITCHER, RowType.QUICK_SWITCHER));
         rows.add(new Row(ID_DIVIDER_4, RowType.SHADOW_SECTION));
 
+        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+        // КОНТЕКСТНОЕ МЕНЮ
+        // (Для R.string.ContextMenu и R.string.ContextMenuSettings добавьте строки в strings.xml)
+        rows.add(new Row(ID_MENU_HEADER, RowType.HEADER, R.string.ContextMenu));
+        rows.add(new Row(ID_MENU_CUSTOMIZATION, RowType.TEXT_CELL, R.string.ContextMenuSettings, R.drawable.msg_settings));
+        rows.add(new Row(ID_DIVIDER_5, RowType.SHADOW_SECTION));
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+        // ЧАТЫ
         rows.add(new Row(ID_CHAT_HEADER, RowType.HEADER, R.string.Chats));
-        rows.add(new Row(ID_DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle)); // Пример добавления подзаголовка
+        rows.add(new Row(ID_DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle));
         rows.add(new Row(ID_CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
-        rows.add(new Row(ID_MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle)); // Пример добавления подзаголовка
-        rows.add(new Row(ID_FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle)); // Пример добавления подзаголовка
+        rows.add(new Row(ID_MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle));
+        rows.add(new Row(ID_FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
         rows.add(new Row(ID_TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
         rows.add(new Row(ID_REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
         rows.add(new Row(ID_REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
@@ -238,8 +255,84 @@ public class appearanceActivitySettings extends BaseFragment {
         }
     }
 
+    private void showMenuItemConfigurator(Context context) {
+        if (getParentActivity() == null) {
+            return;
+        }
+
+        // Вспомогательный класс для удобства
+        class MenuItemConfig {
+            final String title;
+            final Runnable onToggle;
+            final BooleanSupplier isChecked;
+
+            @FunctionalInterface
+            interface BooleanSupplier { boolean get(); }
+            @FunctionalInterface
+            interface Runnable { void run(); }
+
+            MenuItemConfig(String title, BooleanSupplier isChecked, Runnable onToggle) {
+                this.title = title;
+                this.isChecked = isChecked;
+                this.onToggle = onToggle;
+            }
+        }
+
+        List<MenuItemConfig> menuItems = new ArrayList<>();
+        menuItems.add(new MenuItemConfig(
+                "Показывать пункт 'Ответить'",
+                fluffyConfig::isMenuReplyEnabled,
+                fluffyConfig::toggleMenuReplyEnabled
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                "Переслать без автора",
+                fluffyConfig::isMenuForwardWoAuthorEnabled,
+                fluffyConfig::toggleMenuForwardWoAuthorEnabled
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                "Показывать JSON сообщения",
+                fluffyConfig::isMenuJsonViewerEnabled,
+                fluffyConfig::toggleMenuJsonViewerEnabled
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                "Очистить из кэша",
+                fluffyConfig::isMenuClearFromCacheEnabled,
+                fluffyConfig::toggleMenuClearFromCacheEnabled
+        ));
+
+
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        for (int i = 0; i < menuItems.size(); i++) {
+            MenuItemConfig item = menuItems.get(i);
+            TextCheckCell cell = new TextCheckCell(context);
+            cell.setHeight(dp(50));
+            cell.setTextAndCheck(item.title, item.isChecked.get(), i < menuItems.size() - 1);
+            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+
+            cell.setOnClickListener(v -> {
+                item.onToggle.run();
+                cell.setChecked(item.isChecked.get());
+            });
+
+            linearLayout.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(getParentActivity())
+                .setTitle(getString(R.string.ContextMenuSettings)) // Используем строку из ресурсов
+                .setView(linearLayout)
+                .setPositiveButton(getString("Close", R.string.Close), null)
+                .create();
+
+        showDialog(dialog);
+    }
+
     // Метод для поиска строки по идентификатору
-      private Row getRowById(int id) {
+    private Row getRowById(int id) {
         for (Row row : rows) {
             if (row.id == id) {
                 return row;
@@ -412,7 +505,11 @@ public class appearanceActivitySettings extends BaseFragment {
                 showTransparencyDialog(context);
                 break;
 
-            // Добавьте обработку кликов для новых строк
+            // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+            case ID_MENU_CUSTOMIZATION:
+                showMenuItemConfigurator(context);
+                break;
+            // --- КОНЕЦ ИЗМЕНЕНИЙ ---
         }
     }
 
@@ -980,7 +1077,7 @@ public class appearanceActivitySettings extends BaseFragment {
                         case ID_TRANSPARENCY:
                             value = String.valueOf(fluffyConfig.transparency);
                             break;
-                        // Добавьте логику для получения значения новых TextCell строк
+                        // Для новой кнопки настройки меню значение справа не нужно, поэтому value останется пустым.
                     }
                     textCell6.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
                     break;
@@ -1041,9 +1138,6 @@ public class appearanceActivitySettings extends BaseFragment {
                     textCell.setEnabled(true);
                     boolean checked = false;
 
-                    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-
-                    // По умолчанию считаем, что подзаголовка нет
                     String subtitle = null;
 
                     switch (row.id) {
@@ -1079,7 +1173,6 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case ID_MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;
-                            // Если у строки есть подзаголовок, получаем его
                             if (row.subtitleResId != 0) {
                                 subtitle = getString(row.subtitleResId);
                             }
@@ -1089,12 +1182,10 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case ID_FORMAT_TIME_WITH_SECONDS:
                             checked = fluffyConfig.formatTimeWithSeconds;
-                            // Если у строки есть подзаголовок, получаем его
                             if (row.subtitleResId != 0) {
                                 subtitle = getString(row.subtitleResId);
                             }
                             break;
-                        // Добавьте логику для определения checked состояния новых TextCheck строк
                     }
                     textCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
 
@@ -1181,8 +1272,8 @@ public class appearanceActivitySettings extends BaseFragment {
                 case TEXT_CELL: return 6;
                 case DOUBLE_TAP_CELL: return 7;
                 case STICKER_SIZE_PREVIEW: return 8;
-                case STICKER_SIZE_SEEKBAR: return 9; // <-- Новый тип View
-                case STICKER_RADIUS_SEEKBAR: return 10; // <-- Новый тип View
+                case STICKER_SIZE_SEEKBAR: return 9;
+                case STICKER_RADIUS_SEEKBAR: return 10;
                 case QUICK_SWITCHER: return 11;
                 default: return -1; // Неизвестный тип
             }
@@ -1237,6 +1328,4 @@ public class appearanceActivitySettings extends BaseFragment {
 
         return themeDescriptions;
     }
-
-
 }

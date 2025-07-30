@@ -123,4 +123,7 @@
 
     <string name="Stickers">Stickers</string>
 
+    <string name="ContextMenu">Menu Action</string>
+    <string name="ContextMenuSettings">Settings menu action</string>
+
 </resources>

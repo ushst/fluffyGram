@@ -25,14 +25,25 @@ public class fluffyConfig {
     public static SharedPreferences preferences;
     public static SharedPreferences.Editor editor;
 
+    // --- Ключи для хранения настроек меню ---
+    private static final String KEY_MENU_REPLY_ENABLED = "menu_reply_enabled";
+    private static final String KEY_MENU_FORWARD_WO_AUTHOR_ENABLED = "menu_forward_wo_author_enabled";
+    private static final String KEY_MENU_JSON_VIEWER_ENABLED = "menu_json_viewer_enabled";
+    private static final String KEY_MENU_CLEAR_CACHE_ENABLED = "menu_clear_cache_enabled";
+
+    // --- Поля для хранения состояния настроек меню ---
+    public static boolean menuReplyEnabled;
+    public static boolean menuForwardWoAuthorEnabled;
+    public static boolean menuJsonViewerEnabled;
+    public static boolean menuClearFromCacheEnabled;
+
+    // --- Ваши существующие поля ---
     public static boolean frontCamera;
     public static boolean shouldNOTTrustMe;
-
     public static boolean premiumMode;
     public static int voiceUseCloudflare;
     public static String cfAccountID;
     public static String cfApiToken;
-
     public static boolean zodiacShow;
     public static boolean downloadSpeedBoost;
     public static boolean disableRoundingNumber;
@@ -50,12 +61,9 @@ public class fluffyConfig {
     public static boolean saveDel;
     public static boolean saveEdit;
     public static boolean hideGift;
-
     public static int readSticker;
-
     public static int typeTitle;
     public static int transparency;
-
     public static int stickerSize;
     public static int stickerRadius;
 
@@ -82,6 +90,13 @@ public class fluffyConfig {
     }
 
     public static void load() {
+        // --- Загрузка настроек для меню ---
+        menuReplyEnabled = preferences.getBoolean(KEY_MENU_REPLY_ENABLED, true);
+        menuForwardWoAuthorEnabled = preferences.getBoolean(KEY_MENU_FORWARD_WO_AUTHOR_ENABLED, true);
+        menuJsonViewerEnabled = preferences.getBoolean(KEY_MENU_JSON_VIEWER_ENABLED, false); // По умолчанию выключено
+        menuClearFromCacheEnabled = preferences.getBoolean(KEY_MENU_CLEAR_CACHE_ENABLED, true);
+
+        // --- Загрузка ваших существующих настроек ---
         frontCamera = preferences.getBoolean("frontCamera", true);
         premiumMode = preferences.getBoolean("premiumMode", false);
         voiceUseCloudflare = preferences.getInt("voiceUseCloudflare", 0);
@@ -112,6 +127,47 @@ public class fluffyConfig {
         stickerRadius = preferences.getInt("stickerRadius", 0);
         hideButtonWrite = preferences.getBoolean("hideButton", false);
     }
+
+    // --- НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ ПУНКТАМИ МЕНЮ ---
+
+    public static boolean isMenuReplyEnabled() {
+        return menuReplyEnabled;
+    }
+
+    public static void toggleMenuReplyEnabled() {
+        menuReplyEnabled = !menuReplyEnabled;
+        editor.putBoolean(KEY_MENU_REPLY_ENABLED, menuReplyEnabled).apply();
+    }
+
+    public static boolean isMenuForwardWoAuthorEnabled() {
+        return menuForwardWoAuthorEnabled;
+    }
+
+    public static void toggleMenuForwardWoAuthorEnabled() {
+        menuForwardWoAuthorEnabled = !menuForwardWoAuthorEnabled;
+        editor.putBoolean(KEY_MENU_FORWARD_WO_AUTHOR_ENABLED, menuForwardWoAuthorEnabled).apply();
+    }
+
+    public static boolean isMenuJsonViewerEnabled() {
+        return menuJsonViewerEnabled;
+    }
+
+    public static void toggleMenuJsonViewerEnabled() {
+        menuJsonViewerEnabled = !menuJsonViewerEnabled;
+        editor.putBoolean(KEY_MENU_JSON_VIEWER_ENABLED, menuJsonViewerEnabled).apply();
+    }
+
+    public static boolean isMenuClearFromCacheEnabled() {
+        return menuClearFromCacheEnabled;
+    }
+
+    public static void toggleMenuClearFromCacheEnabled() {
+        menuClearFromCacheEnabled = !menuClearFromCacheEnabled;
+        editor.putBoolean(KEY_MENU_CLEAR_CACHE_ENABLED, menuClearFromCacheEnabled).apply();
+    }
+
+
+    // --- ВАШИ СУЩЕСТВУЮЩИЕ МЕТОДЫ ---
 
     public static void cameraSwitch() {
         frontCamera = !frontCamera;
@@ -345,5 +401,4 @@ public class fluffyConfig {
         }
         return new ArrayList<>(Arrays.asList(input.split(";")));
     }
-
 }
