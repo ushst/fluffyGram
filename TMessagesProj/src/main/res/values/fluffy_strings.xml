@@ -123,7 +123,18 @@
 
     <string name="Stickers">Stickers</string>
 
-    <string name="ContextMenu">Menu Action</string>
-    <string name="ContextMenuSettings">Settings menu action</string>
+    <string name="ContextMenuSettings">Message action</string>
 
+    <string name="save_for_notifications">Save for Notifications</string>
+    <string name="gemini_ai_header">Gemini AI Header</string>
+    <string name="reply">Reply</string>
+    <string name="copy_photo">Copy Photo</string>
+    <string name="copy_photo_as_sticker">Copy Photo as Sticker</string>
+    <string name="clear_from_cache">Clear from Cache</string>
+    <string name="forward">Forward</string>
+    <string name="forward_wo_author">Forward without Authorship</string>
+    <string name="view_user_history">View User History</string>
+    <string name="save_message">Save Message</string>
+    <string name="report_chat">Report Chat</string>
+    <string name="json">JSON</string>
 </resources>

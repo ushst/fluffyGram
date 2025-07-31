@@ -29,6 +29,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -1147,6 +1148,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     public final static int OPTION_GIFT = 108;
     public final static int OPTION_EDIT_TODO = 109;
     public final static int OPTION_ADD_TO_TODO = 110;
+    public final static int OPTION_COPY_PHOTO = 200;
+    public final static int OPTION_COPY_PHOTO_AS_STICKER = 201;
+
 
     private final static int OPTION_DETAILS = 92;
     private final static int OPTION_SAVE_MESSAGE = 93;
@@ -31211,7 +31215,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 boolean showRateTranscription = selectedObject != null && selectedObject.isVoice() && selectedObject.messageOwner != null && getUserConfig().isPremium() && !TextUtils.isEmpty(selectedObject.messageOwner.voiceTranscription) && selectedObject.messageOwner != null && !selectedObject.messageOwner.voiceTranscriptionRated && selectedObject.messageOwner.voiceTranscriptionId != 0 && selectedObject.messageOwner.voiceTranscriptionOpen;
 
-                if (!showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
+                if (fluffyConfig.showSaveForNotifications && !showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
                     ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), !showPrivateMessageSeen && !showPrivateMessageEdit && !showPrivateMessageFwdOriginal, false, themeDelegate);
                     cell.setMinimumWidth(AndroidUtilities.dp(200));
                     cell.setTextAndIcon(getString(R.string.SaveForNotifications), R.drawable.msg_tone_add);
@@ -32881,6 +32885,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (selectedObject == null || getParentActivity() == null) {
             return;
         }
+
         boolean preserveDim = false;
         switch (option) {
             case 420_001: {
@@ -33128,6 +33133,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 MediaController.saveFile(path, getParentActivity(), 0, null, null);
                 BulletinFactory.createSaveToGalleryBulletin(this, selectedObject.isVideo(), themeDelegate).show();
+                break;
+            }
+            case OPTION_COPY_PHOTO: {
+                chatActivity.getChatsHelper().addMessageToClipboard(selectedObject, () -> BulletinFactory.global()
+                        .createSuccessBulletin(getString(R.string.CG_PhotoCopied), chatActivity.getResourceProvider())
+                        .setDuration(Bulletin.DURATION_SHORT)
+                        .show());
+                break;
+            }
+            case OPTION_COPY_PHOTO_AS_STICKER: {
+                StickersManager.INSTANCE.addMessageToClipboardAsSticker(selectedObject, () -> BulletinFactory.global()
+                        .createSuccessBulletin(getString(R.string.CG_PhotoCopied), chatActivity.getResourceProvider())
+                        .setDuration(Bulletin.DURATION_SHORT)
+                        .show());
                 break;
             }
             case OPTION_REPLY: {
@@ -44187,7 +44206,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             icons.add(deleteIconRes);
         } else if (type == 1) {
             if (currentChat != null) {
-                if (allowChatActions && !isInsideContainer) {
+                if (fluffyConfig.showReply && allowChatActions && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44237,7 +44256,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     icons.add(R.drawable.msg_report);
                 }
             } else {
-                if (selectedObject.getId() > 0 && allowChatActions && !isInsideContainer) {
+                if (fluffyConfig.showReply && selectedObject.getId() > 0 && allowChatActions && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44283,7 +44302,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         icons.add(R.drawable.msg_fave);
                     }
                 }
-                if ((allowChatActions || !noforwardsOrPaidMedia && ChatObject.isChannelAndNotMegaGroup(currentChat) && !selectedObject.isSponsored() && selectedObject.contentType == 0 && chatMode == MODE_DEFAULT) && !isInsideContainer) {
+                if ( fluffyConfig.showReply && (allowChatActions || !noforwardsOrPaidMedia && ChatObject.isChannelAndNotMegaGroup(currentChat) && !selectedObject.isSponsored() && selectedObject.contentType == 0 && chatMode == MODE_DEFAULT) && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44396,6 +44415,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 items.add(LocaleController.getString(R.string.SaveToGallery));
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
+
+                                if (fluffyConfig.showCopyPhoto){;
+                                    items.add(getString(R.string.copy_photo));
+                                    options.add(ChatActivityHelper.OPTION_COPY_PHOTO);
+                                    icons.add(R.drawable.msg_copy);
+                                }
                             }
                         }
                     }
@@ -44552,7 +44577,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     icons.add(deleteIconRes);
                 }
             } else {
-                if (allowChatActions && !isInsideContainer) {
+                if (fluffyConfig.showReply && allowChatActions && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44648,6 +44673,51 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             items.add(LocaleController.getString(R.string.THHistory));
             options.add(420_001);
             icons.add(R.drawable.msg_log);
+        }
+    }
+
+    public void addMessageToClipboard(MessageObject selectedObject, Runnable callback) {
+        String path = getPathToMessage(selectedObject);
+        if (!TextUtils.isEmpty(path)) {
+            addFileToClipboard(new File(path), callback);
+        }
+    }
+
+    public String getPathToMessage(MessageObject messageObject) {
+        String path = messageObject.messageOwner.attachPath;
+        if (!TextUtils.isEmpty(path)) {
+            File temp = new File(path);
+            if (!temp.exists()) {
+                path = null;
+            }
+        }
+        if (TextUtils.isEmpty(path)) {
+            path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToMessage(messageObject.messageOwner).toString();
+            File temp = new File(path);
+            if (!temp.exists()) {
+                path = null;
+            }
+        }
+        if (TextUtils.isEmpty(path)) {
+            path = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(messageObject.getDocument(), true).toString();
+            File temp = new File(path);
+            if (!temp.exists()) {
+                return null;
+            }
+        }
+        return path;
+    }
+
+    public void addFileToClipboard(File file, Runnable callback) {
+        try {
+            Context context = ApplicationLoader.applicationContext;
+            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            Uri uri = FileProvider.getUriForFile(context, ApplicationLoader.getApplicationId() + ".provider", file);
+            ClipData clip = ClipData.newUri(context.getContentResolver(), "label", uri);
+            clipboard.setPrimaryClip(clip);
+            callback.run();
+        } catch (Exception e) {
+            FileLog.e(e);
         }
     }
 }

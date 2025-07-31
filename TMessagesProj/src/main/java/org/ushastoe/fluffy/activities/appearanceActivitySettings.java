@@ -139,10 +139,8 @@ public class appearanceActivitySettings extends BaseFragment {
         }
     }
 
-    // Список всех строк в порядке отображения
     private List<Row> rows = new ArrayList<>();
 
-    // Уникальные идентификаторы для каждой строки
     private static final int ID_GENERAL_HEADER = 1;
     private static final int ID_CHAT_LIST_PREVIEW = 2;
     private static final int ID_CENTER_TITLE = 3;
@@ -174,11 +172,7 @@ public class appearanceActivitySettings extends BaseFragment {
     private static final int ID_DIVIDER_4 = 29;
     private static final int ID_QUICK_SWITCHER = 30;
 
-    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-    private static final int ID_MENU_HEADER = 31;
-    private static final int ID_MENU_CUSTOMIZATION = 32;
-    private static final int ID_DIVIDER_5 = 33;
-    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+    private static final int ID_MENU_CUSTOMIZATION = 31;
 
     private static final int stickerRaduisMax = 130;
     private Parcelable recyclerViewState = null;
@@ -227,15 +221,8 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(ID_DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
         rows.add(new Row(ID_DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
         rows.add(new Row(ID_QUICK_SWITCHER, RowType.QUICK_SWITCHER));
-        rows.add(new Row(ID_DIVIDER_4, RowType.SHADOW_SECTION));
-
-        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
-        // КОНТЕКСТНОЕ МЕНЮ
-        // (Для R.string.ContextMenu и R.string.ContextMenuSettings добавьте строки в strings.xml)
-        rows.add(new Row(ID_MENU_HEADER, RowType.HEADER, R.string.ContextMenu));
         rows.add(new Row(ID_MENU_CUSTOMIZATION, RowType.TEXT_CELL, R.string.ContextMenuSettings, R.drawable.msg_settings));
-        rows.add(new Row(ID_DIVIDER_5, RowType.SHADOW_SECTION));
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+        rows.add(new Row(ID_DIVIDER_4, RowType.SHADOW_SECTION));
 
         // ЧАТЫ
         rows.add(new Row(ID_CHAT_HEADER, RowType.HEADER, R.string.Chats));
@@ -260,7 +247,6 @@ public class appearanceActivitySettings extends BaseFragment {
             return;
         }
 
-        // Вспомогательный класс для удобства
         class MenuItemConfig {
             final String title;
             final Runnable onToggle;
@@ -280,27 +266,75 @@ public class appearanceActivitySettings extends BaseFragment {
 
         List<MenuItemConfig> menuItems = new ArrayList<>();
         menuItems.add(new MenuItemConfig(
-                "Показывать пункт 'Ответить'",
-                fluffyConfig::isMenuReplyEnabled,
-                fluffyConfig::toggleMenuReplyEnabled
+                context.getString(R.string.save_for_notifications),
+                () -> fluffyConfig.showSaveForNotifications,
+                () -> fluffyConfig.showSaveForNotifications = !fluffyConfig.showSaveForNotifications
         ));
 
         menuItems.add(new MenuItemConfig(
-                "Переслать без автора",
-                fluffyConfig::isMenuForwardWoAuthorEnabled,
-                fluffyConfig::toggleMenuForwardWoAuthorEnabled
+                context.getString(R.string.gemini_ai_header),
+                () -> fluffyConfig.showGemini,
+                () -> fluffyConfig.showGemini = !fluffyConfig.showGemini
         ));
 
         menuItems.add(new MenuItemConfig(
-                "Показывать JSON сообщения",
-                fluffyConfig::isMenuJsonViewerEnabled,
-                fluffyConfig::toggleMenuJsonViewerEnabled
+                context.getString(R.string.reply),
+                () -> fluffyConfig.showReply,
+                () -> fluffyConfig.showReply = !fluffyConfig.showReply
         ));
 
         menuItems.add(new MenuItemConfig(
-                "Очистить из кэша",
-                fluffyConfig::isMenuClearFromCacheEnabled,
-                fluffyConfig::toggleMenuClearFromCacheEnabled
+                context.getString(R.string.copy_photo),
+                () -> fluffyConfig.showCopyPhoto,
+                () -> fluffyConfig.showCopyPhoto = !fluffyConfig.showCopyPhoto
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.copy_photo_as_sticker),
+                () -> fluffyConfig.showCopyPhotoAsSticker,
+                () -> fluffyConfig.showCopyPhotoAsSticker = !fluffyConfig.showCopyPhotoAsSticker
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.clear_from_cache),
+                () -> fluffyConfig.showClearFromCache,
+                () -> fluffyConfig.showClearFromCache = !fluffyConfig.showClearFromCache
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.forward),
+                () -> fluffyConfig.showForward,
+                () -> fluffyConfig.showForward = !fluffyConfig.showForward
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.forward_wo_author),
+                () -> fluffyConfig.showForwardWoAuthorship,
+                () -> fluffyConfig.showForwardWoAuthorship = !fluffyConfig.showForwardWoAuthorship
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.view_user_history),
+                () -> fluffyConfig.showViewHistory,
+                () -> fluffyConfig.showViewHistory = !fluffyConfig.showViewHistory
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.save_message),
+                () -> fluffyConfig.showSaveMessage,
+                () -> fluffyConfig.showSaveMessage = !fluffyConfig.showSaveMessage
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.report_chat),
+                () -> fluffyConfig.showReport,
+                () -> fluffyConfig.showReport = !fluffyConfig.showReport
+        ));
+
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.json),
+                () -> fluffyConfig.showJSON,
+                () -> fluffyConfig.showJSON = !fluffyConfig.showJSON
         ));
 
 
@@ -310,7 +344,7 @@ public class appearanceActivitySettings extends BaseFragment {
         for (int i = 0; i < menuItems.size(); i++) {
             MenuItemConfig item = menuItems.get(i);
             TextCheckCell cell = new TextCheckCell(context);
-            cell.setHeight(dp(50));
+
             cell.setTextAndCheck(item.title, item.isChecked.get(), i < menuItems.size() - 1);
             cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
 
@@ -504,12 +538,9 @@ public class appearanceActivitySettings extends BaseFragment {
             case ID_TRANSPARENCY:
                 showTransparencyDialog(context);
                 break;
-
-            // --- НАЧАЛО ИЗМЕНЕНИЙ ---
             case ID_MENU_CUSTOMIZATION:
                 showMenuItemConfigurator(context);
                 break;
-            // --- КОНЕЦ ИЗМЕНЕНИЙ ---
         }
     }
 

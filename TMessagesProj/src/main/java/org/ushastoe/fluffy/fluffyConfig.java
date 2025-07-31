@@ -25,19 +25,16 @@ public class fluffyConfig {
     public static SharedPreferences preferences;
     public static SharedPreferences.Editor editor;
 
-    // --- Ключи для хранения настроек меню ---
     private static final String KEY_MENU_REPLY_ENABLED = "menu_reply_enabled";
     private static final String KEY_MENU_FORWARD_WO_AUTHOR_ENABLED = "menu_forward_wo_author_enabled";
     private static final String KEY_MENU_JSON_VIEWER_ENABLED = "menu_json_viewer_enabled";
     private static final String KEY_MENU_CLEAR_CACHE_ENABLED = "menu_clear_cache_enabled";
 
-    // --- Поля для хранения состояния настроек меню ---
     public static boolean menuReplyEnabled;
     public static boolean menuForwardWoAuthorEnabled;
     public static boolean menuJsonViewerEnabled;
     public static boolean menuClearFromCacheEnabled;
 
-    // --- Ваши существующие поля ---
     public static boolean frontCamera;
     public static boolean shouldNOTTrustMe;
     public static boolean premiumMode;
@@ -61,6 +58,21 @@ public class fluffyConfig {
     public static boolean saveDel;
     public static boolean saveEdit;
     public static boolean hideGift;
+
+    public static boolean showSaveForNotifications;
+    public static boolean showGemini;
+    public static boolean showReply;
+    public static boolean showCopyPhoto;
+    public static boolean showCopyPhotoAsSticker;
+    public static boolean showClearFromCache;
+    public static boolean showForward;
+    public static boolean showForwardWoAuthorship;
+    public static boolean showViewHistory;
+    public static boolean showSaveMessage;
+    public static boolean showReport;
+    public static boolean showJSON;
+
+
     public static int readSticker;
     public static int typeTitle;
     public static int transparency;
@@ -126,6 +138,19 @@ public class fluffyConfig {
         stickerSize = preferences.getInt("stickerSize", 20);
         stickerRadius = preferences.getInt("stickerRadius", 0);
         hideButtonWrite = preferences.getBoolean("hideButton", false);
+
+        showSaveForNotifications = preferences.getBoolean("showSaveForNotifications", true);
+        showGemini = preferences.getBoolean("showGemini", true);
+        showReply = preferences.getBoolean("showReply", true);
+        showCopyPhoto = preferences.getBoolean("showCopyPhoto", true);
+        showCopyPhotoAsSticker = preferences.getBoolean("showCopyPhotoAsSticker", true);
+        showClearFromCache = preferences.getBoolean("showClearFromCache", true);
+        showForward = preferences.getBoolean("showForward", true);
+        showForwardWoAuthorship = preferences.getBoolean("showForwardWoAuthorship", true);
+        showViewHistory = preferences.getBoolean("showViewHistory", true);
+        showSaveMessage = preferences.getBoolean("showSaveMessage", true);
+        showReport = preferences.getBoolean("showReport", true);
+        showJSON = preferences.getBoolean("showJSON", true);
     }
 
     // --- НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ ПУНКТАМИ МЕНЮ ---
@@ -313,6 +338,65 @@ public class fluffyConfig {
     public static void setDoubleTapOutAction(int action) {
         doubleTapOutAction = action;
         editor.putInt("doubleTapOutAction", doubleTapOutAction).apply();
+    }
+    public static void toggleShowSaveForNotifications() {
+        showSaveForNotifications = !showSaveForNotifications;
+        editor.putBoolean("showSaveForNotifications", showSaveForNotifications).apply();
+    }
+
+    public static void toggleShowGemini() {
+        showGemini = !showGemini;
+        editor.putBoolean("showGemini", showGemini).apply();
+    }
+
+    public static void toggleShowReply() {
+        showReply = !showReply;
+        editor.putBoolean("showReply", showReply).apply();
+    }
+
+    public static void toggleShowCopyPhoto() {
+        showCopyPhoto = !showCopyPhoto;
+        editor.putBoolean("showCopyPhoto", showCopyPhoto).apply();
+    }
+
+    public static void toggleShowCopyPhotoAsSticker() {
+        showCopyPhotoAsSticker = !showCopyPhotoAsSticker;
+        editor.putBoolean("showCopyPhotoAsSticker", showCopyPhotoAsSticker).apply();
+    }
+
+    public static void toggleShowClearFromCache() {
+        showClearFromCache = !showClearFromCache;
+        editor.putBoolean("showClearFromCache", showClearFromCache).apply();
+    }
+
+    public static void toggleShowForward() {
+        showForward = !showForward;
+        editor.putBoolean("showForward", showForward).apply();
+    }
+
+    public static void toggleShowForwardWoAuthorship() {
+        showForwardWoAuthorship = !showForwardWoAuthorship;
+        editor.putBoolean("showForwardWoAuthorship", showForwardWoAuthorship).apply();
+    }
+
+    public static void toggleShowViewHistory() {
+        showViewHistory = !showViewHistory;
+        editor.putBoolean("showViewHistory", showViewHistory).apply();
+    }
+
+    public static void toggleShowSaveMessage() {
+        showSaveMessage = !showSaveMessage;
+        editor.putBoolean("showSaveMessage", showSaveMessage).apply();
+    }
+
+    public static void toggleShowReport() {
+        showReport = !showReport;
+        editor.putBoolean("showReport", showReport).apply();
+    }
+
+    public static void toggleShowJSON() {
+        showJSON = !showJSON;
+        editor.putBoolean("showJSON", showJSON).apply();
     }
 
     public static BaseIconSet getIconPack() {
