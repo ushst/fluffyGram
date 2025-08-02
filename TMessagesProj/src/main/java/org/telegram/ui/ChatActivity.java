@@ -310,6 +310,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.ushastoe.fluffy.helpers.IpApiHelper;
+import org.ushastoe.fluffy.helpers.JsonBottomSheet;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.activities.MessageDetailsActivity;
 
@@ -1152,8 +1153,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     public final static int OPTION_COPY_PHOTO_AS_STICKER = 201;
 
 
-    private final static int OPTION_DETAILS = 92;
-    private final static int OPTION_SAVE_MESSAGE = 93;
+    private final static int OPTION_DETAILS = 9992;
+    private final static int OPTION_SAVE_MESSAGE = 9993;
+    private final static int OPTION_FORWARD_WO_AUTHOR = 9994;
+    private final static int OPTION_VIEW_HISTORY = 9995;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -3661,6 +3664,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     createDeleteMessagesAlert(null, null);
                 } else if (id == forward) {
+                    fluffyConfig.hideForwardName = false;
                     openForward(true);
                 } else if (id == share) {
                     share();
@@ -9530,8 +9534,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Drawable image = getContext().getResources().getDrawable(R.drawable.input_forward).mutate();
         image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
         forwardButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
-        forwardButton.setOnClickListener(v -> openForward(false));
-        bottomMessagesActionContainer.addView(forwardButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
+        forwardButton.setOnClickListener(v -> {
+            fluffyConfig.hideForwardName = false;
+            openForward(false);
+        });        bottomMessagesActionContainer.addView(forwardButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
         if (getDialogId() == UserObject.VERIFY) {
             forwardButton.setVisibility(View.GONE);
         }
@@ -31215,7 +31221,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 boolean showRateTranscription = selectedObject != null && selectedObject.isVoice() && selectedObject.messageOwner != null && getUserConfig().isPremium() && !TextUtils.isEmpty(selectedObject.messageOwner.voiceTranscription) && selectedObject.messageOwner != null && !selectedObject.messageOwner.voiceTranscriptionRated && selectedObject.messageOwner.voiceTranscriptionId != 0 && selectedObject.messageOwner.voiceTranscriptionOpen;
 
-                if (fluffyConfig.showSaveForNotifications && !showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
+                if (!showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
                     ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), !showPrivateMessageSeen && !showPrivateMessageEdit && !showPrivateMessageFwdOriginal, false, themeDelegate);
                     cell.setMinimumWidth(AndroidUtilities.dp(200));
                     cell.setTextAndIcon(getString(R.string.SaveForNotifications), R.drawable.msg_tone_add);
@@ -32936,6 +32942,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     selectedObjectGroup = null;
                     return;
                 }
+                fluffyConfig.hideForwardName = false;
                 forwardingMessage = selectedObject;
                 forwardingMessageGroup = selectedObjectGroup;
                 Bundle args = new Bundle();
@@ -33136,17 +33143,33 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_COPY_PHOTO: {
-                chatActivity.getChatsHelper().addMessageToClipboard(selectedObject, () -> BulletinFactory.global()
-                        .createSuccessBulletin(getString(R.string.CG_PhotoCopied), chatActivity.getResourceProvider())
+                addMessageToClipboard(selectedObject, () -> BulletinFactory.global()
+                        .createSuccessBulletin(getString(R.string.copy_photo), getResourceProvider())
                         .setDuration(Bulletin.DURATION_SHORT)
                         .show());
                 break;
             }
-            case OPTION_COPY_PHOTO_AS_STICKER: {
-                StickersManager.INSTANCE.addMessageToClipboardAsSticker(selectedObject, () -> BulletinFactory.global()
-                        .createSuccessBulletin(getString(R.string.CG_PhotoCopied), chatActivity.getResourceProvider())
-                        .setDuration(Bulletin.DURATION_SHORT)
-                        .show());
+            case OPTION_FORWARD_WO_AUTHOR: {
+                if (getMessagesController().isFrozen()) {
+                    AccountFrozenAlert.show(currentAccount);
+                    /*selectedObject = null;
+                    selectedObjectToEditCaption = null;
+                    selectedObjectGroup = null;*/
+                    return;
+                }
+                fluffyConfig.hideForwardName = true;
+                forwardingMessage = selectedObject;
+                forwardingMessageGroup = selectedObjectGroup;
+                Bundle args = new Bundle();
+                args.putBoolean("onlySelect", true);
+                args.putInt("dialogsType", DialogsActivity.DIALOGS_TYPE_FORWARD);
+                args.putInt("messagesCount", 1);
+                args.putInt("hasPoll", forwardingMessage.isPoll() ? (forwardingMessage.isPublicPoll() ? 2 : 1) : 0);
+                args.putBoolean("hasInvoice", forwardingMessage.isInvoice());
+                args.putBoolean("canSelectTopics", true);
+                DialogsActivity fragment = new DialogsActivity(args);
+                fragment.setDelegate(this);
+                presentFragment(fragment);
                 break;
             }
             case OPTION_REPLY: {
@@ -33737,7 +33760,30 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_DETAILS: {
-                presentFragment(new MessageDetailsActivity(selectedObject));
+                if (selectedObject != null) {
+                    JsonBottomSheet.getMessageId(selectedObject);
+                    JsonBottomSheet.showAlert(getContext(), getResourceProvider(), this, selectedObject, currentChat);
+                }
+                break;
+            }
+            case OPTION_VIEW_HISTORY: {
+                TLRPC.Peer peer = selectedObject.messageOwner.from_id;
+                if ((threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(getCurrentUser())) {
+                    openSearchWithText("");
+                } else {
+                    searchItem.openSearch(false);
+                }
+                if (peer.user_id != 0) {
+                    TLRPC.User user = getMessagesController().getUser(peer.user_id);
+                    searchUserMessages(user, null);
+                } else if (peer.chat_id != 0) {
+                    TLRPC.Chat chat = getMessagesController().getChat(peer.chat_id);
+                    searchUserMessages(null, chat);
+                } else if (peer.channel_id != 0) {
+                    TLRPC.Chat chat = getMessagesController().getChat(peer.channel_id);
+                    searchUserMessages(null, chat);
+                }
+                showMessagesSearchListView(true);
                 break;
             }
             case OPTION_SUGGESTION_ADD_OFFER:
@@ -44155,7 +44201,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentChat != null && (!ChatObject.canSendMessages(currentChat))) {
             allowChatActions = false;
         }
-        
+
+
         if (message.isSponsored() && !getUserConfig().isPremium() && !getMessagesController().premiumFeaturesBlocked() && !message.sponsoredCanReport) {
             items.add(LocaleController.getString(R.string.HideAd));
             options.add(OPTION_HIDE_SPONSORED_MESSAGE);
@@ -44206,7 +44253,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             icons.add(deleteIconRes);
         } else if (type == 1) {
             if (currentChat != null) {
-                if (fluffyConfig.showReply && allowChatActions && !isInsideContainer) {
+                if (allowChatActions && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44256,12 +44303,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     icons.add(R.drawable.msg_report);
                 }
             } else {
-                if (fluffyConfig.showReply && selectedObject.getId() > 0 && allowChatActions && !isInsideContainer) {
+                if (selectedObject.getId() > 0 && allowChatActions && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
                 }
             }
+            if (fluffyConfig.showViewMessageFromUser) {
+                items.add(getString(R.string.view_user_history));
+                options.add(OPTION_VIEW_HISTORY);
+                icons.add(R.drawable.msg_recent);
+            }
+            items.add(selectedObject.isOutOwner() ? getString(R.string.SendAnotherGift) : formatString(R.string.SendGiftTo, UserObject.getForcedFirstName(currentUser)));
+            options.add(OPTION_GIFT);
+            icons.add(R.drawable.menu_gift);
             if (selectedObject != null && selectedObject.messageOwner != null && currentUser != null && !UserObject.isService(currentUser.id) && (selectedObject.messageOwner.action instanceof TLRPC.TL_messageActionStarGift || selectedObject.messageOwner.action instanceof TLRPC.TL_messageActionStarGiftUnique || selectedObject.messageOwner.action instanceof TLRPC.TL_messageActionGiftPremium)) {
                 items.add(selectedObject.isOutOwner() ? getString(R.string.SendAnotherGift) : formatString(R.string.SendGiftTo, UserObject.getForcedFirstName(currentUser)));
                 options.add(OPTION_GIFT);
@@ -44302,7 +44357,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         icons.add(R.drawable.msg_fave);
                     }
                 }
-                if ( fluffyConfig.showReply && (allowChatActions || !noforwardsOrPaidMedia && ChatObject.isChannelAndNotMegaGroup(currentChat) && !selectedObject.isSponsored() && selectedObject.contentType == 0 && chatMode == MODE_DEFAULT) && !isInsideContainer) {
+                if ((allowChatActions || !noforwardsOrPaidMedia && ChatObject.isChannelAndNotMegaGroup(currentChat) && !selectedObject.isSponsored() && selectedObject.contentType == 0 && chatMode == MODE_DEFAULT) && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44418,7 +44473,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
                                 if (fluffyConfig.showCopyPhoto){;
                                     items.add(getString(R.string.copy_photo));
-                                    options.add(ChatActivityHelper.OPTION_COPY_PHOTO);
+                                    options.add(OPTION_COPY_PHOTO);
                                     icons.add(R.drawable.msg_copy);
                                 }
                             }
@@ -44525,6 +44580,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     options.add(OPTION_FORWARD);
                     icons.add(R.drawable.msg_forward);
                 }
+                if (fluffyConfig.showForwardWoAuthorship && !selectedObject.isSponsored() && chatMode != ChatActivity.MODE_SCHEDULED && (!selectedObject.needDrawBluredPreview() || selectedObject.hasExtendedMediaPreview())
+                        && !selectedObject.isLiveLocation() && selectedObject.type != MessageObject.TYPE_PHONE_CALL && selectedObject.type != MessageObject.TYPE_GIFT_PREMIUM && selectedObject.type != MessageObject.TYPE_SUGGEST_PHOTO
+                ) {
+                    items.add(getString(R.string.forward_wo_author));
+                    options.add(OPTION_FORWARD_WO_AUTHOR);
+                    icons.add(R.drawable.msg_forward);
+                }
+                if (fluffyConfig.showViewMessageFromUser) {
+                    items.add(getString(R.string.view_user_history));
+                    options.add(OPTION_VIEW_HISTORY);
+                    icons.add(R.drawable.msg_recent);
+                }
                 if (allowUnpin) {
                     items.add(LocaleController.getString(R.string.UnpinMessage));
                     options.add(OPTION_UNPIN);
@@ -44577,7 +44644,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     icons.add(deleteIconRes);
                 }
             } else {
-                if (fluffyConfig.showReply && allowChatActions && !isInsideContainer) {
+                if (allowChatActions && !isInsideContainer) {
                     items.add(LocaleController.getString(R.string.Reply));
                     options.add(OPTION_REPLY);
                     icons.add(R.drawable.menu_reply);
@@ -44667,12 +44734,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 icons.add(deleteIconRes);
             }
         }
-        if ((message != null
-                && ((message.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || message.isEditing())
+
+        if ((message != null && ((message.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 || message.isEditing())
                 && message.messageOwner.from_id != null) && getMessagesStorage().checkEdited(message)) {
             items.add(LocaleController.getString(R.string.THHistory));
             options.add(420_001);
             icons.add(R.drawable.msg_log);
+        }
+
+        if (fluffyConfig.showJSON) {
+            items.add("JSON");
+            options.add(OPTION_DETAILS);
+            icons.add(R.drawable.msg_info);
         }
     }
 

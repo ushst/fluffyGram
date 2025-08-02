@@ -129,12 +129,12 @@
     <string name="gemini_ai_header">Gemini AI Header</string>
     <string name="reply">Reply</string>
     <string name="copy_photo">Copy Photo</string>
-    <string name="copy_photo_as_sticker">Copy Photo as Sticker</string>
-    <string name="clear_from_cache">Clear from Cache</string>
     <string name="forward">Forward</string>
-    <string name="forward_wo_author">Forward without Authorship</string>
+    <string name="forward_wo_author">Forward w/o Author</string>
     <string name="view_user_history">View User History</string>
     <string name="save_message">Save Message</string>
     <string name="report_chat">Report Chat</string>
     <string name="json">JSON</string>
+
+    <string name="SendPhotoAsSticker">Send As Sticker</string>
 </resources>

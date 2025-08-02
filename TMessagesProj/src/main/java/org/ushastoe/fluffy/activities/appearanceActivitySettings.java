@@ -265,76 +265,30 @@ public class appearanceActivitySettings extends BaseFragment {
         }
 
         List<MenuItemConfig> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.save_for_notifications),
-                () -> fluffyConfig.showSaveForNotifications,
-                () -> fluffyConfig.showSaveForNotifications = !fluffyConfig.showSaveForNotifications
-        ));
-
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.gemini_ai_header),
-                () -> fluffyConfig.showGemini,
-                () -> fluffyConfig.showGemini = !fluffyConfig.showGemini
-        ));
-
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.reply),
-                () -> fluffyConfig.showReply,
-                () -> fluffyConfig.showReply = !fluffyConfig.showReply
-        ));
 
         menuItems.add(new MenuItemConfig(
                 context.getString(R.string.copy_photo),
                 () -> fluffyConfig.showCopyPhoto,
-                () -> fluffyConfig.showCopyPhoto = !fluffyConfig.showCopyPhoto
+                fluffyConfig::toggleShowCopyPhoto
         ));
 
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.copy_photo_as_sticker),
-                () -> fluffyConfig.showCopyPhotoAsSticker,
-                () -> fluffyConfig.showCopyPhotoAsSticker = !fluffyConfig.showCopyPhotoAsSticker
-        ));
-
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.clear_from_cache),
-                () -> fluffyConfig.showClearFromCache,
-                () -> fluffyConfig.showClearFromCache = !fluffyConfig.showClearFromCache
-        ));
-
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.forward),
-                () -> fluffyConfig.showForward,
-                () -> fluffyConfig.showForward = !fluffyConfig.showForward
-        ));
 
         menuItems.add(new MenuItemConfig(
                 context.getString(R.string.forward_wo_author),
                 () -> fluffyConfig.showForwardWoAuthorship,
-                () -> fluffyConfig.showForwardWoAuthorship = !fluffyConfig.showForwardWoAuthorship
+                fluffyConfig::toggleShowForwardWoAuthorship
         ));
 
         menuItems.add(new MenuItemConfig(
                 context.getString(R.string.view_user_history),
-                () -> fluffyConfig.showViewHistory,
-                () -> fluffyConfig.showViewHistory = !fluffyConfig.showViewHistory
-        ));
-
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.save_message),
-                () -> fluffyConfig.showSaveMessage,
-                () -> fluffyConfig.showSaveMessage = !fluffyConfig.showSaveMessage
-        ));
-
-        menuItems.add(new MenuItemConfig(
-                context.getString(R.string.report_chat),
-                () -> fluffyConfig.showReport,
-                () -> fluffyConfig.showReport = !fluffyConfig.showReport
+                () -> fluffyConfig.showViewMessageFromUser,
+                fluffyConfig::toggleShowViewMessageFromUser
         ));
 
         menuItems.add(new MenuItemConfig(
                 context.getString(R.string.json),
                 () -> fluffyConfig.showJSON,
-                () -> fluffyConfig.showJSON = !fluffyConfig.showJSON
+                fluffyConfig::toggleShowJSON
         ));
 
 

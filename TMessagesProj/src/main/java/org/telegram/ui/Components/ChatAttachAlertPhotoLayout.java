@@ -103,6 +103,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.AlbumButton;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -759,6 +760,8 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         parentAlert.selectedMenuItem.addColoredGap(preview_gap);
         parentAlert.selectedMenuItem.addSubItem(open_in, R.drawable.msg_openin, LocaleController.getString(R.string.OpenInExternalApp));
         compressItem = parentAlert.selectedMenuItem.addSubItem(compress, R.drawable.msg_filehq, LocaleController.getString(R.string.SendWithoutCompression));
+        stickerItem = parentAlert.selectedMenuItem.addSubItem(sticker, R.drawable.msg_sticker, getString(R.string.SendPhotoAsSticker));
+
         parentAlert.selectedMenuItem.addSubItem(group, R.drawable.msg_ungroup, LocaleController.getString(R.string.SendWithoutGrouping));
         parentAlert.selectedMenuItem.addColoredGap(media_gap);
         spoilerItem = parentAlert.selectedMenuItem.addSubItem(spoiler, R.drawable.msg_spoiler, LocaleController.getString(R.string.EnablePhotoSpoiler));
@@ -2248,6 +2251,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             }
         }
         int newSelectedCount = Math.max(1, selectedPhotos.size());
+        updateStickersItem(newSelectedCount, hasVideo);
         if (hasVideo && hasPhotos) {
             counterTextView.setText(LocaleController.formatPluralString("Media", selectedPhotos.size()).toUpperCase());
             if (newSelectedCount != currentSelectedCount || added) {
@@ -3271,6 +3275,21 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             captionItem.setState(!parentAlert.captionAbove, true);
             return;
         }
+
+        if (id == sticker) {
+            fluffyConfig.sendPhotoAsSticker = true;
+            if (parentAlert.editingMessageObject == null && parentAlert.baseFragment instanceof ChatActivity && ((ChatActivity) parentAlert.baseFragment).isInScheduleMode()) {
+                AlertsCreator.createScheduleDatePickerDialog(getContext(), ((ChatActivity) parentAlert.baseFragment).getDialogId(), (notify, scheduleDate) -> {
+                    parentAlert.delegate.didPressedButton(9, true, notify, scheduleDate, 0, parentAlert.isCaptionAbove(), false, 0);
+                }, resourcesProvider);
+            } else {
+                AlertsCreator.ensurePaidMessageConfirmation(parentAlert.currentAccount, parentAlert.getDialogId(), selectedPhotos.size() + parentAlert.getAdditionalMessagesCount(), payStars -> {
+                    parentAlert.delegate.didPressedButton(9, true, true, 0, 0, parentAlert.isCaptionAbove(), false, payStars);
+                });
+            }
+            return;
+        }
+
         if (id == group || id == compress) {
             if (parentAlert.maxSelectedPhotos > 0 && selectedPhotosOrder.size() > 1) {
                 TLRPC.Chat chat = parentAlert.getChat();
@@ -3582,6 +3601,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         } else {
             parentAlert.selectedMenuItem.hideSubItem(stars);
         }
+        updateStickersItem(count, false);
     }
 
     private void updateStarsItem() {
@@ -4680,4 +4700,18 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             }
         }
     }
+
+
+    public final static int sticker = 1390;
+    private ActionBarMenuSubItem stickerItem;
+
+    private void updateStickersItem(int count, boolean hasVideo) {
+        if (stickerItem == null) return;
+        if (count == 1 && !hasVideo) {
+            parentAlert.selectedMenuItem.showSubItem(sticker);
+        } else {
+            parentAlert.selectedMenuItem.hideSubItem(sticker);
+        }
+    }
+
 }

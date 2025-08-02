@@ -303,6 +303,7 @@ import org.telegram.ui.Stories.recorder.CaptionContainerView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.KeyboardNotifier;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -8129,6 +8130,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                             public void sendSticker() {
                                 if (placeProvider == null)
                                     return;
+
+                                fluffyConfig.sendPhotoAsSticker = true;
                                 stickerEmptySent = true;
                                 generateThumb();
                                 photoEntry.imagePath = fullStickerPath;

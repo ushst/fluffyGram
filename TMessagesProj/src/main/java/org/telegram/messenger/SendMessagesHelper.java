@@ -82,6 +82,7 @@ import org.telegram.ui.PaymentFormActivity;
 import org.telegram.ui.Stories.MessageMediaStoryFull;
 import org.telegram.ui.TwoStepVerificationActivity;
 import org.telegram.ui.TwoStepVerificationSetupActivity;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9099,26 +9100,28 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public static boolean shouldSendWebPAsSticker(String path, Uri uri) {
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        try {
-            if (path != null) {
-//                RandomAccessFile file = new RandomAccessFile(path, "r");
-//                ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, path.length());
-//                Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
-                BitmapFactory.decodeFile(path, bmOptions);
-//                file.close();
-            } else {
-                try (InputStream inputStream = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri)) {
-                    BitmapFactory.decodeStream(inputStream, null, bmOptions);
-                } catch (Exception e) {
-
-                }
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        return bmOptions.outWidth < 800 && bmOptions.outHeight < 800;
+//        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+//        bmOptions.inJustDecodeBounds = true;
+//        try {
+//            if (path != null) {
+////                RandomAccessFile file = new RandomAccessFile(path, "r");
+////                ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, path.length());
+////                Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
+//                BitmapFactory.decodeFile(path, bmOptions);
+////                file.close();
+//            } else {
+//                try (InputStream inputStream = ApplicationLoader.applicationContext.getContentResolver().openInputStream(uri)) {
+//                    BitmapFactory.decodeStream(inputStream, null, bmOptions);
+//                } catch (Exception e) {
+//
+//                }
+//            }
+//        } catch (Exception e) {
+//            FileLog.e(e);
+//        }
+//        return bmOptions.outWidth < 800 && bmOptions.outHeight < 800;
+        System.out.println(fluffyConfig.sendPhotoAsSticker);
+        return fluffyConfig.sendPhotoAsSticker;
     }
 
     @UiThread
@@ -9915,6 +9918,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("total send time = " + (System.currentTimeMillis() - beginTime));
             }
+            fluffyConfig.sendPhotoAsSticker = false;
         });
     }
 

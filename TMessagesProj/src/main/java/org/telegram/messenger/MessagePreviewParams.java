@@ -19,6 +19,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.MessagePreviewView;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.net.URL;
@@ -184,7 +185,7 @@ public class MessagePreviewParams {
     public boolean isSecret;
     public boolean multipleUsers;
 
-    public boolean hideForwardSendersName;
+    public boolean hideForwardSendersName = fluffyConfig.hideForwardName;
     public boolean hideCaption;
     public boolean willSeeSenders;
 

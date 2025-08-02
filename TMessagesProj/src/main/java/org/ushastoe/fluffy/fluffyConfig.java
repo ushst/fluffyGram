@@ -59,18 +59,14 @@ public class fluffyConfig {
     public static boolean saveEdit;
     public static boolean hideGift;
 
-    public static boolean showSaveForNotifications;
-    public static boolean showGemini;
-    public static boolean showReply;
     public static boolean showCopyPhoto;
-    public static boolean showCopyPhotoAsSticker;
-    public static boolean showClearFromCache;
-    public static boolean showForward;
     public static boolean showForwardWoAuthorship;
-    public static boolean showViewHistory;
-    public static boolean showSaveMessage;
-    public static boolean showReport;
+    public static boolean showViewMessageFromUser;
     public static boolean showJSON;
+
+
+    public static boolean hideForwardName;
+    public static boolean sendPhotoAsSticker;
 
 
     public static int readSticker;
@@ -139,60 +135,12 @@ public class fluffyConfig {
         stickerRadius = preferences.getInt("stickerRadius", 0);
         hideButtonWrite = preferences.getBoolean("hideButton", false);
 
-        showSaveForNotifications = preferences.getBoolean("showSaveForNotifications", true);
-        showGemini = preferences.getBoolean("showGemini", true);
-        showReply = preferences.getBoolean("showReply", true);
         showCopyPhoto = preferences.getBoolean("showCopyPhoto", true);
-        showCopyPhotoAsSticker = preferences.getBoolean("showCopyPhotoAsSticker", true);
-        showClearFromCache = preferences.getBoolean("showClearFromCache", true);
-        showForward = preferences.getBoolean("showForward", true);
         showForwardWoAuthorship = preferences.getBoolean("showForwardWoAuthorship", true);
-        showViewHistory = preferences.getBoolean("showViewHistory", true);
-        showSaveMessage = preferences.getBoolean("showSaveMessage", true);
-        showReport = preferences.getBoolean("showReport", true);
+        showViewMessageFromUser = preferences.getBoolean("showViewMessageFromUser", true);
         showJSON = preferences.getBoolean("showJSON", true);
     }
 
-    // --- НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ ПУНКТАМИ МЕНЮ ---
-
-    public static boolean isMenuReplyEnabled() {
-        return menuReplyEnabled;
-    }
-
-    public static void toggleMenuReplyEnabled() {
-        menuReplyEnabled = !menuReplyEnabled;
-        editor.putBoolean(KEY_MENU_REPLY_ENABLED, menuReplyEnabled).apply();
-    }
-
-    public static boolean isMenuForwardWoAuthorEnabled() {
-        return menuForwardWoAuthorEnabled;
-    }
-
-    public static void toggleMenuForwardWoAuthorEnabled() {
-        menuForwardWoAuthorEnabled = !menuForwardWoAuthorEnabled;
-        editor.putBoolean(KEY_MENU_FORWARD_WO_AUTHOR_ENABLED, menuForwardWoAuthorEnabled).apply();
-    }
-
-    public static boolean isMenuJsonViewerEnabled() {
-        return menuJsonViewerEnabled;
-    }
-
-    public static void toggleMenuJsonViewerEnabled() {
-        menuJsonViewerEnabled = !menuJsonViewerEnabled;
-        editor.putBoolean(KEY_MENU_JSON_VIEWER_ENABLED, menuJsonViewerEnabled).apply();
-    }
-
-    public static boolean isMenuClearFromCacheEnabled() {
-        return menuClearFromCacheEnabled;
-    }
-
-    public static void toggleMenuClearFromCacheEnabled() {
-        menuClearFromCacheEnabled = !menuClearFromCacheEnabled;
-        editor.putBoolean(KEY_MENU_CLEAR_CACHE_ENABLED, menuClearFromCacheEnabled).apply();
-    }
-
-
-    // --- ВАШИ СУЩЕСТВУЮЩИЕ МЕТОДЫ ---
 
     public static void cameraSwitch() {
         frontCamera = !frontCamera;
@@ -339,60 +287,22 @@ public class fluffyConfig {
         doubleTapOutAction = action;
         editor.putInt("doubleTapOutAction", doubleTapOutAction).apply();
     }
-    public static void toggleShowSaveForNotifications() {
-        showSaveForNotifications = !showSaveForNotifications;
-        editor.putBoolean("showSaveForNotifications", showSaveForNotifications).apply();
-    }
-
-    public static void toggleShowGemini() {
-        showGemini = !showGemini;
-        editor.putBoolean("showGemini", showGemini).apply();
-    }
-
-    public static void toggleShowReply() {
-        showReply = !showReply;
-        editor.putBoolean("showReply", showReply).apply();
-    }
-
     public static void toggleShowCopyPhoto() {
         showCopyPhoto = !showCopyPhoto;
         editor.putBoolean("showCopyPhoto", showCopyPhoto).apply();
     }
 
-    public static void toggleShowCopyPhotoAsSticker() {
-        showCopyPhotoAsSticker = !showCopyPhotoAsSticker;
-        editor.putBoolean("showCopyPhotoAsSticker", showCopyPhotoAsSticker).apply();
-    }
-
-    public static void toggleShowClearFromCache() {
-        showClearFromCache = !showClearFromCache;
-        editor.putBoolean("showClearFromCache", showClearFromCache).apply();
-    }
-
-    public static void toggleShowForward() {
-        showForward = !showForward;
-        editor.putBoolean("showForward", showForward).apply();
-    }
 
     public static void toggleShowForwardWoAuthorship() {
         showForwardWoAuthorship = !showForwardWoAuthorship;
         editor.putBoolean("showForwardWoAuthorship", showForwardWoAuthorship).apply();
     }
 
-    public static void toggleShowViewHistory() {
-        showViewHistory = !showViewHistory;
-        editor.putBoolean("showViewHistory", showViewHistory).apply();
+    public static void toggleShowViewMessageFromUser() {
+        showViewMessageFromUser = !showViewMessageFromUser;
+        editor.putBoolean("showViewMessageFromUser", showViewMessageFromUser).apply();
     }
 
-    public static void toggleShowSaveMessage() {
-        showSaveMessage = !showSaveMessage;
-        editor.putBoolean("showSaveMessage", showSaveMessage).apply();
-    }
-
-    public static void toggleShowReport() {
-        showReport = !showReport;
-        editor.putBoolean("showReport", showReport).apply();
-    }
 
     public static void toggleShowJSON() {
         showJSON = !showJSON;
