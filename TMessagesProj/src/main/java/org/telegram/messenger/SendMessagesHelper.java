@@ -9120,7 +9120,6 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 //            FileLog.e(e);
 //        }
 //        return bmOptions.outWidth < 800 && bmOptions.outHeight < 800;
-        System.out.println(fluffyConfig.sendPhotoAsSticker);
         return fluffyConfig.sendPhotoAsSticker;
     }
 
