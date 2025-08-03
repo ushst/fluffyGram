@@ -313,7 +313,7 @@ import org.ushastoe.fluffy.helpers.IpApiHelper;
 import org.ushastoe.fluffy.helpers.JsonBottomSheet;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.activities.MessageDetailsActivity;
-
+import android.graphics.BitmapFactory;
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider, InstantCameraView.Delegate {
     private final static boolean PULL_DOWN_BACK_FRAGMENT = false;
@@ -12718,7 +12718,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (editingMessageObject != null && editingMessageObject.messageOwner != null) {
                         editingMessageObject.messageOwner.invert_media = invertMedia;
                     }
-                    if (button == 8 || button == 7 || button == 4 && !chatAttachAlert.getPhotoLayout().getSelectedPhotos().isEmpty()) {
+                    if (button == 9 || button == 8 || button == 7 || button == 4 && !chatAttachAlert.getPhotoLayout().getSelectedPhotos().isEmpty()) {
                         if (chatAttachAlert != null && button != 8) {
                             chatAttachAlert.dismiss(true);
                         }
@@ -12736,13 +12736,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     MediaController.PhotoEntry photoEntry = (MediaController.PhotoEntry) selectedPhotos.get(selectedPhotosOrder.get(i * 10 + a));
 
                                     SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
-                                    if (!photoEntry.isVideo && photoEntry.imagePath != null) {
-                                        info.path = photoEntry.imagePath;
-                                        if (photoEntry.highQuality) {
-                                            info.originalPhotoEntry = photoEntry.clone();
+                                    if (button == 9) {
+                                        String originalPath = photoEntry.imagePath != null ? photoEntry.imagePath : photoEntry.path;
+                                        if (originalPath != null) {
+                                            info.path = getStickerFileFromImage(originalPath).getAbsolutePath();
                                         }
-                                    } else if (photoEntry.path != null) {
-                                        info.path = photoEntry.path;
+                                    } else {
+                                        if (!photoEntry.isVideo && photoEntry.imagePath != null) {
+                                            info.path = photoEntry.imagePath;
+                                            if (photoEntry.highQuality) {
+                                                info.originalPhotoEntry = photoEntry.clone();
+                                            }
+                                        } else if (photoEntry.path != null) {
+                                            info.path = photoEntry.path;
+                                        }
                                     }
                                     info.thumbPath = photoEntry.thumbPath;
                                     info.coverPath = photoEntry.coverPath;
@@ -19083,6 +19090,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
     }
+
 
     private void addToSelectedMessages(MessageObject messageObject, boolean outside) {
         addToSelectedMessages(messageObject, outside, true);
@@ -33149,6 +33157,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         .show());
                 break;
             }
+            case OPTION_COPY_PHOTO_AS_STICKER: {
+                addMessageToClipboardAsSticker(selectedObject, () -> BulletinFactory.global()
+                        .createSuccessBulletin(getString(R.string.PhotoCopy), getResourceProvider())
+                        .setDuration(Bulletin.DURATION_SHORT)
+                        .show());
+                break;
+            }
             case OPTION_FORWARD_WO_AUTHOR: {
                 if (getMessagesController().isFrozen()) {
                     AccountFrozenAlert.show(currentAccount);
@@ -40377,8 +40392,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         };
                         LaunchActivity.instance.checkAppUpdate(true, progressDialogCurrent);
                     }
-                } else if (BuildVars.isHuaweiStoreApp()) {
-                    Browser.openUrl(getContext(), BuildVars.HUAWEI_STORE_URL);
                 } else {
                     Browser.openUrl(getContext(), BuildVars.PLAYSTORE_APP_URL);
                 }
@@ -44756,7 +44769,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
-    public String getPathToMessage(MessageObject messageObject) {
+    public static String getPathToMessage(MessageObject messageObject) {
         String path = messageObject.messageOwner.attachPath;
         if (!TextUtils.isEmpty(path)) {
             File temp = new File(path);
@@ -44781,7 +44794,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return path;
     }
 
-    public void addFileToClipboard(File file, Runnable callback) {
+    public static void addFileToClipboard(File file, Runnable callback) {
         try {
             Context context = ApplicationLoader.applicationContext;
             ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -44793,4 +44806,95 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             FileLog.e(e);
         }
     }
+
+    public static File getStickerFileFromImage(String originalPath) {
+        int dotIndex = originalPath.lastIndexOf('.');
+        String basePath = dotIndex != -1 ? originalPath.substring(0, dotIndex) : originalPath;
+        File webpFile = new File(basePath + ".webp");
+
+        try {
+            final int MAX_SIZE = 2560;
+            Bitmap bmp = BitmapFactory.decodeFile(originalPath);
+            if (bmp != null) {
+                int width = bmp.getWidth();
+                int height = bmp.getHeight();
+
+                if (width > MAX_SIZE || height > MAX_SIZE) {
+                    float scale = Math.min((float) MAX_SIZE / width, (float) MAX_SIZE / height);
+                    int newWidth = Math.round(width * scale);
+                    int newHeight = Math.round(height * scale);
+                    bmp = Bitmap.createScaledBitmap(bmp, newWidth, newHeight, true);
+                }
+
+                Pair<Integer, Integer> orientation = AndroidUtilities.getImageOrientation(originalPath);
+                int rotate = orientation.first;
+                int flip = orientation.second;
+
+                if (rotate != 0 || flip != 0) {
+                    Matrix matrix = new Matrix();
+                    if (flip == 1) {
+                        matrix.postScale(-1f, 1f);
+                        matrix.postTranslate(bmp.getWidth(), 0f);
+                    }
+                    if (rotate != 0) {
+                        matrix.postRotate((float) rotate);
+                    }
+                    bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+                }
+
+                FileOutputStream out = null;
+                try {
+                    out = new FileOutputStream(webpFile);
+                    bmp.compress(Bitmap.CompressFormat.WEBP, 50, out);
+                } finally {
+                    if (out != null) {
+                        out.close();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+
+        return webpFile;
+    }
+
+    public static void addMessageToClipboardAsSticker(final MessageObject selectedObject, final Runnable callback) {
+        final String path = getPathToMessage(selectedObject);
+        if (path == null || path.isEmpty()) return;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Bitmap image = BitmapFactory.decodeFile(path);
+                    if (image == null) return;
+
+                    int dotIndex = path.lastIndexOf('.');
+                    String basePath = dotIndex != -1 ? path.substring(0, dotIndex) : path;
+                    File file = new File(basePath + ".webp");
+
+                    FileOutputStream stream = null;
+                    try {
+                        stream = new FileOutputStream(file);
+                        image.compress(Bitmap.CompressFormat.WEBP, 50, stream);
+                    } finally {
+                        if (stream != null) {
+                            stream.close();
+                        }
+                    }
+
+                    AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            addFileToClipboard(file, callback);
+                        }
+                    });
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+        }).start();
+    }
+
 }
