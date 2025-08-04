@@ -21,7 +21,6 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
-import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 
 import static org.telegram.messenger.LocaleController.getString;
 
@@ -42,14 +41,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class mainActivitySettings extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
-    private int rowCount;
     private LinearLayoutManager layoutManager;
 
     private headerSettingsCell headerSettingsCell;
@@ -57,43 +53,79 @@ public class mainActivitySettings extends BaseFragment {
     private AnimatorSet actionBarAnimator;
 
     private int[] location = new int[2];
+    private final List<Row> rows = new ArrayList<>();
 
-    private int aboutFluffyRow;
-    private int categoryRow;
-    private int generalRow;
-    private int chatSettingsRow;
-    private int appearanceSettingsRow;
-    private int otherSettingsRow;
-    private int linkRow;
-    private int channelRow;
-    private int githubRow;
-    private int categoryDividerRow;
-    private int aboutDividerRow;
+    private enum RowType {
+        CUSTOM_HEADER,
+        DIVIDER,
+        HEADER,
+        TEXT_CELL
+    }
+
+    private enum RowIdentifier {
+        ABOUT_FLUFFY,
+        CATEGORY_DIVIDER,
+        CATEGORY_HEADER,
+        GENERAL,
+        APPEARANCE,
+        ABOUT_DIVIDER,
+        LINKS_HEADER,
+        CHANNEL,
+        GITHUB
+    }
+
+    private static class Row {
+        final RowIdentifier id;
+        final RowType type;
+        Integer textResId;
+        Integer valueResId;
+        Integer iconResId;
+        boolean hasDivider;
+
+        Row(RowIdentifier id, RowType type) {
+            this.id = id;
+            this.type = type;
+        }
+
+        Row(RowIdentifier id, RowType type, int textResId) {
+            this(id, type);
+            this.textResId = textResId;
+        }
+
+        Row(RowIdentifier id, RowType type, int textResId, int iconResId, boolean hasDivider) {
+            this(id, type, textResId);
+            this.iconResId = iconResId;
+            this.hasDivider = hasDivider;
+        }
+
+        Row(RowIdentifier id, RowType type, int textResId, int valueResId, int iconResId, boolean hasDivider) {
+            this(id, type, textResId, iconResId, hasDivider);
+            this.valueResId = valueResId;
+        }
+    }
 
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
-
         DownloadController.getInstance(currentAccount).loadAutoDownloadConfig(true);
-        updateRows(true);
-
+        updateRows();
         return true;
     }
 
-    private void updateRows(boolean fullNotify) {
-        rowCount = 0;
-        aboutFluffyRow = rowCount++;
-        categoryDividerRow = rowCount++;
-        categoryRow = rowCount++;
-        generalRow = rowCount++;
-        appearanceSettingsRow = rowCount++;
-        otherSettingsRow = rowCount++;
-        aboutDividerRow = rowCount++;
-        linkRow = rowCount++;
-        channelRow = rowCount++;
-        githubRow = rowCount++;
+    private void updateRows() {
+        rows.clear();
 
-        if (listAdapter != null && fullNotify) {
+        rows.add(new Row(RowIdentifier.ABOUT_FLUFFY, RowType.CUSTOM_HEADER));
+        rows.add(new Row(RowIdentifier.CATEGORY_DIVIDER, RowType.DIVIDER));
+        rows.add(new Row(RowIdentifier.CATEGORY_HEADER, RowType.HEADER, R.string.Categories));
+        rows.add(new Row(RowIdentifier.GENERAL, RowType.TEXT_CELL, R.string.General, R.drawable.msg_media, false));
+        rows.add(new Row(RowIdentifier.APPEARANCE, RowType.TEXT_CELL, R.string.Appearance, R.drawable.msg_theme, true));
+        rows.add(new Row(RowIdentifier.ABOUT_DIVIDER, RowType.DIVIDER));
+        rows.add(new Row(RowIdentifier.LINKS_HEADER, RowType.HEADER, R.string.Links));
+        rows.add(new Row(RowIdentifier.CHANNEL, RowType.TEXT_CELL, R.string.ProfileChannel, R.string.fluffy_channel_link, R.drawable.msg_channel, true));
+        rows.add(new Row(RowIdentifier.GITHUB, RowType.TEXT_CELL, R.string.SourceCode, R.string.fluffy_github_link, R.drawable.msg_delete, false));
+
+        if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
     }
@@ -130,7 +162,6 @@ public class mainActivitySettings extends BaseFragment {
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) actionBarBackground.getLayoutParams();
                 layoutParams.height = ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + AndroidUtilities.dp(3);
-
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
 
@@ -163,16 +194,22 @@ public class mainActivitySettings extends BaseFragment {
         itemAnimator.setSupportsChangeAnimations(false);
         listView.setItemAnimator(itemAnimator);
         listView.setOnItemClickListener((view, position, x, y) -> {
-            if (position == githubRow) {
-                Browser.openUrl(getParentActivity(), "https://github.com/krolchonok/Telegram");
-            } else if (position == channelRow) {
-                MessagesController.getInstance(currentAccount).openByUserName(("fluffyGram"), this, 1);
-            } else if (position == generalRow) {
-                presentFragment(new generalActivitySettings());
-            } else if (position == otherSettingsRow) {
-                presentFragment(new fluffySettingsActivity());
-            } else if (position == appearanceSettingsRow) {
-                presentFragment(new appearanceActivitySettings());
+            Row row = rows.get(position);
+            if (row == null) return;
+
+            switch (row.id) {
+                case GITHUB:
+                    Browser.openUrl(getParentActivity(), "https://github.com/krolchonok/Telegram");
+                    break;
+                case CHANNEL:
+                    MessagesController.getInstance(currentAccount).openByUserName("fluffyGram", this, 1);
+                    break;
+                case GENERAL:
+                    presentFragment(new generalActivitySettings());
+                    break;
+                case APPEARANCE:
+                    presentFragment(new appearanceActivitySettings());
+                    break;
             }
         });
 
@@ -257,12 +294,14 @@ public class mainActivitySettings extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        updateRows(false);
+        if (listAdapter != null) {
+            listAdapter.notifyDataSetChanged();
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
-        private Context mContext;
+        private final Context mContext;
 
         public ListAdapter(Context context) {
             mContext = context;
@@ -270,65 +309,62 @@ public class mainActivitySettings extends BaseFragment {
 
         @Override
         public int getItemCount() {
-            return rowCount;
+            return rows.size();
         }
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            switch (holder.getItemViewType()) {
-                // HeaderCell
-                case 2:
+            Row row = rows.get(position);
+            switch (row.type) {
+                case CUSTOM_HEADER:
                     headerSettingsCell = (headerSettingsCell) holder.itemView;
                     headerSettingsCell.setPadding(0, ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) - AndroidUtilities.dp(40), 0, 0);
                     break;
-                case 3:
+                case HEADER:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    if (position == categoryRow) {
-                        headerCell.setText(getString(R.string.Categories));
-                    } else if (position == linkRow) {
-                        headerCell.setText(getString(R.string.Links));
-                    }
+                    headerCell.setText(getString(row.textResId));
                     break;
-                case 0:
+                case DIVIDER:
                     holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     break;
-                case 1:
-                default:
+                case TEXT_CELL:
                     TextCell textCell = (TextCell) holder.itemView;
-                    if (position == appearanceSettingsRow) {
-                        textCell.setTextAndIcon(getString(R.string.Appearance), R.drawable.msg_theme, true);
-                    } else if (position == generalRow) {
-                        textCell.setTextAndIcon(getString(R.string.General), R.drawable.msg_media, false);
-                    } else if (position == otherSettingsRow) {
-                        textCell.setTextAndIcon(getString(R.string.LocalOther), R.drawable.msg_fave, false);
-                    } else if (position == channelRow) {
-                        textCell.setTextAndValueAndIcon(getString(R.string.ProfileChannel), "@fluffyGram", R.drawable.msg_channel, true);
-                    } else if (position == githubRow) {
-                        textCell.setTextAndValueAndIcon(getString(R.string.SourceCode), "GitHub", R.drawable.msg_delete, false);
+                    String value = (row.valueResId != null) ? getString(row.valueResId) : null;
+                    if (value != null) {
+                        textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, row.hasDivider);
+                    } else {
+                        textCell.setTextAndIcon(getString(row.textResId), row.iconResId, row.hasDivider);
                     }
-                }
-    }
+                    break;
+            }
+        }
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return true;
+            int position = holder.getAdapterPosition();
+            if (position < 0 || position >= rows.size()) {
+                return false;
+            }
+            RowType type = rows.get(position).type;
+            return type == RowType.TEXT_CELL;
         }
 
+        @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
-            switch (viewType) {
-                case 0:
+            switch (RowType.values()[viewType]) {
+                case DIVIDER:
                     view = new ShadowSectionCell(mContext);
                     break;
-                case 2:
+                case CUSTOM_HEADER:
                     view = new headerSettingsCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 3:
+                case HEADER:
                     view = new HeaderCell(mContext);
                     view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 1:
+                case TEXT_CELL:
                 default:
                     view = new TextCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -338,27 +374,12 @@ public class mainActivitySettings extends BaseFragment {
             return new RecyclerListView.Holder(view);
         }
 
-
         @Override
         public int getItemViewType(int position) {
-            Set<Integer> settingsRows = new HashSet<>(Arrays.asList(
-                    chatSettingsRow, appearanceSettingsRow, otherSettingsRow,
-                    channelRow, githubRow, generalRow
-            ));
-            Set<Integer> categoryAndLinkRows = new HashSet<>(Arrays.asList(
-                    categoryRow, linkRow
-            ));
-
-            if (position == aboutFluffyRow) {
-                return 2;
+            if (position >= 0 && position < rows.size()) {
+                return rows.get(position).type.ordinal();
             }
-            if (settingsRows.contains(position)) {
-                return 1;
-            }
-            if (categoryAndLinkRows.contains(position)) {
-                return 3;
-            }
-            return 0;
+            return RowType.TEXT_CELL.ordinal();
         }
     }
 

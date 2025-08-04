@@ -9917,7 +9917,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("total send time = " + (System.currentTimeMillis() - beginTime));
             }
-            fluffyConfig.sendPhotoAsSticker = false;
+            fluffyConfig.setSendPhotoAsSticker(false);
         });
     }
 

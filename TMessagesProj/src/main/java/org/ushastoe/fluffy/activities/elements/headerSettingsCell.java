@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat;
 
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
@@ -42,7 +43,7 @@ public class headerSettingsCell extends FrameLayout {
         titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
 //        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
-        titleTextView.setText("fluffy");
+        titleTextView.setText(!BuildConfig.DEBUG ? R.string.AppName : R.string.AppNameBeta );
         titleTextView.setLines(1);
         titleTextView.setMaxLines(1);
         titleTextView.setSingleLine(true);

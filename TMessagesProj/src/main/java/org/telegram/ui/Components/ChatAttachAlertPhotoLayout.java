@@ -3277,7 +3277,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         }
 
         if (id == sticker) {
-            fluffyConfig.sendPhotoAsSticker = true;
+            fluffyConfig.setSendPhotoAsSticker(true);
             if (parentAlert.editingMessageObject == null && parentAlert.baseFragment instanceof ChatActivity && ((ChatActivity) parentAlert.baseFragment).isInScheduleMode()) {
                 AlertsCreator.createScheduleDatePickerDialog(getContext(), ((ChatActivity) parentAlert.baseFragment).getDialogId(), (notify, scheduleDate) -> {
                     parentAlert.delegate.didPressedButton(9, true, notify, scheduleDate, 0, parentAlert.isCaptionAbove(), false, 0);

@@ -17027,7 +17027,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 date = currentMessageObject.messageOwner.fwd_from.date;
             }
             timeString = LocaleController.formatSeenDate(date);
-        } else if (currentMessageObject.isSticker() && fluffyConfig.readSticker == 1) {
+        } else if (currentMessageObject.isSticker() && fluffyConfig.readStickerMode == 1) {
             timeString = "";
         } else {
             timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
@@ -21634,10 +21634,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
             return;
         }
-        if (fluffyConfig.readSticker == 2 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground()) {
+        if (fluffyConfig.readStickerMode == 2 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground()) {
             return;
         }
-        if (fluffyConfig.readSticker == 1 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground() && !currentMessageObject.isOut()) {
+        if (fluffyConfig.readStickerMode == 1 && currentMessageObject.isAnyKindOfSticker() && !isDrawSelectionBackground() && !currentMessageObject.isOut()) {
             return;
         }
         if (currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {

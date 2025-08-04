@@ -18474,7 +18474,7 @@ public class MessagesController extends BaseController implements NotificationCe
             }
         }
 
-        if (deletedMessages != null && fluffyConfig.saveDel) {
+        if (deletedMessages != null && fluffyConfig.saveDeletedMessages) {
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
                 try {
 

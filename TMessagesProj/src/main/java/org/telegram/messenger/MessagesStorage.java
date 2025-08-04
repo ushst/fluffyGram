@@ -15770,7 +15770,7 @@ public class MessagesStorage extends BaseController {
                                 if (data != null) {
                                     TLRPC.Message oldMessage = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                                     oldMessage.readAttachPath(data, getUserConfig().clientUserId);
-                                    if (!oldMessage.message.equals(message.message) && message.from_id != null && fluffyConfig.saveEdit) {
+                                    if (!oldMessage.message.equals(message.message) && message.from_id != null && fluffyConfig.saveEditedMessages) {
                                         saveFlHistory(message.dialog_id, message.id, getConnectionsManager().getCurrentTime(), oldMessage.message);
                                     }
                                     data.reuse();

@@ -218,7 +218,6 @@ import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.activities.mainActivitySettings;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.MonetHelper;
-import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
 import java.io.BufferedReader;
