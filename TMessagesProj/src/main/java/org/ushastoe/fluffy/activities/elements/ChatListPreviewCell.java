@@ -88,7 +88,8 @@ public class ChatListPreviewCell extends FrameLayout {
                 textPaint.setTextSize(AndroidUtilities.dp(18 + 2 * titleProgress));
                 textPaint.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
 
-
+                float width = textPaint.measureText(titleText);
+                float titleMoveDelta = (w - width - AndroidUtilities.dp(30) * statusProgress) / 2f - AndroidUtilities.dp(78);
 
 
                 rect.set(0, 0, w, h);
@@ -106,7 +107,8 @@ public class ChatListPreviewCell extends FrameLayout {
                 search.draw(canvas);
 
                 if (showStoriesProgress > 0) {
-                    float circleX = AndroidUtilities.dp(60);
+                    // Используем общий сдвиг для расчёта положения сторис
+                    float circleX = centeredTitleProgress * titleMoveDelta + AndroidUtilities.dp(60);
                     float circleY = AndroidUtilities.dp(35);
                     float circleRadius = AndroidUtilities.dp(12);
                     float strokeWidth = AndroidUtilities.dp(2);
@@ -146,8 +148,8 @@ public class ChatListPreviewCell extends FrameLayout {
                     );
                 }
 
-                float width = textPaint.measureText(titleText);
-                float titleStart = centeredTitleProgress * ((w - width - AndroidUtilities.dp(30) * statusProgress) / 2 - AndroidUtilities.dp(78)) + AndroidUtilities.dp(78);
+                // Используем общий сдвиг для расчёта положения заголовка
+                float titleStart = centeredTitleProgress * titleMoveDelta + AndroidUtilities.dp(78);
                 float titleEnd = titleStart + width;
 
                 Theme.dialogs_onlineCirclePaint.setColor(ColorUtils.blendARGB(0x00, ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_switchTrack), 0x5F), titleProgress * statusProgress));

@@ -10645,21 +10645,38 @@ public class MessagesController extends BaseController implements NotificationCe
                         }
                     }
                     if (label.length() != 0) {
-                        if (count == 1) {
-                            text = LocaleController.formatString("IsTypingGroup", R.string.IsTypingGroup, label.toString());
-                        } else {
-                            if (arr.size() > 2) {
-                                String plural = LocaleController.getPluralString("AndMoreTypingGroup", arr.size() - 2);
-                                try {
-                                    text = String.format(plural, label.toString(), arr.size() - 2);
-                                } catch (Exception e) {
-                                    text = "LOC_ERR: AndMoreTypingGroup";
-                                }
+                        if (fluffyConfig.centerTitleInChat) {
+                            String input = label.toString();
+                            int commaIndex = input.indexOf(',');
+                            String output = (commaIndex != -1) ? input.substring(0, commaIndex).trim() : input.trim();
+
+                            if (label.length() < 25) {
+                                text = label.toString();
                             } else {
-                                text = LocaleController.formatString("AreTypingGroup", R.string.AreTypingGroup, label.toString());
+                                String plural = LocaleController.getPluralString("CG_AndMoreTypingGroup", arr.size() - 1);
+                                try {
+                                    text = String.format(plural, output, arr.size() - 1);
+                                } catch (Exception e) {
+                                    text = "LOC_ERR: CG_AndMoreTypingGroup";
+                                }
                             }
+                        } else {
+                            if (count == 1) {
+                                text = LocaleController.formatString("IsTypingGroup", R.string.IsTypingGroup, label.toString());
+                            } else {
+                                if (arr.size() > 2) {
+                                    String plural = LocaleController.getPluralString("AndMoreTypingGroup", arr.size() - 2);
+                                    try {
+                                        text = String.format(plural, label.toString(), arr.size() - 2);
+                                    } catch (Exception e) {
+                                        text = "LOC_ERR: AndMoreTypingGroup";
+                                    }
+                                } else {
+                                    text = LocaleController.formatString("AreTypingGroup", R.string.AreTypingGroup, label.toString());
+                                }
+                            }
+                            type = 0;
                         }
-                        type = 0;
                     }
                 }
                 if (text != null) {

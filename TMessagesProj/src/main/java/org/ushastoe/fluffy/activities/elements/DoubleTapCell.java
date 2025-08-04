@@ -85,12 +85,6 @@ public class DoubleTapCell extends LinearLayout {
         setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         setPadding(AndroidUtilities.dp(13), 0, AndroidUtilities.dp(13), AndroidUtilities.dp(10));
 
-//        TextView titleTextView = new TextView(context);
-//        titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-//        titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-//        titleTextView.setText(getString(R.string.DoubleTapAction));
-//        titleTextView.setGravity(Gravity.CENTER);
-//        addView(titleTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
 
 
         outlinePaint.setStyle(Paint.Style.STROKE);

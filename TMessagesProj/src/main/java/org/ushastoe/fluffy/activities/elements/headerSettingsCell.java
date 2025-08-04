@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
@@ -27,21 +26,18 @@ public class headerSettingsCell extends FrameLayout {
     public headerSettingsCell(Context context) {
         super(context);
 
-        Drawable arrow = ContextCompat.getDrawable(context, R.drawable.fluffy_icon).mutate();
-        int color = ContextCompat.getColor(context, R.color.mRed200);
+        Drawable icon = ContextCompat.getDrawable(context, R.mipmap.ic_launcher).mutate();
+        int color = ContextCompat.getColor(context, R.color.ic_background_monet);
 
-//        arrow.setAlpha((int) (70 * 2.55f));
 
         ImageView logo = new ImageView(context);
         logo.setScaleType(ImageView.ScaleType.CENTER);
         logo.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(108), color));
-        //TODO: logo.setBackground(new GradientArrowBackground(context, color));
-        logo.setImageDrawable(arrow);
+        logo.setImageDrawable(icon);
         addView(logo, LayoutHelper.createFrame(108, 108, Gravity.CENTER | Gravity.TOP, 0, 20, 0, 0));
 
         titleTextView = new TextView(context);
         titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-//        titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
         titleTextView.setText(!BuildConfig.DEBUG ? R.string.AppName : R.string.AppNameBeta );
         titleTextView.setLines(1);
@@ -53,10 +49,9 @@ public class headerSettingsCell extends FrameLayout {
 
         TextView subtitleTextView = new TextView(context);
         subtitleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
-//        subtitleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_REGULAR));
         subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitleTextView.setLineSpacing(AndroidUtilities.dp(2), 1f);
-        subtitleTextView.setText(getString(R.string.ownerChannelRow));
+        subtitleTextView.setText(getString(R.string.info_fork));
         subtitleTextView.setGravity(Gravity.CENTER);
         subtitleTextView.setLines(0);
         subtitleTextView.setMaxLines(0);

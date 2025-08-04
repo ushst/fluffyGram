@@ -112,6 +112,7 @@ public class appearanceActivitySettings extends BaseFragment {
         GENERAL_HEADER,
         CHAT_LIST_PREVIEW,
         CENTER_TITLE,
+        CENTER_TITLE_IN_CHAT,
         STORIES_SHOW,
         SHOW_DIVIDER,
         SELECT_TITLE,
@@ -140,7 +141,7 @@ public class appearanceActivitySettings extends BaseFragment {
         DOUBLE_TAP_HEADER,
         DIVIDER_4,
         QUICK_SWITCHER,
-        MENU_CUSTOMIZATION
+        MENU_CUSTOMIZATION,
     }
     private static class Row {
         RowType type;
@@ -190,6 +191,7 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.GENERAL_HEADER, RowType.HEADER, R.string.General));
         rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
         rows.add(new Row(RowIdentifier.CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
+        rows.add(new Row(RowIdentifier.CENTER_TITLE_IN_CHAT, RowType.TEXT_CHECK, R.string.centerTitleInChat, R.drawable.msg_contacts_name));
         rows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
         rows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
         rows.add(new Row(RowIdentifier.SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
@@ -407,6 +409,14 @@ public class appearanceActivitySettings extends BaseFragment {
                 }
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.centerTitle);
+                    parentLayout.rebuildAllFragmentViews(false, false);
+                }
+                break;
+            case CENTER_TITLE_IN_CHAT:
+                fluffyConfig.toggleCenterTitleInChat();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.centerTitleInChat);
+                    parentLayout.rebuildAllFragmentViews(false, false);
                 }
                 break;
             case DISABLE_ROUND:
@@ -444,6 +454,8 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleUseSystemFonts();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.useSystemFonts);
+                    AndroidUtilities.clearTypefaceCache();
+                    showRestartNotification(LaunchActivity.getSafeLastFragment());
                 }
                 break;
             case USE_SOLAR_ICONS:
@@ -1116,6 +1128,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case USE_SOLAR_ICONS:
                             checked = fluffyConfig.useSolarIcons;
+                            break;
+                        case CENTER_TITLE_IN_CHAT:
+                            checked = fluffyConfig.centerTitleInChat;
                             break;
                         case DISABLE_ROUND:
                             checked = fluffyConfig.disableRoundingNumber;

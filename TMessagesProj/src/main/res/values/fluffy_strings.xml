@@ -2,6 +2,7 @@
 <resources>
     <string name="fluffySettings">fluffy Settings</string>
     <string name="fluffy">fluffy</string>
+    <string name="info_fork">custom telegram messenger with tweek\'s</string>
     <string name="meow">Meow</string>
     <string name="RestartAppToTakeEffect">Restart for aplly</string>
     <string name="ChatTweak">Chat Tweak</string>
@@ -35,6 +36,7 @@
     <string name="callShower">Show call icon in chat</string>
     <string name="HideThisBar">Hide this bar</string>
     <string name="centerTitle">Center title</string>
+    <string name="centerTitleInChat">Center title in Chat</string>
     <string name="checkIp">Check GEO</string>
     <string name="CopyInlineQuery">Copy Inline Query</string>
     <string name="CopyID">Copy ID</string>
@@ -118,6 +120,7 @@
 
     <string name="HideGiftFromInput">Hide Gift Icon From Input</string>
     <string name="HideFloatingButton">Hide Floating Button</string>
+    <string name="testBackFragment">Test Back Fragment Option</string>
 
     <string name="StickerSizeDialogMessage">Oh so cute! A cat!</string>
     <string name="StickerSizeDialogMessageReplyTo">Meow</string>
