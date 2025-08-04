@@ -2333,8 +2333,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     presentFragment(new ContactAddActivity(args, resourcesProvider));
                 } else if (id == wallpaper_show) {
                     fluffyConfig.toggleIdInWallpaperChat(userId);
-                    wallpaperItem.setText(fluffyConfig.ShowWallpaperChat(userId) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
-                    wallpaperItem.setIcon(fluffyConfig.ShowWallpaperChat(userId) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views);
+                    wallpaperItem.setText(fluffyConfig.shouldShowWallpaperForChat(userId) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
+                    wallpaperItem.setIcon(fluffyConfig.shouldShowWallpaperForChat(userId) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views);
                 } else if (id == delete_contact) {
                     final TLRPC.User user = getMessagesController().getUser(userId);
                     if (user == null || getParentActivity() == null) {
@@ -10544,7 +10544,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     otherItem.addSubItem(block_contact, !userBlocked ? R.drawable.msg_block : R.drawable.msg_block, !userBlocked ? getString(R.string.BlockContact) : getString(R.string.Unblock));
                     otherItem.addSubItem(edit_contact, R.drawable.msg_edit, getString(R.string.EditContact));
                     otherItem.addSubItem(delete_contact, R.drawable.msg_delete, getString(R.string.DeleteContact));
-                    wallpaperItem = otherItem.addSubItem(wallpaper_show, fluffyConfig.ShowWallpaperChat(user.id) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views, fluffyConfig.ShowWallpaperChat(user.id) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
+                    wallpaperItem = otherItem.addSubItem(wallpaper_show, fluffyConfig.shouldShowWallpaperForChat(user.id) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views, fluffyConfig.shouldShowWallpaperForChat(user.id) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
                 }
                 if (!UserObject.isDeleted(user) && !isBot && currentEncryptedChat == null && !userBlocked && userId != 333000 && userId != 777000 && userId != 42777) {
                     if (!BuildVars.IS_BILLING_UNAVAILABLE && !user.self && !user.bot && !MessagesController.isSupportUser(user) && !getMessagesController().premiumPurchaseBlocked()) {

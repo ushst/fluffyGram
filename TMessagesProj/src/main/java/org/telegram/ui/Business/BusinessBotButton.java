@@ -148,7 +148,7 @@ public class BusinessBotButton extends FrameLayout {
                 });
             }
             itemOptions.add(R.drawable.msg_cancel, LocaleController.getString(R.string.HideThisBar), false, () -> {
-                fluffyConfig.toogleHideTopBar();
+                fluffyConfig.toggleHideTopBar();
                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.peerSettingsDidLoad, dialogId);
                 BusinessChatbotController.getInstance(currentAccount).invalidate(false);
 

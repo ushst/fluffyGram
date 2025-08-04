@@ -25,6 +25,7 @@
     <string name="Other">Other (experimental)</string>
     <string name="appearanceSettings">Appearance</string>
     <string name="storiesShower">Show stories</string>
+    <string name="dividerShower">Show divider</string>
     <string name="downloadSpeedBoost">Enable Download boost</string>
     <string name="DisableNumberRounding">Disable number rounding</string>
     <string name="ExtendedStatusOnline">Extended online status</string>
@@ -137,4 +138,6 @@
     <string name="json">JSON</string>
 
     <string name="SendPhotoAsSticker">Send As Sticker</string>
+    <string name="fluffy_channel_link">TG Chanel</string>
+    <string name="fluffy_github_link">Github</string>
 </resources>

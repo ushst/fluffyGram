@@ -185,7 +185,7 @@ public class MessagePreviewParams {
     public boolean isSecret;
     public boolean multipleUsers;
 
-    public boolean hideForwardSendersName = fluffyConfig.hideForwardName;
+    public boolean hideForwardSendersName = fluffyConfig.showForwardWoAuthorship;
     public boolean hideCaption;
     public boolean willSeeSenders;
 

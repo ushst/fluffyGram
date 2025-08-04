@@ -130,6 +130,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.RoundVideoProgressShadow;
 import org.telegram.ui.ThemeActivity;
 import org.telegram.ui.ThemePreviewActivity;
+import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.MonetHelper;
 
 import java.io.File;
@@ -9648,6 +9649,9 @@ public class Theme {
             if (index >= 0) {
                 return animatingColors.valueAt(index);
             }
+        }
+        if (!fluffyConfig.showDivider && key_divider == key) {
+            return 0x00ffffff;
         }
         if (serviceBitmapShader != null && (key_chat_serviceText == key || key_chat_serviceLink == key || key_chat_serviceIcon == key
                 || key_chat_stickerReplyLine == key || key_chat_stickerReplyNameText == key || key_chat_stickerReplyMessageText == key)) {

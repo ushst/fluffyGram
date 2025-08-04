@@ -34,6 +34,7 @@ import org.telegram.ui.Components.BackgroundGradientDrawable;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
 
@@ -203,7 +204,7 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
 
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
-        int stickerSize = org.ushastoe.fluffy.fluffyConfig.getStickerSize();
+        int stickerSize = fluffyConfig.stickerSize;
         Log.d(LOG_TAG, "onDraw, stickerSize=" + stickerSize);
 
         Drawable drawable = Theme.getCachedWallpaperNonBlocking();

@@ -3,16 +3,10 @@ package org.ushastoe.fluffy.activities;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -22,12 +16,8 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
-import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -45,13 +35,9 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
-import org.telegram.ui.LaunchActivity;
-import org.ushastoe.fluffy.BulletinHelper;
-import org.ushastoe.fluffy.activities.elements.actionBarSettingsCell;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
-import org.ushastoe.fluffy.settings.fluffySettingsActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,14 +146,14 @@ public class generalActivitySettings extends BaseFragment {
             }
             TextCell textCell = (TextCell) view;
             if (position == downloadSpeedBoostRow) {
-                fluffyConfig.toogleDownloadSpeedBoost();
+                fluffyConfig.toggleDownloadSpeedBoost();
                 textCell.setChecked(fluffyConfig.downloadSpeedBoost);
             } else if (position == saveEditRow) {
-                fluffyConfig.saveEditSwitch();
-                textCell.setChecked(fluffyConfig.saveEdit);
+                fluffyConfig.toggleSaveEditedMessages();
+                textCell.setChecked(fluffyConfig.saveEditedMessages);
             } else if (position == saveDelRow) {
-                fluffyConfig.saveDelSwitch();
-                textCell.setChecked(fluffyConfig.saveDel);
+                fluffyConfig.toggleSaveDeletedMessages();
+                textCell.setChecked(fluffyConfig.saveDeletedMessages);
             } else if (position == unmuteVideoWithVolumeRow) {
                 fluffyConfig.toggleUnmuteVideoWithVolume();
                 textCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
@@ -272,9 +258,9 @@ public class generalActivitySettings extends BaseFragment {
                     if (position == downloadSpeedBoostRow) {
                         textCell.setTextAndCheckAndIcon(getString(R.string.downloadSpeedBoost), fluffyConfig.downloadSpeedBoost, R.drawable.msg_download, true);
                     } else if (position == saveEditRow) {
-                        textCell.setTextAndCheckAndIcon(getString(R.string.saveEditRow), fluffyConfig.saveEdit, R.drawable.msg_edit, true);
+                        textCell.setTextAndCheckAndIcon(getString(R.string.saveEditRow), fluffyConfig.saveEditedMessages, R.drawable.msg_edit, true);
                     } else if (position == saveDelRow) {
-                        textCell.setTextAndCheckAndIcon(getString(R.string.saveDelRow), fluffyConfig.saveDel, R.drawable.msg_delete, true);
+                        textCell.setTextAndCheckAndIcon(getString(R.string.saveDelRow), fluffyConfig.saveDeletedMessages, R.drawable.msg_delete, true);
                     } else if (position == unmuteVideoWithVolumeRow) {
                         textCell.setTextAndCheckAndIcon(getString(R.string.unmuteVideoWithVolume), fluffyConfig.unmuteVideoWithVolume, R.drawable.media_unmute, true);
                     }

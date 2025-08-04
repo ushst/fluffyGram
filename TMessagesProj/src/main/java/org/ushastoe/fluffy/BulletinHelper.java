@@ -22,7 +22,7 @@ public class BulletinHelper {
                     text,
                     frontCamera ? "Back" : "Front",
                     () -> {
-                        fluffyConfig.cameraSwitch();
+                        fluffyConfig.toggleFrontCamera();
                         BulletinHelper.showFrontCameraNotification(fragment);
                     }
             );

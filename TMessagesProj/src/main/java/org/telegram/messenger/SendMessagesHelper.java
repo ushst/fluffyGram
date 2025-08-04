@@ -9120,7 +9120,6 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 //            FileLog.e(e);
 //        }
 //        return bmOptions.outWidth < 800 && bmOptions.outHeight < 800;
-        System.out.println(fluffyConfig.sendPhotoAsSticker);
         return fluffyConfig.sendPhotoAsSticker;
     }
 
@@ -9918,7 +9917,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("total send time = " + (System.currentTimeMillis() - beginTime));
             }
-            fluffyConfig.sendPhotoAsSticker = false;
+            fluffyConfig.setSendPhotoAsSticker(false);
         });
     }
 

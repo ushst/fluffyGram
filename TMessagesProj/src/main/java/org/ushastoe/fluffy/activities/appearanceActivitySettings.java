@@ -72,7 +72,6 @@ import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.elements.ChatListPreviewCell;
 import org.ushastoe.fluffy.activities.elements.DoubleTapCell;
 import org.ushastoe.fluffy.activities.elements.StickerSizePreviewMessagesCell;
-import org.ushastoe.fluffy.activities.elements.headerSettingsCell; // Не используется, можно удалить
 import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
@@ -109,130 +108,121 @@ public class appearanceActivitySettings extends BaseFragment {
         NOTIFICATIONS_CHECK
     }
 
-    // Класс для представления строки
+    private enum RowIdentifier {
+        GENERAL_HEADER,
+        CHAT_LIST_PREVIEW,
+        CENTER_TITLE,
+        STORIES_SHOW,
+        SHOW_DIVIDER,
+        SELECT_TITLE,
+        SYSTEM_TYPEFACE,
+        USE_SOLAR_ICONS,
+        NEW_SWITCH_STYLE,
+        DIVIDER_1,
+        MAIN_HEADER,
+        ZODIAC_SHOW,
+        DIVIDER_2,
+        CHAT_HEADER,
+        DOUBLE_TAP,
+        STICKER_SIZE,
+        STICKER_SIZE_SEEKBAR,
+        DISABLE_ROUND,
+        CALL_SHOW,
+        MORE_INFO,
+        FORMAT_TIME_WITH_SECONDS,
+        STICKER_TIME_STAMP,
+        TRANSPARENCY,
+        REMOVE_GIFTS,
+        REMOVE_BUTTON,
+        STICKER_HEADER,
+        DIVIDER_3,
+        STICKER_RADIUS_SEEKBAR,
+        DOUBLE_TAP_HEADER,
+        DIVIDER_4,
+        QUICK_SWITCHER,
+        MENU_CUSTOMIZATION
+    }
     private static class Row {
         RowType type;
-        int id; // Уникальный идентификатор для каждой строки
+        RowIdentifier id;
         int textResId;
         int iconResId;
         int subtitleResId;
-        // Дополнительные поля для различных типов строк
 
-        Row(int id, RowType type, int textResId, int iconResId) {
+        Row(RowIdentifier id, RowType type, int textResId, int iconResId) {
             this.id = id;
             this.type = type;
             this.textResId = textResId;
             this.iconResId = iconResId;
         }
 
-        Row(int id, RowType type, int textResId, int iconResId, int subtitleResId) {
+        Row(RowIdentifier id, RowType type, int textResId, int iconResId, int subtitleResId) {
             this(id, type, textResId, iconResId);
             this.subtitleResId = subtitleResId;
         }
 
-        Row(int id, RowType type, int textResId) {
+        Row(RowIdentifier id, RowType type, int textResId) {
             this(id, type, textResId, 0);
         }
 
-        Row(int id, RowType type) {
+        Row(RowIdentifier id, RowType type) {
             this(id, type, 0, 0);
         }
     }
 
     private List<Row> rows = new ArrayList<>();
-
-    private static final int ID_GENERAL_HEADER = 1;
-    private static final int ID_CHAT_LIST_PREVIEW = 2;
-    private static final int ID_CENTER_TITLE = 3;
-    private static final int ID_STORIES_SHOW = 4;
-    private static final int ID_SELECT_TITLE = 5;
-    private static final int ID_SYSTEM_TYPEFACE = 6;
-    private static final int ID_USE_SOLAR_ICONS = 7;
-    private static final int ID_NEW_SWITCH_STYLE = 8;
-    private static final int ID_DIVIDER_1 = 9;
-    private static final int ID_MAIN_HEADER = 10;
-    private static final int ID_ZODIAC_SHOW = 11;
-    private static final int ID_DIVIDER_2 = 12;
-    private static final int ID_CHAT_HEADER = 13;
-    private static final int ID_DOUBLE_TAP = 14;
-    private static final int ID_STICKER_SIZE = 15;
-    private static final int ID_STICKER_SIZE_SEEKBAR = 16;
-    private static final int ID_DISABLE_ROUND = 17;
-    private static final int ID_CALL_SHOW = 18;
-    private static final int ID_MORE_INFO = 19;
-    private static final int ID_FORMAT_TIME_WITH_SECONDS = 20;
-    private static final int ID_STICKER_TIME_STAMP = 21;
-    private static final int ID_TRANSPARENCY = 22;
-    private static final int ID_REMOVE_GIFTS = 23;
-    private static final int ID_REMOVE_BUTTON = 24;
-    private static final int ID_STICKER_HEADER = 25;
-    private static final int ID_DIVIDER_3 = 26;
-    private static final int ID_STICKER_RADIUS_SEEKBAR = 27;
-    private static final int ID_DOUBLE_TAP_HEADER = 28;
-    private static final int ID_DIVIDER_4 = 29;
-    private static final int ID_QUICK_SWITCHER = 30;
-
-    private static final int ID_MENU_CUSTOMIZATION = 31;
-
     private static final int stickerRaduisMax = 130;
     private Parcelable recyclerViewState = null;
 
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
-
         DownloadController.getInstance(currentAccount).loadAutoDownloadConfig(true);
-        updateRows(); // Обновляем строки при создании фрагмента
-
+        updateRows();
         return true;
     }
 
-    // Метод для определения порядка и типов строк
     private void updateRows() {
         recyclerViewState = layoutManager != null ? layoutManager.onSaveInstanceState() : null;
 
         rows.clear();
 
-        // ОБЩИЕ
-        rows.add(new Row(ID_GENERAL_HEADER, RowType.HEADER, R.string.General));
-        rows.add(new Row(ID_CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
-        rows.add(new Row(ID_CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
-        rows.add(new Row(ID_STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
-        rows.add(new Row(ID_SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
-        rows.add(new Row(ID_SYSTEM_TYPEFACE, RowType.TEXT_CHECK, R.string.UseSystemTypeface, R.drawable.msg_photo_text_framed));
-        rows.add(new Row(ID_USE_SOLAR_ICONS, RowType.TEXT_CHECK, R.string.useSolarIcons, R.drawable.media_magic_cut));
-        rows.add(new Row(ID_NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
-        rows.add(new Row(ID_DIVIDER_1, RowType.SHADOW_SECTION));
+        rows.add(new Row(RowIdentifier.GENERAL_HEADER, RowType.HEADER, R.string.General));
+        rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
+        rows.add(new Row(RowIdentifier.CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
+        rows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
+        rows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
+        rows.add(new Row(RowIdentifier.SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
+        rows.add(new Row(RowIdentifier.SYSTEM_TYPEFACE, RowType.TEXT_CHECK, R.string.UseSystemTypeface, R.drawable.msg_photo_text_framed));
+        rows.add(new Row(RowIdentifier.USE_SOLAR_ICONS, RowType.TEXT_CHECK, R.string.useSolarIcons, R.drawable.media_magic_cut));
+        rows.add(new Row(RowIdentifier.NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
+        rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
 
-        // ПРОФИЛЬ
-        rows.add(new Row(ID_MAIN_HEADER, RowType.HEADER, R.string.Profile));
-        rows.add(new Row(ID_ZODIAC_SHOW, RowType.TEXT_CHECK, R.string.zodiacShow, R.drawable.msg_calendar2));
-        rows.add(new Row(ID_DIVIDER_2, RowType.SHADOW_SECTION));
+        rows.add(new Row(RowIdentifier.MAIN_HEADER, RowType.HEADER, R.string.Profile));
+        rows.add(new Row(RowIdentifier.ZODIAC_SHOW, RowType.TEXT_CHECK, R.string.zodiacShow, R.drawable.msg_calendar2));
+        rows.add(new Row(RowIdentifier.DIVIDER_2, RowType.SHADOW_SECTION));
 
-        // СТИКЕРЫ
-        rows.add(new Row(ID_STICKER_HEADER, RowType.HEADER, R.string.Stickers));
-        rows.add(new Row(ID_STICKER_SIZE_SEEKBAR, RowType.STICKER_SIZE_SEEKBAR));
-        rows.add(new Row(ID_STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
-        rows.add(new Row(ID_STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
-        rows.add(new Row(ID_STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
-        rows.add(new Row(ID_DIVIDER_3, RowType.SHADOW_SECTION));
+        rows.add(new Row(RowIdentifier.STICKER_HEADER, RowType.HEADER, R.string.Stickers));
+        rows.add(new Row(RowIdentifier.STICKER_SIZE_SEEKBAR, RowType.STICKER_SIZE_SEEKBAR));
+        rows.add(new Row(RowIdentifier.STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
+        rows.add(new Row(RowIdentifier.STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
+        rows.add(new Row(RowIdentifier.STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
+        rows.add(new Row(RowIdentifier.DIVIDER_3, RowType.SHADOW_SECTION));
 
-        // ДВОЙНОЕ НАЖАТИЕ
-        rows.add(new Row(ID_DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
-        rows.add(new Row(ID_DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
-        rows.add(new Row(ID_QUICK_SWITCHER, RowType.QUICK_SWITCHER));
-        rows.add(new Row(ID_MENU_CUSTOMIZATION, RowType.TEXT_CELL, R.string.ContextMenuSettings, R.drawable.msg_settings));
-        rows.add(new Row(ID_DIVIDER_4, RowType.SHADOW_SECTION));
+        rows.add(new Row(RowIdentifier.DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
+        rows.add(new Row(RowIdentifier.DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
+        rows.add(new Row(RowIdentifier.QUICK_SWITCHER, RowType.QUICK_SWITCHER));
+        rows.add(new Row(RowIdentifier.MENU_CUSTOMIZATION, RowType.TEXT_CELL, R.string.ContextMenuSettings, R.drawable.msg_settings));
+        rows.add(new Row(RowIdentifier.DIVIDER_4, RowType.SHADOW_SECTION));
 
-        // ЧАТЫ
-        rows.add(new Row(ID_CHAT_HEADER, RowType.HEADER, R.string.Chats));
-        rows.add(new Row(ID_DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle));
-        rows.add(new Row(ID_CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
-        rows.add(new Row(ID_MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle));
-        rows.add(new Row(ID_FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
-        rows.add(new Row(ID_TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
-        rows.add(new Row(ID_REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
-        rows.add(new Row(ID_REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
+        rows.add(new Row(RowIdentifier.CHAT_HEADER, RowType.HEADER, R.string.Chats));
+        rows.add(new Row(RowIdentifier.DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle));
+        rows.add(new Row(RowIdentifier.CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
+        rows.add(new Row(RowIdentifier.MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle));
+        rows.add(new Row(RowIdentifier.FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
+        rows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
+        rows.add(new Row(RowIdentifier.REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
+        rows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
@@ -311,32 +301,20 @@ public class appearanceActivitySettings extends BaseFragment {
         }
 
         AlertDialog dialog = new AlertDialog.Builder(getParentActivity())
-                .setTitle(getString(R.string.ContextMenuSettings)) // Используем строку из ресурсов
+                .setTitle(getString(R.string.ContextMenuSettings))
                 .setView(linearLayout)
                 .setPositiveButton(getString("Close", R.string.Close), null)
                 .create();
 
         showDialog(dialog);
     }
-
-    // Метод для поиска строки по идентификатору
-    private Row getRowById(int id) {
-        for (Row row : rows) {
-            if (row.id == id) {
-                return row;
-            }
-        }
-        return null; // Должно быть unreachable при правильном использовании
-    }
-
-    // Метод для поиска позиции строки по идентификатору
-    private int getRowPositionById(int id) {
+    private int getRowPositionById(RowIdentifier id) {
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).id == id) {
                 return i;
             }
         }
-        return -1; // Строка не найдена
+        return -1;
     }
 
     @Override
@@ -391,17 +369,15 @@ public class appearanceActivitySettings extends BaseFragment {
 
         return fragmentView;
     }
-
-    // Метод для обработки кликов по элементам списка
-    private void handleItemClick(int rowId, View view, Context context) {
+    private void handleItemClick(RowIdentifier rowId, View view, Context context) {
         switch (rowId) {
-            case ID_ZODIAC_SHOW:
-                fluffyConfig.toogleZodiacShow();
+            case ZODIAC_SHOW:
+                fluffyConfig.toggleZodiacShow();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.zodiacShow);
                 }
                 break;
-            case ID_STORIES_SHOW:
+            case STORIES_SHOW:
                 fluffyConfig.toggleShowStories();
                 if (chatListPreviewCell != null) {
                     chatListPreviewCell.updateStories(true);
@@ -410,13 +386,21 @@ public class appearanceActivitySettings extends BaseFragment {
                     ((TextCell) view).setChecked(fluffyConfig.showStories);
                 }
                 break;
-            case ID_CALL_SHOW:
+            case SHOW_DIVIDER:
+                fluffyConfig.toggleShowDivider();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.showDivider);
+                    Theme.applyCommonTheme();
+                    parentLayout.rebuildAllFragmentViews(true, true);
+                }
+                break;
+            case CALL_SHOW:
                 fluffyConfig.toggleShowCallIcon();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.showCallIcon);
                 }
                 break;
-            case ID_CENTER_TITLE:
+            case CENTER_TITLE:
                 fluffyConfig.toggleCenterTitle();
                 if (chatListPreviewCell != null) {
                     chatListPreviewCell.updateCenteredTitle(true);
@@ -425,74 +409,73 @@ public class appearanceActivitySettings extends BaseFragment {
                     ((TextCell) view).setChecked(fluffyConfig.centerTitle);
                 }
                 break;
-            case ID_DISABLE_ROUND:
-                fluffyConfig.toogleRoundingNumber();
+            case DISABLE_ROUND:
+                fluffyConfig.toggleRoundingNumber();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.disableRoundingNumber);
                 }
                 break;
-            case ID_REMOVE_GIFTS:
-                fluffyConfig.toggleGiftSwitch();
+            case REMOVE_GIFTS:
+                fluffyConfig.toggleGift();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideGift);
                 }
                 break;
-            case ID_REMOVE_BUTTON:
-                fluffyConfig.togglehideButtonWrite();
+            case REMOVE_BUTTON:
+                fluffyConfig.toggleHideButtonWrite();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideButtonWrite);
                 }
                 break;
-            case ID_MORE_INFO:
+            case MORE_INFO:
                 fluffyConfig.toggleMoreInfoOnline();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.moreInfoOnline);
                 }
                 break;
-            case ID_NEW_SWITCH_STYLE:
-                fluffyConfig.toogleNewSwitchStyle();
+            case NEW_SWITCH_STYLE:
+                fluffyConfig.toggleNewSwitchStyle();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.newSwitchStyle);
                 }
-                // Обновляем строки, если тип Switch меняется
                 updateRows();
                 break;
-            case ID_SYSTEM_TYPEFACE:
-                fluffyConfig.toogleUseSystemFonts();
+            case SYSTEM_TYPEFACE:
+                fluffyConfig.toggleUseSystemFonts();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.useSystemFonts);
                 }
                 break;
-            case ID_USE_SOLAR_ICONS:
+            case USE_SOLAR_ICONS:
                 fluffyConfig.toggleUseSolarIcons();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.useSolarIcons);
                 }
                 break;
-            case ID_FORMAT_TIME_WITH_SECONDS:
-                fluffyConfig.toogleFormatTimeWithSeconds();
+            case FORMAT_TIME_WITH_SECONDS:
+                fluffyConfig.toggleFormatTimeWithSeconds();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.formatTimeWithSeconds);
                 }
                 break;
-            case ID_SELECT_TITLE:
+            case SELECT_TITLE:
                 titleSelecter(context);
                 break;
-            case ID_DOUBLE_TAP:
+            case DOUBLE_TAP:
                 selectorReaction();
                 break;
-            case ID_QUICK_SWITCHER:
+            case QUICK_SWITCHER:
                 if (view instanceof SetDefaultReactionCell) {
                     showSelectStatusDialog((SetDefaultReactionCell) view);
                 }
                 break;
-            case ID_STICKER_TIME_STAMP:
+            case STICKER_TIME_STAMP:
                 timeStampSelecter(context);
                 break;
-            case ID_TRANSPARENCY:
+            case TRANSPARENCY:
                 showTransparencyDialog(context);
                 break;
-            case ID_MENU_CUSTOMIZATION:
+            case MENU_CUSTOMIZATION:
                 showMenuItemConfigurator(context);
                 break;
         }
@@ -560,7 +543,7 @@ public class appearanceActivitySettings extends BaseFragment {
                         fluffyConfig.setDoubleTapInAction(types.get(which));
                     }
                     int oldIndex = types.indexOf(old);
-                    if (oldIndex != -1) { // Проверка на существование старого значения в types
+                    if (oldIndex != -1) {
                         ((RadioColorCell) layout.getChildAt(oldIndex)).setChecked(false, true);
                     }
                     cell.setChecked(true, true);
@@ -595,13 +578,13 @@ public class appearanceActivitySettings extends BaseFragment {
             RadioColorCell cell = new RadioColorCell(getParentActivity());
             cell.setPadding(dp(4), 0, dp(4), 0);
             cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
-            cell.setTextAndValue(items[index], index == fluffyConfig.typeTitle);
+            cell.setTextAndValue(items[index], index == fluffyConfig.titleType);
             cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
-                fluffyConfig.setTypeTitle(index);
-                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged); // Убедитесь, что это действительно нужно
-                int position = getRowPositionById(ID_SELECT_TITLE);
+                fluffyConfig.setTitleType(index);
+                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+                int position = getRowPositionById(RowIdentifier.SELECT_TITLE);
                 if (position != -1) {
                     RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(position);
                     if (holder != null) {
@@ -613,7 +596,7 @@ public class appearanceActivitySettings extends BaseFragment {
                 if (LaunchActivity.getSafeLastFragment() != null) {
                     showRestartNotification(LaunchActivity.getSafeLastFragment());
                 }
-                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged); // Убедитесь, что это действительно нужно
+                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
                 dialogRef.get().dismiss();
                 if (chatListPreviewCell != null) {
                     chatListPreviewCell.updateTitle(true);
@@ -636,15 +619,14 @@ public class appearanceActivitySettings extends BaseFragment {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(getString(R.string.Transparency)); // Заголовок диалога
-        builder.setMessage(getString(R.string.EnterValueBetween0And255)); // Информационное сообщение
+        builder.setTitle(getString(R.string.Transparency));
+        builder.setMessage(getString(R.string.EnterValueBetween0And255));
 
         final EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER); // Устанавливаем ввод только цифр
-        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)}); // Ограничиваем ввод 3 символами
-        input.setHint("0-255"); // Подсказка
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)});
+        input.setHint("0-255");
 
-        // Устанавливаем текущее значение в поле ввода
         input.setText(String.valueOf(fluffyConfig.transparency));
 
         builder.setView(input);
@@ -653,11 +635,10 @@ public class appearanceActivitySettings extends BaseFragment {
             try {
                 int value = Integer.parseInt(input.getText().toString());
                 if (value >= 0 && value <= 255) {
-                    fluffyConfig.setTransparency(value); // Устанавливаем значение в fluffyConfig
+                    fluffyConfig.setTransparency(value);
                     showRestartNotification(LaunchActivity.getSafeLastFragment());
-                    // Опционально: обновить текст в ячейке списка, если нужно
 
-                    int position = getRowPositionById(ID_TRANSPARENCY);
+                    int position = getRowPositionById(RowIdentifier.TRANSPARENCY);
                     if (position != -1) {
                         RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(position);
                         if (holder != null) {
@@ -698,12 +679,12 @@ public class appearanceActivitySettings extends BaseFragment {
             RadioColorCell cell = new RadioColorCell(getParentActivity());
             cell.setPadding(dp(4), 0, dp(4), 0);
             cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
-            cell.setTextAndValue(items[index], index == fluffyConfig.readSticker);
+            cell.setTextAndValue(items[index], index == fluffyConfig.readStickerMode);
             cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
-                fluffyConfig.setReadSticker(index);
-                int position = getRowPositionById(ID_STICKER_TIME_STAMP);
+                fluffyConfig.setReadStickerMode(index);
+                int position = getRowPositionById(RowIdentifier.STICKER_TIME_STAMP);
                 if (position != -1) {
                     RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(position);
                     if (holder != null) {
@@ -714,7 +695,7 @@ public class appearanceActivitySettings extends BaseFragment {
 
                 dialogRef.get().dismiss();
                 if (chatListPreviewCell != null) {
-                    chatListPreviewCell.updateTitle(true); // Возможно, это не влияет на chatListPreviewCell, проверьте
+                    chatListPreviewCell.updateTitle(true);
                 }
                 if (stickerSizePreview != null) {
                     stickerSizePreview.invalidate();
@@ -841,7 +822,6 @@ public class appearanceActivitySettings extends BaseFragment {
                 if (documentId == null) {
                     return;
                 }
-                // Сохраняем выбранную анимированную реакцию
                 MediaDataController.getInstance(currentAccount).setDoubleTapReaction("animated_" + documentId);
                 if (cell != null) {
                     cell.update(true);
@@ -854,7 +834,6 @@ public class appearanceActivitySettings extends BaseFragment {
 
             @Override
             protected void onReactionClick(ImageViewEmoji emoji, ReactionsLayoutInBubble.VisibleReaction reaction) {
-                // Сохраняем выбранную обычную реакцию
                 MediaDataController.getInstance(currentAccount).setDoubleTapReaction(reaction.emojicon);
                 if (cell != null) {
                     cell.update(true);
@@ -901,7 +880,6 @@ public class appearanceActivitySettings extends BaseFragment {
             setWillNotDraw(false);
             setPadding(dp(21), 0, dp(21), 0);
 
-            // HORIZONTAL LAYOUT FOR TITLE + VALUE
             LinearLayout hLayout = new LinearLayout(context);
             hLayout.setOrientation(LinearLayout.HORIZONTAL);
             hLayout.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
@@ -918,17 +896,14 @@ public class appearanceActivitySettings extends BaseFragment {
             valueView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
             hLayout.addView(valueView, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
-            // Добавить горизонтальный layout в корень
             addView(hLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.START, 0, 8, 0, 0));
 
-            // SeekBar ниже
             seekBarView = new SeekBarView(context);
             seekBarView.setReportChanges(true);
 
             seekBarView.setDelegate((stop, progress) -> {
-                int value = (int) (5 + 15 * progress); // Диапазон 5–20
+                int value = (int) (5 + 15 * progress);
                 valueView.setText(String.format(Locale.US, "%d", value));
-                // (твой остальной код)
             });
             addView(seekBarView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.START, 0, 34, 0, 0));
         }
@@ -957,7 +932,6 @@ public class appearanceActivitySettings extends BaseFragment {
             setWillNotDraw(false);
             setPadding(dp(21), 0, dp(21), 0);
 
-            // HORIZONTAL LAYOUT FOR TITLE + VALUE
             LinearLayout hLayout = new LinearLayout(context);
             hLayout.setOrientation(LinearLayout.HORIZONTAL);
             hLayout.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
@@ -1023,9 +997,6 @@ public class appearanceActivitySettings extends BaseFragment {
                     holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     break;
                 case NOTIFICATIONS_CHECK:
-                    // Логика для NotificationsCheckCell (если используется)
-                    // NotificationsCheckCell checkCell = (NotificationsCheckCell) holder.itemView;
-                    // checkCell.setTextAndValueAndIconAndCheck(getString(R.string.InappBrowser), getString(R.string.InappBrowserInfo), R.drawable.msg2_language, SharedConfig.inappBrowser, 0, false, true);
                     break;
                 case HEADER:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
@@ -1042,8 +1013,8 @@ public class appearanceActivitySettings extends BaseFragment {
                     TextCell textCell6 = (TextCell) holder.itemView;
                     String value = "";
                     switch (row.id) {
-                        case ID_SELECT_TITLE:
-                            value = switch (fluffyConfig.typeTitle) {
+                        case SELECT_TITLE:
+                            value = switch (fluffyConfig.titleType) {
                                 case 0 -> fluffyConfig.getUsername();
                                 case 1 -> "fluffy";
                                 case 2 -> "telegram";
@@ -1051,18 +1022,17 @@ public class appearanceActivitySettings extends BaseFragment {
                                 default -> LocaleController.getString(R.string.AppName);
                             };
                             break;
-                        case ID_STICKER_TIME_STAMP:
-                            value = switch (fluffyConfig.readSticker) {
+                        case STICKER_TIME_STAMP:
+                            value = switch (fluffyConfig.readStickerMode) {
                                 case 0 -> getString(R.string.TimeWithReadStatus);
                                 case 1 -> getString(R.string.ReadStatus);
                                 case 2 -> getString(R.string.None);
                                 default -> getString(R.string.None);
                             };
                             break;
-                        case ID_TRANSPARENCY:
+                        case TRANSPARENCY:
                             value = String.valueOf(fluffyConfig.transparency);
                             break;
-                        // Для новой кнопки настройки меню значение справа не нужно, поэтому value останется пустым.
                     }
                     textCell6.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
                     break;
@@ -1078,7 +1048,7 @@ public class appearanceActivitySettings extends BaseFragment {
                     break;
                 case STICKER_SIZE_SEEKBAR:
                     StickerSizeSeekBarCell seekBarCell = (StickerSizeSeekBarCell) holder.itemView;
-                    int currentSize = fluffyConfig.getStickerSize();
+                    int currentSize = fluffyConfig.stickerSize;
                     seekBarCell.setValue(currentSize);
                     seekBarCell.setOnValueChange((stop, progress) -> {
                         int newValue = (int) (5 + 15 * progress);
@@ -1099,7 +1069,7 @@ public class appearanceActivitySettings extends BaseFragment {
                     break;
                 case STICKER_RADIUS_SEEKBAR:
                     StickerRadiusSeekBarCell seekRadiusBarCell = (StickerRadiusSeekBarCell) holder.itemView;
-                    int currentRadius = fluffyConfig.getStickerRadius();
+                    int currentRadius = fluffyConfig.stickerRadius;
                     seekRadiusBarCell.setValue(currentRadius);
                     seekRadiusBarCell.setOnValueChange((stop, progress) -> {
                         int newValue = (int) (stickerRaduisMax * progress);
@@ -1126,46 +1096,49 @@ public class appearanceActivitySettings extends BaseFragment {
                     String subtitle = null;
 
                     switch (row.id) {
-                        case ID_ZODIAC_SHOW:
+                        case ZODIAC_SHOW:
                             checked = fluffyConfig.zodiacShow;
                             break;
-                        case ID_STORIES_SHOW:
+                        case STORIES_SHOW:
                             checked = fluffyConfig.showStories;
                             break;
-                        case ID_CALL_SHOW:
+                        case CALL_SHOW:
                             checked = fluffyConfig.showCallIcon;
                             break;
-                        case ID_CENTER_TITLE:
+                        case SHOW_DIVIDER:
+                            checked = fluffyConfig.showDivider;
+                            break;
+                        case CENTER_TITLE:
                             checked = fluffyConfig.centerTitle;
                             break;
-                        case ID_SYSTEM_TYPEFACE:
+                        case SYSTEM_TYPEFACE:
                             checked = fluffyConfig.useSystemFonts;
                             break;
-                        case ID_USE_SOLAR_ICONS:
+                        case USE_SOLAR_ICONS:
                             checked = fluffyConfig.useSolarIcons;
                             break;
-                        case ID_DISABLE_ROUND:
+                        case DISABLE_ROUND:
                             checked = fluffyConfig.disableRoundingNumber;
                             if (row.subtitleResId != 0) {
                                 subtitle = getString(row.subtitleResId);
                             }
                             break;
-                        case ID_REMOVE_GIFTS:
+                        case REMOVE_GIFTS:
                             checked = fluffyConfig.hideGift;
                             break;
-                        case ID_REMOVE_BUTTON:
+                        case REMOVE_BUTTON:
                             checked = fluffyConfig.hideButtonWrite;
                             break;
-                        case ID_MORE_INFO:
+                        case MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;
                             if (row.subtitleResId != 0) {
                                 subtitle = getString(row.subtitleResId);
                             }
                             break;
-                        case ID_NEW_SWITCH_STYLE:
+                        case NEW_SWITCH_STYLE:
                             checked = fluffyConfig.newSwitchStyle;
                             break;
-                        case ID_FORMAT_TIME_WITH_SECONDS:
+                        case FORMAT_TIME_WITH_SECONDS:
                             checked = fluffyConfig.formatTimeWithSeconds;
                             if (row.subtitleResId != 0) {
                                 subtitle = getString(row.subtitleResId);
@@ -1182,7 +1155,6 @@ public class appearanceActivitySettings extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             Row row = rows.get(holder.getAdapterPosition());
-            // SeekBar и предпросмотр не должны быть кликабельными
             if (row.type == RowType.STICKER_SIZE_PREVIEW || row.type == RowType.STICKER_SIZE_SEEKBAR || row.type == RowType.STICKER_RADIUS_SEEKBAR) {
                 return false;
             }
@@ -1236,7 +1208,7 @@ public class appearanceActivitySettings extends BaseFragment {
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 default:
-                    view = new View(mContext); // Заглушка
+                    view = new View(mContext);
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
@@ -1260,7 +1232,7 @@ public class appearanceActivitySettings extends BaseFragment {
                 case STICKER_SIZE_SEEKBAR: return 9;
                 case STICKER_RADIUS_SEEKBAR: return 10;
                 case QUICK_SWITCHER: return 11;
-                default: return -1; // Неизвестный тип
+                default: return -1;
             }
         }
     }
@@ -1306,7 +1278,6 @@ public class appearanceActivitySettings extends BaseFragment {
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
 
-        // Добавление ThemeDescription для новой ячейки
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class}, new String[]{"seekBarView"}, null, null, null, Theme.key_player_progressBackground));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class}, new String[]{"seekBarView"}, null, null, null, Theme.key_player_progress));

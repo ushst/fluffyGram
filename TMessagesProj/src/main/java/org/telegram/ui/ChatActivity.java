@@ -3664,7 +3664,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     createDeleteMessagesAlert(null, null);
                 } else if (id == forward) {
-                    fluffyConfig.hideForwardName = false;
+                    fluffyConfig.showForwardWoAuthorship = false;
                     openForward(true);
                 } else if (id == share) {
                     share();
@@ -3978,8 +3978,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     presentFragment(new mainActivitySettings());
                 } else if (id == wallpaperShower) {
                     fluffyConfig.toggleIdInWallpaperChat(currentUser.id);
-                    wallpaperItem.setText(fluffyConfig.ShowWallpaperChat(currentUser.id) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
-                    wallpaperItem.setIcon(fluffyConfig.ShowWallpaperChat(currentUser.id) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views);
+                    wallpaperItem.setText(fluffyConfig.shouldShowWallpaperForChat(currentUser.id) ? LocaleController.getString(R.string.DontShowWallpaperInChat) : LocaleController.getString(R.string.ShowWallpaperInChat));
+                    wallpaperItem.setIcon(fluffyConfig.shouldShowWallpaperForChat(currentUser.id) ? R.drawable.msg_stories_stealth : R.drawable.msg_stories_views);
                 }
             }
         });
@@ -9535,7 +9535,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
         forwardButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
         forwardButton.setOnClickListener(v -> {
-            fluffyConfig.hideForwardName = false;
+            fluffyConfig.showForwardWoAuthorship = false;
             openForward(false);
         });        bottomMessagesActionContainer.addView(forwardButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
         if (getDialogId() == UserObject.VERIFY) {
@@ -24227,7 +24227,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             updateBottomOverlay(true);
             updateGreetingLock();
             updateGreetInfo();
-        } else if (fluffyConfig.saveDel && id == fluffyConfig.MESSAGES_DELETED_NOTIFICATION) {
+        } else if (fluffyConfig.saveDeletedMessages && id == fluffyConfig.MESSAGES_DELETED_NOTIFICATION) {
             long dialogId = (Long) args[0];
             if (dialogId != dialog_id && (ChatObject.isChannel(currentChat) || dialogId != 0)) {
                 return;
@@ -32942,7 +32942,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     selectedObjectGroup = null;
                     return;
                 }
-                fluffyConfig.hideForwardName = false;
+                fluffyConfig.showForwardWoAuthorship = false;
                 forwardingMessage = selectedObject;
                 forwardingMessageGroup = selectedObjectGroup;
                 Bundle args = new Bundle();
@@ -33157,7 +33157,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     selectedObjectGroup = null;*/
                     return;
                 }
-                fluffyConfig.hideForwardName = true;
+                fluffyConfig.showForwardWoAuthorship = true;
                 forwardingMessage = selectedObject;
                 forwardingMessageGroup = selectedObjectGroup;
                 Bundle args = new Bundle();
@@ -41959,7 +41959,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             return;
         }
 
-//        if (fluffyConfig.ShowWallpaperChat(currentUser.id)) {
+//        if (fluffyConfig.shouldShowWallpaperForChat(currentUser.id)) {
 //            return;
 //        }
 
@@ -41972,7 +41972,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         TLRPC.WallPaper wallPaper;
         if (currentUser != null) {
-            wallPaper = fluffyConfig.ShowWallpaperChat(currentUser.id) ? chatThemeController.getDialogWallpaper(dialog_id) : null;
+            wallPaper = fluffyConfig.shouldShowWallpaperForChat(currentUser.id) ? chatThemeController.getDialogWallpaper(dialog_id) : null;
         } else {
             wallPaper = chatThemeController.getDialogWallpaper(dialog_id);
         }
