@@ -141,6 +141,10 @@
     <string name="json">JSON</string>
 
     <string name="SendPhotoAsSticker">Send As Sticker</string>
+
     <string name="fluffy_channel_link">TG Chanel</string>
     <string name="fluffy_github_link">Github</string>
+
+    <string name="PhotoCopy">Photo copy</string>
+
 </resources>
