@@ -45,6 +45,7 @@ public final class fluffyConfig {
     private static final String KEY_USE_SYSTEM_FONTS = "useSystemFonts";
     private static final String KEY_HIDE_TOP_BAR = "hideTopBar";
     private static final String KEY_CENTER_TITLE = "centerTitle";
+    private static final String KEY_CENTER_TITLE_IN_CHAT = "centerTitleInChat";
     private static final String KEY_USE_SOLAR_ICONS = "useSolarIcons";
     private static final String KEY_HIDE_BUTTON_WRITE = "hideButtonWrite";
     private static final String KEY_SHOW_STORIES = "showStories";
@@ -101,6 +102,7 @@ public final class fluffyConfig {
     public static boolean useSystemFonts;
     public static boolean hideTopBar;
     public static boolean centerTitle;
+    public static boolean centerTitleInChat;
     public static boolean useSolarIcons;
     public static boolean hideButtonWrite;
     public static boolean showStories;
@@ -165,6 +167,7 @@ public final class fluffyConfig {
         disableRoundingNumber = preferences.getBoolean(KEY_DISABLE_ROUNDING_NUMBER, false);
         formatTimeWithSeconds = preferences.getBoolean(KEY_FORMAT_TIME_WITH_SECONDS, false);
         centerTitle = preferences.getBoolean(KEY_CENTER_TITLE, false);
+        centerTitleInChat = preferences.getBoolean(KEY_CENTER_TITLE_IN_CHAT, false);
         useSystemFonts = preferences.getBoolean(KEY_USE_SYSTEM_FONTS, false);
         hideTopBar = preferences.getBoolean(KEY_HIDE_TOP_BAR, false);
         doubleTapInAction = preferences.getInt(KEY_DOUBLE_TAP_IN_ACTION, DOUBLE_TAP_ACTION_REACTION);
@@ -233,6 +236,7 @@ public final class fluffyConfig {
         showCallIcon = toggleBooleanSetting(KEY_SHOW_CALL_ICON, showCallIcon);
     }
 
+
     public static void toggleMoreInfoOnline() {
         moreInfoOnline = toggleBooleanSetting(KEY_MORE_INFO_ONLINE, moreInfoOnline);
     }
@@ -249,6 +253,9 @@ public final class fluffyConfig {
         centerTitle = toggleBooleanSetting(KEY_CENTER_TITLE, centerTitle);
     }
 
+    public static void toggleCenterTitleInChat() {
+        centerTitleInChat = toggleBooleanSetting(KEY_CENTER_TITLE_IN_CHAT, centerTitleInChat);
+    }
     public static void toggleRoundingNumber() {
         disableRoundingNumber = toggleBooleanSetting(KEY_DISABLE_ROUNDING_NUMBER, disableRoundingNumber);
     }

@@ -1,5 +1,10 @@
 package org.ushastoe.fluffy;
 import org.telegram.messenger.R;
+
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -34,11 +39,35 @@ public class BulletinHelper {
 
     public static void showRestartNotification(@NonNull BaseFragment fragment) {
         try {
-            Drawable drawable = fragment.getContext().getDrawable(R.drawable.filled_info);
+            Context context = fragment.getParentActivity();
+            if (context == null) {
+                return;
+            }
+
+            Drawable drawable = context.getDrawable(R.drawable.filled_info);
             String text = getString(R.string.restartAlarm);
+            String buttonText = getString(R.string.restart);
+
+            Runnable restartAction = () -> {
+                try {
+                    PackageManager pm = context.getPackageManager();
+                    Intent intent = pm.getLaunchIntentForPackage(context.getPackageName());
+                    if (intent != null) {
+                        ComponentName componentName = intent.getComponent();
+                        Intent mainIntent = Intent.makeRestartActivityTask(componentName);
+                        context.startActivity(mainIntent);
+                        System.exit(0);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            };
+
             currentBulletin = BulletinFactory.of(fragment).createSimpleBulletin(
                     drawable,
-                    text
+                    text,
+                    buttonText,    // Текст кнопки
+                    restartAction  // Действие при нажатии
             );
             currentBulletin.show();
         } catch (Exception e) {
