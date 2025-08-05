@@ -30,6 +30,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.BubbleActivity;
 import org.telegram.ui.Components.PaintingOverlay;
 import org.telegram.ui.Components.VideoEditTextureView;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1108,7 +1109,9 @@ public class CropView extends FrameLayout implements CropAreaView.AreaViewListen
     }
 
     RectF cropRect = new RectF();
-    RectF sizeRect = new RectF(0, 0, RESULT_SIDE, RESULT_SIDE);
+    float factor = fluffyConfig.largePhoto ? 2f : 1f;
+    RectF sizeRect = new RectF(0, 0, RESULT_SIDE * factor, RESULT_SIDE * factor);
+
 
     private void updateCropTransform() {
         if (cropTransform == null || state == null) {

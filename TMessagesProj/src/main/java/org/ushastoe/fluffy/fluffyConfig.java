@@ -61,6 +61,7 @@ public final class fluffyConfig {
     private static final String KEY_SHOW_FORWARD_WO_AUTHORSHIP = "showForwardWoAuthorship";
     private static final String KEY_SHOW_VIEW_MESSAGE_FROM_USER = "showViewMessageFromUser";
     private static final String KEY_SHOW_JSON = "showJSON";
+    private static final String KEY_BIG_PHOTO = "bigPhoto";
     private static final String KEY_READ_STICKER_MODE = "readSticker";
     private static final String KEY_TITLE_TYPE = "typeTitle";
     private static final String KEY_TRANSPARENCY = "transparency";
@@ -125,12 +126,12 @@ public final class fluffyConfig {
     public static int stickerRadius;
     public static int doubleTapInAction;
     public static int doubleTapOutAction;
+    public static boolean largePhoto;
     public static boolean sendPhotoAsSticker = false;
 
 
     public static final ArrayList<Long> blockSticker = new ArrayList<>();
 
-    // Запрещаем создание экземпляров класса
     private fluffyConfig() {}
 
     /**
@@ -183,6 +184,7 @@ public final class fluffyConfig {
         showCopyPhoto = preferences.getBoolean(KEY_SHOW_COPY_PHOTO, true);
         showForwardWoAuthorship = preferences.getBoolean(KEY_SHOW_FORWARD_WO_AUTHORSHIP, true);
         showViewMessageFromUser = preferences.getBoolean(KEY_SHOW_VIEW_MESSAGE_FROM_USER, true);
+        largePhoto = preferences.getBoolean(KEY_BIG_PHOTO, false);
         showJSON = preferences.getBoolean(KEY_SHOW_JSON, true);
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
     }
@@ -286,6 +288,9 @@ public final class fluffyConfig {
 
     public static void toggleShowViewMessageFromUser() {
         showViewMessageFromUser = toggleBooleanSetting(KEY_SHOW_VIEW_MESSAGE_FROM_USER, showViewMessageFromUser);
+    }
+    public static void toggleLargePhoto() {
+        largePhoto = toggleBooleanSetting(KEY_BIG_PHOTO, largePhoto);
     }
 
     public static void toggleShowJSON() {

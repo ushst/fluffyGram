@@ -141,7 +141,7 @@ public class appearanceActivitySettings extends BaseFragment {
         DOUBLE_TAP_HEADER,
         DIVIDER_4,
         QUICK_SWITCHER,
-        MENU_CUSTOMIZATION,
+        MENU_CUSTOMIZATION
     }
     private static class Row {
         RowType type;

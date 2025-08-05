@@ -16,6 +16,12 @@ configurations.all {
     exclude group: 'androidx.recyclerview', module: 'recyclerview'
 }
 
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(new FileInputStream(localPropsFile))
+}
+
 dependencies {
     implementation 'androidx.fragment:fragment:1.2.0'
     implementation 'androidx.core:core:1.10.1'
@@ -141,6 +147,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+            buildConfigField "int", "TELEGRAM_APP_ID", localProps.getProperty('TELEGRAM_APP_ID', '0')
+            buildConfigField "String", "TELEGRAM_APP_HASH", "${localProps.getProperty('TELEGRAM_APP_HASH', 'dummy')}"
+
+            resValue 'string', 'MAPS_V2_API', localProps.getProperty("MAPS_V2_API")
         }
 
         release {
@@ -156,6 +166,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "false"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+            buildConfigField "int", "TELEGRAM_APP_ID", localProps.getProperty('TELEGRAM_APP_ID', '23')
+            buildConfigField "String", "TELEGRAM_APP_HASH", "${localProps.getProperty('TELEGRAM_APP_HASH', 'du23mmy')}"
+
+            resValue 'string', 'MAPS_V2_API', localProps.getProperty("MAPS_V2_API")
         }
     }
     namespace 'org.telegram.messenger'
@@ -172,7 +186,6 @@ def getProps(String propName) {
         return "";
     }
 }
-apply plugin: 'com.google.gms.google-services'
 
 task checkVisibility {
     doFirst {
