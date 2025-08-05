@@ -147,4 +147,6 @@
 
     <string name="PhotoCopy">Photo copy</string>
 
+    <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
+
 </resources>
