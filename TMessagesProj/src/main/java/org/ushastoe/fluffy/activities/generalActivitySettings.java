@@ -3,10 +3,10 @@ package org.ushastoe.fluffy.activities;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
-import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.os.Parcelable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -35,64 +35,94 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
-import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class generalActivitySettings extends BaseFragment {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
-    private int rowCount;
     private LinearLayoutManager layoutManager;
+    private Parcelable recyclerViewState = null;
 
-    private headerSettingsCell headerSettingsCell;
-    private View actionBarBackground;
-    private AnimatorSet actionBarAnimator;
+    private List<Row> rows = new ArrayList<>();
 
-    private int[] location = new int[2];
+    private enum RowType {
+        HEADER,
+        TEXT_CHECK,
+        TEXT_CELL,
+        SHADOW_SECTION
+    }
 
-    private int divider;
-    private int divider2;
-    private int mainRow;
-    private int voiceRecognitionRow;
-    private int voiceRecognitionSelecterRow;
-    private int downloadSpeedBoostRow;
-    private int saveEditRow;
-    private int saveDelRow;
-    private int chatRow;
-    private int unmuteVideoWithVolumeRow;
+    private enum RowIdentifier {
+        GENERAL_HEADER,
+        DOWNLOAD_SPEED_BOOST,
+        SAVE_EDITED,
+        SAVE_DELETED,
+        UNMUTE_WITH_VOLUME,
+        DIVIDER_1,
+        VOICE_RECOGNITION_HEADER,
+        VOICE_PROVIDER_SELECTOR,
+        VOICE_PROVIDER_CREDENTIALS,
+        BIG_PHOTO_SEND
+    }
+
+    private static class Row {
+        RowType type;
+        RowIdentifier id;
+        int textResId;
+        int iconResId;
+
+        Row(RowIdentifier id, RowType type, int textResId, int iconResId) {
+            this.id = id;
+            this.type = type;
+            this.textResId = textResId;
+            this.iconResId = iconResId;
+        }
+
+        Row(RowIdentifier id, RowType type, int textResId) {
+            this(id, type, textResId, 0);
+        }
+
+        Row(RowIdentifier id, RowType type) {
+            this(id, type, 0, 0);
+        }
+    }
 
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
-
         DownloadController.getInstance(currentAccount).loadAutoDownloadConfig(true);
-        updateRows(true);
-
+        updateRows();
         return true;
     }
 
-    private void updateRows(boolean fullNotify) {
-        rowCount = 0;
+    private void updateRows() {
+        recyclerViewState = layoutManager != null ? layoutManager.onSaveInstanceState() : null;
 
-        mainRow = rowCount++;
-        downloadSpeedBoostRow = rowCount++;
-        saveEditRow = rowCount++;
-        saveDelRow = rowCount++;
-        unmuteVideoWithVolumeRow = rowCount++;
-        divider2 = rowCount++;
-        chatRow = rowCount++;
-        voiceRecognitionSelecterRow = rowCount++;
-        voiceRecognitionRow = rowCount++;
+        rows.clear();
 
-        if (listAdapter != null && fullNotify) {
+        rows.add(new Row(RowIdentifier.GENERAL_HEADER, RowType.HEADER, R.string.General));
+        rows.add(new Row(RowIdentifier.DOWNLOAD_SPEED_BOOST, RowType.TEXT_CHECK, R.string.downloadSpeedBoost, R.drawable.msg_download));
+        rows.add(new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit));
+        rows.add(new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete));
+        rows.add(new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute));
+        rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
+
+        rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
+        rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
+        rows.add(new Row(RowIdentifier.VOICE_PROVIDER_SELECTOR, RowType.TEXT_CELL, R.string.UseCloudflare, R.drawable.voicechat_muted));
+        rows.add(new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar));
+
+
+        if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
+            if (recyclerViewState != null) {
+                layoutManager.onRestoreInstanceState(recyclerViewState);
+            }
         }
     }
 
@@ -140,31 +170,57 @@ public class generalActivitySettings extends BaseFragment {
         itemAnimator.setDelayAnimations(false);
         itemAnimator.setSupportsChangeAnimations(false);
         listView.setItemAnimator(itemAnimator);
-        listView.setOnItemClickListener((view, position, x, y) -> {
-            if (position == mainRow || position == divider2 || position == chatRow) {
-                return;
-            }
-            TextCell textCell = (TextCell) view;
-            if (position == downloadSpeedBoostRow) {
-                fluffyConfig.toggleDownloadSpeedBoost();
-                textCell.setChecked(fluffyConfig.downloadSpeedBoost);
-            } else if (position == saveEditRow) {
-                fluffyConfig.toggleSaveEditedMessages();
-                textCell.setChecked(fluffyConfig.saveEditedMessages);
-            } else if (position == saveDelRow) {
-                fluffyConfig.toggleSaveDeletedMessages();
-                textCell.setChecked(fluffyConfig.saveDeletedMessages);
-            } else if (position == unmuteVideoWithVolumeRow) {
-                fluffyConfig.toggleUnmuteVideoWithVolume();
-                textCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
-            } else if (position == voiceRecognitionRow) {
-                WhisperHelper.showCfCredentialsDialog(this);
-            } else if (position == voiceRecognitionSelecterRow) {
-                selectProvider(context);
-                textCell.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.useCloudFlare() ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
-            }
+
+        // Упрощенный обработчик нажатий
+        listView.setOnItemClickListener((view, position) -> {
+            Row row = rows.get(position);
+            handleItemClick(row.id, view, context);
         });
+
         return fragmentView;
+    }
+
+    private void handleItemClick(RowIdentifier rowId, View view, Context context) {
+        if (view instanceof TextCell) {
+            TextCell textCell = (TextCell) view;
+            switch (rowId) {
+                case DOWNLOAD_SPEED_BOOST:
+                    fluffyConfig.toggleDownloadSpeedBoost();
+                    textCell.setChecked(fluffyConfig.downloadSpeedBoost);
+                    break;
+                case SAVE_EDITED:
+                    fluffyConfig.toggleSaveEditedMessages();
+                    textCell.setChecked(fluffyConfig.saveEditedMessages);
+                    break;
+                case SAVE_DELETED:
+                    fluffyConfig.toggleSaveDeletedMessages();
+                    textCell.setChecked(fluffyConfig.saveDeletedMessages);
+                    break;
+                case UNMUTE_WITH_VOLUME:
+                    fluffyConfig.toggleUnmuteVideoWithVolume();
+                    textCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
+                    break;
+                case BIG_PHOTO_SEND:
+                    fluffyConfig.toggleLargePhoto();
+                    textCell.setChecked(fluffyConfig.largePhoto);
+                    break;
+                case VOICE_PROVIDER_CREDENTIALS:
+                    WhisperHelper.showCfCredentialsDialog(this);
+                    break;
+                case VOICE_PROVIDER_SELECTOR:
+                    selectProvider(context);
+                    break;
+            }
+        }
+    }
+
+    private int getRowPositionById(RowIdentifier id) {
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).id == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private void selectProvider(Context context) {
@@ -191,9 +247,9 @@ public class generalActivitySettings extends BaseFragment {
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
                 fluffyConfig.setProviderVoice(index);
-                RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(voiceRecognitionSelecterRow);
-                if (holder != null) {
-                    listAdapter.onBindViewHolder(holder, voiceRecognitionSelecterRow);
+                int position = getRowPositionById(RowIdentifier.VOICE_PROVIDER_SELECTOR);
+                if (position != -1) {
+                    listAdapter.notifyItemChanged(position);
                 }
                 dialogRef.get().dismiss();
             });
@@ -212,7 +268,10 @@ public class generalActivitySettings extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        updateRows(false);
+        // Просто обновляем строки без полного пересоздания адаптера
+        if(listAdapter != null) {
+            listAdapter.notifyDataSetChanged();
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -225,72 +284,85 @@ public class generalActivitySettings extends BaseFragment {
 
         @Override
         public int getItemCount() {
-            return rowCount;
+            return rows.size();
         }
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            switch (holder.getItemViewType()) {
-                // HeaderCell
-                case 0:
+            Row row = rows.get(position);
+
+            switch (row.type) {
+                case SHADOW_SECTION:
                     holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     break;
-                case 2:
-                    TextCell textCellc = (TextCell) holder.itemView;
-                    if (position == voiceRecognitionRow) {
-                        textCellc.setTextAndIcon(getString(R.string.CloudflareCredentials), R.drawable.msg_voicechat_solar, true);
-                    } else if (position == voiceRecognitionSelecterRow) {
-                        textCellc.setTextAndValueAndIcon(getString(R.string.UseCloudflare), fluffyConfig.useCloudFlare() ? "Cloudflare" : "Telegram", R.drawable.voicechat_muted, true);
-                    }
-                    break;
-                case 3:
+                case HEADER:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    if (position == mainRow) {
-                        headerCell.setText(getString(R.string.General));
-                    } else if (position == chatRow) {
-                        headerCell.setText(getString(R.string.Chats));
-                    }
+                    headerCell.setText(getString(row.textResId));
                     break;
-                case 1:
-                default:
+                case TEXT_CELL:
                     TextCell textCell = (TextCell) holder.itemView;
-                    textCell.setEnabled(true);
-                    if (position == downloadSpeedBoostRow) {
-                        textCell.setTextAndCheckAndIcon(getString(R.string.downloadSpeedBoost), fluffyConfig.downloadSpeedBoost, R.drawable.msg_download, true);
-                    } else if (position == saveEditRow) {
-                        textCell.setTextAndCheckAndIcon(getString(R.string.saveEditRow), fluffyConfig.saveEditedMessages, R.drawable.msg_edit, true);
-                    } else if (position == saveDelRow) {
-                        textCell.setTextAndCheckAndIcon(getString(R.string.saveDelRow), fluffyConfig.saveDeletedMessages, R.drawable.msg_delete, true);
-                    } else if (position == unmuteVideoWithVolumeRow) {
-                        textCell.setTextAndCheckAndIcon(getString(R.string.unmuteVideoWithVolume), fluffyConfig.unmuteVideoWithVolume, R.drawable.media_unmute, true);
+                    if (row.id == RowIdentifier.VOICE_PROVIDER_SELECTOR) {
+                        String value = fluffyConfig.useCloudFlare() ? "Cloudflare" : "Telegram";
+                        textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
+                    } else {
+                        textCell.setTextAndIcon(getString(row.textResId), row.iconResId, true);
                     }
                     break;
-                }
-    }
+                case TEXT_CHECK:
+                    TextCell textCheckCell = (TextCell) holder.itemView;
+                    textCheckCell.setEnabled(true);
+                    boolean checked = false;
+                    switch (row.id) {
+                        case DOWNLOAD_SPEED_BOOST:
+                            checked = fluffyConfig.downloadSpeedBoost;
+                            break;
+                        case BIG_PHOTO_SEND:
+                            checked = fluffyConfig.largePhoto;
+                            break;
+                        case SAVE_EDITED:
+                            checked = fluffyConfig.saveEditedMessages;
+                            break;
+                        case SAVE_DELETED:
+                            checked = fluffyConfig.saveDeletedMessages;
+                            break;
+                        case UNMUTE_WITH_VOLUME:
+                            checked = fluffyConfig.unmuteVideoWithVolume;
+                            break;
+                    }
+                    textCheckCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
+                    break;
+            }
+        }
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return true;
+            int position = holder.getAdapterPosition();
+            if (position < 0 || position >= rows.size()) {
+                return false;
+            }
+            Row row = rows.get(position);
+            return row.type != RowType.SHADOW_SECTION && row.type != RowType.HEADER;
         }
 
+        @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
             switch (viewType) {
-                case 0:
-                    view = new ShadowSectionCell(mContext);
-                    break;
-                case 2:
-                    view = new TextCell(mContext);
-                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-                    break;
-                case 3:
+                case 0: // HEADER
                     view = new HeaderCell(mContext);
                     view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 1:
-                default:
+                case 1: // TEXT_CHECK
                     view = new TextCell(mContext, 0, false, true, null);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case 2: // TEXT_CELL
+                    view = new TextCell(mContext);
+                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case 3: // SHADOW_SECTION
+                default:
+                    view = new ShadowSectionCell(mContext);
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
@@ -300,27 +372,19 @@ public class generalActivitySettings extends BaseFragment {
 
         @Override
         public int getItemViewType(int position) {
-            Set<Integer> settingsRows = new HashSet<>(Arrays.asList(
-                downloadSpeedBoostRow, saveEditRow, saveDelRow, unmuteVideoWithVolumeRow
-            ));
-            Set<Integer> settingsWithCheckRows = new HashSet<>(Arrays.asList(
-                voiceRecognitionRow, voiceRecognitionSelecterRow
-            ));
-            Set<Integer> headersRows = new HashSet<>(Arrays.asList(
-                mainRow, chatRow
-            ));
-
-            if (settingsRows.contains(position)) {
-                return 1;
+            Row row = rows.get(position);
+            switch (row.type) {
+                case HEADER:
+                    return 0;
+                case TEXT_CHECK:
+                    return 1;
+                case TEXT_CELL:
+                    return 2;
+                case SHADOW_SECTION:
+                    return 3;
+                default:
+                    return 3;
             }
-
-            if (settingsWithCheckRows.contains(position)) {
-                return 2;
-            }
-            if (headersRows.contains(position)) {
-                return 3;
-            }
-            return 0;
         }
     }
 
@@ -328,7 +392,7 @@ public class generalActivitySettings extends BaseFragment {
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, NotificationsCheckCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, NotificationsCheckCell.class, TextCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));

@@ -1,0 +1,3 @@
+[submodule "fluffygram_dev"]
+	path = fluffygram_dev
+	url = git@github.com:krolchonok/fluffygram_dev

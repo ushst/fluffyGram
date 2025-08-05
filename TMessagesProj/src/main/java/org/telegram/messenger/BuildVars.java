@@ -18,7 +18,7 @@ import java.util.Objects;
 
 public class BuildVars {
 
-    public static boolean DEBUG_VERSION = BuildConfig.DEBUG_VERSION;
+        public static boolean DEBUG_VERSION = BuildConfig.DEBUG_VERSION;
     public static boolean LOGS_ENABLED = BuildConfig.DEBUG_VERSION;
     public static boolean DEBUG_PRIVATE_VERSION = BuildConfig.DEBUG_PRIVATE_VERSION;
     public static boolean USE_CLOUD_STRINGS = true;
@@ -26,8 +26,8 @@ public class BuildVars {
     public static boolean NO_SCOPED_STORAGE = Build.VERSION.SDK_INT <= 29;
     public static String BUILD_VERSION_STRING = BuildConfig.BUILD_VERSION_STRING;
 
-    public static int APP_ID = 21749989;
-    public static String APP_HASH = "52fc44e08e17c1c2cc2ba59508b5ed3f";
+    public static int APP_ID = BuildConfig.TELEGRAM_APP_ID;
+    public static String APP_HASH = BuildConfig.TELEGRAM_APP_HASH;
 
     // SafetyNet key for Google Identity SDK, set it to empty to disable
     public static String SAFETYNET_KEY = "";

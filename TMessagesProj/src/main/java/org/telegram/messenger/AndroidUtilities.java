@@ -2955,7 +2955,7 @@ public class AndroidUtilities {
     }
 
     public static int getPhotoSize() {
-        return getPhotoSize(false);
+        return getPhotoSize(fluffyConfig.largePhoto);
     }
 
     public static int getPhotoSize(boolean highQuality) {
