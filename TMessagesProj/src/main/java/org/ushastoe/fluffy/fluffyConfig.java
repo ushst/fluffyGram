@@ -50,6 +50,7 @@ public final class fluffyConfig {
     private static final String KEY_HIDE_BUTTON_WRITE = "hideButtonWrite";
     private static final String KEY_SHOW_STORIES = "showStories";
     private static final String KEY_SHOW_DIVIDER = "showDivider";
+    private static final String KEY_CUSTOM_TITLE = "customTitle";
     private static final String KEY_SHOW_CALL_ICON = "showCallIcon";
     private static final String KEY_NEW_SWITCH_STYLE = "newSwitchStyle";
     private static final String KEY_MORE_INFO_ONLINE = "moreInfoOnline";
@@ -120,6 +121,7 @@ public final class fluffyConfig {
     public static boolean showViewMessageFromUser;
     public static boolean showJSON;
     public static int readStickerMode;
+    public static String customTitle;
     public static int titleType;
     public static int transparency;
     public static int stickerSize;
@@ -187,6 +189,7 @@ public final class fluffyConfig {
         largePhoto = preferences.getBoolean(KEY_BIG_PHOTO, false);
         showJSON = preferences.getBoolean(KEY_SHOW_JSON, true);
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
+        customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
     }
 
     // --- Методы-переключатели (Toggles) ---
@@ -342,7 +345,12 @@ public final class fluffyConfig {
     }
 
     public static void setSendPhotoAsSticker(boolean shouldSendAsSticker) {
-        fluffyConfig.sendPhotoAsSticker = shouldSendAsSticker;
+        sendPhotoAsSticker = shouldSendAsSticker;
+    }
+
+    public static void setСustomTitle(String title) {
+        customTitle = setStringSetting(KEY_CUSTOM_TITLE, title);
+
     }
 
     // --- Утилитарные методы ---
@@ -391,6 +399,8 @@ public final class fluffyConfig {
                 return "telegram";
             case 3:
                 return "Disable";
+            case 4:
+                return customTitle;
             default:
                 return LocaleController.getString("AppName", R.string.AppName);
         }
@@ -469,7 +479,8 @@ public final class fluffyConfig {
      * @param key Ключ настройки.
      * @param value Значение для сохранения.
      */
-    private static void setStringSetting(String key, String value) {
+    private static String setStringSetting(String key, String value) {
         preferences.edit().putString(key, value).apply();
+        return value;
     }
 }

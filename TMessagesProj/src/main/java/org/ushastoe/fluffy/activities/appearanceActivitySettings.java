@@ -569,61 +569,145 @@ public class appearanceActivitySettings extends BaseFragment {
         builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
         showDialog(builder.create());
     }
+
     private void titleSelecter(Context context) {
         if (getParentActivity() == null) {
             return;
         }
         AtomicReference<Dialog> dialogRef = new AtomicReference<>();
 
-        LinearLayout linearLayout = new LinearLayout(context);
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        // Контейнер с нужными отступами
+        LinearLayout rootLayout = new LinearLayout(context);
+        rootLayout.setOrientation(LinearLayout.VERTICAL);
+        int paddingHorizontal = dp(24);
+        int paddingBottom = dp(16);
+        rootLayout.setPadding(paddingHorizontal, 0, paddingHorizontal, paddingBottom);
 
         CharSequence[] items = new CharSequence[]{
                 fluffyConfig.getUsername(),
                 "fluffy",
                 "telegram",
-                "Disable"
+                "Disable",
+                "Custom"
         };
 
+        // Список радио-клеток для удобной синхронизации состояний
+        List<RadioColorCell> radioCells = new ArrayList<>();
+
+        // Поле для кастомного текста
+        final EditText customEditText = new EditText(context);
+        customEditText.setHint("Введите свой вариант");
+        customEditText.setText(fluffyConfig.customTitle != null ? fluffyConfig.customTitle : "");
+        LinearLayout.LayoutParams editTextParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        editTextParams.topMargin = dp(8);
+        customEditText.setLayoutParams(editTextParams);
+
+        // Создаём радиокнопки
         for (int i = 0; i < items.length; ++i) {
             final int index = i;
             RadioColorCell cell = new RadioColorCell(getParentActivity());
             cell.setPadding(dp(4), 0, dp(4), 0);
-            cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+            cell.setCheckColor(
+                    Theme.getColor(Theme.key_radioBackground),
+                    Theme.getColor(Theme.key_dialogRadioBackgroundChecked)
+            );
             cell.setTextAndValue(items[index], index == fluffyConfig.titleType);
-            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
-            linearLayout.addView(cell);
+            cell.setBackground(Theme.createSelectorDrawable(
+                    Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            LinearLayout.LayoutParams cellParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            cellParams.bottomMargin = dp(2);
+            cell.setLayoutParams(cellParams);
+            rootLayout.addView(cell);
+            radioCells.add(cell);
+
             cell.setOnClickListener(v -> {
-                fluffyConfig.setTitleType(index);
-                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
-                int position = getRowPositionById(RowIdentifier.SELECT_TITLE);
-                if (position != -1) {
-                    RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(position);
-                    if (holder != null) {
-                        listAdapter.onBindViewHolder(holder, position);
+                // Снимаем выбор со всех, кроме текущего
+                for (int j = 0; j < radioCells.size(); j++) {
+                    radioCells.get(j).setChecked(j == index, true);
+                }
+                if (index == 4) {
+                    customEditText.setVisibility(View.VISIBLE);
+                    customEditText.requestFocus();
+                    if (fluffyConfig.customTitle != null) {
+                        customEditText.setText(fluffyConfig.customTitle);
+                        customEditText.setSelection(fluffyConfig.customTitle.length());
+                    } else {
+                        customEditText.setText("");
                     }
-                }
-
-
-                if (LaunchActivity.getSafeLastFragment() != null) {
-                    showRestartNotification(LaunchActivity.getSafeLastFragment());
-                }
-                getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
-                dialogRef.get().dismiss();
-                if (chatListPreviewCell != null) {
-                    chatListPreviewCell.updateTitle(true);
+                } else {
+                    customEditText.setVisibility(View.GONE);
+                    fluffyConfig.setTitleType(index);
+                    getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+                    int position = getRowPositionById(RowIdentifier.SELECT_TITLE);
+                    if (position != -1) {
+                        RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(position);
+                        if (holder != null) {
+                            listAdapter.onBindViewHolder(holder, position);
+                        }
+                    }
+                    getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+                    dialogRef.get().dismiss();
+                    if (chatListPreviewCell != null) {
+                        chatListPreviewCell.updateTitle(true);
+                    }
                 }
             });
         }
 
+        rootLayout.addView(customEditText);
+
+        if (fluffyConfig.titleType == 4) {
+            customEditText.setVisibility(View.VISIBLE);
+            if (fluffyConfig.customTitle != null) {
+                customEditText.setText(fluffyConfig.customTitle);
+                customEditText.setSelection(fluffyConfig.customTitle.length());
+            }
+        } else {
+            customEditText.setVisibility(View.GONE);
+        }
+
         Dialog dialog = new AlertDialog.Builder(getParentActivity())
                 .setTitle(getString(R.string.TitleSelecter))
-                .setView(linearLayout)
+                .setView(rootLayout)
                 .setNegativeButton(getString("Cancel", R.string.Cancel), null)
+                .setPositiveButton("OK", (d, id) -> {
+                    if (radioCells.get(4).isChecked()) {
+                        String customTitle = customEditText.getText().toString().trim();
+                        if (!customTitle.isEmpty()) {
+                            fluffyConfig.setTitleType(4);
+                            fluffyConfig.setСustomTitle(customTitle);
+                            onCustomTitleEntered(customTitle);
+                            if (chatListPreviewCell != null) {
+                                chatListPreviewCell.updateTitle(true);
+                            }
+                        }
+                    }
+                    int position = getRowPositionById(RowIdentifier.SELECT_TITLE);
+                    if (position != -1) {
+                        listAdapter.notifyItemChanged(position);
+                    }
+                })
                 .create();
         dialogRef.set(dialog);
         showDialog(dialog);
     }
+
+    // Утилита dp для отступов
+    private int dp(int value) {
+        float density = getParentActivity().getResources().getDisplayMetrics().density;
+        return (int) (value * density + 0.5f);
+    }
+
+    // Пример обработчика кастомного текста:
+    private void onCustomTitleEntered(String customTitle) {
+        // Здесь пиши, что тебе нужно делать с customTitle
+        // Можно модифицировать fluffyConfig или отправить куда-то еще
+    }
+
 
     private void showTransparencyDialog(Context context) {
         if (getParentActivity() == null) {
@@ -1031,6 +1115,7 @@ public class appearanceActivitySettings extends BaseFragment {
                                 case 1 -> "fluffy";
                                 case 2 -> "telegram";
                                 case 3 -> getString(R.string.Disable);
+                                case 4 -> fluffyConfig.customTitle;
                                 default -> LocaleController.getString(R.string.AppName);
                             };
                             break;
