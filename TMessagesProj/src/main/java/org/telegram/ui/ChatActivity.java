@@ -310,6 +310,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.ushastoe.fluffy.helpers.IpApiHelper;
+import org.ushastoe.fluffy.helpers.IpInfoBottomSheet;
 import org.ushastoe.fluffy.helpers.JsonBottomSheet;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.activities.MessageDetailsActivity;
@@ -43224,28 +43225,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             });
         }
 
+        options.add(R.drawable.msg_copy, getString(R.string.CopyWithoutProtocol), () -> {
+            AndroidUtilities.addToClipboard(str.replace("http://", "").replace("https://", ""));
+        });
+
         if (isIp) {
             options.add(R.drawable.msg_info, getString(R.string.checkIp), () -> {
-                IpApiHelper.getIpInfo(str, (ipInfo, exception) -> {
-                    String textDialog;
-                    if (exception != null) {
-                        textDialog = "Error fetching IP info: " + exception;
-                    } else {
-                        textDialog = ipInfo.toString();
-                    }
-
-                    // Обновляем UI в главном потоке
-                    getActivity().runOnUiThread(() -> {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
-                        builder.setTitle(LocaleController.getString(R.string.checkIp));
-                        builder.setMessage(textDialog);
-                        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialogInterface, i) -> {
-                            dialogInterface.dismiss();
-                        });
-
-                        builder.show();
-                    });
-                });
+                BaseFragment fragment = getParentLayout().getFragmentStack().get(0);
+                IpInfoBottomSheet.show(fragment, str);
             });
         }
 
@@ -44865,7 +44852,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         if (fluffyConfig.showJSON) {
-            items.add("JSON");
+            items.add(LocaleController.getString(R.string.json));
             options.add(OPTION_DETAILS);
             icons.add(R.drawable.msg_info);
         }
