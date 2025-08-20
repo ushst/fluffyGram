@@ -150,5 +150,7 @@
     <string name="Voip">Voice</string>
 
     <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
+    <string name="CopyWithoutProtocol">Copy without protocol</string>
+
 
 </resources>
