@@ -22,7 +22,7 @@ dependencies {
 }
 
 def localProps = new Properties()
-def localPropsFile = rootProject.file('local.properties')
+def localPropsFile = rootProject.file('fluffyGram_dev/devlocal.properties')
 if (localPropsFile.exists()) {
     localProps.load(new FileInputStream(localPropsFile))
 }
@@ -49,17 +49,17 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file(localProps['RELEASE_STORE_FILE'])
-            storePassword localProps['RELEASE_STORE_PASSWORD']
-            keyAlias localProps['RELEASE_KEY_ALIAS']
-            keyPassword localProps['RELEASE_KEY_PASSWORD']
+            storeFile file(localProps['storeFile'])
+            storePassword localProps['storePassword']
+            keyAlias localProps['keyAlias']
+            keyPassword localProps['keyPassword']
         }
 
         release {
-            storeFile file(localProps['RELEASE_STORE_FILE'])
-            storePassword localProps['RELEASE_STORE_PASSWORD']
-            keyAlias localProps['RELEASE_KEY_ALIAS']
-            keyPassword localProps['RELEASE_KEY_PASSWORD']
+            storeFile file(localProps['storeFile'])
+            storePassword localProps['storePassword']
+            keyAlias localProps['keyAlias']
+            keyPassword localProps['keyPassword']
         }
     }
 

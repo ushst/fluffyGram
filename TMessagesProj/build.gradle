@@ -17,7 +17,7 @@ configurations.all {
 }
 
 def localProps = new Properties()
-def localPropsFile = rootProject.file('local.properties')
+def localPropsFile = rootProject.file('fluffyGram_dev/devlocal.properties')
 if (localPropsFile.exists()) {
     localProps.load(new FileInputStream(localPropsFile))
 }
