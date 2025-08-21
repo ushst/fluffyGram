@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6.0)
 
-set(CMAKE_C_COMPILER_LAUNCHER ccache)
-set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 set(CMAKE_CXX_FLAGS "-std=c++14 -DANDROID -g")
 set(CMAKE_C_FLAGS "-w -std=c11 -DANDROID -D_LARGEFILE_SOURCE=1 -g")
 set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
@@ -402,10 +400,10 @@ if (${ANDROID_ABI} STREQUAL "armeabi-v7a")
     target_compile_definitions(${NATIVE_LIB} PUBLIC
             ANDROID_ARM_NEON=false)
     target_sources(${NATIVE_LIB} PRIVATE
-        third_party/libyuv/source/compare_neon.cc
-        third_party/libyuv/source/rotate_neon.cc
-        third_party/libyuv/source/row_neon.cc
-        third_party/libyuv/source/scale_neon.cc)
+            third_party/libyuv/source/compare_neon.cc
+            third_party/libyuv/source/rotate_neon.cc
+            third_party/libyuv/source/row_neon.cc
+            third_party/libyuv/source/scale_neon.cc)
 else()
     set_target_properties(${NATIVE_LIB} PROPERTIES
             ANDROID_ARM_NEON FALSE
@@ -425,7 +423,7 @@ if (${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${ANDROID_ABI} STREQUAL "arm64-v8a"
             opus/silk/arm/NSQ_del_dec_neon_intr.c
             opus/silk/arm/biquad_alt_neon_intr.c
             opus/silk/fixed/arm/warped_autocorrelation_FIX_neon_intr.c
-            )
+    )
 
 elseif(${ANDROID_ABI} STREQUAL "x86")
     target_compile_definitions(${NATIVE_LIB} PUBLIC
@@ -646,7 +644,7 @@ target_link_libraries(${NATIVE_LIB}
         tgvoip
         tgcalls
         tgcalls_tp
-#        mozjpeg
+        #        mozjpeg
         tgnet
         flac
         rlottie
