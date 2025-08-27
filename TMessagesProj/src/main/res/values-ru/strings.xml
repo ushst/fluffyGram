@@ -261,4 +261,8 @@
     <string name="RemindTodayAt">\'Отправить сегодня в\' HH:mm</string>
     <string name="RemindDayAt">\'Отправить\' d MMM \'в\' HH:mm</string>
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
+    <string name="BlockSticker">Заблокировать стикер</string>
+    <string name="StickerAddedToBlacklist">Стикер добавлен в чёрный список</string>
+    <string name="StickerRemovedFromBlacklist">Стикер удалён из чёрного списка</string>
+    <string name="StickerBlacklist">Чёрный список стикеров</string>
 </resources>

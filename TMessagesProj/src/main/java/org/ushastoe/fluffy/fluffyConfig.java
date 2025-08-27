@@ -71,6 +71,7 @@ public final class fluffyConfig {
     private static final String KEY_DOUBLE_TAP_IN_ACTION = "doubleTapInAction";
     private static final String KEY_DOUBLE_TAP_OUT_ACTION = "doubleTapOutAction";
     private static final String KEY_ID_HIDE_WALLPAPER = "idHideWallpaper";
+    private static final String KEY_BLOCKED_STICKERS = "blockedStickers";
 
 
 
@@ -141,7 +142,6 @@ public final class fluffyConfig {
      */
     public static void init() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
-        blockSticker.add(5314569068664091371L);
         load();
     }
 
@@ -190,6 +190,18 @@ public final class fluffyConfig {
         showJSON = preferences.getBoolean(KEY_SHOW_JSON, true);
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
+
+        blockSticker.clear();
+        String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
+        if (!blocked.isEmpty()) {
+            for (String s : blocked.split(";")) {
+                if (s.isEmpty()) continue;
+                try {
+                    blockSticker.add(Long.parseLong(s));
+                } catch (NumberFormatException ignore) {
+                }
+            }
+        }
     }
 
     // --- Методы-переключатели (Toggles) ---
@@ -446,6 +458,27 @@ public final class fluffyConfig {
         }
         List<String> ids = Arrays.asList(idHideWallpaper.split(";"));
         return !ids.contains(String.valueOf(id));
+    }
+
+    public static void addBlockedSticker(long id) {
+        if (!blockSticker.contains(id)) {
+            blockSticker.add(id);
+            saveBlockedStickers();
+        }
+    }
+
+    public static void removeBlockedSticker(long id) {
+        if (blockSticker.remove(id)) {
+            saveBlockedStickers();
+        }
+    }
+
+    private static void saveBlockedStickers() {
+        ArrayList<String> ids = new ArrayList<>();
+        for (Long l : blockSticker) {
+            ids.add(String.valueOf(l));
+        }
+        setStringSetting(KEY_BLOCKED_STICKERS, TextUtils.join(";", ids));
     }
 
 
