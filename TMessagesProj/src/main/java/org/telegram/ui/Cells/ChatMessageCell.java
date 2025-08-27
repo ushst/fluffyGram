@@ -13065,7 +13065,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         if (flipImage) {
                             canvas.save();
                             canvas.scale(-1f, 1, photoImage.getCenterX(), photoImage.getCenterY());
-                            if (blurredPhotoImage != null && fitPhotoImage) {
+                            if (blurredPhotoImage != null && fitPhotoImage && !shouldBlurBlockedSticker) {
                                 blurredPhotoImage.setImageCoords(photoImage.getImageX(), photoImage.getImageY(), photoImage.getImageWidth(), photoImage.getImageHeight());
                                 blurredPhotoImage.setRoundRadius(photoImage.getRoundRadius());
                                 blurredPhotoImage.draw(canvas);
@@ -13078,11 +13078,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 }
                                 if (currentMessageObject.hasMediaSpoilers()) {
                                     drawBlurredPhoto(canvas);
+                                } else if (shouldBlurBlockedSticker) {
+                                    blurredPhotoImage.setImageCoords(photoImage.getImageX(), photoImage.getImageY(), photoImage.getImageWidth(), photoImage.getImageHeight());
+                                    blurredPhotoImage.setRoundRadius(photoImage.getRoundRadius());
+                                    blurredPhotoImage.draw(canvas);
                                 }
                             }
                             canvas.restore();
                         } else {
-                            if (blurredPhotoImage != null && fitPhotoImage) {
+                            if (blurredPhotoImage != null && fitPhotoImage && !shouldBlurBlockedSticker) {
                                 blurredPhotoImage.setImageCoords(photoImage.getImageX(), photoImage.getImageY(), photoImage.getImageWidth(), photoImage.getImageHeight());
                                 blurredPhotoImage.setRoundRadius(photoImage.getRoundRadius());
                                 blurredPhotoImage.draw(canvas);
@@ -13107,6 +13111,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 }
                                 if (currentMessageObject.hasMediaSpoilers()) {
                                     drawBlurredPhoto(canvas);
+                                } else if (shouldBlurBlockedSticker) {
+                                    blurredPhotoImage.setImageCoords(photoImage.getImageX(), photoImage.getImageY(), photoImage.getImageWidth(), photoImage.getImageHeight());
+                                    blurredPhotoImage.setRoundRadius(photoImage.getRoundRadius());
+                                    blurredPhotoImage.draw(canvas);
                                 }
                             }
                         }

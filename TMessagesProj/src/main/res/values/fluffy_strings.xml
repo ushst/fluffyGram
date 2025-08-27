@@ -153,8 +153,8 @@
     <string name="CopyWithoutProtocol">Copy without protocol</string>
 
     <string name="BlockSticker">Add sticker to blacklist</string>
+    <string name="UnblockSticker">Remove sticker from blacklist</string>
     <string name="StickerAddedToBlacklist">Sticker added to blacklist</string>
     <string name="StickerRemovedFromBlacklist">Sticker removed from blacklist</string>
     <string name="StickerBlacklist">Sticker blacklist</string>
-    
 </resources>

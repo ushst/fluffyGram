@@ -136,6 +136,7 @@ public class appearanceActivitySettings extends BaseFragment {
         REMOVE_GIFTS,
         REMOVE_BUTTON,
         STICKER_HEADER,
+        STICKER_BLACKLIST,
         DIVIDER_3,
         STICKER_RADIUS_SEEKBAR,
         DOUBLE_TAP_HEADER,
@@ -209,6 +210,7 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
         rows.add(new Row(RowIdentifier.STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
         rows.add(new Row(RowIdentifier.STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
+        rows.add(new Row(RowIdentifier.STICKER_BLACKLIST, RowType.TEXT_CELL, R.string.StickerBlacklist, R.drawable.msg_block));
         rows.add(new Row(RowIdentifier.DIVIDER_3, RowType.SHADOW_SECTION));
 
         rows.add(new Row(RowIdentifier.DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
@@ -483,6 +485,9 @@ public class appearanceActivitySettings extends BaseFragment {
                 break;
             case STICKER_TIME_STAMP:
                 timeStampSelecter(context);
+                break;
+            case STICKER_BLACKLIST:
+                presentFragment(new StickerBlacklistActivity());
                 break;
             case TRANSPARENCY:
                 showTransparencyDialog(context);

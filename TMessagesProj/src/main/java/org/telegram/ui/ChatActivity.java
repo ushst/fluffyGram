@@ -1158,6 +1158,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int OPTION_SAVE_MESSAGE = 9993;
     private final static int OPTION_FORWARD_WO_AUTHOR = 9994;
     private final static int OPTION_VIEW_HISTORY = 9995;
+    private final static int OPTION_BLOCK_STICKER = 9996;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -33413,6 +33414,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 showDialog(alert);
                 break;
             }
+            case OPTION_BLOCK_STICKER: {
+                if (selectedObject != null && selectedObject.getDocument() != null) {
+                    long id = selectedObject.getDocument().id;
+                    if (fluffyConfig.blockSticker.contains(id)) {
+                        fluffyConfig.removeBlockedSticker(id);
+                        BulletinHelper.showSimpleBulletin(this, getString(R.string.StickerRemovedFromBlacklist), null);
+                    } else {
+                        fluffyConfig.addBlockedSticker(id);
+                        BulletinHelper.showSimpleBulletin(this, getString(R.string.StickerAddedToBlacklist), null);
+                    }
+                    updateVisibleRows();
+                }
+                break;
+            }
             case OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC: {
                 if (Build.VERSION.SDK_INT >= 23 && (Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && getParentActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     getParentActivity().requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 4);
@@ -44740,6 +44755,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         options.add(OPTION_ADD_TO_STICKERS_OR_MASKS);
                         icons.add(R.drawable.msg_sticker);
                         TLRPC.Document document = selectedObject.getDocument();
+                        if (fluffyConfig.blockSticker.contains(document.id)) {
+                            items.add(LocaleController.getString(R.string.UnblockSticker));
+                        } else {
+                            items.add(LocaleController.getString(R.string.BlockSticker));
+                        }
+                        options.add(OPTION_BLOCK_STICKER);
+                        icons.add(R.drawable.msg_block);
                         if (!getMediaDataController().isStickerInFavorites(document)) {
                             if (getMediaDataController().canAddStickerToFavorites()) {
                                 items.add(LocaleController.getString(R.string.AddToFavorites));
@@ -44922,6 +44944,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     items.add(LocaleController.getString(R.string.AddToStickers));
                     options.add(OPTION_ADD_TO_STICKERS_OR_MASKS);
                     icons.add(R.drawable.msg_sticker);
+                    TLRPC.Document document = selectedObject.getDocument();
+                    if (fluffyConfig.blockSticker.contains(document.id)) {
+                        items.add(LocaleController.getString(R.string.UnblockSticker));
+                    } else {
+                        items.add(LocaleController.getString(R.string.BlockSticker));
+                    }
+                    options.add(OPTION_BLOCK_STICKER);
+                    icons.add(R.drawable.msg_block);
                 } else if (type == 8) {
                     long uid = selectedObject.messageOwner.media.user_id;
                     TLRPC.User user = null;
