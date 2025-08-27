@@ -152,5 +152,9 @@
     <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
     <string name="CopyWithoutProtocol">Copy without protocol</string>
 
-
+    <string name="BlockSticker">Add sticker to blacklist</string>
+    <string name="StickerAddedToBlacklist">Sticker added to blacklist</string>
+    <string name="StickerRemovedFromBlacklist">Sticker removed from blacklist</string>
+    <string name="StickerBlacklist">Sticker blacklist</string>
+    
 </resources>
