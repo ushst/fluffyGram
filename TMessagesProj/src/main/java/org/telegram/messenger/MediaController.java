@@ -75,6 +75,7 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.common.images.WebImage;
 
+import org.ushastoe.fluffy.fluffyConfig;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.chromecast.ChromecastController;
 import org.telegram.messenger.chromecast.ChromecastFileServer;
@@ -3022,8 +3023,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             int result;
             if (neededAudioFocus == 3) {
                 result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN);
+            } else if (neededAudioFocus == 2) {
+                int focusType = fluffyConfig.pauseMusicOnMedia ? AudioManager.AUDIOFOCUS_GAIN_TRANSIENT : AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
+                result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, focusType);
             } else {
-                result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, neededAudioFocus == 2 && !SharedConfig.pauseMusicOnMedia ? AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK : AudioManager.AUDIOFOCUS_GAIN);
+                result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
             }
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 audioFocus = AUDIO_FOCUSED;

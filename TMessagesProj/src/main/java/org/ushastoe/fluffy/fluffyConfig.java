@@ -55,6 +55,7 @@ public final class fluffyConfig {
     private static final String KEY_NEW_SWITCH_STYLE = "newSwitchStyle";
     private static final String KEY_MORE_INFO_ONLINE = "moreInfoOnline";
     private static final String KEY_UNMUTE_VIDEO_WITH_VOLUME = "unmuteVideoWithVolume";
+    private static final String KEY_PAUSE_MUSIC_ON_MEDIA = "pauseMusicOnMedia";
     private static final String KEY_SAVE_DELETED_MESSAGES = "saveDel";
     private static final String KEY_SAVE_EDITED_MESSAGES = "saveEdit";
     private static final String KEY_HIDE_GIFT = "hideGift";
@@ -114,6 +115,7 @@ public final class fluffyConfig {
     public static boolean newSwitchStyle;
     public static boolean moreInfoOnline;
     public static boolean unmuteVideoWithVolume;
+    public static boolean pauseMusicOnMedia;
     public static boolean saveDeletedMessages;
     public static boolean saveEditedMessages;
     public static boolean hideGift;
@@ -165,6 +167,7 @@ public final class fluffyConfig {
         showCallIcon = preferences.getBoolean(KEY_SHOW_CALL_ICON, true);
         moreInfoOnline = preferences.getBoolean(KEY_MORE_INFO_ONLINE, false);
         unmuteVideoWithVolume = preferences.getBoolean(KEY_UNMUTE_VIDEO_WITH_VOLUME, true);
+        pauseMusicOnMedia = preferences.getBoolean(KEY_PAUSE_MUSIC_ON_MEDIA, true);
         titleType = preferences.getInt(KEY_TITLE_TYPE, 0);
         readStickerMode = preferences.getInt(KEY_READ_STICKER_MODE, 0);
         disableRoundingNumber = preferences.getBoolean(KEY_DISABLE_ROUNDING_NUMBER, false);
@@ -260,6 +263,10 @@ public final class fluffyConfig {
 
     public static void toggleUnmuteVideoWithVolume() {
         unmuteVideoWithVolume = toggleBooleanSetting(KEY_UNMUTE_VIDEO_WITH_VOLUME, unmuteVideoWithVolume);
+    }
+
+    public static void togglePauseMusicOnMedia() {
+        pauseMusicOnMedia = toggleBooleanSetting(KEY_PAUSE_MUSIC_ON_MEDIA, pauseMusicOnMedia);
     }
 
     public static void toggleDownloadSpeedBoost() {

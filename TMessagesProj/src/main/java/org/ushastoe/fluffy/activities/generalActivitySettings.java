@@ -63,6 +63,7 @@ public class generalActivitySettings extends BaseFragment {
         SAVE_EDITED,
         SAVE_DELETED,
         UNMUTE_WITH_VOLUME,
+        PAUSE_MUSIC_ON_MEDIA,
         DIVIDER_1,
         VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
@@ -110,6 +111,7 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit));
         rows.add(new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete));
         rows.add(new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute));
+        rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
 
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
@@ -199,6 +201,10 @@ public class generalActivitySettings extends BaseFragment {
                 case UNMUTE_WITH_VOLUME:
                     fluffyConfig.toggleUnmuteVideoWithVolume();
                     textCell.setChecked(fluffyConfig.unmuteVideoWithVolume);
+                    break;
+                case PAUSE_MUSIC_ON_MEDIA:
+                    fluffyConfig.togglePauseMusicOnMedia();
+                    textCell.setChecked(fluffyConfig.pauseMusicOnMedia);
                     break;
                 case BIG_PHOTO_SEND:
                     fluffyConfig.toggleLargePhoto();
@@ -327,6 +333,9 @@ public class generalActivitySettings extends BaseFragment {
                             break;
                         case UNMUTE_WITH_VOLUME:
                             checked = fluffyConfig.unmuteVideoWithVolume;
+                            break;
+                        case PAUSE_MUSIC_ON_MEDIA:
+                            checked = fluffyConfig.pauseMusicOnMedia;
                             break;
                     }
                     textCheckCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
