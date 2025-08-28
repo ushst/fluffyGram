@@ -4221,6 +4221,10 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             FileLog.e(e);
         }
 
+        NotificationsController.audioManager.abandonAudioFocus(this);
+        hasAudioFocus = 0;
+        audioFocus = AUDIO_NO_FOCUS_NO_DUCK;
+
         return true;
     }
 
