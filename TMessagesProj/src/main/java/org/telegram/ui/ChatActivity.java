@@ -32892,6 +32892,27 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         updatePinnedMessageView(true);
         updateVisibleRows();
+        scrollToMessageId(messageObject.getId(), 0, true, 0, true, 0);
+        chatListView.post(() -> {
+            int count = chatListView.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View view = chatListView.getChildAt(i);
+                MessageObject mo = null;
+                if (view instanceof ChatMessageCell) {
+                    mo = ((ChatMessageCell) view).getMessageObject();
+                } else if (view instanceof ChatActionCell) {
+                    mo = ((ChatActionCell) view).getMessageObject();
+                }
+                if (mo != null && mo.getId() == messageObject.getId()) {
+                    int bottomSpace = (int) (chatListView.getMeasuredHeight() - blurredViewBottomOffset - chatActivityEnterView.getMeasuredHeight());
+                    int dy = bottomSpace - (view.getTop() + view.getHeight());
+                    if (dy > 0) {
+                        chatListView.smoothScrollBy(0, dy);
+                    }
+                    break;
+                }
+            }
+        });
 
         if (!asSuggestion && !messageObject.scheduled && !messageObject.isQuickReply()) {
             TLRPC.TL_messages_getMessageEditData req = new TLRPC.TL_messages_getMessageEditData();
