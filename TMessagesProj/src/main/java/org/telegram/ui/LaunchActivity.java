@@ -4391,7 +4391,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                         } else if (response1 instanceof TLRPC.TL_attachMenuBotsBot) {
                                             TLRPC.TL_attachMenuBotsBot bot = (TLRPC.TL_attachMenuBotsBot) response1;
                                             TLRPC.TL_attachMenuBot attachBot = bot.bot;
-                                            final boolean botAttachable = attachBot != null && (attachBot.show_in_side_menu || attachBot.show_in_attach_menu);
+                                            final boolean botAttachable = attachBot != null && (fluffyConfig.allowAttachAnyBot || attachBot.show_in_side_menu || attachBot.show_in_attach_menu);
                                             if ((attachBot.inactive || attachBot.side_menu_disclaimer_needed) && botAttachable) {
                                                 WebAppDisclaimerAlert.show(this, (allowSendMessage) -> {
                                                     attachBot.inactive = false;

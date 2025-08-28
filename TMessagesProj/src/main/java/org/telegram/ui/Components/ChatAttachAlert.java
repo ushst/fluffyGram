@@ -136,6 +136,7 @@ import org.telegram.ui.WebAppDisclaimerAlert;
 import org.telegram.ui.web.BotWebViewContainer;
 import org.telegram.ui.bots.BotWebViewMenuContainer;
 import org.telegram.ui.bots.ChatAttachAlertBotWebViewLayout;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -5654,7 +5655,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                         attachBotsStartRow = buttonsCount;
                         attachMenuBots.clear();
                         for (TLRPC.TL_attachMenuBot bot : MediaDataController.getInstance(currentAccount).getAttachMenuBots().bots) {
-                            if (bot.show_in_attach_menu && MediaDataController.canShowAttachMenuBot(bot, chatActivity.getCurrentChat() != null ? chatActivity.getCurrentChat() : chatActivity.getCurrentUser())) {
+                            if ((fluffyConfig.allowAttachAnyBot || bot.show_in_attach_menu) && MediaDataController.canShowAttachMenuBot(bot, chatActivity.getCurrentChat() != null ? chatActivity.getCurrentChat() : chatActivity.getCurrentUser())) {
                                 attachMenuBots.add(bot);
                             }
                         }

@@ -63,6 +63,7 @@ public final class fluffyConfig {
     private static final String KEY_SHOW_FORWARD_WO_AUTHORSHIP = "showForwardWoAuthorship";
     private static final String KEY_SHOW_VIEW_MESSAGE_FROM_USER = "showViewMessageFromUser";
     private static final String KEY_SHOW_JSON = "showJSON";
+    private static final String KEY_ALLOW_ATTACH_ANY_BOT = "allowAttachAnyBot";
     private static final String KEY_BIG_PHOTO = "bigPhoto";
     private static final String KEY_READ_STICKER_MODE = "readSticker";
     private static final String KEY_TITLE_TYPE = "typeTitle";
@@ -133,6 +134,8 @@ public final class fluffyConfig {
     public static int doubleTapOutAction;
     public static boolean largePhoto;
     public static boolean sendPhotoAsSticker = false;
+    public static boolean allowAttachAnyBot;
+
 
 
     public static final ArrayList<Long> blockSticker = new ArrayList<>();
@@ -173,6 +176,7 @@ public final class fluffyConfig {
         disableRoundingNumber = preferences.getBoolean(KEY_DISABLE_ROUNDING_NUMBER, false);
         formatTimeWithSeconds = preferences.getBoolean(KEY_FORMAT_TIME_WITH_SECONDS, false);
         centerTitle = preferences.getBoolean(KEY_CENTER_TITLE, false);
+        allowAttachAnyBot = preferences.getBoolean(KEY_ALLOW_ATTACH_ANY_BOT, false);
         centerTitleInChat = preferences.getBoolean(KEY_CENTER_TITLE_IN_CHAT, false);
         useSystemFonts = preferences.getBoolean(KEY_USE_SYSTEM_FONTS, false);
         hideTopBar = preferences.getBoolean(KEY_HIDE_TOP_BAR, false);
@@ -221,6 +225,9 @@ public final class fluffyConfig {
         saveEditedMessages = toggleBooleanSetting(KEY_SAVE_EDITED_MESSAGES, saveEditedMessages);
     }
 
+    public static void toggleAllowAttachAnyBot() {
+        allowAttachAnyBot = toggleBooleanSetting(KEY_ALLOW_ATTACH_ANY_BOT, allowAttachAnyBot);
+    }
     public static void toggleGift() {
         hideGift = toggleBooleanSetting(KEY_HIDE_GIFT, hideGift);
     }

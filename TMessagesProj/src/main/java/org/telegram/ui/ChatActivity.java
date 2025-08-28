@@ -27088,7 +27088,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
                                 if (!attachMenuBot.inactive) {
                                     openAttachBotLayout(user.id, attachMenuBotStartCommand, false);
-                                } else if (attachMenuBot.show_in_attach_menu || attachMenuBot.show_in_side_menu) {
+                                } else if (fluffyConfig.allowAttachAnyBot || attachMenuBot.show_in_attach_menu || attachMenuBot.show_in_side_menu) {
                                     WebAppDisclaimerAlert.show(getContext(), ignore -> {
                                         TLRPC.TL_messages_toggleBotInAttachMenu botRequest = new TLRPC.TL_messages_toggleBotInAttachMenu();
                                         botRequest.bot = MessagesController.getInstance(currentAccount).getInputUser(user.id);

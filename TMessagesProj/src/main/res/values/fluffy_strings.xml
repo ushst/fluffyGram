@@ -140,6 +140,7 @@
     <string name="save_message">Save Message</string>
     <string name="report_chat">Report Chat</string>
     <string name="json">JSON</string>
+    <string name="AllowAttachAnyBot">Allow attaching any bot</string>
 
     <string name="SendPhotoAsSticker">Send As Sticker</string>
 

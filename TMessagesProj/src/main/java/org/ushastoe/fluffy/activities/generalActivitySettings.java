@@ -64,11 +64,13 @@ public class generalActivitySettings extends BaseFragment {
         SAVE_DELETED,
         UNMUTE_WITH_VOLUME,
         PAUSE_MUSIC_ON_MEDIA,
+        ALLOW_ATTACH_ANY_BOT,
         DIVIDER_1,
         VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
         VOICE_PROVIDER_CREDENTIALS,
-        BIG_PHOTO_SEND
+        BIG_PHOTO_SEND,
+        EXPERIMENTAL_SETTINGS_HEADER
     }
 
     private static class Row {
@@ -118,6 +120,9 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
         rows.add(new Row(RowIdentifier.VOICE_PROVIDER_SELECTOR, RowType.TEXT_CELL, R.string.UseCloudflare, R.drawable.voicechat_muted));
         rows.add(new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar));
+
+        rows.add(new Row(RowIdentifier.EXPERIMENTAL_SETTINGS_HEADER, RowType.HEADER, R.string.Other));
+        rows.add(new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot));
 
 
         if (listAdapter != null) {
@@ -205,6 +210,10 @@ public class generalActivitySettings extends BaseFragment {
                 case PAUSE_MUSIC_ON_MEDIA:
                     fluffyConfig.togglePauseMusicOnMedia();
                     textCell.setChecked(fluffyConfig.pauseMusicOnMedia);
+                    break;
+                case ALLOW_ATTACH_ANY_BOT:
+                    fluffyConfig.toggleAllowAttachAnyBot();
+                    textCell.setChecked(fluffyConfig.allowAttachAnyBot);
                     break;
                 case BIG_PHOTO_SEND:
                     fluffyConfig.toggleLargePhoto();
@@ -324,6 +333,9 @@ public class generalActivitySettings extends BaseFragment {
                             break;
                         case BIG_PHOTO_SEND:
                             checked = fluffyConfig.largePhoto;
+                            break;
+                        case ALLOW_ATTACH_ANY_BOT:
+                            checked = fluffyConfig.allowAttachAnyBot;
                             break;
                         case SAVE_EDITED:
                             checked = fluffyConfig.saveEditedMessages;

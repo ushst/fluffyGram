@@ -34,6 +34,7 @@ import org.telegram.ui.Cells.DrawerUserCell;
 import org.telegram.ui.Cells.EmptyCell;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SideMenultItemAnimator;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -330,7 +331,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         if (menuBots != null && menuBots.bots != null) {
             for (int i = 0; i < menuBots.bots.size(); i++) {
                 TLRPC.TL_attachMenuBot bot = menuBots.bots.get(i);
-                if (bot.show_in_side_menu) {
+                if (fluffyConfig.allowAttachAnyBot || bot.show_in_side_menu) {
                     items.add(new Item(bot));
                     showDivider = true;
                 }
