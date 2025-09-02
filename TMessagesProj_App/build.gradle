@@ -31,7 +31,7 @@ android {
     compileSdkVersion 35
     buildToolsVersion '35.0.0'
 
-    defaultConfig.applicationId = APP_PACKAGE
+    defaultConfig.applicationId = "org.ushastoe.fluffy"
 
     sourceSets.main.jniLibs.srcDirs = ['../TMessagesProj/jni/']
 
