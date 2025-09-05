@@ -158,4 +158,5 @@
     <string name="StickerAddedToBlacklist">Sticker added to blacklist</string>
     <string name="StickerRemovedFromBlacklist">Sticker removed from blacklist</string>
     <string name="StickerBlacklist">Sticker blacklist</string>
+    <string name="GoToFirstMessage">Go to Beginning</string>
 </resources>
