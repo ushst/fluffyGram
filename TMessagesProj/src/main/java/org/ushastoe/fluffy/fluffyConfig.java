@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
@@ -520,7 +521,37 @@ public final class fluffyConfig {
         preferences.edit().putInt(key, value).apply();
         return value;
     }
+    public static String getDCGeo(int dcId) {
+        switch (dcId) {
+            case 1:
+            case 3:
+                return "USA (Miami)";
+            case 2:
+            case 4:
+                return "NLD (Amsterdam)";
+            case 5:
+                return "SGP (Singapore)";
+            default:
+                return "UNK (Unknown)";
+        }
+    }
 
+    public static String getDCName(int dc, Context context) {
+        switch (dc) {
+            case 1:
+                return "Pluto";
+            case 2:
+                return "Venus";
+            case 3:
+                return "Aurora";
+            case 4:
+                return "Vesta";
+            case 5:
+                return "Flora";
+            default:
+                return context.getString(R.string.NumberUnknown);
+        }
+    }
     /**
      * Обобщенный метод для сохранения String-настроек.
      * @param key Ключ настройки.
