@@ -1582,7 +1582,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int remove_fee = 71;
     private final static int charge_fee = 72;
 
-    private final static int wallpaperShower = 998;
+    private final static int wallpaperShower = 997;
+    private final static int goToFirstMessage = 998;
     private final static int open_settings_fluffy = 999;
 
     private final static int id_chat_compose_panel = 1000;
@@ -3915,6 +3916,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     hideActionMode();
                     updatePinnedMessageView(true);
                     updateVisibleRows();
+                } else if (id == goToFirstMessage) {
+                    // This is timestamp of launch date of the Telegram.
+                    // August 2013.
+                    jumpToDate(1375350800);
                 } else if (id == edit_quick_reply) {
                     QuickRepliesController.QuickReply currentQuickReply = QuickRepliesController.getInstance(currentAccount).findReply(getQuickReplyId());
                     QuickRepliesActivity.openRenameReplyAlert(getContext(), currentAccount, quickReplyShortcut, currentQuickReply, getResourceProvider(), false, name -> {
@@ -4282,7 +4287,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 });
             }
 
-
+            headerItem.lazilyAddSubItem(goToFirstMessage, R.drawable.to_first, LocaleController.getString(R.string.GoToFirstMessage));
             headerItem.lazilyAddSubItem(open_settings_fluffy, R.drawable.msg_emoji_cat, LocaleController.getString(R.string.fluffySettings));
             if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
                 savedChatsItem = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.SavedViewAsChats));
