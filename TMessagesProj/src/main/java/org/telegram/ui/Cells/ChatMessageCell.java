@@ -10112,7 +10112,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 } else {
                     photoImage.setImageCoords(0, y + namesOffset + additionalTop, photoWidth, photoHeight);
                 }
-                if (messageObject.hasMediaSpoilers() && SpoilerEffect2.supports()) {
+                if ((messageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) && SpoilerEffect2.supports()) {
                     if (mediaSpoilerEffect2 == null) {
                         mediaSpoilerEffect2 = makeSpoilerEffect();
                         if (mediaSpoilerEffect2Index != null) {
@@ -13084,9 +13084,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 if (currentMessageObject.hasMediaSpoilers()) {
                                     drawBlurredPhoto(canvas);
                                 } else if (shouldBlurBlockedSticker) {
-                                    blurredPhotoImage.setImageCoords(photoImage.getImageX(), photoImage.getImageY(), photoImage.getImageWidth(), photoImage.getImageHeight());
-                                    blurredPhotoImage.setRoundRadius(photoImage.getRoundRadius());
-                                    blurredPhotoImage.draw(canvas);
+                                    drawBlurredPhoto(canvas);
                                 }
                             }
                             canvas.restore();
@@ -13117,9 +13115,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 if (currentMessageObject.hasMediaSpoilers()) {
                                     drawBlurredPhoto(canvas);
                                 } else if (shouldBlurBlockedSticker) {
-                                    blurredPhotoImage.setImageCoords(photoImage.getImageX(), photoImage.getImageY(), photoImage.getImageWidth(), photoImage.getImageHeight());
-                                    blurredPhotoImage.setRoundRadius(photoImage.getRoundRadius());
-                                    blurredPhotoImage.draw(canvas);
+                                    drawBlurredPhoto(canvas);
                                 }
                             }
                         }
@@ -14156,7 +14152,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         } else {
                             imageDrawn = true;
                         }
-                        if (currentMessageObject.hasMediaSpoilers()) {
+                        if (currentMessageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) {
                             blurredPhotoImage.setAlpha(alpha);
                             drawBlurredPhoto(canvas);
                             blurredPhotoImage.setAlpha(1f);
@@ -14168,7 +14164,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         } else {
                             imageDrawn = true;
                         }
-                        if (currentMessageObject.hasMediaSpoilers()) {
+                        if (currentMessageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) {
                             drawBlurredPhoto(canvas);
                         }
                     }
@@ -14354,7 +14350,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             } else {
                                 imageDrawn = true;
                             }
-                            if (currentMessageObject.hasMediaSpoilers()) {
+                            if (currentMessageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) {
                                 blurredPhotoImage.setAlpha(alpha);
                                 drawBlurredPhoto(canvas);
                                 blurredPhotoImage.setAlpha(1f);
@@ -14366,7 +14362,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             } else {
                                 imageDrawn = true;
                             }
-                            if (currentMessageObject.hasMediaSpoilers()) {
+                            if (currentMessageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) {
                                 drawBlurredPhoto(canvas);
                             }
                         }
@@ -14498,7 +14494,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         } else {
                             imageDrawn = true;
                         }
-                        if (currentMessageObject.hasMediaSpoilers()) {
+                        if (currentMessageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) {
                             blurredPhotoImage.setAlpha(alpha);
                             drawBlurredPhoto(canvas);
                             blurredPhotoImage.setAlpha(1f);
@@ -14510,7 +14506,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         } else {
                             imageDrawn = true;
                         }
-                        if (currentMessageObject.hasMediaSpoilers()) {
+                        if (currentMessageObject.hasMediaSpoilers() || shouldBlurBlockedSticker) {
                             drawBlurredPhoto(canvas);
                         }
                     }
@@ -15269,7 +15265,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private boolean allowDrawPhotoImage() {
-        return !currentMessageObject.hasMediaSpoilers() || currentMessageObject.isMediaSpoilersRevealed || mediaSpoilerRevealProgress != 0f || blurredPhotoImage.getBitmap() == null;
+        return (!currentMessageObject.hasMediaSpoilers() && !shouldBlurBlockedSticker) || currentMessageObject.isMediaSpoilersRevealed || mediaSpoilerRevealProgress != 0f || (currentMessageObject.hasMediaSpoilers() && blurredPhotoImage.getBitmap() == null);
     }
 
     public void layoutTextXY(boolean parent) {
