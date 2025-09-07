@@ -159,4 +159,8 @@
     <string name="StickerRemovedFromBlacklist">Sticker removed from blacklist</string>
     <string name="StickerBlacklist">Sticker blacklist</string>
     <string name="GoToFirstMessage">Go to Beginning</string>
+
+    <string name="RegistrationDateApprox">Approximate registration date: %1$s</string>
+    <string name="RegistrationDateNewer">Registered after: %1$s</string>
+    <string name="RegistrationDateOlder">Registered before: %1$s</string>
 </resources>
