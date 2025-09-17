@@ -3,20 +3,28 @@ package org.ushastoe.fluffy.activities;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
+import android.os.Environment;
 import android.os.Parcelable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -35,9 +43,13 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -49,6 +61,8 @@ public class generalActivitySettings extends BaseFragment {
     private Parcelable recyclerViewState = null;
 
     private List<Row> rows = new ArrayList<>();
+
+    private static final int REQUEST_CODE_IMPORT_FLUFFY_CONFIG = 1003;
 
     private enum RowType {
         HEADER,
@@ -64,12 +78,14 @@ public class generalActivitySettings extends BaseFragment {
         SAVE_DELETED,
         UNMUTE_WITH_VOLUME,
         PAUSE_MUSIC_ON_MEDIA,
+        BIG_PHOTO_SEND,
+        EXPORT_FLUFFY_CONFIG,
+        IMPORT_FLUFFY_CONFIG,
         ALLOW_ATTACH_ANY_BOT,
         DIVIDER_1,
         VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
         VOICE_PROVIDER_CREDENTIALS,
-        BIG_PHOTO_SEND,
         EXPERIMENTAL_SETTINGS_HEADER
     }
 
@@ -115,6 +131,8 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute));
         rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
+        rows.add(new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download));
+        rows.add(new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved));
 
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
         rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
@@ -211,13 +229,19 @@ public class generalActivitySettings extends BaseFragment {
                     fluffyConfig.togglePauseMusicOnMedia();
                     textCell.setChecked(fluffyConfig.pauseMusicOnMedia);
                     break;
-                case ALLOW_ATTACH_ANY_BOT:
-                    fluffyConfig.toggleAllowAttachAnyBot();
-                    textCell.setChecked(fluffyConfig.allowAttachAnyBot);
-                    break;
                 case BIG_PHOTO_SEND:
                     fluffyConfig.toggleLargePhoto();
                     textCell.setChecked(fluffyConfig.largePhoto);
+                    break;
+                case EXPORT_FLUFFY_CONFIG:
+                    exportFluffyConfig(context);
+                    break;
+                case IMPORT_FLUFFY_CONFIG:
+                    startImportFluffyConfig();
+                    break;
+                case ALLOW_ATTACH_ANY_BOT:
+                    fluffyConfig.toggleAllowAttachAnyBot();
+                    textCell.setChecked(fluffyConfig.allowAttachAnyBot);
                     break;
                 case VOICE_PROVIDER_CREDENTIALS:
                     WhisperHelper.showCfCredentialsDialog(this);
@@ -225,6 +249,110 @@ public class generalActivitySettings extends BaseFragment {
                 case VOICE_PROVIDER_SELECTOR:
                     selectProvider(context);
                     break;
+            }
+        }
+    }
+
+    private void exportFluffyConfig(Context context) {
+        if (context == null) {
+            return;
+        }
+        File sourceFile = fluffyConfig.getPreferencesFile();
+        if (sourceFile == null || !sourceFile.exists()) {
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ExportFluffyConfigError), getString(R.string.FluffyConfigFileMissing));
+            return;
+        }
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        if (downloadsDir == null) {
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ExportFluffyConfigError), null);
+            return;
+        }
+        if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ExportFluffyConfigError), downloadsDir.getAbsolutePath());
+            return;
+        }
+        File destinationFile = new File(downloadsDir, fluffyConfig.getPreferencesFileName());
+        try {
+            if (!AndroidUtilities.copyFile(sourceFile, destinationFile)) {
+                throw new IOException("Failed to copy file");
+            }
+            MediaScannerConnection.scanFile(context.getApplicationContext(), new String[]{destinationFile.getAbsolutePath()}, null, null);
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ExportFluffyConfigSuccess), destinationFile.getAbsolutePath());
+        } catch (Exception e) {
+            FileLog.e(e);
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ExportFluffyConfigError), e.getLocalizedMessage());
+        }
+    }
+
+    private void startImportFluffyConfig() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"text/xml", "application/xml"});
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.ImportFluffyConfig)), REQUEST_CODE_IMPORT_FLUFFY_CONFIG);
+    }
+
+    private void importFluffyConfigFromUri(Uri uri) {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        DocumentFile documentFile = DocumentFile.fromSingleUri(activity, uri);
+        String expectedName = fluffyConfig.getPreferencesFileName();
+        if (documentFile == null || documentFile.getName() == null || !expectedName.equals(documentFile.getName())) {
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigError), getString(R.string.ImportFluffyConfigWrongFile));
+            return;
+        }
+        File destinationFile = fluffyConfig.getPreferencesFile();
+        if (destinationFile == null) {
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigError), getString(R.string.FluffyConfigFileMissing));
+            return;
+        }
+        File parent = destinationFile.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigError), parent.getAbsolutePath());
+            return;
+        }
+        File tempFile = null;
+        try (InputStream inputStream = activity.getContentResolver().openInputStream(uri)) {
+            if (inputStream == null) {
+                BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigError), getString(R.string.ImportFluffyConfigWrongFile));
+                return;
+            }
+            tempFile = File.createTempFile("fluffyConfig", ".xml", activity.getCacheDir());
+            if (!AndroidUtilities.copyFile(inputStream, tempFile)) {
+                throw new IOException("Failed to read selected file");
+            }
+            if (!AndroidUtilities.copyFile(tempFile, destinationFile)) {
+                throw new IOException("Failed to replace preferences");
+            }
+            fluffyConfig.reloadFromDisk();
+            if (listAdapter != null) {
+                listAdapter.notifyDataSetChanged();
+            }
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigSuccess), null);
+        } catch (Exception e) {
+            FileLog.e(e);
+            BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigError), e.getLocalizedMessage());
+        } finally {
+            if (tempFile != null) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        super.onActivityResultFragment(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_IMPORT_FLUFFY_CONFIG && resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                importFluffyConfigFromUri(uri);
+            } else {
+                BulletinHelper.showSimpleBulletin(this, getString(R.string.ImportFluffyConfigError), getString(R.string.ImportFluffyConfigWrongFile));
             }
         }
     }
