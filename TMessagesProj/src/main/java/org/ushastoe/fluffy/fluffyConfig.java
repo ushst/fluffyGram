@@ -15,6 +15,7 @@ import org.ushastoe.fluffy.helpers.BaseIconSet;
 import org.ushastoe.fluffy.helpers.EmptyIconSet;
 import org.ushastoe.fluffy.helpers.SolarIconSet;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -143,10 +144,25 @@ public final class fluffyConfig {
 
     private fluffyConfig() {}
 
+    public static String getPreferencesFileName() {
+        return PREFS_NAME + ".xml";
+    }
+
+    public static File getPreferencesFile() {
+        Context context = ApplicationLoader.applicationContext;
+        File prefsDir = new File(context.getApplicationInfo().dataDir, "shared_prefs");
+        return new File(prefsDir, getPreferencesFileName());
+    }
+
     /**
      * Инициализирует конфигурацию, загружая настройки из SharedPreferences.
      */
     public static void init() {
+        preferences = ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
+        load();
+    }
+
+    public static void reloadFromDisk() {
         preferences = ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
         load();
     }
