@@ -142,7 +142,8 @@ public class appearanceActivitySettings extends BaseFragment {
         DOUBLE_TAP_HEADER,
         DIVIDER_4,
         QUICK_SWITCHER,
-        MENU_CUSTOMIZATION
+        MENU_CUSTOMIZATION,
+        HIDE_BIZ_BOT_BAR
     }
     private static class Row {
         RowType type;
@@ -227,6 +228,7 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
         rows.add(new Row(RowIdentifier.REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
         rows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
+        rows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
@@ -437,6 +439,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleHideButtonWrite();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideButtonWrite);
+                }
+                break;
+            case HIDE_BIZ_BOT_BAR:
+                fluffyConfig.toggleHideTopBar();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.hideTopBar);
                 }
                 break;
             case MORE_INFO:
@@ -1233,6 +1241,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case REMOVE_BUTTON:
                             checked = fluffyConfig.hideButtonWrite;
+                            break;
+                        case HIDE_BIZ_BOT_BAR:
+                            checked = fluffyConfig.hideTopBar;
                             break;
                         case MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;

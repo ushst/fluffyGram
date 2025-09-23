@@ -43,7 +43,7 @@
     <string name="UseSystemTypeface">Use system font</string>
     <string name="useSolarIcons">Use solar icons</string>
     <string name="callShower">Show call icon in chat</string>
-    <string name="HideThisBar">Hide this bar</string>
+    <string name="HideThisBar">Hide Business bot bar</string>
     <string name="centerTitle">Center title</string>
     <string name="centerTitleInChat">Center title in Chat</string>
     <string name="checkIp">Check GEO</string>
