@@ -44,6 +44,7 @@
     <string name="useSolarIcons">Use solar icons</string>
     <string name="callShower">Show call icon in chat</string>
     <string name="HideThisBar">Hide Business bot bar</string>
+    <string name="HidePinnedOnSmallScreen">Hide pinned message on small screens</string>
     <string name="centerTitle">Center title</string>
     <string name="centerTitleInChat">Center title in Chat</string>
     <string name="checkIp">Check GEO</string>

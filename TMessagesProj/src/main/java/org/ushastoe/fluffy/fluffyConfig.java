@@ -46,6 +46,7 @@ public final class fluffyConfig {
     private static final String KEY_FORMAT_TIME_WITH_SECONDS = "formatTimeWithSeconds";
     private static final String KEY_USE_SYSTEM_FONTS = "useSystemFonts";
     private static final String KEY_HIDE_TOP_BAR = "hideTopBar";
+    private static final String KEY_HIDE_PINNED_IN_SMALL_MODE = "hidePinnedInSmallMode";
     private static final String KEY_CENTER_TITLE = "centerTitle";
     private static final String KEY_CENTER_TITLE_IN_CHAT = "centerTitleInChat";
     private static final String KEY_USE_SOLAR_ICONS = "useSolarIcons";
@@ -108,6 +109,7 @@ public final class fluffyConfig {
     public static boolean formatTimeWithSeconds;
     public static boolean useSystemFonts;
     public static boolean hideTopBar;
+    public static boolean hidePinnedInSmallMode;
     public static boolean centerTitle;
     public static boolean centerTitleInChat;
     public static boolean useSolarIcons;
@@ -197,6 +199,7 @@ public final class fluffyConfig {
         centerTitleInChat = preferences.getBoolean(KEY_CENTER_TITLE_IN_CHAT, false);
         useSystemFonts = preferences.getBoolean(KEY_USE_SYSTEM_FONTS, false);
         hideTopBar = preferences.getBoolean(KEY_HIDE_TOP_BAR, false);
+        hidePinnedInSmallMode = preferences.getBoolean(KEY_HIDE_PINNED_IN_SMALL_MODE, false);
         doubleTapInAction = preferences.getInt(KEY_DOUBLE_TAP_IN_ACTION, DOUBLE_TAP_ACTION_REACTION);
         doubleTapOutAction = preferences.getInt(KEY_DOUBLE_TAP_OUT_ACTION, DOUBLE_TAP_ACTION_REACTION);
         saveDeletedMessages = preferences.getBoolean(KEY_SAVE_DELETED_MESSAGES, false);
@@ -318,6 +321,9 @@ public final class fluffyConfig {
 
     public static void toggleHideTopBar() {
         hideTopBar = toggleBooleanSetting(KEY_HIDE_TOP_BAR, hideTopBar);
+    }
+    public static void toggleHidePinnedInSmallMode() {
+        hidePinnedInSmallMode = toggleBooleanSetting(KEY_HIDE_PINNED_IN_SMALL_MODE, hidePinnedInSmallMode);
     }
 
     public static void toggleNewSwitchStyle() {

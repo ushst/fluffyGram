@@ -28125,6 +28125,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentEncryptedChat != null || chatMode != 0) {
             return;
         }
+        if (fluffyConfig.hidePinnedInSmallMode && AndroidUtilities.isSmallScreen()) {
+            hidePinnedMessageView(animated);
+            return;
+        }
         int pinned_msg_id;
         boolean changed = false;
         MessageObject pinnedMessageObject;
@@ -30649,6 +30653,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 PhotoViewer.getInstance().closePhoto(false, true);
             }
         }
+        updatePinnedMessageView(false);
     }
 
     private void createDeleteMessagesAlert(final MessageObject finalSelectedObject, final MessageObject.GroupedMessages finalSelectedGroup) {

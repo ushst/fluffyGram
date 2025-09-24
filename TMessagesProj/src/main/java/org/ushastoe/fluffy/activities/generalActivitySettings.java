@@ -82,6 +82,7 @@ public class generalActivitySettings extends BaseFragment {
         EXPORT_FLUFFY_CONFIG,
         IMPORT_FLUFFY_CONFIG,
         ALLOW_ATTACH_ANY_BOT,
+        HIDE_PINNED_SMALL_SCREEN,
         DIVIDER_1,
         VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
@@ -141,6 +142,8 @@ public class generalActivitySettings extends BaseFragment {
 
         rows.add(new Row(RowIdentifier.EXPERIMENTAL_SETTINGS_HEADER, RowType.HEADER, R.string.Other));
         rows.add(new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot));
+        rows.add(new Row(RowIdentifier.HIDE_PINNED_SMALL_SCREEN, RowType.TEXT_CHECK, R.string.HidePinnedOnSmallScreen, R.drawable.msg_pin));
+
 
 
         if (listAdapter != null) {
@@ -242,6 +245,10 @@ public class generalActivitySettings extends BaseFragment {
                 case ALLOW_ATTACH_ANY_BOT:
                     fluffyConfig.toggleAllowAttachAnyBot();
                     textCell.setChecked(fluffyConfig.allowAttachAnyBot);
+                    break;
+                case HIDE_PINNED_SMALL_SCREEN:
+                    fluffyConfig.toggleHidePinnedInSmallMode();
+                    textCell.setChecked(fluffyConfig.hidePinnedInSmallMode);
                     break;
                 case VOICE_PROVIDER_CREDENTIALS:
                     WhisperHelper.showCfCredentialsDialog(this);
@@ -464,6 +471,9 @@ public class generalActivitySettings extends BaseFragment {
                             break;
                         case ALLOW_ATTACH_ANY_BOT:
                             checked = fluffyConfig.allowAttachAnyBot;
+                            break;
+                        case HIDE_PINNED_SMALL_SCREEN:
+                            checked = fluffyConfig.hidePinnedInSmallMode;
                             break;
                         case SAVE_EDITED:
                             checked = fluffyConfig.saveEditedMessages;
