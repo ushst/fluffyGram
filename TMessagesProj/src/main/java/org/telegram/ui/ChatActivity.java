@@ -6865,7 +6865,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             @Override
             public boolean onInterceptTouchEvent(MotionEvent ev) {
-                if (getAlpha() == 0 || actionBar.isActionModeShowed() || isReport()) {
+                if (getAlpha() == 0 || actionBar.isActionModeShowed() || isReport() || shouldDisableFloatingDateTap()) {
                     return false;
                 }
                 return super.onInterceptTouchEvent(ev);
@@ -6873,7 +6873,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             @Override
             public boolean onTouchEvent(MotionEvent event) {
-                if (getAlpha() == 0 || actionBar.isActionModeShowed() || isReport()) {
+                if (getAlpha() == 0 || actionBar.isActionModeShowed() || isReport() || shouldDisableFloatingDateTap()) {
                     return false;
                 }
                 return super.onTouchEvent(event);
@@ -6902,7 +6902,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         floatingDateView.setInvalidateColors(true);
         contentView.addView(floatingDateView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
         floatingDateView.setOnClickListener(view -> {
-            if (floatingDateView.getAlpha() == 0 || actionBar.isActionModeShowed() || isReport()) {
+            if (floatingDateView.getAlpha() == 0 || actionBar.isActionModeShowed() || isReport() || shouldDisableFloatingDateTap()) {
                 return;
             }
             Calendar calendar = Calendar.getInstance();
@@ -6915,6 +6915,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             calendar.set(year, monthOfYear, dayOfMonth);
             jumpToDate((int) (calendar.getTime().getTime() / 1000));
         });
+        updateFloatingDateViewInteractivity();
 
         if (currentChat != null) {
             pendingRequestsDelegate = new ChatActivityMemberRequestsDelegate(this, contentView, currentChat, this::invalidateChatListViewTopPadding);
@@ -28121,8 +28122,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return null;
     }
 
+    private boolean shouldDisableFloatingDateTap() {
+        return fluffyConfig.hidePinnedInSmallMode && AndroidUtilities.isSmallScreen();
+    }
+
+    private void updateFloatingDateViewInteractivity() {
+        if (floatingDateView != null) {
+            floatingDateView.setClickable(!shouldDisableFloatingDateTap());
+        }
+    }
+
     private void updatePinnedMessageView(boolean animated, int animateToNext) {
         if (currentEncryptedChat != null || chatMode != 0) {
+            return;
+        }
+        if (fluffyConfig.hidePinnedInSmallMode && AndroidUtilities.isSmallScreen()) {
+            hidePinnedMessageView(animated);
             return;
         }
         if (fluffyConfig.hidePinnedInSmallMode && AndroidUtilities.isSmallScreen()) {
