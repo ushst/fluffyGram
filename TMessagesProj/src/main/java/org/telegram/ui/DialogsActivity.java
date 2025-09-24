@@ -10879,6 +10879,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (floatingButton != null) {
                 floatingButton.setVisibility(fluffyConfig.hideButtonWrite ? View.GONE : View.VISIBLE);
             }
+            if (floatingButtonContainer != null) {
+                hideFloatingButton(fluffyConfig.hideButtonWrite);
+            }
         }
     }
 

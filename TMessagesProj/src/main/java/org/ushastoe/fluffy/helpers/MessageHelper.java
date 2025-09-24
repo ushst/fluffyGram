@@ -110,10 +110,10 @@ public class MessageHelper {
         var spannableStringBuilder = new SpannableStringBuilder();
         final SpannableStringBuilder[] spannedStrings = new SpannableStringBuilder[4];
         final Drawable[] icons = {
-                messageObject.messageOwner.isDeleted() ? Theme.chat_deleteDrawable : null,
-                messageObject.isEdited() ? Theme.chat_editDrawable : null,
-                messageObject.messageOwner.silent ? Theme.chat_silentDrawable : null,
-                messageObject.messageOwner.from_scheduled ? Theme.chat_sheduleDrawable : null
+                copyDrawable(messageObject.messageOwner.isDeleted() ? Theme.chat_deleteDrawable : null),
+                copyDrawable(messageObject.isEdited() ? Theme.chat_editDrawable : null),
+                copyDrawable(messageObject.messageOwner.silent ? Theme.chat_silentDrawable : null),
+                copyDrawable(messageObject.messageOwner.from_scheduled ? Theme.chat_sheduleDrawable : null)
         };
 
         int totalWidth = 0;
@@ -136,6 +136,17 @@ public class MessageHelper {
 
         spannableStringBuilder.append(LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
         return new SpannableResult(spannableStringBuilder, totalWidth);
+    }
+
+    private static Drawable copyDrawable(Drawable drawable) {
+        if (drawable == null) {
+            return null;
+        }
+        Drawable result = drawable.getConstantState() != null
+                ? drawable.getConstantState().newDrawable().mutate()
+                : drawable.mutate();
+        result.setBounds(drawable.getBounds());
+        return result;
     }
 
 }

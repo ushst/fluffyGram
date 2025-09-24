@@ -440,6 +440,7 @@ public class appearanceActivitySettings extends BaseFragment {
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideButtonWrite);
                 }
+                getNotificationCenter().postNotificationName(NotificationCenter.fluffy_floatingButtonSettingsChanged);
                 break;
             case HIDE_BIZ_BOT_BAR:
                 fluffyConfig.toggleHideTopBar();
