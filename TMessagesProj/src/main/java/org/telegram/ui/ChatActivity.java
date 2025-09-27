@@ -27282,6 +27282,29 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         boolean forceNoBottom = false;
         boolean showGiftButton = false;
         boolean showSuggestButton = false;
+        if (shouldHideSmallScreenBars()) {
+            if (bottomOverlayChat != null) {
+                bottomOverlayChat.setVisibility(View.GONE);
+            }
+            if (bottomOverlayChatText != null) {
+                bottomOverlayChatText.setVisibility(View.GONE);
+            }
+            if (bottomOverlayLinksText != null) {
+                bottomOverlayLinksText.setVisibility(View.GONE);
+            }
+            if (bottomOverlayStartButton != null) {
+                bottomOverlayStartButton.setVisibility(View.GONE);
+            }
+            if (bottomGiftButton != null) {
+                bottomGiftButton.setVisibility(View.GONE);
+            }
+            if (bottomSuggestButton != null) {
+                bottomSuggestButton.setVisibility(View.GONE);
+            }
+            showBottomOverlayProgress(false, false);
+            checkRaiseSensors();
+            return;
+        }
         if (chatMode == MODE_DEFAULT && getMessagesController().isFrozen() && !AccountFrozenAlert.isSpamBot(currentAccount, currentUser)) {
             if (bottomOverlayStartButton != null) {
                 bottomOverlayStartButton.setVisibility(View.GONE);
@@ -28122,8 +28145,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return null;
     }
 
-    private boolean shouldDisableFloatingDateTap() {
+    private boolean shouldHideSmallScreenBars() {
         return fluffyConfig.hidePinnedInSmallMode && AndroidUtilities.isSmallScreen();
+    }
+
+    private boolean shouldDisableFloatingDateTap() {
+        return shouldHideSmallScreenBars();
     }
 
     private void updateFloatingDateViewInteractivity() {
@@ -28133,7 +28160,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void updatePinnedMessageView(boolean animated, int animateToNext) {
+        updateFloatingDateViewInteractivity();
+
         if (currentEncryptedChat != null || chatMode != 0) {
+            return;
+        }
+        if (shouldHideSmallScreenBars()) {
+            hidePinnedMessageView(animated);
             return;
         }
         if (fluffyConfig.hidePinnedInSmallMode && AndroidUtilities.isSmallScreen()) {
