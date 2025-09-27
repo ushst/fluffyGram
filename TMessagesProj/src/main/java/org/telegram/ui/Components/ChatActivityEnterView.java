@@ -623,6 +623,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private TLRPC.ChatFull info;
 
     private boolean hasRecordVideo;
+    private boolean videoMessageFrontCamera = true;
 
     private int currentPopupContentType = -1;
 
@@ -5483,6 +5484,25 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         audioVideoSendButton.setContentDescription(getString(isInVideoMode() ? R.string.AccDescrVideoMessage : R.string.AccDescrVoiceMessage));
         audioVideoButtonContainer.setContentDescription(getString(isInVideoMode() ? R.string.AccDescrVideoMessage : R.string.AccDescrVoiceMessage));
         audioVideoSendButton.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+        updateVideoMessageCameraIndicatorOverlay();
+    }
+
+    public void setVideoMessageCameraFacing(boolean front) {
+        if (videoMessageFrontCamera != front) {
+            videoMessageFrontCamera = front;
+        }
+        updateVideoMessageCameraIndicatorOverlay();
+    }
+
+    private void updateVideoMessageCameraIndicatorOverlay() {
+        if (audioVideoSendButton == null) {
+            return;
+        }
+        if (hasRecordVideo && isInVideoMode()) {
+            audioVideoSendButton.setOverlayText(videoMessageFrontCamera ? "f" : "b");
+        } else {
+            audioVideoSendButton.setOverlayText(null);
+        }
     }
 
     public boolean isRecordingAudioVideo() {

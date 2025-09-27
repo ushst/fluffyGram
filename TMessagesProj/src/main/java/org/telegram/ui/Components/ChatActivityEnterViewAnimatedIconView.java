@@ -1,12 +1,16 @@
 package org.telegram.ui.Components;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.Theme;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +33,14 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
         }
     };
 
+    private final Paint overlayTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private String overlayText;
+
     public ChatActivityEnterViewAnimatedIconView(Context context) {
         super(context);
+        overlayTextPaint.setTextSize(AndroidUtilities.dp(11));
+        overlayTextPaint.setTextAlign(Paint.Align.CENTER);
+        overlayTextPaint.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
     }
 
     public void setState(State state, boolean animate) {
@@ -71,6 +81,28 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
         }
     }
 
+    public void setOverlayText(@Nullable String text) {
+        if (TextUtils.equals(overlayText, text)) {
+            return;
+        }
+        overlayText = text;
+        invalidate();
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (TextUtils.isEmpty(overlayText)) {
+            return;
+        }
+        overlayTextPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelIcons));
+        Paint.FontMetrics fontMetrics = overlayTextPaint.getFontMetrics();
+        float padding = AndroidUtilities.dp(6);
+        float x = getWidth() - padding;
+        float y = getHeight() - padding - fontMetrics.descent;
+        canvas.drawText(overlayText, x, y, overlayTextPaint);
+    }
+    
     private TransitState getAnyState(State from) {
         for (TransitState transitState : TransitState.values()) {
             if (transitState.firstState == from) {

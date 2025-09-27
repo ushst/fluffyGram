@@ -355,6 +355,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         switchCameraButton.setScaleType(ImageView.ScaleType.CENTER);
         switchCameraButton.setContentDescription(LocaleController.getString(R.string.AccDescrSwitchCamera));
         addView(switchCameraButton, LayoutHelper.createFrame(62, 62, Gravity.LEFT | Gravity.BOTTOM, 8, 0, 0, 0));
+        switchCameraButton.setVisibility(View.GONE);
         switchCameraButton.setOnClickListener(v -> {
             if (!cameraReady || !isCameraSessionInitiated() || cameraThread == null) {
                 return;
@@ -1129,6 +1130,17 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
     public Paint getPaint() {
         return paint;
+    }
+
+    public void applyFrontCameraPreference(boolean front) {
+        if (isFrontface == front) {
+            return;
+        }
+        if (cameraThread != null && isCameraSessionInitiated()) {
+            switchCamera();
+        } else {
+            isFrontface = front;
+        }
     }
 
     public void hideCamera(boolean async) {

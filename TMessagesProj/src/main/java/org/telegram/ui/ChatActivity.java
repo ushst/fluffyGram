@@ -361,6 +361,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private ActionBarMenu.LazyItem editTextItem;
     protected ActionBarMenuItem searchItem;
     private ActionBarMenuItem.Item translateItem;
+    private ActionBarMenuItem.Item switchCameraMenuItem;
     private ActionBarMenuItem searchIconItem;
     private ActionBarMenu.LazyItem audioCallIconItem;
     private boolean searchItemVisible;
@@ -1581,6 +1582,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int open_direct = 70;
     private final static int remove_fee = 71;
     private final static int charge_fee = 72;
+    private final static int toggle_video_message_camera = 73;
 
     private final static int wallpaperShower = 997;
     private final static int goToFirstMessage = 998;
@@ -2036,6 +2038,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public void onSwitchRecordMode(boolean video) {
             showVoiceHint(false, video);
+            updateVideoMessageCameraIndicator();
         }
 
         @Override
@@ -4002,6 +4005,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 } else if (id == change_colors) {
                     showChatThemeBottomSheet();
+                } else if (id == toggle_video_message_camera) {
+                    fluffyConfig.toggleFrontCamera();
+                    if (instantCameraView != null) {
+                        instantCameraView.applyFrontCameraPreference(fluffyConfig.frontCamera);
+                    }
+                    updateSwitchCameraMenuItem();
+                    updateVideoMessageCameraIndicator();
                 } else if (id == topic_close) {
                     if (forumTopic == null)
                         return;
@@ -4399,6 +4409,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             translateItem = headerItem.lazilyAddSubItem(translate, R.drawable.msg_translate, LocaleController.getString(R.string.TranslateMessage));
             updateTranslateItemVisibility();
+            switchCameraMenuItem = headerItem.lazilyAddSubItem(toggle_video_message_camera, R.drawable.menu_camera_retake, LocaleController.getString(fluffyConfig.frontCamera ? R.string.CameraBack : R.string.CameraFront));
+            updateSwitchCameraMenuItem();
+            updateVideoMessageCameraIndicator();
             if (currentChat != null && !currentChat.creator && !ChatObject.hasAdminRights(currentChat)) {
                 headerItem.lazilyAddSubItem(report, R.drawable.msg_report, LocaleController.getString(R.string.ReportChat));
             }
@@ -8200,6 +8213,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         chatActivityEnterView.setSuggestionButtonVisible(ChatObject.isMonoForum(currentChat), false);
+        updateVideoMessageCameraIndicator();
 
         chatActivityEnterTopView = new ChatActivityEnterTopView(context) {
             @Override
@@ -11367,6 +11381,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         translateItem.setVisibility(getMessagesController().getTranslateController().isTranslateDialogHidden(getDialogId()) && getMessagesController().getTranslateController().isDialogTranslatable(getDialogId()) ? View.VISIBLE : View.GONE);
     }
 
+    private void updateSwitchCameraMenuItem() {
+        if (switchCameraMenuItem == null) {
+            return;
+        }
+        boolean canRecordVideo = chatActivityEnterView != null && chatActivityEnterView.hasRecordVideo();
+        switchCameraMenuItem.setVisibility(canRecordVideo ? View.VISIBLE : View.GONE);
+        switchCameraMenuItem.setText(LocaleController.getString(fluffyConfig.frontCamera ? R.string.CameraBack : R.string.CameraFront));
+    }
+
+    private void updateVideoMessageCameraIndicator() {
+        if (chatActivityEnterView == null) {
+            return;
+        }
+        chatActivityEnterView.setVideoMessageCameraFacing(fluffyConfig.frontCamera);
+    }
+
     private Animator infoTopViewAnimator;
 
     private void updateInfoTopView(boolean animated) {
@@ -13298,7 +13328,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         if (chatActivityEnterView.hasRecordVideo()) {
             if (video) {
-                BulletinHelper.showFrontCameraNotification(LaunchActivity.getSafeLastFragment());
                 voiceHintTextView.hide();
             } else {
                 voiceHintTextView.setText(LocaleController.getString(R.string.HoldToAudioOnly));
@@ -13308,7 +13337,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         if (!video) {
-            BulletinHelper.hideFrontCameraNotification();
             voiceHintTextView.showForView(chatActivityEnterView.getAudioVideoButtonContainer(), true);
         }
 
@@ -29895,6 +29923,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     @Override
     public void onResume() {
         super.onResume();
+        updateSwitchCameraMenuItem();
+        updateVideoMessageCameraIndicator();
         checkShowBlur(false);
         activityResumeTime = System.currentTimeMillis();
         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
