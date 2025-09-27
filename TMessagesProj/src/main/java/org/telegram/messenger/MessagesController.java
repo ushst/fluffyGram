@@ -18495,28 +18495,45 @@ public class MessagesController extends BaseController implements NotificationCe
 
         if (deletedMessages != null && fluffyConfig.saveDeletedMessages) {
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
-                try {
-
-                    var dialogId = deletedMessages.keyAt(a);
-                    var messageIds = deletedMessages.valueAt(a);
-
-                    if (dialogId == 0) {
-                        // Telegram sometimes won't give us dialog id directly...
-                        dialogId = getMessagesStorage().getDialogIdsToUpdate(dialogId, messageIds).get(0);
+                final long dialogId = deletedMessages.keyAt(a);
+                final ArrayList<Integer> messageIds = new ArrayList<>(deletedMessages.valueAt(a));
+                getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                    ArrayList<MessageObject> voiceMessages = null;
+                    try {
+                        MessagesStorage storage = getMessagesStorage();
+                        for (int msgId : messageIds) {
+                            TLRPC.Message storedMessage = storage.getMessageInternal(dialogId, msgId);
+                            if (storedMessage != null && MessageObject.isVoiceMessage(storedMessage)) {
+                                if (voiceMessages == null) {
+                                    voiceMessages = new ArrayList<>();
+                                }
+                                voiceMessages.add(new MessageObject(currentAccount, storedMessage, false, false));
+                            }
+                            storage.markMessagesAsIsDeletedInternal(dialogId, msgId);
+                        }
+                        ArrayList<Integer> idsForUi = new ArrayList<>(messageIds);
+                        ArrayList<MessageObject> voiceMessagesFinal = voiceMessages != null ? new ArrayList<>(voiceMessages) : null;
+                        AndroidUtilities.runOnUIThread(() -> {
+                            if (voiceMessagesFinal != null && !voiceMessagesFinal.isEmpty()) {
+                                FileLoader fileLoader = FileLoader.getInstance(currentAccount);
+                                for (int i = 0; i < voiceMessagesFinal.size(); i++) {
+                                    MessageObject voiceMessage = voiceMessagesFinal.get(i);
+                                    TLRPC.Document document = voiceMessage.getDocument();
+                                    if (document == null) {
+                                        continue;
+                                    }
+                                    File file = fileLoader.getPathToAttach(document);
+                                    if (file == null || !file.exists()) {
+                                        fileLoader.loadFile(document, voiceMessage, FileLoader.PRIORITY_LOW, voiceMessage.shouldEncryptPhotoOrVideo() ? 2 : 0);
+                                    }
+                                }
+                            }
+                            getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, dialogId, idsForUi);
+                        });
+                    } catch (Exception e) {
+                        FileLog.e(e);
                     }
-
-                    for (var msgId : messageIds) {
-                        getMessagesStorage().markMessagesAsIsDeletedInternal(dialogId, msgId);
-                    }
-
-                    long finalDialogId = dialogId;
-                    AndroidUtilities.runOnUIThread(() -> {
-                        getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, finalDialogId, messageIds);
-                    });
-
-                } catch (Exception e) {
-                    Log.d("fluffyLog", "Error while saving deleted messages: " + e);
-                }
+                });
             }
 
             deletedMessages.clear();

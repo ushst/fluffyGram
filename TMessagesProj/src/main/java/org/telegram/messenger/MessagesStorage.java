@@ -13876,6 +13876,35 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    public TLRPC.Message getMessageInternal(long dialogId, long msgId) {
+        SQLiteCursor cursor = null;
+        try {
+            if (dialogId != 0) {
+                cursor = database.queryFinalized(String.format(Locale.US,
+                        "SELECT data FROM messages_v2 WHERE uid = %d AND mid = %d LIMIT 1", dialogId, msgId));
+            } else {
+                cursor = database.queryFinalized(String.format(Locale.US,
+                        "SELECT data FROM messages_v2 WHERE mid = %d AND is_channel = 0 LIMIT 1", msgId));
+            }
+
+            if (cursor.next()) {
+                NativeByteBuffer data = cursor.byteBufferValue(0);
+                if (data != null) {
+                    TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                    data.reuse();
+                    return message;
+                }
+            }
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        return null;
+    }
+
     public ArrayList<Long> getDialogIdsToUpdate(long dialogId, ArrayList<Integer> messages) {
         try {
             SQLiteCursor cursor;
