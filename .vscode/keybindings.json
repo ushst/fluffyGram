@@ -1,0 +1,20 @@
+[
+    {
+        "key": "f5",
+        "command": "workbench.action.tasks.runTask",
+        "args": "FluffyGram: Build, Install & Launch Release",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "shift+f5",
+        "command": "workbench.action.tasks.runTask",
+        "args": "FluffyGram: Build, Install & Launch Debug",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+f5",
+        "command": "workbench.action.tasks.runTask",
+        "args": "FluffyGram: Launch Only",
+        "when": "editorTextFocus"
+    }
+]
