@@ -7,12 +7,18 @@ import android.util.Log;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ConnectionsManager;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.Utilities;
+import org.telegram.messenger.R;
 import org.telegram.tgnet.TLRPC;
+import org.ushastoe.fluffy.storage.UserStatusStorage;
 
 public class UserStatusLoggerService extends Service implements NotificationCenter.NotificationCenterDelegate {
 
@@ -54,102 +60,138 @@ public class UserStatusLoggerService extends Service implements NotificationCent
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        Log.d(TAG, "didReceivedNotification - ID: " + id + ", Account: " + account);
-
-        if (args == null) {
-            Log.d(TAG, "Arguments (args): null");
-        } else if (args.length == 0) {
-            Log.d(TAG, "Arguments (args): empty (length 0)");
-        } else {
-            Log.d(TAG, "Received " + args.length + " arguments:");
-            for (int i = 0; i < args.length; i++) {
-                Object arg = args[i];
-                if (arg != null) {
-                    Log.d(TAG, "args[" + i + "]: " + arg.toString() + " (Type: " + arg.getClass().getName() + ")");
-                } else {
-                    Log.d(TAG, "args[" + i + "]: null");
-                }
-            }
+        if (id != NotificationCenter.updateInterfaces || args == null || args.length == 0) {
+            return;
         }
+        if (!(args[0] instanceof Integer)) {
+            Log.w(TAG, "updateInterfaces args[0] is not Integer");
+            return;
+        }
+        int updateMask = (Integer) args[0];
+        boolean isStatusUpdate = (updateMask & MessagesController.UPDATE_MASK_STATUS) != 0;
+        boolean isPrintUpdate = (updateMask & MessagesController.UPDATE_MASK_USER_PRINT) != 0;
+        if (!isStatusUpdate && !isPrintUpdate) {
+            return;
+        }
+
+        long dialogId = 0;
+        if (args.length > 1 && args[1] instanceof Long) {
+            dialogId = (Long) args[1];
+        }
+        if (dialogId <= 0 || !DialogObject.isUserDialog(dialogId)) {
+            return;
+        }
+
+        long userId = dialogId;
+        TLRPC.User user = MessagesController.getInstance(account).getUser(userId);
+        if (user == null) {
+            return;
+        }
+
+        CharSequence statusSequence = isStatusUpdate ? LocaleController.formatUserStatus(account, user) : null;
+        String statusText = statusSequence != null ? statusSequence.toString() : null;
+        String userName = UserObject.getUserName(user);
+        long lastSeenAt = extractLastSeen(user);
+        long statusExpiresAt = extractStatusExpires(user);
+        boolean isOnline = isUserOnline(account, user);
+        String actionText = null;
+        if (isPrintUpdate && args.length > 2 && args[2] instanceof TLRPC.SendMessageAction) {
+            actionText = describeAction((TLRPC.SendMessageAction) args[2]);
+        }
+        String statusClass = user.status != null ? user.status.getClass().getSimpleName() : null;
+
+        final String actionTextFinal = actionText;
+        final String statusTextFinal = statusText;
+        final String userNameFinal = userName;
+        final String statusClassFinal = statusClass;
+
+        Utilities.globalQueue.postRunnable(() -> {
+            UserStatusStorage storage = UserStatusStorage.getInstance(ApplicationLoader.applicationContext);
+            storage.insertStatus(account, userId, userNameFinal, statusTextFinal, statusClassFinal, lastSeenAt, statusExpiresAt, isOnline, actionTextFinal, updateMask);
+            AndroidUtilities.runOnUIThread(() ->
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.userStatusLogUpdated));
+        });
     }
-//    @Override
-//    public void didReceivedNotification(int id, int account, Object... args) {
-//        Log.d(TAG, "didReceivedNotification - ID: " + id + ", Account: " + account); // Лог получения любого уведомления
-//
-//        if (id == NotificationCenter.updateInterfaces) {
-//            Log.d(TAG, "Received updateInterfaces for account " + account);
-//            if (args == null || args.length == 0) {
-//                Log.e(TAG, "updateInterfaces received with no arguments!");
-//                return;
-//            }
-//
-//            if (!(args[0] instanceof Integer)) {
-//                Log.e(TAG, "updateInterfaces: args[0] is not an Integer! It's: " + (args[0] != null ? args[0].getClass().getName() : "null"));
-//                return;
-//            }
-//            int updateMask = (Integer) args[0];
-//            Log.d(TAG, "updateMask: " + updateMask);
-//
-//            boolean isStatusUpdate = (updateMask & MessagesController.UPDATE_MASK_STATUS) != 0;
-//            boolean isPrintUpdate = (updateMask & MessagesController.UPDATE_MASK_USER_PRINT) != 0;
-//
-//            Log.d(TAG, "isStatusUpdate: " + isStatusUpdate + ", isPrintUpdate: " + isPrintUpdate);
-//
-//            if (isStatusUpdate || isPrintUpdate) {
-//                long dialogIdFromArgs = 0;
-//
-//                if (args.length > 1) {
-//                    if (args[1] instanceof Long) {
-//                        dialogIdFromArgs = (Long) args[1];
-//                        Log.d(TAG, "dialogIdFromArgs (Long): " + dialogIdFromArgs);
-//                    } else {
-//                        Log.e(TAG, "updateInterfaces: args[1] is not a Long! It's: " + (args[1] != null ? args[1].getClass().getName() : "null"));
-//                        // Можно попробовать извлечь dialogId из других аргументов, если структура другая
-//                        // Например, иногда он может быть в args[0] для других типов уведомлений, но для updateInterfaces обычно в args[1]
-//                        // if (args[0] instanceof Long) dialogIdFromArgs = (Long) args[0];
-//                    }
-//                } else {
-//                    Log.w(TAG, "updateInterfaces: args.length <= 1, cannot get dialogIdFromArgs");
-//                }
-//
-//                if (dialogIdFromArgs > 0) { // Пользователи (положительные ID)
-//                    long userId = dialogIdFromArgs;
-//                    Log.d(TAG, "Attempting to get user with ID: " + userId + " for account " + account);
-//                    TLRPC.User user = MessagesController.getInstance(account).getUser(userId);
-//
-//                    if (user != null) {
-//                        Log.d(TAG, "User found: " + UserObject.getUserName(user));
-//                        CharSequence statusString = LocaleController.formatUserStatus(account, user);
-//                        String userName = UserObject.getUserName(user);
-//
-//                        if (isStatusUpdate) {
-//                            if (statusString != null) {
-//                                Log.d(TAG, "ACCOUNT_SPECIFIC_LOG - Account " + account + " - User: " + userName + " (ID: " + userId + "), Status: " + statusString.toString());
-//                            } else {
-//                                Log.d(TAG, "ACCOUNT_SPECIFIC_LOG - Account " + account + " - User: " + userName + " (ID: " + userId + "), Status: null (possibly hidden or offline with no last seen)");
-//                            }
-//                        }
-//
-//                        if (isPrintUpdate) {
-//                            // args[1] должен быть dialog_id, args[2] - объект TLRPC.SendMessageAction
-//                            if (args.length > 2 && args[1] instanceof Long && (Long)args[1] == dialogIdFromArgs) {
-//                                Log.d(TAG, "ACCOUNT_SPECIFIC_LOG - Account " + account + " - User: " + userName + " (ID: " + userId + ") is typing/performing an action. Action object: " + (args[2] != null ? args[2].getClass().getSimpleName() : "null"));
-//                            } else {
-//                                Log.w(TAG, "Print update for user " + userName + " (ID: " + userId + ") but args structure is unexpected or dialogId mismatch. args.length: " + args.length);
-//                                if (args.length > 1) Log.w(TAG, "args[1] type: " + (args[1] != null ? args[1].getClass().getName() : "null") + ", value: " + args[1]);
-//                            }
-//                        }
-//                    } else {
-//                        Log.w(TAG, "User with ID " + userId + " not found in MessagesController cache for account " + account + " during status update.");
-//                    }
-//                } else {
-//                    Log.d(TAG, "dialogIdFromArgs is not > 0 (value: " + dialogIdFromArgs + "). Not a user dialog or unexpected format.");
-//                }
-//            } else {
-//                Log.d(TAG, "updateMask does not contain STATUS or PRINT flags.");
-//            }
-//        }
-//        // Добавьте сюда логи для других ID уведомлений, если они вас интересуют
-//        // else if (id == NotificationCenter.anotherNotification) { ... }
-//    }
+
+    private long extractLastSeen(TLRPC.User user) {
+        if (user == null || user.status == null) {
+            return 0;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOffline) {
+            return ((TLRPC.TL_userStatusOffline) user.status).was_online * 1000L;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOnline) {
+            return ((TLRPC.TL_userStatusOnline) user.status).expires * 1000L;
+        }
+        return 0;
+    }
+
+    private long extractStatusExpires(TLRPC.User user) {
+        if (user == null || user.status == null) {
+            return 0;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOnline) {
+            return ((TLRPC.TL_userStatusOnline) user.status).expires * 1000L;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOffline) {
+            return ((TLRPC.TL_userStatusOffline) user.status).was_online * 1000L;
+        }
+        return 0;
+    }
+
+    private boolean isUserOnline(int account, TLRPC.User user) {
+        if (user == null || user.status == null) {
+            return false;
+        }
+        int currentTime = ConnectionsManager.getInstance(account).getCurrentTime();
+        if (user.status instanceof TLRPC.TL_userStatusOnline) {
+            return ((TLRPC.TL_userStatusOnline) user.status).expires > currentTime;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOffline) {
+            return ((TLRPC.TL_userStatusOffline) user.status).was_online > currentTime;
+        }
+        return false;
+    }
+
+    private String describeAction(TLRPC.SendMessageAction action) {
+        if (action == null) {
+            return null;
+        }
+        if (action instanceof TLRPC.TL_sendMessageTypingAction) {
+            return LocaleController.getString("UserStatusLogActionTyping", R.string.UserStatusLogActionTyping);
+        } else if (action instanceof TLRPC.TL_sendMessageRecordVideoAction) {
+            return LocaleController.getString("UserStatusLogActionRecordingVideo", R.string.UserStatusLogActionRecordingVideo);
+        } else if (action instanceof TLRPC.TL_sendMessageUploadVideoAction) {
+            return LocaleController.getString("UserStatusLogActionUploadingVideo", R.string.UserStatusLogActionUploadingVideo);
+        } else if (action instanceof TLRPC.TL_sendMessageRecordAudioAction) {
+            return LocaleController.getString("UserStatusLogActionRecordingVoice", R.string.UserStatusLogActionRecordingVoice);
+        } else if (action instanceof TLRPC.TL_sendMessageUploadAudioAction) {
+            return LocaleController.getString("UserStatusLogActionUploadingVoice", R.string.UserStatusLogActionUploadingVoice);
+        } else if (action instanceof TLRPC.TL_sendMessageUploadPhotoAction) {
+            return LocaleController.getString("UserStatusLogActionUploadingPhoto", R.string.UserStatusLogActionUploadingPhoto);
+        } else if (action instanceof TLRPC.TL_sendMessageUploadDocumentAction) {
+            return LocaleController.getString("UserStatusLogActionUploadingDocument", R.string.UserStatusLogActionUploadingDocument);
+        } else if (action instanceof TLRPC.TL_sendMessageUploadRoundAction) {
+            return LocaleController.getString("UserStatusLogActionUploadingRound", R.string.UserStatusLogActionUploadingRound);
+        } else if (action instanceof TLRPC.TL_sendMessageRecordRoundAction) {
+            return LocaleController.getString("UserStatusLogActionRecordingRound", R.string.UserStatusLogActionRecordingRound);
+        } else if (action instanceof TLRPC.TL_sendMessageGamePlayAction) {
+            return LocaleController.getString("UserStatusLogActionPlayingGame", R.string.UserStatusLogActionPlayingGame);
+        } else if (action instanceof TLRPC.TL_sendMessageGeoLocationAction) {
+            return LocaleController.getString("UserStatusLogActionSendingLocation", R.string.UserStatusLogActionSendingLocation);
+        } else if (action instanceof TLRPC.TL_sendMessageChooseContactAction) {
+            return LocaleController.getString("UserStatusLogActionChoosingContact", R.string.UserStatusLogActionChoosingContact);
+        } else if (action instanceof TLRPC.TL_sendMessageChooseStickerAction) {
+            return LocaleController.getString("UserStatusLogActionChoosingSticker", R.string.UserStatusLogActionChoosingSticker);
+        } else if (action instanceof TLRPC.TL_sendMessageEmojiInteraction) {
+            return LocaleController.getString("UserStatusLogActionEmoji", R.string.UserStatusLogActionEmoji);
+        } else if (action instanceof TLRPC.TL_sendMessageEmojiInteractionSeen) {
+            return LocaleController.getString("UserStatusLogActionEmojiSeen", R.string.UserStatusLogActionEmojiSeen);
+        } else if (action instanceof TLRPC.TL_sendMessageHistoryImportAction) {
+            return LocaleController.getString("UserStatusLogActionImportingHistory", R.string.UserStatusLogActionImportingHistory);
+        } else if (action instanceof TLRPC.TL_sendMessageCancelAction) {
+            return LocaleController.getString("UserStatusLogActionCancelling", R.string.UserStatusLogActionCancelling);
+        }
+        return action.getClass().getSimpleName();
+    }
 }

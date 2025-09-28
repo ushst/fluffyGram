@@ -87,6 +87,36 @@
     <string name="formatterDay12HSec">h:mm:ss a</string>
     <string name="formatterDay24HSec">HH:mm:ss</string>
 
+    <string name="UserStatusLogTitle">User status monitor</string>
+    <string name="UserStatusLogEmpty">Status updates will appear here.</string>
+    <string name="UserStatusLogLastUpdate">Updated %1$s</string>
+    <string name="UserStatusLogUpdatedAt">Update time: %1$s</string>
+    <string name="UserStatusLogLastSeenAt">Last seen: %1$s</string>
+    <string name="UserStatusLogLastSeenUnknown">Last seen is hidden</string>
+    <string name="UserStatusLogAccountLabel">Account #%1$d</string>
+    <string name="UserStatusLogHistoryTitle">Status history</string>
+    <string name="UserStatusLogHistoryLine">%1$s — %2$s</string>
+    <string name="UserStatusLogStatusWithAction">%1$s · %2$s</string>
+    <string name="UserStatusLogStatusClass">Status object: %1$s</string>
+    <string name="UserStatusLogStatusExpires">Online until %1$s</string>
+    <string name="UserStatusLogActionTyping">typing</string>
+    <string name="UserStatusLogActionRecordingVideo">recording video</string>
+    <string name="UserStatusLogActionUploadingVideo">uploading video</string>
+    <string name="UserStatusLogActionRecordingVoice">recording voice message</string>
+    <string name="UserStatusLogActionUploadingVoice">uploading voice message</string>
+    <string name="UserStatusLogActionUploadingPhoto">uploading photo</string>
+    <string name="UserStatusLogActionUploadingDocument">uploading file</string>
+    <string name="UserStatusLogActionPlayingGame">playing a game</string>
+    <string name="UserStatusLogActionChoosingContact">choosing a contact</string>
+    <string name="UserStatusLogActionSendingLocation">sharing location</string>
+    <string name="UserStatusLogActionUploadingRound">uploading video message</string>
+    <string name="UserStatusLogActionRecordingRound">recording video message</string>
+    <string name="UserStatusLogActionCancelling">canceled typing</string>
+    <string name="UserStatusLogActionEmoji">sending emoji interaction</string>
+    <string name="UserStatusLogActionEmojiSeen">viewed emoji interaction</string>
+    <string name="UserStatusLogActionImportingHistory">importing chat history</string>
+    <string name="UserStatusLogActionChoosingSticker">choosing a sticker</string>
+
     <string name="restartAlarm">Restart app for apply</string>
     <string name="restart">Restart</string>
 
