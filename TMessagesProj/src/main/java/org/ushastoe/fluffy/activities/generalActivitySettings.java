@@ -46,6 +46,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
+import org.ushastoe.fluffy.activities.UserStatusLogActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,6 +83,7 @@ public class generalActivitySettings extends BaseFragment {
         EXPORT_FLUFFY_CONFIG,
         IMPORT_FLUFFY_CONFIG,
         ALLOW_ATTACH_ANY_BOT,
+        USER_STATUS_LOG_VIEWER,
         HIDE_PINNED_SMALL_SCREEN,
         DIVIDER_1,
         VOICE_RECOGNITION_HEADER,
@@ -141,6 +143,7 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar));
 
         rows.add(new Row(RowIdentifier.EXPERIMENTAL_SETTINGS_HEADER, RowType.HEADER, R.string.Other));
+        rows.add(new Row(RowIdentifier.USER_STATUS_LOG_VIEWER, RowType.TEXT_CELL, R.string.UserStatusLogTitle, R.drawable.menu_feature_status));
         rows.add(new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot));
         rows.add(new Row(RowIdentifier.HIDE_PINNED_SMALL_SCREEN, RowType.TEXT_CHECK, R.string.HidePinnedOnSmallScreen, R.drawable.msg_pin));
 
@@ -245,6 +248,9 @@ public class generalActivitySettings extends BaseFragment {
                 case ALLOW_ATTACH_ANY_BOT:
                     fluffyConfig.toggleAllowAttachAnyBot();
                     textCell.setChecked(fluffyConfig.allowAttachAnyBot);
+                    break;
+                case USER_STATUS_LOG_VIEWER:
+                    presentFragment(new UserStatusLogActivity());
                     break;
                 case HIDE_PINNED_SMALL_SCREEN:
                     fluffyConfig.toggleHidePinnedInSmallMode();
