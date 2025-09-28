@@ -64,6 +64,7 @@ import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.TopicsFragment;
 import org.ushastoe.fluffy.fluffyConfig;
 
+import org.ushastoe.fluffy.storage.UserStatusStorage;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ChatAvatarContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
@@ -1154,6 +1155,16 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     isOnline[0] = false;
                     newStatus = LocaleController.formatUserStatus(currentAccount, user, isOnline, allowShorterStatus ? statusMadeShorter : null);
                     useOnlineColor = isOnline[0];
+                    if (!useOnlineColor) {
+                        String localStatus = getLocalStatusString(currentAccount, user);
+                        if (!TextUtils.isEmpty(localStatus)) {
+                            localStatus = localStatus.trim();
+                            if (!localStatus.endsWith(" (l)")) {
+                                localStatus = localStatus + " (l)";
+                            }
+                            newStatus = localStatus;
+                        }
+                    }
                 }
                 newSubtitle = newStatus;
             } else {
@@ -1596,4 +1607,57 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             currentTypingDrawable.setColor(getThemedColor(Theme.key_chat_status));
         }
     }
+    private String getLocalStatusString(int account, TLRPC.User user) {
+        if (!shouldUseLocalStatus(user)) {
+            return null;
+        }
+        UserStatusStorage.LogEntry entry = UserStatusStorage.getInstance(ApplicationLoader.applicationContext)
+                .getLatestForUser(user.id, account);
+        if (entry == null) {
+            return null;
+        }
+        String status = null;
+        long referenceMillis = entry.lastSeenAt;
+        if (referenceMillis <= 0) {
+            referenceMillis = entry.statusExpiresAt;
+        }
+        if (referenceMillis <= 0) {
+            referenceMillis = entry.updatedAt;
+        }
+        if (referenceMillis > 0) {
+            String dateString = LocaleController.formatDateTime(referenceMillis / 1000L, true);
+            status = LocaleController.formatString("LastSeenFormatted", R.string.LastSeenFormatted, dateString);
+        }
+        if (TextUtils.isEmpty(status) && entry.isOnline) {
+            status = LocaleController.getString(R.string.Online);
+        }
+        if (TextUtils.isEmpty(status)) {
+            status = entry.statusText;
+        }
+        if (TextUtils.isEmpty(status)) {
+            status = LocaleController.getString(R.string.Lately);
+        }
+        return status;
+    }
+
+    private boolean shouldUseLocalStatus(TLRPC.User user) {
+        if (user == null) {
+            return false;
+        }
+        if (user.status == null) {
+            return true;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOnline) {
+            return false;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusOffline) {
+            return ((TLRPC.TL_userStatusOffline) user.status).expires <= 0;
+        }
+        return user.status instanceof TLRPC.TL_userStatusRecently
+                || user.status instanceof TLRPC.TL_userStatusLastWeek
+                || user.status instanceof TLRPC.TL_userStatusLastMonth
+                || user.status instanceof TLRPC.TL_userStatusHidden
+                || user.status instanceof TLRPC.TL_userStatusEmpty;
+    }
+
 }

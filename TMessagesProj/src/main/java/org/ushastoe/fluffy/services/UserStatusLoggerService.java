@@ -3,22 +3,23 @@ package org.ushastoe.fluffy.services;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
-import org.telegram.messenger.AccountInstance;
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ConnectionsManager;
-import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.R;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.ushastoe.fluffy.storage.UserStatusStorage;
+
+import java.util.ArrayList;
 
 public class UserStatusLoggerService extends Service implements NotificationCenter.NotificationCenterDelegate {
 
@@ -30,8 +31,9 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         Log.d(TAG, "UserStatusLoggerService onCreate");
         for (int currentAccount = 0; currentAccount < UserConfig.MAX_ACCOUNT_COUNT; currentAccount++) {
             if (UserConfig.getInstance(currentAccount).isClientActivated()) {
-                NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateInterfaces);
-                Log.d(TAG, "Subscribed to updateInterfaces for account " + currentAccount);
+                NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.userStatusChanged);
+                Log.d(TAG, "Subscribed to userStatusChanged for account " + currentAccount);
+                seedAccountStatuses(currentAccount);
             }
         }
     }
@@ -53,88 +55,150 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         Log.d(TAG, "UserStatusLoggerService onDestroy");
         for (int currentAccount = 0; currentAccount < UserConfig.MAX_ACCOUNT_COUNT; currentAccount++) {
             if (UserConfig.getInstance(currentAccount).isClientActivated()) {
-                NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateInterfaces);
+                NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.userStatusChanged);
             }
         }
     }
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id != NotificationCenter.updateInterfaces || args == null || args.length == 0) {
-            return;
+        if (id == NotificationCenter.userStatusChanged) {
+            handleUserStatusChanged(account, args);
         }
-        if (!(args[0] instanceof Integer)) {
-            Log.w(TAG, "updateInterfaces args[0] is not Integer");
-            return;
-        }
-        int updateMask = (Integer) args[0];
-        boolean isStatusUpdate = (updateMask & MessagesController.UPDATE_MASK_STATUS) != 0;
-        boolean isPrintUpdate = (updateMask & MessagesController.UPDATE_MASK_USER_PRINT) != 0;
-        if (!isStatusUpdate && !isPrintUpdate) {
-            return;
-        }
+    }
 
-        long dialogId = 0;
-        if (args.length > 1 && args[1] instanceof Long) {
-            dialogId = (Long) args[1];
-        }
-        if (dialogId <= 0 || !DialogObject.isUserDialog(dialogId)) {
+    private void handleUserStatusChanged(int account, Object... args) {
+        if (args == null || args.length == 0) {
             return;
         }
-
-        long userId = dialogId;
-        TLRPC.User user = MessagesController.getInstance(account).getUser(userId);
+        TLRPC.User user = null;
+        Object firstArg = args[0];
+        if (firstArg instanceof TLRPC.User) {
+            user = resolveUser(account, (TLRPC.User) firstArg);
+        } else if (firstArg instanceof Integer) {
+            user = MessagesController.getInstance(account).getUser(((Integer) firstArg).longValue());
+        } else if (firstArg instanceof Long) {
+            user = MessagesController.getInstance(account).getUser((Long) firstArg);
+        }
         if (user == null) {
             return;
         }
-
-        CharSequence statusSequence = isStatusUpdate ? LocaleController.formatUserStatus(account, user) : null;
-        String statusText = statusSequence != null ? statusSequence.toString() : null;
-        String userName = UserObject.getUserName(user);
-        long lastSeenAt = extractLastSeen(user);
-        long statusExpiresAt = extractStatusExpires(user);
-        boolean isOnline = isUserOnline(account, user);
-        String actionText = null;
-        if (isPrintUpdate && args.length > 2 && args[2] instanceof TLRPC.SendMessageAction) {
-            actionText = describeAction((TLRPC.SendMessageAction) args[2]);
+        long changeTimestamp = System.currentTimeMillis();
+        StatusData data = buildStatusData(account, user, null, MessagesController.UPDATE_MASK_STATUS, changeTimestamp);
+        if (data == null) {
+            return;
         }
-        String statusClass = user.status != null ? user.status.getClass().getSimpleName() : null;
+        queueInsert(account, data);
+    }
 
-        final String actionTextFinal = actionText;
-        final String statusTextFinal = statusText;
-        final String userNameFinal = userName;
-        final String statusClassFinal = statusClass;
-
+    private void seedAccountStatuses(int account) {
+        ContactsController contactsController = ContactsController.getInstance(account);
+        ArrayList<TLRPC.TL_contact> contactsSnapshot = new ArrayList<>(contactsController.contacts);
+        if (contactsSnapshot.isEmpty()) {
+            return;
+        }
         Utilities.globalQueue.postRunnable(() -> {
+            MessagesController messagesController = MessagesController.getInstance(account);
             UserStatusStorage storage = UserStatusStorage.getInstance(ApplicationLoader.applicationContext);
-            storage.insertStatus(account, userId, userNameFinal, statusTextFinal, statusClassFinal, lastSeenAt, statusExpiresAt, isOnline, actionTextFinal, updateMask);
-            AndroidUtilities.runOnUIThread(() ->
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.userStatusLogUpdated));
+            boolean inserted = false;
+            for (TLRPC.TL_contact contact : contactsSnapshot) {
+                TLRPC.User user = messagesController.getUser(contact.user_id);
+                long changeTimestamp = System.currentTimeMillis();
+                StatusData data = buildStatusData(account, user, null, MessagesController.UPDATE_MASK_STATUS, changeTimestamp);
+                if (data == null) {
+                    continue;
+                }
+                storage.insertStatus(account, data.userId, data.userName, data.statusText, data.statusClass, data.lastSeenAt, data.statusExpiresAt, data.isOnline, data.actionText, data.updateMask);
+                inserted = true;
+            }
+            if (inserted) {
+                AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.userStatusLogUpdated));
+            }
         });
     }
 
-    private long extractLastSeen(TLRPC.User user) {
+    private void queueInsert(int account, StatusData data) {
+        Utilities.globalQueue.postRunnable(() -> {
+            UserStatusStorage storage = UserStatusStorage.getInstance(ApplicationLoader.applicationContext);
+            storage.insertStatus(account, data.userId, data.userName, data.statusText, data.statusClass, data.lastSeenAt, data.statusExpiresAt, data.isOnline, data.actionText, data.updateMask);
+            AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.userStatusLogUpdated));
+        });
+    }
+
+    private StatusData buildStatusData(int account, TLRPC.User user, String actionText, int updateMask, long fallbackTimestamp) {
+        if (user == null) {
+            return null;
+        }
+        CharSequence statusSequence = LocaleController.formatUserStatus(account, user);
+        String statusText = statusSequence != null ? statusSequence.toString() : null;
+        String userName = UserObject.getUserName(user);
+        if (TextUtils.isEmpty(userName)) {
+            userName = String.valueOf(user.id);
+        }
+        String statusClass = user.status != null ? user.status.getClass().getSimpleName() : null;
+        long lastSeenAt = extractLastSeen(user, fallbackTimestamp);
+        long statusExpiresAt = extractStatusExpires(user, fallbackTimestamp);
+        boolean isOnline = isUserOnline(account, user);
+        return new StatusData(user.id, userName, statusText, statusClass, lastSeenAt, statusExpiresAt, isOnline, actionText, updateMask);
+    }
+
+    private TLRPC.User resolveUser(int account, TLRPC.User candidate) {
+        TLRPC.User cached = MessagesController.getInstance(account).getUser(candidate.id);
+        return cached != null ? cached : candidate;
+    }
+
+    private long extractLastSeen(TLRPC.User user, long fallbackTimestamp) {
         if (user == null || user.status == null) {
             return 0;
         }
         if (user.status instanceof TLRPC.TL_userStatusOffline) {
-            return ((TLRPC.TL_userStatusOffline) user.status).was_online * 1000L;
+            int expires = ((TLRPC.TL_userStatusOffline) user.status).expires;
+            if (expires > 0) {
+                return expires * 1000L;
+            }
+            return fallbackTimestamp > 0 ? fallbackTimestamp : 0;
         }
         if (user.status instanceof TLRPC.TL_userStatusOnline) {
-            return ((TLRPC.TL_userStatusOnline) user.status).expires * 1000L;
+            int expires = ((TLRPC.TL_userStatusOnline) user.status).expires;
+            if (expires > 0) {
+                return expires * 1000L;
+            }
+            return fallbackTimestamp > 0 ? fallbackTimestamp : 0;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusRecently
+                || user.status instanceof TLRPC.TL_userStatusLastWeek
+                || user.status instanceof TLRPC.TL_userStatusLastMonth
+                || user.status instanceof TLRPC.TL_userStatusHidden
+                || user.status instanceof TLRPC.TL_userStatusEmpty) {
+            return fallbackTimestamp > 0 ? fallbackTimestamp : 0;
         }
         return 0;
     }
 
-    private long extractStatusExpires(TLRPC.User user) {
+    private long extractStatusExpires(TLRPC.User user, long fallbackTimestamp) {
         if (user == null || user.status == null) {
             return 0;
         }
         if (user.status instanceof TLRPC.TL_userStatusOnline) {
-            return ((TLRPC.TL_userStatusOnline) user.status).expires * 1000L;
+            int expires = ((TLRPC.TL_userStatusOnline) user.status).expires;
+            if (expires > 0) {
+                return expires * 1000L;
+            }
+            return fallbackTimestamp > 0 ? fallbackTimestamp : 0;
         }
         if (user.status instanceof TLRPC.TL_userStatusOffline) {
-            return ((TLRPC.TL_userStatusOffline) user.status).was_online * 1000L;
+            int expires = ((TLRPC.TL_userStatusOffline) user.status).expires;
+            if (expires > 0) {
+                return expires * 1000L;
+            }
+            return fallbackTimestamp > 0 ? fallbackTimestamp : 0;
+        }
+        if (user.status instanceof TLRPC.TL_userStatusRecently
+                || user.status instanceof TLRPC.TL_userStatusLastWeek
+                || user.status instanceof TLRPC.TL_userStatusLastMonth
+                || user.status instanceof TLRPC.TL_userStatusHidden
+                || user.status instanceof TLRPC.TL_userStatusEmpty) {
+            return fallbackTimestamp > 0 ? fallbackTimestamp : 0;
         }
         return 0;
     }
@@ -148,50 +212,32 @@ public class UserStatusLoggerService extends Service implements NotificationCent
             return ((TLRPC.TL_userStatusOnline) user.status).expires > currentTime;
         }
         if (user.status instanceof TLRPC.TL_userStatusOffline) {
-            return ((TLRPC.TL_userStatusOffline) user.status).was_online > currentTime;
+            return ((TLRPC.TL_userStatusOffline) user.status).expires > currentTime;
         }
         return false;
     }
 
-    private String describeAction(TLRPC.SendMessageAction action) {
-        if (action == null) {
-            return null;
+    private static final class StatusData {
+        final long userId;
+        final String userName;
+        final String statusText;
+        final String statusClass;
+        final long lastSeenAt;
+        final long statusExpiresAt;
+        final boolean isOnline;
+        final String actionText;
+        final int updateMask;
+
+        StatusData(long userId, String userName, String statusText, String statusClass, long lastSeenAt, long statusExpiresAt, boolean isOnline, String actionText, int updateMask) {
+            this.userId = userId;
+            this.userName = userName;
+            this.statusText = statusText;
+            this.statusClass = statusClass;
+            this.lastSeenAt = lastSeenAt;
+            this.statusExpiresAt = statusExpiresAt;
+            this.isOnline = isOnline;
+            this.actionText = actionText;
+            this.updateMask = updateMask;
         }
-        if (action instanceof TLRPC.TL_sendMessageTypingAction) {
-            return LocaleController.getString("UserStatusLogActionTyping", R.string.UserStatusLogActionTyping);
-        } else if (action instanceof TLRPC.TL_sendMessageRecordVideoAction) {
-            return LocaleController.getString("UserStatusLogActionRecordingVideo", R.string.UserStatusLogActionRecordingVideo);
-        } else if (action instanceof TLRPC.TL_sendMessageUploadVideoAction) {
-            return LocaleController.getString("UserStatusLogActionUploadingVideo", R.string.UserStatusLogActionUploadingVideo);
-        } else if (action instanceof TLRPC.TL_sendMessageRecordAudioAction) {
-            return LocaleController.getString("UserStatusLogActionRecordingVoice", R.string.UserStatusLogActionRecordingVoice);
-        } else if (action instanceof TLRPC.TL_sendMessageUploadAudioAction) {
-            return LocaleController.getString("UserStatusLogActionUploadingVoice", R.string.UserStatusLogActionUploadingVoice);
-        } else if (action instanceof TLRPC.TL_sendMessageUploadPhotoAction) {
-            return LocaleController.getString("UserStatusLogActionUploadingPhoto", R.string.UserStatusLogActionUploadingPhoto);
-        } else if (action instanceof TLRPC.TL_sendMessageUploadDocumentAction) {
-            return LocaleController.getString("UserStatusLogActionUploadingDocument", R.string.UserStatusLogActionUploadingDocument);
-        } else if (action instanceof TLRPC.TL_sendMessageUploadRoundAction) {
-            return LocaleController.getString("UserStatusLogActionUploadingRound", R.string.UserStatusLogActionUploadingRound);
-        } else if (action instanceof TLRPC.TL_sendMessageRecordRoundAction) {
-            return LocaleController.getString("UserStatusLogActionRecordingRound", R.string.UserStatusLogActionRecordingRound);
-        } else if (action instanceof TLRPC.TL_sendMessageGamePlayAction) {
-            return LocaleController.getString("UserStatusLogActionPlayingGame", R.string.UserStatusLogActionPlayingGame);
-        } else if (action instanceof TLRPC.TL_sendMessageGeoLocationAction) {
-            return LocaleController.getString("UserStatusLogActionSendingLocation", R.string.UserStatusLogActionSendingLocation);
-        } else if (action instanceof TLRPC.TL_sendMessageChooseContactAction) {
-            return LocaleController.getString("UserStatusLogActionChoosingContact", R.string.UserStatusLogActionChoosingContact);
-        } else if (action instanceof TLRPC.TL_sendMessageChooseStickerAction) {
-            return LocaleController.getString("UserStatusLogActionChoosingSticker", R.string.UserStatusLogActionChoosingSticker);
-        } else if (action instanceof TLRPC.TL_sendMessageEmojiInteraction) {
-            return LocaleController.getString("UserStatusLogActionEmoji", R.string.UserStatusLogActionEmoji);
-        } else if (action instanceof TLRPC.TL_sendMessageEmojiInteractionSeen) {
-            return LocaleController.getString("UserStatusLogActionEmojiSeen", R.string.UserStatusLogActionEmojiSeen);
-        } else if (action instanceof TLRPC.TL_sendMessageHistoryImportAction) {
-            return LocaleController.getString("UserStatusLogActionImportingHistory", R.string.UserStatusLogActionImportingHistory);
-        } else if (action instanceof TLRPC.TL_sendMessageCancelAction) {
-            return LocaleController.getString("UserStatusLogActionCancelling", R.string.UserStatusLogActionCancelling);
-        }
-        return action.getClass().getSimpleName();
     }
 }

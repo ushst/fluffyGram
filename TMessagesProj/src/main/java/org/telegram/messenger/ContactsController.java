@@ -2612,8 +2612,11 @@ public class ContactsController extends BaseController {
                             if (user != null) {
                                 user.status = status.status;
                             }
+                            toDbUser.id = status.user_id;
                             toDbUser.status = status.status;
                             dbUsersStatus.add(toDbUser);
+                            TLRPC.User userForEvent = user != null ? user : toDbUser;
+                            getNotificationCenter().postNotificationName(NotificationCenter.userStatusChanged, userForEvent);
                         }
                         getMessagesStorage().updateUsers(dbUsersStatus, true, true, true);
                     }

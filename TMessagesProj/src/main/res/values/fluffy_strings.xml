@@ -94,9 +94,15 @@
     <string name="UserStatusLogLastSeenAt">Last seen: %1$s</string>
     <string name="UserStatusLogLastSeenUnknown">Last seen is hidden</string>
     <string name="UserStatusLogAccountLabel">Account #%1$d</string>
+    <string name="UserStatusLogSubtitle">Updated %1$s - %2$s records</string>
     <string name="UserStatusLogHistoryTitle">Status history</string>
-    <string name="UserStatusLogHistoryLine">%1$s — %2$s</string>
-    <string name="UserStatusLogStatusWithAction">%1$s · %2$s</string>
+    <string name="UserStatusLogHistoryLine">%1$s - %2$s</string>
+    <string name="UserStatusLogHistoryEmpty">No status events recorded yet.</string>
+    <string name="UserStatusLogOpenProfile">Open profile</string>
+    <string name="UserStatusLogClear">Clear log</string>
+    <string name="UserStatusLogClearTitle">Clear status log?</string>
+    <string name="UserStatusLogClearText">Remove all saved status records? This cannot be undone.</string>
+    <string name="UserStatusLogStatusWithAction">%1$s - %2$s</string>
     <string name="UserStatusLogStatusClass">Status object: %1$s</string>
     <string name="UserStatusLogStatusExpires">Online until %1$s</string>
     <string name="UserStatusLogActionTyping">typing</string>

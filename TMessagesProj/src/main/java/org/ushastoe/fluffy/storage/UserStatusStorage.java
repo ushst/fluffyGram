@@ -118,6 +118,16 @@ public class UserStatusStorage {
         return Collections.unmodifiableList(result);
     }
 
+
+    @Nullable
+    public LogEntry getLatestForUser(long userId, int accountId) {
+        List<LogEntry> history = getHistoryForUser(userId, accountId, 1);
+        if (history.isEmpty()) {
+            return null;
+        }
+        return history.get(0);
+    }
+
     public List<LogEntry> getHistoryForUser(long userId, int accountId, int limit) {
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
         List<LogEntry> result = new ArrayList<>();
@@ -152,6 +162,16 @@ public class UserStatusStorage {
         int updateMask = cursor.getInt(10);
         long updatedAt = cursor.getLong(11);
         return new LogEntry(id, accountId, userId, userName, statusText, statusClass, lastSeen, statusExpires, isOnline, actionText, updateMask, updatedAt);
+    }
+
+    public long getEntryCount() {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        return DatabaseUtils.queryNumEntries(db, TABLE_LOGS);
+    }
+
+    public void clearAll() {
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        db.delete(TABLE_LOGS, null, null);
     }
 
     private void trimToSize(SQLiteDatabase db) {

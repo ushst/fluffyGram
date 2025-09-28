@@ -10058,6 +10058,7 @@ public class MessagesController extends BaseController implements NotificationCe
             if (toRemove != null) {
                 for (Long uid : toRemove) {
                     onlinePrivacy.remove(uid);
+                    notifyUserStatusChanged(uid);
                 }
                 AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_STATUS));
             }
@@ -16828,6 +16829,7 @@ public class MessagesController extends BaseController implements NotificationCe
             if (!updates.out && user != null && user.status != null && user.status.expires <= 0 && Math.abs(getConnectionsManager().getCurrentTime() - updates.date) < 30) {
                 onlinePrivacy.put(user.id, updates.date);
                 updateStatus = true;
+                notifyUserStatusChanged(user);
             }
 
             if (missingData) {
@@ -17442,6 +17444,7 @@ public class MessagesController extends BaseController implements NotificationCe
                             }
                             if (!message.out && a == 1 && user.status != null && user.status.expires <= 0 && Math.abs(getConnectionsManager().getCurrentTime() - message.date) < 30) {
                                 onlinePrivacy.put(userId, message.date);
+                                notifyUserStatusChanged(user);
                                 interfaceUpdateMask |= UPDATE_MASK_STATUS;
                             }
                         }
@@ -17634,6 +17637,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     TLRPC.User user = getUser(update.peer.user_id);
                     if (user != null && user.status != null && user.status.expires <= 0 && Math.abs(getConnectionsManager().getCurrentTime() - date) < 30) {
                         onlinePrivacy.put(update.peer.user_id, date);
+                        notifyUserStatusChanged(user);
                         interfaceUpdateMask |= UPDATE_MASK_STATUS;
                     }
                 }
@@ -17814,6 +17818,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     if (Math.abs(getConnectionsManager().getCurrentTime() - date) < 30) {
                         onlinePrivacy.put(userId, date);
+                        notifyUserStatusChanged(userId);
                     }
                 }
             } else if (baseUpdate instanceof TLRPC.TL_updateChatParticipants) {
@@ -17977,6 +17982,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     if (Math.abs(getConnectionsManager().getCurrentTime() - date) < 30) {
                         onlinePrivacy.put(encryptedChat.user_id, date);
+                        notifyUserStatusChanged(encryptedChat.user_id);
                     }
                 }
             } else if (baseUpdate instanceof TLRPC.TL_updateEncryptedMessagesRead) {
@@ -18662,6 +18668,8 @@ public class MessagesController extends BaseController implements NotificationCe
                         toDbUser.id = update.user_id;
                         toDbUser.status = update.status;
                         dbUsersStatus.add(toDbUser);
+                        TLRPC.User userForEvent = currentUser != null ? currentUser : toDbUser;
+                        notifyUserStatusChanged(userForEvent);
                         if (update.user_id == getUserConfig().getClientUserId()) {
                             getNotificationsController().setLastOnlineFromOtherDevice(update.status.expires);
                         }
@@ -23424,4 +23432,22 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+
+    private void notifyUserStatusChanged(TLRPC.User user) {
+        if (user == null) {
+            return;
+        }
+        getNotificationCenter().postNotificationName(NotificationCenter.userStatusChanged, user);
+    }
+
+    private void notifyUserStatusChanged(long userId) {
+        TLRPC.User user = getUser(userId);
+        if (user == null) {
+            user = getMessagesStorage().getUserSync(userId);
+            if (user != null) {
+                putUser(user, true);
+            }
+        }
+        notifyUserStatusChanged(user);
+    }
 }

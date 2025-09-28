@@ -158,6 +158,7 @@ public class NotificationCenter {
     public static final int dialogTranslate = totalEvents++;
     public static final int didGenerateFingerprintKeyPair = totalEvents++;
     public static final int walletPendingTransactionsChanged = totalEvents++;
+    public static final int userStatusChanged = totalEvents++;
     public static final int userStatusLogUpdated = totalEvents++;
     public static final int walletSyncProgressChanged = totalEvents++;
     public static final int httpFileDidLoad = totalEvents++;
