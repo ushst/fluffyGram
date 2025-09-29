@@ -1,13 +1,11 @@
 package org.ushastoe.fluffy.activities;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,6 +16,8 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.DialogObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -38,8 +38,6 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.telegram.ui.Components.AvatarDrawable;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,11 +50,18 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
     private final int messageId;
     private RecyclerListView listView;
     private ChatAvatarContainer avatarContainer;
+    private final MessageObject originalMessage;
+    private final TLRPC.User historyUser;
+    private final TLRPC.Chat historyChat;
 
     public fluffyMessageHistory(MessageObject messageObject) {
-        messages = getMessagesStorage().loadFlHistory(messageObject.messageOwner.dialog_id, messageObject.messageOwner.id);
+        setCurrentAccount(messageObject.currentAccount);
+
+        originalMessage = messageObject;
         dialogId = messageObject.messageOwner.dialog_id;
         messageId = messageObject.messageOwner.id;
+
+        messages = getMessagesStorage().loadFlHistory(dialogId, messageId);
         messageIds = new ArrayList<>(messages.keySet());
 
         long currentMessageKey = System.currentTimeMillis() / 1000;
@@ -65,11 +70,27 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
         messageIds.add(0, currentMessageKey);
 
         rowCount = messages.size();
+
+        MessagesController controller = getMessagesController();
+        TLRPC.User resolvedUser = null;
+        TLRPC.Chat resolvedChat = null;
+        if (messageObject.messageOwner != null) {
+            TLRPC.Peer fromPeer = messageObject.messageOwner.from_id;
+            if (fromPeer instanceof TLRPC.TL_peerUser) {
+                resolvedUser = controller.getUser(((TLRPC.TL_peerUser) fromPeer).user_id);
+            } else if (fromPeer instanceof TLRPC.TL_peerChat) {
+                resolvedChat = controller.getChat(((TLRPC.TL_peerChat) fromPeer).chat_id);
+            } else if (fromPeer instanceof TLRPC.TL_peerChannel) {
+                resolvedChat = controller.getChat(((TLRPC.TL_peerChannel) fromPeer).channel_id);
+            }
+        }
+        historyUser = resolvedUser;
+        historyChat = resolvedChat;
     }
 
     @Override
     public View createView(Context context) {
-        var peer = getAccountInstance().getMessagesController().getUserOrChat(dialogId);
+        Object peer = getAccountInstance().getMessagesController().getUserOrChat(dialogId);
 
         avatarContainer = new ChatAvatarContainer(context, null, false);
         avatarContainer.setOccupyStatusBar(!AndroidUtilities.isTablet());
@@ -194,6 +215,42 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
         // todo: update list in real time
     }
 
+    private TLRPC.Peer clonePeer(TLRPC.Peer peer, long fallbackDialogId) {
+        if (peer instanceof TLRPC.TL_peerUser) {
+            TLRPC.TL_peerUser copy = new TLRPC.TL_peerUser();
+            copy.user_id = ((TLRPC.TL_peerUser) peer).user_id;
+            return copy;
+        } else if (peer instanceof TLRPC.TL_peerChat) {
+            TLRPC.TL_peerChat copy = new TLRPC.TL_peerChat();
+            copy.chat_id = ((TLRPC.TL_peerChat) peer).chat_id;
+            return copy;
+        } else if (peer instanceof TLRPC.TL_peerChannel) {
+            TLRPC.TL_peerChannel copy = new TLRPC.TL_peerChannel();
+            copy.channel_id = ((TLRPC.TL_peerChannel) peer).channel_id;
+            return copy;
+        }
+
+        if (fallbackDialogId != 0) {
+            if (DialogObject.isEncryptedDialog(fallbackDialogId)) {
+                TLRPC.TL_peerUser copy = new TLRPC.TL_peerUser();
+                copy.user_id = UserConfig.getInstance(currentAccount).getClientUserId();
+                return copy;
+            } else if (fallbackDialogId > 0) {
+                TLRPC.TL_peerUser copy = new TLRPC.TL_peerUser();
+                copy.user_id = (int) fallbackDialogId;
+                return copy;
+            } else {
+                long absId = -fallbackDialogId;
+                if (absId != 0) {
+                    TLRPC.TL_peerChannel copy = new TLRPC.TL_peerChannel();
+                    copy.channel_id = (int) absId;
+                    return copy;
+                }
+            }
+        }
+        return null;
+    }
+
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
         private final Context context;
@@ -216,7 +273,7 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
             if (viewType == 1) {
-                view = new ChatMessageCell(context, UserConfig.selectedAccount);
+                view = new ChatMessageCell(context, currentAccount);
             } else {
                 view = null;
             }
@@ -234,46 +291,66 @@ public class fluffyMessageHistory extends BaseFragment implements NotificationCe
                     messageText = MessageHelper.decodeBase64(messageText);
 
                     TLRPC.TL_message msg = new TLRPC.TL_message();
+                    TLRPC.Message original = originalMessage.messageOwner;
+
                     msg.message = messageText;
                     msg.date = (int) messageKey;
-                    msg.dialog_id = -1;
-                    msg.flags = 259;
+                    msg.dialog_id = dialogId;
+                    msg.flags = original != null ? original.flags | TLRPC.MESSAGE_FLAG_HAS_FROM_ID : TLRPC.MESSAGE_FLAG_HAS_FROM_ID;
+                    msg.flags &= ~TLRPC.MESSAGE_FLAG_HAS_MARKUP;
+                    msg.flags &= ~TLRPC.MESSAGE_FLAG_HAS_BOT_ID;
+                    msg.flags &= ~TLRPC.MESSAGE_FLAG_HAS_VIEWS;
                     msg.id = Utilities.random.nextInt();
 
                     msg.out = false;
-                    msg.from_id = new TLRPC.TL_peerUser();
-
-                    if (dialogId < 0) {
-                        msg.peer_id = new TLRPC.TL_peerChat();
-                        msg.peer_id.chat_id = -dialogId;
-                        msg.flags |= 16;
-                    } else {
-                        msg.peer_id = new TLRPC.TL_peerUser();
-                        msg.peer_id.user_id = UserConfig.getInstance(currentAccount).getClientUserId();
+                    msg.post = original != null && original.post;
+                    msg.legacy = original != null && original.legacy;
+                    msg.mentioned = original != null && original.mentioned;
+                    msg.silent = original != null && original.silent;
+                    msg.ttl = original != null ? original.ttl : 0;
+                    msg.ttl_period = original != null ? original.ttl_period : 0;
+                    msg.fwd_from = original != null ? original.fwd_from : null;
+                    msg.reply_to = original != null ? original.reply_to : null;
+                    msg.via_bot_id = 0;
+                    msg.reply_markup = null;
+                    msg.views = 0;
+                    msg.entities = original != null && original.entities != null ? new ArrayList<>(original.entities) : null;
+                    if (msg.entities != null) {
+                        msg.flags |= TLRPC.MESSAGE_FLAG_HAS_ENTITIES;
                     }
 
-                    TLRPC.User user = getMessagesController().getUser(dialogId);
-                    if (user != null) {
-                        msg.from_id.user_id = user.id;
-                    } else {
-                        TLRPC.Chat chat = getMessagesController().getChat(-dialogId);
-                        if (chat != null) {
-                            msg.from_id.user_id = chat.id;
-                            msg.flags |= 16384;
+                    msg.media = new TLRPC.TL_messageMediaEmpty();
+                    msg.flags |= TLRPC.MESSAGE_FLAG_HAS_MEDIA;
+
+                    msg.peer_id = clonePeer(original != null ? original.peer_id : null, dialogId);
+                    msg.from_id = clonePeer(original != null ? original.from_id : null, dialogId);
+
+                    MessageObject historyMessageObject = new MessageObject(currentAccount, msg, false, false);
+                    historyMessageObject.forceAvatar = true;
+                    if (historyUser != null && historyUser.photo == null) {
+                        AvatarDrawable placeholder = new AvatarDrawable();
+                        placeholder.setInfo(currentAccount, historyUser);
+                        historyMessageObject.customAvatarDrawable = placeholder;
+                    } else if (historyChat != null && historyChat.photo == null) {
+                        AvatarDrawable placeholder = new AvatarDrawable();
+                        placeholder.setInfo(currentAccount, historyChat);
+                        historyMessageObject.customAvatarDrawable = placeholder;
+                    } else if (historyUser == null && historyChat == null) {
+                        AvatarDrawable placeholder = new AvatarDrawable();
+                        if (msg.from_id instanceof TLRPC.TL_peerUser) {
+                            long uid = ((TLRPC.TL_peerUser) msg.from_id).user_id;
+                            placeholder.setInfo(uid, null, null, null, null, null);
+                        } else if (msg.from_id instanceof TLRPC.TL_peerChat) {
+                            long chatId = ((TLRPC.TL_peerChat) msg.from_id).chat_id;
+                            placeholder.setInfo(-chatId, null, null, null, null, null);
+                        } else if (msg.from_id instanceof TLRPC.TL_peerChannel) {
+                            long channelId = ((TLRPC.TL_peerChannel) msg.from_id).channel_id;
+                            placeholder.setInfo(-channelId, null, null, null, null, null);
                         }
+                        historyMessageObject.customAvatarDrawable = placeholder;
                     }
 
-                    if (dialogId < 0) {
-                        msg.peer_id = new TLRPC.TL_peerChat();
-                        msg.peer_id.chat_id = -dialogId;
-                    } else {
-                        msg.peer_id = new TLRPC.TL_peerUser();
-                        msg.peer_id.user_id = dialogId;
-                    }
-                    MessageObject messageObject = new MessageObject(currentAccount, msg, true, false);
-                    messageObject.forceAvatar = true;
-
-                    fluffyMessageDetailCell.setMessageObject(messageObject, null, false, false, false);
+                    fluffyMessageDetailCell.setMessageObject(historyMessageObject, null, false, false, false);
                     fluffyMessageDetailCell.isChat = true;
             }
         }

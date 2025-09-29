@@ -5859,19 +5859,23 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             signInWithGoogleView.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16));
             signInWithGoogleView.setMaxLines(2);
 
-            SpannableStringBuilder str = new SpannableStringBuilder("d ");
-            Drawable dr = ContextCompat.getDrawable(context, R.drawable.googleg_standard_color_18);
-            dr.setBounds(0, AndroidUtilities.dp(9), AndroidUtilities.dp(18), AndroidUtilities.dp(18 + 9));
-            str.setSpan(new ImageSpan(dr, ImageSpan.ALIGN_BOTTOM), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            str.setSpan(new ReplacementSpan() {
-                @Override
-                public int getSize(@NonNull Paint paint, CharSequence text, int start, int end, @Nullable Paint.FontMetricsInt fm) {
-                    return AndroidUtilities.dp(12);
-                }
+            SpannableStringBuilder str = new SpannableStringBuilder();
+            int googleIconResId = context.getResources().getIdentifier("googleg_standard_color_18", "drawable", context.getPackageName());
+            Drawable dr = googleIconResId != 0 ? ContextCompat.getDrawable(context, googleIconResId) : null;
+            if (dr != null) {
+                str.append("d ");
+                dr.setBounds(0, AndroidUtilities.dp(9), AndroidUtilities.dp(18), AndroidUtilities.dp(18 + 9));
+                str.setSpan(new ImageSpan(dr, ImageSpan.ALIGN_BOTTOM), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ReplacementSpan() {
+                    @Override
+                    public int getSize(@NonNull Paint paint, CharSequence text, int start, int end, @Nullable Paint.FontMetricsInt fm) {
+                        return AndroidUtilities.dp(12);
+                    }
 
-                @Override
-                public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {}
-            }, 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    @Override
+                    public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {}
+                }, 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
             str.append(getString(R.string.SignInWithGoogle));
             signInWithGoogleView.setText(str);
 
@@ -6204,19 +6208,23 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             signInWithGoogleView.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16));
             signInWithGoogleView.setMaxLines(2);
 
-            SpannableStringBuilder str = new SpannableStringBuilder("d ");
-            Drawable dr = ContextCompat.getDrawable(context, R.drawable.googleg_standard_color_18);
-            dr.setBounds(0, AndroidUtilities.dp(9), AndroidUtilities.dp(18), AndroidUtilities.dp(18 + 9));
-            str.setSpan(new ImageSpan(dr, ImageSpan.ALIGN_BOTTOM), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            str.setSpan(new ReplacementSpan() {
-                @Override
-                public int getSize(@NonNull Paint paint, CharSequence text, int start, int end, @Nullable Paint.FontMetricsInt fm) {
-                    return AndroidUtilities.dp(12);
-                }
+            SpannableStringBuilder str = new SpannableStringBuilder();
+            int googleIconResId = context.getResources().getIdentifier("googleg_standard_color_18", "drawable", context.getPackageName());
+            Drawable dr = googleIconResId != 0 ? ContextCompat.getDrawable(context, googleIconResId) : null;
+            if (dr != null) {
+                str.append("d ");
+                dr.setBounds(0, AndroidUtilities.dp(9), AndroidUtilities.dp(18), AndroidUtilities.dp(18 + 9));
+                str.setSpan(new ImageSpan(dr, ImageSpan.ALIGN_BOTTOM), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ReplacementSpan() {
+                    @Override
+                    public int getSize(@NonNull Paint paint, CharSequence text, int start, int end, @Nullable Paint.FontMetricsInt fm) {
+                        return AndroidUtilities.dp(12);
+                    }
 
-                @Override
-                public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {}
-            }, 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    @Override
+                    public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {}
+                }, 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
             str.append(getString(R.string.SignInWithGoogle));
             signInWithGoogleView.setText(str);
 

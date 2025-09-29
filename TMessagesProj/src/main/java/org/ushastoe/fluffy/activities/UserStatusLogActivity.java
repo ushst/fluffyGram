@@ -4,11 +4,13 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -17,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.Utilities;
@@ -30,10 +33,14 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.TextDetailCell;
+import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.ProfileActivity;
 import org.ushastoe.fluffy.storage.UserStatusStorage;
+
+import org.telegram.tgnet.TLRPC;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,6 +63,10 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
     private long historyDialogUserId;
     private int historyDialogAccountId;
     private String historyDialogTitle;
+    private BackupImageView historyDialogAvatarView;
+    private final AvatarDrawable historyDialogAvatarDrawable = new AvatarDrawable();
+    private TextView historyDialogNameView;
+    private UserStatusStorage.LogEntry historyDialogInitialEntry;
 
 
     @Override
@@ -190,12 +201,51 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         }
         historyDialogUserId = entry.userId;
         historyDialogAccountId = entry.accountId;
+        historyDialogInitialEntry = entry;
         String baseTitle = LocaleController.getString("UserStatusLogHistoryTitle", R.string.UserStatusLogHistoryTitle);
         historyDialogTitle = baseTitle + " - " + buildTitle(entry);
 
         Context context = getParentActivity();
         ScrollView scrollView = new ScrollView(context);
         scrollView.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(16), AndroidUtilities.dp(24), AndroidUtilities.dp(16));
+
+        LinearLayout container = new LinearLayout(context);
+        container.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout header = new LinearLayout(context);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
+        header.setPadding(0, 0, 0, AndroidUtilities.dp(12));
+
+        historyDialogAvatarView = new BackupImageView(context);
+        historyDialogAvatarView.setRoundRadius(AndroidUtilities.dp(24));
+        historyDialogAvatarView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(48), AndroidUtilities.dp(48));
+        if (LocaleController.isRTL) {
+            avatarParams.leftMargin = AndroidUtilities.dp(12);
+        } else {
+            avatarParams.rightMargin = AndroidUtilities.dp(12);
+        }
+        header.addView(historyDialogAvatarView, avatarParams);
+
+        historyDialogNameView = new TextView(context);
+        historyDialogNameView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        historyDialogNameView.setTextSize(16);
+        historyDialogNameView.setTypeface(Typeface.DEFAULT_BOLD);
+        historyDialogNameView.setSingleLine(true);
+        historyDialogNameView.setEllipsize(TextUtils.TruncateAt.END);
+        historyDialogNameView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        header.addView(historyDialogNameView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        historyDialogAvatarView.setOnClickListener(v -> {
+            if (historyDialogUserId != 0) {
+                openProfile(historyDialogUserId, historyDialogAccountId);
+            }
+        });
+
+        container.addView(header, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         historyDialogMessageView = new TextView(context);
         historyDialogMessageView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         historyDialogMessageView.setTextSize(16);
@@ -203,7 +253,9 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         historyDialogMessageView.setTextIsSelectable(true);
         historyDialogMessageView.setMovementMethod(new ScrollingMovementMethod());
         historyDialogMessageView.setText(LocaleController.getString("Loading", R.string.Loading));
-        scrollView.addView(historyDialogMessageView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+        container.addView(historyDialogMessageView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        scrollView.addView(container, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(historyDialogTitle);
@@ -219,10 +271,14 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
                 historyDialogUserId = 0;
                 historyDialogAccountId = 0;
                 historyDialogTitle = null;
+                historyDialogAvatarView = null;
+                historyDialogNameView = null;
+                historyDialogInitialEntry = null;
             }
         });
         historyDialog = dialog;
         showDialog(dialog);
+        bindHistoryHeader(entry);
         refreshHistoryDialog();
     }
 
@@ -243,9 +299,11 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
                 if (!history.isEmpty()) {
                     title = LocaleController.getString("UserStatusLogHistoryTitle", R.string.UserStatusLogHistoryTitle) + " - " + buildTitle(history.get(0));
                     historyDialogTitle = title;
+                    bindHistoryHeader(history.get(0));
                 } else {
                     title = historyDialogTitle != null ? historyDialogTitle
                             : LocaleController.getString("UserStatusLogHistoryTitle", R.string.UserStatusLogHistoryTitle);
+                    bindHistoryHeader(historyDialogInitialEntry);
                 }
                 historyDialog.setTitle(title);
                 String message = buildHistoryMessage(history);
@@ -350,9 +408,10 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
 
     private String formatDateTime(long millis) {
         Date date = new Date(millis);
+        CharSequence time = DateFormat.format("HH:mm", date);
         return LocaleController.formatString("formatDateAtTime", R.string.formatDateAtTime,
                 LocaleController.getInstance().getFormatterDayMonth().format(date),
-                LocaleController.getInstance().getFormatterDay().format(date));
+                time.toString());
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -375,16 +434,17 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            TextDetailCell cell = new TextDetailCell(context, null, true);
+            LogEntryCell cell = new LogEntryCell(context);
             cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             return new RecyclerListView.Holder(cell);
         }
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            TextDetailCell cell = (TextDetailCell) holder.itemView;
+            LogEntryCell cell = (LogEntryCell) holder.itemView;
             UserStatusStorage.LogEntry entry = items.get(position);
             cell.setTextAndValue(buildTitle(entry), buildValue(entry), position != items.size() - 1);
+            cell.bind(entry);
         }
 
         @Override
@@ -413,5 +473,135 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         descriptions.add(new ThemeDescription(emptyView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null,
                 Theme.key_windowBackgroundWhiteGrayText2));
         return descriptions;
+    }
+
+    private class LogEntryCell extends TextDetailCell {
+
+        private final BackupImageView avatarImageView;
+        private final AvatarDrawable avatarDrawable = new AvatarDrawable();
+        private long boundUserId;
+        private int boundAccountId;
+
+        LogEntryCell(Context context) {
+            super(context, null, true);
+            avatarImageView = new BackupImageView(context);
+            avatarImageView.setRoundRadius(AndroidUtilities.dp(24));
+            avatarImageView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+            addView(avatarImageView, buildAvatarLayoutParams());
+
+            if (getImageView() != null) {
+                getImageView().setVisibility(GONE);
+            }
+
+            avatarImageView.setOnClickListener(v -> {
+                if (boundUserId != 0) {
+                    openProfile(boundUserId, boundAccountId);
+                }
+            });
+
+            adjustTextInsets();
+        }
+
+        void bind(UserStatusStorage.LogEntry entry) {
+            boundUserId = entry.userId;
+            boundAccountId = entry.accountId;
+
+            adjustForLocale();
+
+            TLRPC.User user = MessagesController.getInstance(boundAccountId).getUser(boundUserId);
+            if (user != null) {
+                avatarDrawable.setInfo(boundAccountId, user);
+                avatarImageView.setForUserOrChat(user, avatarDrawable, user);
+            } else {
+                String displayName = entry.userName;
+                String firstName = null;
+                String lastName = null;
+                if (!TextUtils.isEmpty(displayName)) {
+                    String[] parts = displayName.split(" ", 2);
+                    firstName = parts[0];
+                    if (parts.length > 1) {
+                        lastName = parts[1];
+                    }
+                }
+                avatarDrawable.setInfo(entry.userId, firstName, lastName);
+                avatarImageView.setImageDrawable(avatarDrawable);
+            }
+
+            if (!TextUtils.isEmpty(entry.userName)) {
+                avatarImageView.setContentDescription(entry.userName);
+            } else {
+                avatarImageView.setContentDescription(String.valueOf(entry.userId));
+            }
+        }
+
+        private void adjustForLocale() {
+            FrameLayout.LayoutParams avatarParams = buildAvatarLayoutParams();
+            avatarImageView.setLayoutParams(avatarParams);
+            adjustTextInsets();
+        }
+
+        private void adjustTextInsets() {
+            int extra = AndroidUtilities.dp(48 + 12);
+            int baseTitle = AndroidUtilities.dp(23 - 6);
+            int baseValue = AndroidUtilities.dp(23);
+            FrameLayout.LayoutParams titleParams = (FrameLayout.LayoutParams) textView.getLayoutParams();
+            FrameLayout.LayoutParams valueParams = (FrameLayout.LayoutParams) valueTextView.getLayoutParams();
+            if (LocaleController.isRTL) {
+                titleParams.rightMargin = baseTitle + extra;
+                titleParams.leftMargin = baseTitle;
+                valueParams.rightMargin = baseValue + extra;
+                valueParams.leftMargin = baseValue;
+            } else {
+                titleParams.leftMargin = baseTitle + extra;
+                titleParams.rightMargin = baseTitle;
+                valueParams.leftMargin = baseValue + extra;
+                valueParams.rightMargin = baseValue;
+            }
+            textView.setLayoutParams(titleParams);
+            valueTextView.setLayoutParams(valueParams);
+        }
+
+        private FrameLayout.LayoutParams buildAvatarLayoutParams() {
+            float start = LocaleController.isRTL ? 0 : 23f;
+            float end = LocaleController.isRTL ? 23f : 0;
+            return LayoutHelper.createFrameRelatively(48, 48,
+                    (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL,
+                    start, 6f, end, 0f);
+        }
+    }
+
+    private void bindHistoryHeader(UserStatusStorage.LogEntry entry) {
+        if (historyDialogAvatarView == null || historyDialogNameView == null) {
+            return;
+        }
+        if (entry == null) {
+            historyDialogAvatarView.setImageDrawable(null);
+            historyDialogNameView.setText(null);
+            historyDialogAvatarView.setContentDescription(null);
+            return;
+        }
+        historyDialogNameView.setText(buildTitle(entry));
+
+        CharSequence contentDescription = !TextUtils.isEmpty(entry.userName) ? entry.userName : String.valueOf(entry.userId);
+        historyDialogAvatarView.setContentDescription(contentDescription);
+
+        TLRPC.User user = MessagesController.getInstance(entry.accountId).getUser(entry.userId);
+        if (user != null) {
+            historyDialogAvatarDrawable.setInfo(entry.accountId, user);
+            historyDialogAvatarView.setForUserOrChat(user, historyDialogAvatarDrawable, user);
+        } else {
+            String displayName = entry.userName;
+            String firstName = null;
+            String lastName = null;
+            if (!TextUtils.isEmpty(displayName)) {
+                String[] parts = displayName.split(" ", 2);
+                firstName = parts[0];
+                if (parts.length > 1) {
+                    lastName = parts[1];
+                }
+            }
+            historyDialogAvatarDrawable.setInfo(entry.userId, firstName, lastName);
+            historyDialogAvatarView.setImageDrawable(historyDialogAvatarDrawable);
+        }
     }
 }
