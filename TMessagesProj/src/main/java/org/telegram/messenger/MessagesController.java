@@ -1324,6 +1324,18 @@ public class MessagesController extends BaseController implements NotificationCe
                 return 0;
             }
         }
+        
+        // Sort by unread messages if enabled globally
+        if (org.ushastoe.fluffy.fluffyConfig.sortChatsByUnread) {
+            boolean hasUnread1 = dialog1.unread_count > 0;
+            boolean hasUnread2 = dialog2.unread_count > 0;
+            if (hasUnread1 && !hasUnread2) {
+                return -1;
+            } else if (!hasUnread1 && hasUnread2) {
+                return 1;
+            }
+        }
+        
         MediaDataController mediaDataController = getMediaDataController();
         long date1 = DialogObject.getLastMessageOrDraftDate(dialog1, mediaDataController.getDraft(dialog1.id, 0));
         long date2 = DialogObject.getLastMessageOrDraftDate(dialog2, mediaDataController.getDraft(dialog2.id, 0));
@@ -1360,6 +1372,18 @@ public class MessagesController extends BaseController implements NotificationCe
                 return 0;
             }
         }
+        
+        // Sort by unread messages if enabled globally
+        if (org.ushastoe.fluffy.fluffyConfig.sortChatsByUnread) {
+            boolean hasUnread1 = dialog1.unread_count > 0;
+            boolean hasUnread2 = dialog2.unread_count > 0;
+            if (hasUnread1 && !hasUnread2) {
+                return -1;
+            } else if (!hasUnread1 && hasUnread2) {
+                return 1;
+            }
+        }
+        
         MediaDataController mediaDataController = getMediaDataController();
         long date1 = DialogObject.getLastMessageOrDraftDate(dialog1, mediaDataController.getDraft(dialog1.id, 0));
         long date2 = DialogObject.getLastMessageOrDraftDate(dialog2, mediaDataController.getDraft(dialog2.id, 0));

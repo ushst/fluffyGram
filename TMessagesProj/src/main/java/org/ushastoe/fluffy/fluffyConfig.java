@@ -77,6 +77,7 @@ public final class fluffyConfig {
     private static final String KEY_DOUBLE_TAP_OUT_ACTION = "doubleTapOutAction";
     private static final String KEY_ID_HIDE_WALLPAPER = "idHideWallpaper";
     private static final String KEY_BLOCKED_STICKERS = "blockedStickers";
+    private static final String KEY_SORT_CHATS_BY_UNREAD = "sortChatsByUnread";
 
 
 
@@ -139,6 +140,7 @@ public final class fluffyConfig {
     public static boolean largePhoto;
     public static boolean sendPhotoAsSticker = false;
     public static boolean allowAttachAnyBot;
+    public static boolean sortChatsByUnread;
 
 
 
@@ -217,6 +219,7 @@ public final class fluffyConfig {
         showJSON = preferences.getBoolean(KEY_SHOW_JSON, true);
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
+        sortChatsByUnread = preferences.getBoolean(KEY_SORT_CHATS_BY_UNREAD, false);
 
         blockSticker.clear();
         String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
@@ -347,6 +350,10 @@ public final class fluffyConfig {
 
     public static void toggleShowJSON() {
         showJSON = toggleBooleanSetting(KEY_SHOW_JSON, showJSON);
+    }
+
+    public static void toggleSortChatsByUnread() {
+        sortChatsByUnread = toggleBooleanSetting(KEY_SORT_CHATS_BY_UNREAD, sortChatsByUnread);
     }
 
     // --- Сеттеры для разных типов данных ---
@@ -543,6 +550,7 @@ public final class fluffyConfig {
         preferences.edit().putInt(key, value).apply();
         return value;
     }
+
     public static String getDCGeo(int dcId) {
         switch (dcId) {
             case 1:

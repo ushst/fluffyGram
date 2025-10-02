@@ -208,4 +208,8 @@
     <string name="RegistrationDateApprox">Approximate registration date: %1$s</string>
     <string name="RegistrationDateNewer">Registered after: %1$s</string>
     <string name="RegistrationDateOlder">Registered before: %1$s</string>
+    
+    <!-- Fluffy Sort Settings -->
+    <string name="FG_SortByUnread">Sort chats by unread messages</string>
+    <string name="FG_SortByUnreadDesc">When enabled, chats with unread messages will appear at the top of folders</string>
 </resources>

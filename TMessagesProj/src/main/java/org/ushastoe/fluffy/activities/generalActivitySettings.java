@@ -77,6 +77,7 @@ public class generalActivitySettings extends BaseFragment {
         DOWNLOAD_SPEED_BOOST,
         SAVE_EDITED,
         SAVE_DELETED,
+        SORT_CHATS_BY_UNREAD,
         UNMUTE_WITH_VOLUME,
         PAUSE_MUSIC_ON_MEDIA,
         BIG_PHOTO_SEND,
@@ -131,6 +132,7 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.DOWNLOAD_SPEED_BOOST, RowType.TEXT_CHECK, R.string.downloadSpeedBoost, R.drawable.msg_download));
         rows.add(new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit));
         rows.add(new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete));
+        rows.add(new Row(RowIdentifier.SORT_CHATS_BY_UNREAD, RowType.TEXT_CHECK, R.string.FG_SortByUnread, R.drawable.msg_markread));
         rows.add(new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute));
         rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
@@ -226,6 +228,10 @@ public class generalActivitySettings extends BaseFragment {
                 case SAVE_DELETED:
                     fluffyConfig.toggleSaveDeletedMessages();
                     textCell.setChecked(fluffyConfig.saveDeletedMessages);
+                    break;
+                case SORT_CHATS_BY_UNREAD:
+                    fluffyConfig.toggleSortChatsByUnread();
+                    textCell.setChecked(fluffyConfig.sortChatsByUnread);
                     break;
                 case UNMUTE_WITH_VOLUME:
                     fluffyConfig.toggleUnmuteVideoWithVolume();
@@ -486,6 +492,9 @@ public class generalActivitySettings extends BaseFragment {
                             break;
                         case SAVE_DELETED:
                             checked = fluffyConfig.saveDeletedMessages;
+                            break;
+                        case SORT_CHATS_BY_UNREAD:
+                            checked = fluffyConfig.sortChatsByUnread;
                             break;
                         case UNMUTE_WITH_VOLUME:
                             checked = fluffyConfig.unmuteVideoWithVolume;
