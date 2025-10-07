@@ -3558,6 +3558,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             return true;
         }
         if (!messageObject.isOut() && (messageObject.isContentUnread())) {
+            if (fluffyConfig.transcribeDisableListenSignal) {
+                messageObject.preventTranscribeMarkAsRead = false;
+            }
             MessagesController.getInstance(messageObject.currentAccount).markMessageContentAsRead(messageObject);
         }
         boolean saved = false;

@@ -90,7 +90,8 @@ public class generalActivitySettings extends BaseFragment {
         VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
         VOICE_PROVIDER_CREDENTIALS,
-        EXPERIMENTAL_SETTINGS_HEADER
+        EXPERIMENTAL_SETTINGS_HEADER,
+        TRANSCRIBE_DISABLE_LISTEN_SIGNAL
     }
 
     private static class Row {
@@ -136,6 +137,7 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute));
         rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
+        rows.add(new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat));
         rows.add(new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download));
         rows.add(new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved));
 
@@ -244,6 +246,10 @@ public class generalActivitySettings extends BaseFragment {
                 case BIG_PHOTO_SEND:
                     fluffyConfig.toggleLargePhoto();
                     textCell.setChecked(fluffyConfig.largePhoto);
+                    break;
+                case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
+                    fluffyConfig.toggleTranscribeDisableListenSignal();
+                    textCell.setChecked(fluffyConfig.transcribeDisableListenSignal);
                     break;
                 case EXPORT_FLUFFY_CONFIG:
                     exportFluffyConfig(context);
@@ -501,6 +507,9 @@ public class generalActivitySettings extends BaseFragment {
                             break;
                         case PAUSE_MUSIC_ON_MEDIA:
                             checked = fluffyConfig.pauseMusicOnMedia;
+                            break;
+                        case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
+                            checked = fluffyConfig.transcribeDisableListenSignal;
                             break;
                     }
                     textCheckCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
