@@ -83,6 +83,9 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         if (user == null) {
             return;
         }
+        if (!shouldCaptureStatus(account, user)) {
+            return;
+        }
         long changeTimestamp = System.currentTimeMillis();
         StatusData data = buildStatusData(account, user, null, MessagesController.UPDATE_MASK_STATUS, changeTimestamp);
         if (data == null) {
@@ -103,6 +106,9 @@ public class UserStatusLoggerService extends Service implements NotificationCent
             boolean inserted = false;
             for (TLRPC.TL_contact contact : contactsSnapshot) {
                 TLRPC.User user = messagesController.getUser(contact.user_id);
+                if (!shouldCaptureStatus(account, user)) {
+                    continue;
+                }
                 long changeTimestamp = System.currentTimeMillis();
                 StatusData data = buildStatusData(account, user, null, MessagesController.UPDATE_MASK_STATUS, changeTimestamp);
                 if (data == null) {
@@ -140,6 +146,17 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         long statusExpiresAt = extractStatusExpires(user, fallbackTimestamp);
         boolean isOnline = isUserOnline(account, user);
         return new StatusData(user.id, userName, statusText, statusClass, lastSeenAt, statusExpiresAt, isOnline, actionText, updateMask);
+    }
+
+    private boolean shouldCaptureStatus(int account, TLRPC.User user) {
+        if (user == null || user.status == null) {
+            return false;
+        }
+        return user.status instanceof TLRPC.TL_userStatusHidden
+                || user.status instanceof TLRPC.TL_userStatusRecently
+                || user.status instanceof TLRPC.TL_userStatusLastWeek
+                || user.status instanceof TLRPC.TL_userStatusLastMonth
+                || user.status instanceof TLRPC.TL_userStatusEmpty;
     }
 
     private TLRPC.User resolveUser(int account, TLRPC.User candidate) {

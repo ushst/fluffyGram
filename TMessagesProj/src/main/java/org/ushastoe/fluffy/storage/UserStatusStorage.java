@@ -37,8 +37,6 @@ public class UserStatusStorage {
     private static final String COLUMN_UPDATE_MASK = "update_mask";
     private static final String COLUMN_UPDATED_AT = "updated_at";
 
-    private static final int MAX_ROWS = 2000;
-
     private static volatile UserStatusStorage instance;
 
     private final DatabaseHelper databaseHelper;
@@ -91,7 +89,6 @@ public class UserStatusStorage {
         values.put(COLUMN_UPDATED_AT, System.currentTimeMillis());
 
         db.insert(TABLE_LOGS, null, values);
-        trimToSize(db);
     }
 
     public List<LogEntry> getLatestPerUser(int limit) {
@@ -172,26 +169,6 @@ public class UserStatusStorage {
     public void clearAll() {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         db.delete(TABLE_LOGS, null, null);
-    }
-
-    private void trimToSize(SQLiteDatabase db) {
-        long count = DatabaseUtils.queryNumEntries(db, TABLE_LOGS);
-        if (count <= MAX_ROWS) {
-            return;
-        }
-        Cursor cursor = db.rawQuery("SELECT MIN(" + COLUMN_ID + ") FROM (SELECT " + COLUMN_ID +
-                " FROM " + TABLE_LOGS + " ORDER BY " + COLUMN_UPDATED_AT + " DESC LIMIT " + MAX_ROWS + ")", null);
-        long keepThreshold = -1;
-        try {
-            if (cursor.moveToFirst()) {
-                keepThreshold = cursor.getLong(0);
-            }
-        } finally {
-            cursor.close();
-        }
-        if (keepThreshold > 0) {
-            db.delete(TABLE_LOGS, COLUMN_ID + " < ?", new String[]{String.valueOf(keepThreshold)});
-        }
     }
 
     public static class LogEntry {
