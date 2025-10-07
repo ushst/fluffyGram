@@ -1156,6 +1156,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     public final static int OPTION_COPY_PHOTO_AS_STICKER = 201;
 
 
+    public final static int OPTION_MARK_AS_READ = 9991;
     private final static int OPTION_DETAILS = 9992;
     private final static int OPTION_SAVE_MESSAGE = 9993;
     private final static int OPTION_FORWARD_WO_AUTHOR = 9994;
@@ -33540,6 +33541,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 break;
             }
+            case OPTION_MARK_AS_READ: {
+                if (selectedObject != null && selectedObject.isContentUnread()) {
+                    selectedObject.setContentIsRead();
+                    MessagesController.getInstance(currentAccount).markMessageContentAsRead(selectedObject);
+                    updateVisibleRows();
+                }
+                break;
+            }
             case OPTION_ADD_TO_STICKERS_OR_MASKS: {
                 StickersAlert alert = new StickersAlert(getParentActivity(), this, selectedObject.getInputStickerSet(), null, bottomOverlayChat.getVisibility() != View.VISIBLE && (currentChat == null || ChatObject.canSendStickers(currentChat)) ? chatActivityEnterView : null, themeDelegate, false);
                 alert.setCalcMandatoryInsets(isKeyboardVisible());
@@ -44793,6 +44802,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     icons.add(R.drawable.msg_viewintopic);
                 }
                 if (type == 2) {
+                    if ((selectedObject.isVoice() || selectedObject.isRoundVideo()) && selectedObject.isContentUnread() && !selectedObject.isOut()) {
+                        items.add(LocaleController.getString(R.string.MarkAsRead));
+                        options.add(OPTION_MARK_AS_READ);
+                        icons.add(R.drawable.msg_markread);
+                    }
                     if (chatMode != MODE_SCHEDULED) {
                         if (selectedObject.type == MessageObject.TYPE_POLL && !message.isPollClosed()) {
                             TLRPC.MessageMedia media = MessageObject.getMedia(selectedObject);
