@@ -212,4 +212,5 @@
     <!-- Fluffy Sort Settings -->
     <string name="FG_SortByUnread">Sort chats by unread messages</string>
     <string name="FG_SortByUnreadDesc">When enabled, chats with unread messages will appear at the top of folders</string>
+    <string name="FG_TranscribeDisableListenSignal">Keep transcribed voice messages unread</string>
 </resources>

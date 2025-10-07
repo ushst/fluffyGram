@@ -32,6 +32,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ChatMessageCell;
+import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
@@ -653,6 +654,9 @@ public class TranscribeButton {
     private static void transcribePressed(MessageObject messageObject, boolean open, ChatMessageCell.ChatMessageCellDelegate delegate) {
         if (messageObject == null || messageObject.messageOwner == null || !messageObject.isSent()) {
             return;
+        }
+        if (fluffyConfig.transcribeDisableListenSignal) {
+            messageObject.preventTranscribeMarkAsRead = open;
         }
         int account = messageObject.currentAccount;
         final long start = SystemClock.elapsedRealtime(), minDuration = 350;

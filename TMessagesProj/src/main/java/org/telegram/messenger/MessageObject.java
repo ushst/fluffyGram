@@ -188,6 +188,7 @@ public class MessageObject {
     public boolean isStoryReactionPush;
     public boolean isStoryPush, isStoryMentionPush, isStoryPushHidden;
     public boolean putInDownloadsStore;
+    public boolean preventTranscribeMarkAsRead;
     public boolean isDownloadingFile;
     public boolean forcePlayEffect;
     private int isRoundVideoCached;

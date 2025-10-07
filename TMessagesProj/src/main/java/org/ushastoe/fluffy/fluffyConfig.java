@@ -78,6 +78,7 @@ public final class fluffyConfig {
     private static final String KEY_ID_HIDE_WALLPAPER = "idHideWallpaper";
     private static final String KEY_BLOCKED_STICKERS = "blockedStickers";
     private static final String KEY_SORT_CHATS_BY_UNREAD = "sortChatsByUnread";
+    private static final String KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL = "transcribeDisableListenSignal";
 
 
 
@@ -141,6 +142,7 @@ public final class fluffyConfig {
     public static boolean sendPhotoAsSticker = false;
     public static boolean allowAttachAnyBot;
     public static boolean sortChatsByUnread;
+    public static boolean transcribeDisableListenSignal;
 
 
 
@@ -220,6 +222,7 @@ public final class fluffyConfig {
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
         sortChatsByUnread = preferences.getBoolean(KEY_SORT_CHATS_BY_UNREAD, false);
+        transcribeDisableListenSignal = preferences.getBoolean(KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL, false);
 
         blockSticker.clear();
         String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
@@ -354,6 +357,10 @@ public final class fluffyConfig {
 
     public static void toggleSortChatsByUnread() {
         sortChatsByUnread = toggleBooleanSetting(KEY_SORT_CHATS_BY_UNREAD, sortChatsByUnread);
+    }
+
+    public static void toggleTranscribeDisableListenSignal() {
+        transcribeDisableListenSignal = toggleBooleanSetting(KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL, transcribeDisableListenSignal);
     }
 
     // --- Сеттеры для разных типов данных ---
