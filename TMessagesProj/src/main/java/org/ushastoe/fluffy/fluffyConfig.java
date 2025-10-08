@@ -10,6 +10,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 import org.ushastoe.fluffy.helpers.BaseIconSet;
 import org.ushastoe.fluffy.helpers.EmptyIconSet;
@@ -361,6 +362,9 @@ public final class fluffyConfig {
 
     public static void toggleTranscribeDisableListenSignal() {
         transcribeDisableListenSignal = toggleBooleanSetting(KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL, transcribeDisableListenSignal);
+        if (!transcribeDisableListenSignal) {
+            MessageObject.clearPreventTranscribeMarkAsReadFlags();
+        }
     }
 
     // --- Сеттеры для разных типов данных ---

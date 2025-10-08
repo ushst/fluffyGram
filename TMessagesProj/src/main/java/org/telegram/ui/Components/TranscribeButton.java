@@ -655,7 +655,7 @@ public class TranscribeButton {
         if (messageObject == null || messageObject.messageOwner == null || !messageObject.isSent()) {
             return;
         }
-        messageObject.preventTranscribeMarkAsRead = fluffyConfig.transcribeDisableListenSignal && open;
+        MessageObject.setPreventTranscribeMarkAsRead(messageObject, fluffyConfig.transcribeDisableListenSignal && open);
         int account = messageObject.currentAccount;
         final long start = SystemClock.elapsedRealtime(), minDuration = 350;
         TLRPC.InputPeer peer = MessagesController.getInstance(account).getInputPeer(messageObject.messageOwner.peer_id);

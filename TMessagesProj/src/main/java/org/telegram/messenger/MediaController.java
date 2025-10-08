@@ -3558,7 +3558,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             return true;
         }
         if (!messageObject.isOut() && (messageObject.isContentUnread())) {
-            messageObject.preventTranscribeMarkAsRead = false;
+            MessageObject.setPreventTranscribeMarkAsRead(messageObject, false);
             MessagesController.getInstance(messageObject.currentAccount).markMessageContentAsRead(messageObject);
         }
         boolean saved = false;

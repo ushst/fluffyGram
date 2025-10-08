@@ -41,7 +41,10 @@ import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.Base64;
 
+import android.util.SparseBooleanArray;
+
 import androidx.annotation.NonNull;
+
 import androidx.collection.LongSparseArray;
 import androidx.core.graphics.ColorUtils;
 
@@ -189,6 +192,55 @@ public class MessageObject {
     public boolean isStoryPush, isStoryMentionPush, isStoryPushHidden;
     public boolean putInDownloadsStore;
     public boolean preventTranscribeMarkAsRead;
+
+    private static final Object preventTranscribeMarkAsReadLock = new Object();
+    private static final LongSparseArray<SparseBooleanArray> preventTranscribeMarkAsReadMap = new LongSparseArray<>();
+
+    public static void setPreventTranscribeMarkAsRead(MessageObject messageObject, boolean prevent) {
+        if (messageObject == null) {
+            return;
+        }
+        synchronized (preventTranscribeMarkAsReadLock) {
+            long dialogId = messageObject.getDialogId();
+            SparseBooleanArray dialogEntries = preventTranscribeMarkAsReadMap.get(dialogId);
+            if (prevent) {
+                if (dialogEntries == null) {
+                    dialogEntries = new SparseBooleanArray();
+                    preventTranscribeMarkAsReadMap.put(dialogId, dialogEntries);
+                }
+                dialogEntries.put(messageObject.getId(), true);
+            } else if (dialogEntries != null) {
+                dialogEntries.delete(messageObject.getId());
+                if (dialogEntries.size() == 0) {
+                    preventTranscribeMarkAsReadMap.remove(dialogId);
+                }
+            }
+        }
+        messageObject.preventTranscribeMarkAsRead = prevent;
+    }
+
+    public static boolean shouldPreventTranscribeMarkAsRead(MessageObject messageObject) {
+        if (messageObject == null) {
+            return false;
+        }
+        if (messageObject.preventTranscribeMarkAsRead) {
+            return true;
+        }
+        synchronized (preventTranscribeMarkAsReadLock) {
+            SparseBooleanArray dialogEntries = preventTranscribeMarkAsReadMap.get(messageObject.getDialogId());
+            boolean prevent = dialogEntries != null && dialogEntries.get(messageObject.getId());
+            if (prevent) {
+                messageObject.preventTranscribeMarkAsRead = true;
+            }
+            return prevent;
+        }
+    }
+
+    public static void clearPreventTranscribeMarkAsReadFlags() {
+        synchronized (preventTranscribeMarkAsReadLock) {
+            preventTranscribeMarkAsReadMap.clear();
+        }
+    }
     public boolean isDownloadingFile;
     public boolean forcePlayEffect;
     private int isRoundVideoCached;
