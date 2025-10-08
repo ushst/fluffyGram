@@ -13661,7 +13661,7 @@ public class MessagesController extends BaseController implements NotificationCe
         if (messageObject.scheduled) {
             return;
         }
-        if (fluffyConfig.transcribeDisableListenSignal && messageObject.preventTranscribeMarkAsRead) {
+        if (shouldKeepTranscribedMessageUnread(messageObject)) {
             return;
         }
         ArrayList<Integer> arrayList = new ArrayList<>();
@@ -13696,6 +13696,25 @@ public class MessagesController extends BaseController implements NotificationCe
                 });
             }
         }
+    }
+
+    private boolean shouldKeepTranscribedMessageUnread(MessageObject messageObject) {
+        if (!fluffyConfig.transcribeDisableListenSignal || messageObject == null) {
+            return false;
+        }
+        if (messageObject.isOut()) {
+            return false;
+        }
+        if (!messageObject.isVoice() && !messageObject.isRoundVideo()) {
+            return false;
+        }
+        if (messageObject.preventTranscribeMarkAsRead) {
+            return true;
+        }
+        if (TranscribeButton.isTranscribing(messageObject)) {
+            return true;
+        }
+        return messageObject.messageOwner != null && messageObject.messageOwner.voiceTranscriptionOpen;
     }
 
     public void markMentionMessageAsRead(int mid, long channelId, long did) {
@@ -19778,6 +19797,28 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             }
             if (markContentAsReadMessagesFinal != null) {
+                if (fluffyConfig.transcribeDisableListenSignal) {
+                    for (int a = markContentAsReadMessagesFinal.size() - 1; a >= 0; a--) {
+                        ArrayList<Integer> value = markContentAsReadMessagesFinal.valueAt(a);
+                        if (value == null || value.isEmpty()) {
+                            markContentAsReadMessagesFinal.removeAt(a);
+                            continue;
+                        }
+                        for (int i = value.size() - 1; i >= 0; i--) {
+                            int mid = value.get(i);
+                            MessageObject obj = dialogMessagesByIds.get(mid);
+                            if (shouldKeepTranscribedMessageUnread(obj)) {
+                                value.remove(i);
+                                if (obj != null && obj.messageOwner != null) {
+                                    obj.messageOwner.media_unread = true;
+                                }
+                            }
+                        }
+                        if (value.isEmpty()) {
+                            markContentAsReadMessagesFinal.removeAt(a);
+                        }
+                    }
+                }
                 for (int a = 0, size = markContentAsReadMessagesFinal.size(); a < size; a++) {
                     long key = markContentAsReadMessagesFinal.keyAt(a);
                     ArrayList<Integer> value = markContentAsReadMessagesFinal.valueAt(a);
