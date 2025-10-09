@@ -94,6 +94,10 @@ public final class fluffyConfig {
 
     public static final int MESSAGES_DELETED_NOTIFICATION = 6969;
 
+    public static final int TRANSCRIBE_PROVIDER_TELEGRAM = 0;
+    public static final int TRANSCRIBE_PROVIDER_CLOUDFLARE = 1;
+    public static final int TRANSCRIBE_PROVIDER_LOCAL = 2;
+
     // --- Переменные настроек ---
     public static boolean menuReplyEnabled;
     public static boolean menuForwardWoAuthorEnabled;
@@ -474,7 +478,11 @@ public final class fluffyConfig {
      * @return true, если Cloudflare используется.
      */
     public static boolean useCloudFlare() {
-        return voiceUseCloudflare == 1;
+        return voiceUseCloudflare == TRANSCRIBE_PROVIDER_CLOUDFLARE;
+    }
+
+    public static boolean useLocalTranscriber() {
+        return voiceUseCloudflare == TRANSCRIBE_PROVIDER_LOCAL;
     }
 
     /**

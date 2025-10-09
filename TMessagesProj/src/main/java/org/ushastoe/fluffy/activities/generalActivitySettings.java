@@ -391,6 +391,18 @@ public class generalActivitySettings extends BaseFragment {
         return -1;
     }
 
+    private String getProviderLabel(int provider) {
+        switch (provider) {
+            case fluffyConfig.TRANSCRIBE_PROVIDER_CLOUDFLARE:
+                return getString(R.string.FG_TranscribeProviderCloudflare);
+            case fluffyConfig.TRANSCRIBE_PROVIDER_LOCAL:
+                return getString(R.string.FG_TranscribeProviderLocal);
+            case fluffyConfig.TRANSCRIBE_PROVIDER_TELEGRAM:
+            default:
+                return getString(R.string.FG_TranscribeProviderTelegram);
+        }
+    }
+
     private void selectProvider(Context context) {
         if (getParentActivity() == null) {
             return;
@@ -401,8 +413,9 @@ public class generalActivitySettings extends BaseFragment {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
         CharSequence[] items = new CharSequence[]{
-                "Telegram",
-                "Cloudflare"
+                getString(R.string.FG_TranscribeProviderTelegram),
+                getString(R.string.FG_TranscribeProviderCloudflare),
+                getString(R.string.FG_TranscribeProviderLocal)
         };
 
         for (int i = 0; i < items.length; ++i) {
@@ -470,7 +483,7 @@ public class generalActivitySettings extends BaseFragment {
                 case TEXT_CELL:
                     TextCell textCell = (TextCell) holder.itemView;
                     if (row.id == RowIdentifier.VOICE_PROVIDER_SELECTOR) {
-                        String value = fluffyConfig.useCloudFlare() ? "Cloudflare" : "Telegram";
+                        String value = getProviderLabel(fluffyConfig.voiceUseCloudflare);
                         textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
                     } else {
                         textCell.setTextAndIcon(getString(row.textResId), row.iconResId, true);

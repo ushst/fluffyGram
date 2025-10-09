@@ -33,6 +33,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.helpers.LocalTranscriptionHelper;
 import org.ushastoe.fluffy.helpers.MessageHelper;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 
@@ -110,7 +111,9 @@ public class TranscribeButton {
 
         this.isOpen = false;
         this.shouldBeOpen = false;
-        premium = parent.getMessageObject() != null && (UserConfig.getInstance(parent.getMessageObject().currentAccount).isPremium() || WhisperHelper.useWorkersAi());
+        premium = parent.getMessageObject() != null && (UserConfig.getInstance(parent.getMessageObject().currentAccount).isPremium()
+                || WhisperHelper.useWorkersAi()
+                || fluffyConfig.useLocalTranscriber());
 
         loadingFloat = new AnimatedFloat(parent, 250, CubicBezierInterpolator.EASE_OUT_QUINT);
         animatedDrawLock = new AnimatedFloat(parent, 250, CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -675,7 +678,7 @@ public class TranscribeButton {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d("sending Transcription request, msg_id=" + messageId + " dialog_id=" + dialogId);
                 }
-                if (WhisperHelper.useWorkersAi()) {
+                if (fluffyConfig.useLocalTranscriber() || WhisperHelper.useWorkersAi()) {
                     var path = MessageHelper.getPathToMessage(messageObject);
                     if (path == null) {
                         NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
@@ -688,32 +691,66 @@ public class TranscribeButton {
                         transcribeOperationsByDialogPosition = new HashMap<>();
                     }
                     transcribeOperationsByDialogPosition.put(reqInfoHash(messageObject), messageObject);
-                    WhisperHelper.requestWorkersAi(path, messageObject.isRoundVideo(), (text, exception) -> {
-                        if (text != null) {
-                            if (transcribeOperationsById == null) {
-                                transcribeOperationsById = new HashMap<>();
+                    if (fluffyConfig.useLocalTranscriber()) {
+                        LocalTranscriptionHelper.request(messageObject, path, new LocalTranscriptionHelper.Callback() {
+                            @Override
+                            public void onSuccess(LocalTranscriptionHelper.Result result) {
+                                String text = "";
+                                text = result != null ? result.transcription : null;
+                                if (transcribeOperationsById == null) {
+                                    transcribeOperationsById = new HashMap<>();
+                                }
+                                transcribeOperationsById.put(id, messageObject);
+                                messageObject.messageOwner.voiceTranscriptionId = id;
+
+                                final long duration = SystemClock.elapsedRealtime() - start;
+                                TranscribeButton.openVideoTranscription(messageObject);
+                                messageObject.messageOwner.voiceTranscriptionOpen = true;
+                                messageObject.messageOwner.voiceTranscriptionFinal = true;
+
+                                MessagesStorage.getInstance(account).updateMessageVoiceTranscription(dialogId, messageId, text, messageObject.messageOwner);
+                                String finalText = text;
+                                AndroidUtilities.runOnUIThread(() -> finishTranscription(messageObject, id, finalText), Math.max(0, minDuration - duration));
                             }
-                            transcribeOperationsById.put(id, messageObject);
-                            messageObject.messageOwner.voiceTranscriptionId = id;
 
-                            final long duration = SystemClock.elapsedRealtime() - start;
-                            TranscribeButton.openVideoTranscription(messageObject);
-                            messageObject.messageOwner.voiceTranscriptionOpen = true;
-                            messageObject.messageOwner.voiceTranscriptionFinal = true;
-
-                            MessagesStorage.getInstance(account).updateMessageVoiceTranscription(dialogId, messageId, text, messageObject.messageOwner);
-                            AndroidUtilities.runOnUIThread(() -> finishTranscription(messageObject, id, text), Math.max(0, minDuration - duration));
-                        } else {
-                            AndroidUtilities.runOnUIThread(() -> {
+                            @Override
+                            public void onError(String errorCode) {
                                 if (transcribeOperationsByDialogPosition != null) {
                                     transcribeOperationsByDialogPosition.remove(reqInfoHash(messageObject));
                                 }
                                 NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
                                 NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateTranscriptionLock);
-                                WhisperHelper.showErrorDialog(exception);
-                            });
-                        }
-                    });
+                                LocalTranscriptionHelper.showError(errorCode);
+                            }
+                        });
+                    } else {
+                        WhisperHelper.requestWorkersAi(path, messageObject.isRoundVideo(), (text, exception) -> {
+                            if (text != null) {
+                                if (transcribeOperationsById == null) {
+                                    transcribeOperationsById = new HashMap<>();
+                                }
+                                transcribeOperationsById.put(id, messageObject);
+                                messageObject.messageOwner.voiceTranscriptionId = id;
+
+                                final long duration = SystemClock.elapsedRealtime() - start;
+                                TranscribeButton.openVideoTranscription(messageObject);
+                                messageObject.messageOwner.voiceTranscriptionOpen = true;
+                                messageObject.messageOwner.voiceTranscriptionFinal = true;
+
+                                MessagesStorage.getInstance(account).updateMessageVoiceTranscription(dialogId, messageId, text, messageObject.messageOwner);
+                                AndroidUtilities.runOnUIThread(() -> finishTranscription(messageObject, id, text), Math.max(0, minDuration - duration));
+                            } else {
+                                AndroidUtilities.runOnUIThread(() -> {
+                                    if (transcribeOperationsByDialogPosition != null) {
+                                        transcribeOperationsByDialogPosition.remove(reqInfoHash(messageObject));
+                                    }
+                                    NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.voiceTranscriptionUpdate, messageObject);
+                                    NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateTranscriptionLock);
+                                    WhisperHelper.showErrorDialog(exception);
+                                });
+                            }
+                        });
+                    }
                     return;
                 }
                 TLRPC.TL_messages_transcribeAudio req = new TLRPC.TL_messages_transcribeAudio();
@@ -886,7 +923,7 @@ public class TranscribeButton {
         if (messageObject == null || messageObject.messageOwner == null) {
             return false;
         }
-        if (WhisperHelper.useWorkersAi()) {
+        if (WhisperHelper.useWorkersAi() || fluffyConfig.useLocalTranscriber()) {
             return false;
         }
         if (isFreeTranscribeInChat(messageObject)) {

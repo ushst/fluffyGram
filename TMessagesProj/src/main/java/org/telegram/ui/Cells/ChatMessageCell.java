@@ -11367,6 +11367,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         useTranscribeButton = (
             WhisperHelper.useWorkersAi() ||
+            fluffyConfig.useLocalTranscriber() ||
             currentMessageObject != null &&
             !currentMessageObject.isQuickReply() &&
             !currentMessageObject.isRepostPreview &&

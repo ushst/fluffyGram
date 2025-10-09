@@ -213,4 +213,12 @@
     <string name="FG_SortByUnread">Sort chats by unread messages</string>
     <string name="FG_SortByUnreadDesc">When enabled, chats with unread messages will appear at the top of folders</string>
     <string name="FG_TranscribeDisableListenSignal">Keep transcribed voice messages unread</string>
+    <string name="FG_TranscribeProviderTelegram">Telegram</string>
+    <string name="FG_TranscribeProviderCloudflare">Cloudflare</string>
+    <string name="FG_TranscribeProviderLocal">Local</string>
+    <string name="FG_LocalTranscribeInvalidUri">Download the voice message to use local transcription.</string>
+    <string name="FG_LocalTranscribeCancelled">Transcription cancelled.</string>
+    <string name="FG_LocalTranscribeTimeout">Local transcription timed out.</string>
+    <string name="FG_LocalTranscribeIoError">Unable to read the audio file. Please try again.</string>
+    <string name="FG_LocalTranscribeAppMissing">Local transcription app is not installed.</string>
 </resources>
