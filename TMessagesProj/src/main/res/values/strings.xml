@@ -161,6 +161,7 @@
     <string name="SetEmojiStatus">Set Emoji Status</string>
     <string name="ChangeEmojiStatus">Change Status</string>
     <string name="Settings">Settings</string>
+    <string name="GhostMode">Ghost Mode</string>
     <string name="Refresh">Refresh</string>
     <string name="AddressPlaceholder">Search %s or type URL</string>
     <string name="Contacts">Contacts</string>

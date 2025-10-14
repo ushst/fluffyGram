@@ -79,6 +79,9 @@ public final class fluffyConfig {
     private static final String KEY_BLOCKED_STICKERS = "blockedStickers";
     private static final String KEY_SORT_CHATS_BY_UNREAD = "sortChatsByUnread";
     private static final String KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL = "transcribeDisableListenSignal";
+    private static final String KEY_DISABLE_STORY_VIEW = "disableStoryView";
+    private static final String KEY_DISABLE_TYPING_INDICATOR = "disableTypingIndicator";
+    private static final String KEY_DISABLE_EMOJI_INDICATOR = "disableEmojiIndicator";
 
 
 
@@ -147,6 +150,9 @@ public final class fluffyConfig {
     public static boolean allowAttachAnyBot;
     public static boolean sortChatsByUnread;
     public static boolean transcribeDisableListenSignal;
+    public static boolean disableStoryView;
+    public static boolean disableTypingIndicator;
+    public static boolean disableEmojiIndicator;
 
 
 
@@ -227,6 +233,11 @@ public final class fluffyConfig {
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
         sortChatsByUnread = preferences.getBoolean(KEY_SORT_CHATS_BY_UNREAD, false);
         transcribeDisableListenSignal = preferences.getBoolean(KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL, false);
+
+    // Ghost mode related settings
+    disableStoryView = preferences.getBoolean(KEY_DISABLE_STORY_VIEW, false);
+    disableTypingIndicator = preferences.getBoolean(KEY_DISABLE_TYPING_INDICATOR, false);
+    disableEmojiIndicator = preferences.getBoolean(KEY_DISABLE_EMOJI_INDICATOR, false);
 
         blockSticker.clear();
         String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
@@ -365,6 +376,18 @@ public final class fluffyConfig {
 
     public static void toggleTranscribeDisableListenSignal() {
         transcribeDisableListenSignal = toggleBooleanSetting(KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL, transcribeDisableListenSignal);
+    }
+
+    public static void toggleDisableStoryView() {
+        disableStoryView = toggleBooleanSetting(KEY_DISABLE_STORY_VIEW, disableStoryView);
+    }
+
+    public static void toggleDisableTypingIndicator() {
+        disableTypingIndicator = toggleBooleanSetting(KEY_DISABLE_TYPING_INDICATOR, disableTypingIndicator);
+    }
+
+    public static void toggleDisableEmojiIndicator() {
+        disableEmojiIndicator = toggleBooleanSetting(KEY_DISABLE_EMOJI_INDICATOR, disableEmojiIndicator);
     }
 
     // --- Сеттеры для разных типов данных ---
@@ -553,6 +576,13 @@ public final class fluffyConfig {
         boolean newValue = !currentValue;
         preferences.edit().putBoolean(key, newValue).apply();
         return newValue;
+    }
+
+    /**
+     * Persist a boolean setting directly.
+     */
+    private static void setBooleanSetting(String key, boolean value) {
+        preferences.edit().putBoolean(key, value).apply();
     }
 
     /**

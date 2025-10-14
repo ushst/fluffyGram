@@ -2,6 +2,9 @@
 <resources>
     <string name="fluffySettings">fluffy Settings</string>
     <string name="fluffy">fluffy</string>
+    <string name="GhostModeDisableStoryView">Disable story view (don\'t mark as seen)</string>
+    <string name="GhostModeDisableTyping">Hide my typing indicator</string>
+    <string name="GhostModeDisableEmoji">Hide emoji selection indicator</string>
     <string name="info_fork">custom telegram messenger with tweek\'s</string>
     <string name="meow">Meow</string>
     <string name="RestartAppToTakeEffect">Restart for aplly</string>

@@ -63,6 +63,7 @@ import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.ushastoe.fluffy.fluffyConfig;
 import org.telegram.tgnet.Vector;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.tgnet.tl.TL_bots;
@@ -10747,6 +10748,14 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean sendTyping(long dialogId, long threadMsgId, int action, String emojicon, int classGuid) {
+        // Respect Ghost Mode settings
+        // actions 10 and 11 are emoji-related in this client; treat them separately
+        if (fluffyConfig.disableTypingIndicator && action != 10 && action != 11) {
+            return false;
+        }
+        if (fluffyConfig.disableEmojiIndicator && (action == 10 || action == 11)) {
+            return false;
+        }
         if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
             return false;
         }

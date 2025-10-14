@@ -59,6 +59,7 @@ public class mainActivitySettings extends BaseFragment {
     CATEGORY_DIVIDER,
     CATEGORY_HEADER,
     GENERAL,
+      GHOST_MODE,
     APPEARANCE,
     ABOUT_DIVIDER,
     LINKS_HEADER,
@@ -115,6 +116,8 @@ public class mainActivitySettings extends BaseFragment {
                      R.string.Categories));
     rows.add(new Row(RowIdentifier.GENERAL, RowType.TEXT_CELL, R.string.General,
                      R.drawable.msg_media, false));
+  rows.add(new Row(RowIdentifier.GHOST_MODE, RowType.TEXT_CELL, R.string.GhostMode,
+           R.drawable.msg_secret, false));
     rows.add(new Row(RowIdentifier.APPEARANCE, RowType.TEXT_CELL,
                      R.string.Appearance, R.drawable.msg_theme, true));
     rows.add(new Row(RowIdentifier.ABOUT_DIVIDER, RowType.DIVIDER));
@@ -224,6 +227,9 @@ public class mainActivitySettings extends BaseFragment {
         break;
       case GENERAL:
         presentFragment(new generalActivitySettings());
+        break;
+      case GHOST_MODE:
+        presentFragment(new ghostModeActivitySettings());
         break;
       case APPEARANCE:
         presentFragment(new appearanceActivitySettings());

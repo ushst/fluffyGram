@@ -1273,6 +1273,11 @@ public class StoriesController {
     }
 
     public boolean markStoryAsRead(TL_stories.PeerStories userStories, TL_stories.StoryItem storyItem, boolean profile) {
+        // Respect Ghost Mode: if story-view suppression is enabled, do not mark stories as read
+        if (org.ushastoe.fluffy.fluffyConfig.disableStoryView) {
+            return false;
+        }
+
         if (storyItem == null || userStories == null) {
             return false;
         }
