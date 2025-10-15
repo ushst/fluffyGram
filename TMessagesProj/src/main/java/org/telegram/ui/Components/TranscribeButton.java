@@ -218,7 +218,7 @@ public class TranscribeButton {
             setOpen(false, true);
             setLoading(false, true);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && selectorDrawable instanceof RippleDrawable) {
+        if (selectorDrawable instanceof RippleDrawable) {
             selectorDrawable.setState(StateSet.NOTHING);
             parent.invalidate();
         }

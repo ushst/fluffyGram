@@ -483,7 +483,7 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         private int boundAccountId;
 
         LogEntryCell(Context context) {
-            super(context, null, true);
+            super(context, null, true, false);
             avatarImageView = new BackupImageView(context);
             avatarImageView.setRoundRadius(AndroidUtilities.dp(24));
             avatarImageView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);

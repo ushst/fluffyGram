@@ -209,6 +209,23 @@ public class TextDetailCell extends FrameLayout {
         setWillNotDraw(!needDivider);
     }
 
+    public void setTextAndValue(CharSequence text, CharSequence value, boolean divider, boolean multiline) {
+        setTextAndValue(text, value, divider);
+        this.multiline = multiline;
+        if (multiline) {
+            setMinimumHeight(dp(60));
+        }
+        textView.setLines(multiline ? 0 : 1);
+        textView.setMaxLines(multiline ? 0 : 1);
+        textView.setSingleLine(!multiline);
+        valueTextView.setLines(multiline ? 0 : 1);
+        valueTextView.setMaxLines(multiline ? 0 : 1);
+        valueTextView.setSingleLine(!multiline);
+        rightValueTextView.setLines(multiline ? 0 : 1);
+        rightValueTextView.setMaxLines(multiline ? 0 : 1);
+        rightValueTextView.setSingleLine(!multiline);
+    }
+
     public void setImage(Drawable drawable) {
         setImage(drawable, null);
     }

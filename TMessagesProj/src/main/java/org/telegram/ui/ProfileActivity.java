@@ -13498,7 +13498,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             phoneNumber = null;
                         }
                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
-                        detailCell.setTextAndValue(text, getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
+                        detailCell.setTextAndValue(text, getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false, true);
                     } else if (position == idDcRow) {
                         final long id;
                         if (userId != 0) {
@@ -13513,7 +13513,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         CharSequence formattedID = chatId != 0 ? "-100 " + df.format(id) : df.format(id);
 
                         detailCell.setTextAndValue("ID: " + formattedID, userDcLine, false);
-                        detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
                     } else if (position == noteRow) {
                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
                         if (userInfo == null) return;

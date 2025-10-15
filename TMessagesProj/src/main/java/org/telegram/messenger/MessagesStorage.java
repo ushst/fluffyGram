@@ -13498,7 +13498,7 @@ public class MessagesStorage extends BaseController {
                                     }
                                     topicsToDelete.add(TopicKey.of(did, message.id));
                                 }
-                                topicId = MessageObject.getTopicId(UserConfig.selectedAccount, message, isForum(did));
+                                topicId = MessageObject.getTopicId(currentAccount, message, getForumTypeFlags(did));
                             }
                             if (topicId != 0L) {
                                 TopicKey topicKey = TopicKey.of(dialogId, topicId);

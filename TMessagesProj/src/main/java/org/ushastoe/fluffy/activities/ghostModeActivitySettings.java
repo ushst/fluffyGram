@@ -33,15 +33,16 @@ public class ghostModeActivitySettings extends BaseFragment {
 
     // Disable story view (don't mark stories as seen)
     final TextCheckCell storyViewCell = new TextCheckCell(context);
-    storyViewCell.setTextAndCheckAndIcon(LocaleController.getString("GhostModeDisableStoryView", R.string.GhostModeDisableStoryView), fluffyConfig.disableStoryView, R.drawable.msg_stories_stealth, true);
+    storyViewCell.setTextAndCheck(LocaleController.getString("GhostModeDisableStoryView", R.string.GhostModeDisableStoryView), fluffyConfig.disableStoryView, true);
+    storyViewCell.setColorfullIcon(Theme.getColor(Theme.key_windowBackgroundWhiteBlueIcon), R.drawable.msg_stories_stealth);
 
     // Disable typing indicator
     final TextCheckCell typingCell = new TextCheckCell(context);
-    typingCell.setTextAndCheckAndIcon(LocaleController.getString("GhostModeDisableTyping", R.string.GhostModeDisableTyping), fluffyConfig.disableTypingIndicator, 0, true);
+    typingCell.setTextAndCheck(LocaleController.getString("GhostModeDisableTyping", R.string.GhostModeDisableTyping), fluffyConfig.disableTypingIndicator, true);
 
     // Disable emoji indicator
     final TextCheckCell emojiCell = new TextCheckCell(context);
-    emojiCell.setTextAndCheckAndIcon(LocaleController.getString("GhostModeDisableEmoji", R.string.GhostModeDisableEmoji), fluffyConfig.disableEmojiIndicator, 0, true);
+    emojiCell.setTextAndCheck(LocaleController.getString("GhostModeDisableEmoji", R.string.GhostModeDisableEmoji), fluffyConfig.disableEmojiIndicator, true);
 
     // Wire toggles to fluffyConfig helper methods and update UI
     storyViewCell.setOnClickListener(v -> {
@@ -64,7 +65,7 @@ public class ghostModeActivitySettings extends BaseFragment {
     content.addView(typingCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
     content.addView(emojiCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
-    fragmentView.addView(content, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+    ((FrameLayout) fragmentView).addView(content, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
     return fragmentView;
   }
