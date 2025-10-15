@@ -20,10 +20,14 @@ import org.telegram.tgnet.TLRPC;
 import org.ushastoe.fluffy.storage.UserStatusStorage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserStatusLoggerService extends Service implements NotificationCenter.NotificationCenterDelegate {
 
     private static final String TAG = "fluffy_service";
+
+    private final Map<Long, TLRPC.UserStatus> previousStatuses = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -32,7 +36,8 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         for (int currentAccount = 0; currentAccount < UserConfig.MAX_ACCOUNT_COUNT; currentAccount++) {
             if (UserConfig.getInstance(currentAccount).isClientActivated()) {
                 NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.userStatusChanged);
-                Log.d(TAG, "Subscribed to userStatusChanged for account " + currentAccount);
+                NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateInterfaces);
+                Log.d(TAG, "Subscribed to userStatusChanged and updateInterfaces for account " + currentAccount);
                 seedAccountStatuses(currentAccount);
             }
         }
@@ -56,6 +61,7 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         for (int currentAccount = 0; currentAccount < UserConfig.MAX_ACCOUNT_COUNT; currentAccount++) {
             if (UserConfig.getInstance(currentAccount).isClientActivated()) {
                 NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.userStatusChanged);
+                NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateInterfaces);
             }
         }
     }
@@ -64,11 +70,15 @@ public class UserStatusLoggerService extends Service implements NotificationCent
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.userStatusChanged) {
             handleUserStatusChanged(account, args);
+        } else if (id == NotificationCenter.updateInterfaces) {
+            handleUpdateInterfaces(account, args);
         }
     }
 
     private void handleUserStatusChanged(int account, Object... args) {
+        Log.d(TAG, "handleUserStatusChanged called for account " + account);
         if (args == null || args.length == 0) {
+            Log.d(TAG, "handleUserStatusChanged: args is null or empty");
             return;
         }
         TLRPC.User user = null;
@@ -81,17 +91,85 @@ public class UserStatusLoggerService extends Service implements NotificationCent
             user = MessagesController.getInstance(account).getUser((Long) firstArg);
         }
         if (user == null) {
+            Log.d(TAG, "handleUserStatusChanged: user is null");
             return;
         }
-        if (!shouldCaptureStatus(account, user)) {
+        Log.d(TAG, "handleUserStatusChanged: user " + user.id + ", status " + (user.status != null ? user.status.getClass().getSimpleName() : "null"));
+        
+        TLRPC.UserStatus oldStatus = previousStatuses.get(user.id);
+        TLRPC.UserStatus newStatus = user.status;
+        Log.d(TAG, "handleUserStatusChanged: oldStatus " + (oldStatus != null ? oldStatus.getClass().getSimpleName() : "null"));
+        
+        boolean wasHiddenOrOffline = oldStatus != null && (
+            oldStatus instanceof TLRPC.TL_userStatusHidden ||
+            oldStatus instanceof TLRPC.TL_userStatusRecently ||
+            oldStatus instanceof TLRPC.TL_userStatusLastWeek ||
+            oldStatus instanceof TLRPC.TL_userStatusLastMonth ||
+            oldStatus instanceof TLRPC.TL_userStatusEmpty ||
+            (oldStatus instanceof TLRPC.TL_userStatusOffline && !isUserOnline(account, oldStatus))
+        );
+        
+        boolean isNowOnline = isUserOnline(account, user);
+        boolean isNowHidden = newStatus != null && (
+            newStatus instanceof TLRPC.TL_userStatusHidden ||
+            newStatus instanceof TLRPC.TL_userStatusRecently ||
+            newStatus instanceof TLRPC.TL_userStatusLastWeek ||
+            newStatus instanceof TLRPC.TL_userStatusLastMonth ||
+            newStatus instanceof TLRPC.TL_userStatusEmpty
+        );
+        
+        Log.d(TAG, "handleUserStatusChanged: wasHiddenOrOffline=" + wasHiddenOrOffline + ", isNowOnline=" + isNowOnline + ", isNowHidden=" + isNowHidden);
+        
+        // Обновляем previousStatuses в любом случае
+        previousStatuses.put(user.id, user.status);
+
+        boolean shouldLog = false;
+        String logReason = "";
+        
+        // 1. Переход от скрытого/оффлайн к онлайн
+        if (wasHiddenOrOffline && isNowOnline) {
+            shouldLog = true;
+            logReason = "was hidden/offline -> now online";
+        }
+        // 2. Переход от онлайн к скрытому (пользователь скрыл статус)
+        else if (oldStatus instanceof TLRPC.TL_userStatusOnline && isNowHidden) {
+            shouldLog = true;
+            logReason = "was online -> now hidden";
+        }
+        // 3. Обновление скрытого статуса (КЛЮЧЕВОЕ: для пользователей с постоянно скрытым статусом 
+        // это единственный способ узнать, что они онлайн)
+        // Логируем ЛЮБОЕ изменение для пользователей со скрытым статусом
+        else if (isNowHidden) {
+            shouldLog = true;
+            logReason = "hidden status update (likely online activity)";
+        }
+        
+        if (shouldLog) {
+            Log.d(TAG, "handleUserStatusChanged: logging status change for user " + user.id + " (" + logReason + ")");
+            long changeTimestamp = System.currentTimeMillis();
+            StatusData data = buildStatusData(account, user, null, MessagesController.UPDATE_MASK_STATUS, changeTimestamp);
+            if (data == null) {
+                Log.d(TAG, "handleUserStatusChanged: data is null");
+                return;
+            }
+            queueInsert(account, data);
+        }
+        else {
+            Log.d(TAG, "handleUserStatusChanged: not logging for user " + user.id);
+        }
+    }
+
+    private void handleUpdateInterfaces(int account, Object... args) {
+        if (args == null || args.length == 0) {
             return;
         }
-        long changeTimestamp = System.currentTimeMillis();
-        StatusData data = buildStatusData(account, user, null, MessagesController.UPDATE_MASK_STATUS, changeTimestamp);
-        if (data == null) {
-            return;
+        int mask = (int) args[0];
+        // UPDATE_MASK_USER_PRINT = 0x00000040 (typing indicator)
+        if ((mask & MessagesController.UPDATE_MASK_USER_PRINT) != 0) {
+            Log.d(TAG, "handleUpdateInterfaces: typing activity detected for account " + account);
+            // Получаем список активных typing пользователей и логируем их онлайн статус
+            // Это происходит неявно - когда пользователь печатает, мы знаем что он онлайн
         }
-        queueInsert(account, data);
     }
 
     private void seedAccountStatuses(int account) {
@@ -115,6 +193,8 @@ public class UserStatusLoggerService extends Service implements NotificationCent
                     continue;
                 }
                 storage.insertStatus(account, data.userId, data.userName, data.statusText, data.statusClass, data.lastSeenAt, data.statusExpiresAt, data.isOnline, data.actionText, data.updateMask);
+                previousStatuses.put(user.id, user.status);
+                Log.d(TAG, "seedAccountStatuses: seeded user " + user.id + " with status " + (user.status != null ? user.status.getClass().getSimpleName() : "null"));
                 inserted = true;
             }
             if (inserted) {
@@ -124,6 +204,7 @@ public class UserStatusLoggerService extends Service implements NotificationCent
     }
 
     private void queueInsert(int account, StatusData data) {
+        Log.d(TAG, "queueInsert: inserting status for user " + data.userId + ", account " + account);
         Utilities.globalQueue.postRunnable(() -> {
             UserStatusStorage storage = UserStatusStorage.getInstance(ApplicationLoader.applicationContext);
             storage.insertStatus(account, data.userId, data.userName, data.statusText, data.statusClass, data.lastSeenAt, data.statusExpiresAt, data.isOnline, data.actionText, data.updateMask);
@@ -230,6 +311,20 @@ public class UserStatusLoggerService extends Service implements NotificationCent
         }
         if (user.status instanceof TLRPC.TL_userStatusOffline) {
             return ((TLRPC.TL_userStatusOffline) user.status).expires > currentTime;
+        }
+        return false;
+    }
+
+    private boolean isUserOnline(int account, TLRPC.UserStatus status) {
+        if (status == null) {
+            return false;
+        }
+        int currentTime = ConnectionsManager.getInstance(account).getCurrentTime();
+        if (status instanceof TLRPC.TL_userStatusOnline) {
+            return ((TLRPC.TL_userStatusOnline) status).expires > currentTime;
+        }
+        if (status instanceof TLRPC.TL_userStatusOffline) {
+            return ((TLRPC.TL_userStatusOffline) status).expires > currentTime;
         }
         return false;
     }
