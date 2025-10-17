@@ -13904,6 +13904,20 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    public void removeMessagesDeletionInternal(long dialogId, ArrayList<Integer> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
+        try {
+            for (int i = 0; i < messages.size(); i++) {
+                int mid = messages.get(i);
+                database.executeFast(String.format(Locale.US, "DELETE FROM fluffy_message_deletions WHERE dialogId=%d AND mid=%d;", dialogId, mid)).stepThis().dispose();
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
     public TLRPC.Message getMessageInternal(long dialogId, long msgId) {
         SQLiteCursor cursor = null;
         try {

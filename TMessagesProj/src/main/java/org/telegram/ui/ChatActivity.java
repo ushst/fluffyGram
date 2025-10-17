@@ -26086,6 +26086,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         for (int a = 0; a < size; a++) {
             Integer mid = markAsDeletedMessages.get(a);
             MessageObject obj = chatAdapter != null && chatAdapter.isFiltered ? filteredMessagesDict.get(mid) :  messagesDict[loadIndex].get(mid);
+            if (fluffyConfig.saveDeletedMessages && obj != null && obj.messageOwner != null && obj.messageOwner.isDeleted()) {
+                long localDialogId = channelId != 0 ? -channelId : (loadIndex == 1 && mergeDialogId != 0 ? mergeDialogId : dialog_id);
+                if (!MessagesController.getInstance(currentAccount).consumeLocalDeleteMessage(localDialogId, mid)) {
+                    obj.deleted = true;
+                    if (chatAdapter != null) {
+                        chatAdapter.updateRowWithMessageObject(obj, false, true);
+                    }
+                    continue;
+                }
+            }
             if (selectedObject != null && obj == selectedObject || obj != null && selectedObjectGroup != null && selectedObjectGroup == groupedMessagesMap.get(obj.getGroupId())) {
                 closeMenu();
             }

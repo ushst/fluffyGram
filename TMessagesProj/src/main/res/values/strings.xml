@@ -3867,6 +3867,7 @@
     <string name="AreYouSureDeleteFewMessagesMega">Are you sure you want to delete these messages for everyone?</string>
     <string name="DeleteMessagesOption">Unsend My Messages</string>
     <string name="DeleteMessagesOptionAlso">Also delete for %1$s</string>
+    <string name="DeleteLocalCopy">Remove local copy</string>
     <string name="DeleteMessagesForBothSidesWherePossible">Delete for both sides where possible</string>
     <string name="ClearHistoryOptionAlso">Also clear history for %1$s</string>
     <string name="SendMessageTitle">Send message</string>

@@ -6546,6 +6546,9 @@ public class AlertsCreator {
 
         final boolean[] deleteForAll = new boolean[1];
         final boolean[] deleteForOpponent = new boolean[1];
+        final boolean[] deleteLocalOnly = new boolean[1];
+        boolean hasLocallyDeleted = false;
+        boolean allSelectedLocallyDeleted = true;
         boolean canRevokeInbox = user != null && MessagesController.getInstance(currentAccount).canRevokePmInbox;
         int revokeTimeLimit;
         if (user != null) {
@@ -6566,8 +6569,27 @@ public class AlertsCreator {
                         selectedMessage.messageOwner.action instanceof TLRPC.TL_messageActionChatAddUser) {
                     if (selectedGroup != null) {
                         messages.addAll(selectedGroup.messages);
+                        if (fluffyConfig.saveDeletedMessages) {
+                            for (int n = 0; n < selectedGroup.messages.size(); n++) {
+                                MessageObject localMessage = selectedGroup.messages.get(n);
+                                boolean localDeleted = localMessage != null && localMessage.messageOwner != null && localMessage.messageOwner.isDeleted();
+                                if (localDeleted) {
+                                    hasLocallyDeleted = true;
+                                } else {
+                                    allSelectedLocallyDeleted = false;
+                                }
+                            }
+                        }
                     } else {
                         messages.add(selectedMessage);
+                        if (fluffyConfig.saveDeletedMessages) {
+                            boolean localDeleted = selectedMessage.messageOwner != null && selectedMessage.messageOwner.isDeleted();
+                            if (localDeleted) {
+                                hasLocallyDeleted = true;
+                            } else {
+                                allSelectedLocallyDeleted = false;
+                            }
+                        }
                     }
                 }
                 boolean hasOutgoing = !selectedMessage.isSendError() && selectedMessage.getDialogId() == mergeDialogId && (selectedMessage.messageOwner.action == null || selectedMessage.messageOwner.action instanceof TLRPC.TL_messageActionEmpty) && selectedMessage.isOut() && (currentDate - selectedMessage.messageOwner.date) <= revokeTimeLimit;
@@ -6614,6 +6636,10 @@ public class AlertsCreator {
                         return false;
                     })
                     .collect(Collectors.toCollection(ArrayList::new));
+
+            if (hasLocallyDeleted) {
+                hasLocallyDeleted = allSelectedLocallyDeleted;
+            }
 
             if (!actionParticipants.isEmpty()) {
                 if (channelParticipants == null) {
@@ -6694,18 +6720,33 @@ public class AlertsCreator {
                 linearLayout.addView(cellForHim, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                 deleteForOpponent[0] = false;
                 cellForHim.setChecked(deleteForOpponent[0], true);
+                CheckBoxCell cellForLocal = null;
                 if (fluffyConfig.saveDeletedMessages) {
                     cellForHim.setVisibility(View.VISIBLE);
+                    if (hasLocallyDeleted) {
+                        cellForLocal = new CheckBoxCell(activity, 1, resourcesProvider);
+                        cellForLocal.setBackgroundDrawable(Theme.getSelectorDrawable(false));
+                        cellForLocal.setText(LocaleController.getString(R.string.DeleteLocalCopy), "", false, false);
+                        cellForLocal.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
+                        linearLayout.addView(cellForLocal, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
+                        cellForLocal.setChecked(deleteLocalOnly[0], true);
+                    }
                 } else {
                     cellForHim.setVisibility(View.GONE);
                 }
+                CheckBoxCell finalCellForHim = cellForHim;
+                CheckBoxCell finalCellForLocal = cellForLocal;
                 cellForAll.setOnClickListener(v -> {
                     CheckBoxCell cell12 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];
                     cell12.setChecked(deleteForAll[0], true);
                     if (deleteForAll[0]) {
                         deleteForOpponent[0] = false;
-                        cellForHim.setChecked(false, true);
+                        finalCellForHim.setChecked(false, true);
+                        deleteLocalOnly[0] = false;
+                        if (finalCellForLocal != null) {
+                            finalCellForLocal.setChecked(false, true);
+                        }
                     }
                 });
                 cellForHim.setOnClickListener(v -> {
@@ -6715,14 +6756,39 @@ public class AlertsCreator {
                     if (deleteForOpponent[0]) {
                         deleteForAll[0] = false;
                         cellForAll.setChecked(false, true);
+                        deleteLocalOnly[0] = false;
+                        if (finalCellForLocal != null) {
+                            finalCellForLocal.setChecked(false, true);
+                        }
                     }
                 });
+                if (cellForLocal != null) {
+                    cellForLocal.setOnClickListener(v -> {
+                        CheckBoxCell cell12 = (CheckBoxCell) v;
+                        deleteLocalOnly[0] = !deleteLocalOnly[0];
+                        cell12.setChecked(deleteLocalOnly[0], true);
+                        if (deleteLocalOnly[0]) {
+                            deleteForAll[0] = false;
+                            cellForAll.setChecked(false, true);
+                            deleteForOpponent[0] = false;
+                            finalCellForHim.setChecked(false, true);
+                        }
+                    });
+                }
                 builder.setView(linearLayout);
                 builder.setCustomViewOffset(9);
             }
         } else if (!scheduled && !isSavedMessages && !ChatObject.isChannel(chat) && encryptedChat == null) {
             if (user != null && user.id != UserConfig.getInstance(currentAccount).getClientUserId() && (!user.bot || user.support) || chat != null) {
                 if (selectedMessage != null) {
+                    if (fluffyConfig.saveDeletedMessages) {
+                        boolean localDeleted = selectedMessage.messageOwner != null && selectedMessage.messageOwner.isDeleted();
+                        if (localDeleted) {
+                            hasLocallyDeleted = true;
+                        } else {
+                            allSelectedLocallyDeleted = false;
+                        }
+                    }
                     boolean hasOutgoing = !selectedMessage.isSendError() && (
                             selectedMessage.messageOwner.action == null ||
                                     selectedMessage.messageOwner.action instanceof TLRPC.TL_messageActionEmpty ||
@@ -6738,6 +6804,14 @@ public class AlertsCreator {
                     for (int a = 1; a >= 0; a--) {
                         for (int b = 0; b < selectedMessages[a].size(); b++) {
                             MessageObject msg = selectedMessages[a].valueAt(b);
+                        if (fluffyConfig.saveDeletedMessages) {
+                            boolean localDeleted = msg != null && msg.messageOwner != null && msg.messageOwner.isDeleted();
+                            if (localDeleted) {
+                                hasLocallyDeleted = true;
+                            } else {
+                                allSelectedLocallyDeleted = false;
+                            }
+                        }
                             if (!(msg.messageOwner.action == null ||
                                     msg.messageOwner.action instanceof TLRPC.TL_messageActionEmpty ||
                                     msg.messageOwner.action instanceof TLRPC.TL_messageActionPhoneCall ||
@@ -6756,6 +6830,9 @@ public class AlertsCreator {
                         }
                     }
                 }
+            }
+            if (hasLocallyDeleted) {
+                hasLocallyDeleted = allSelectedLocallyDeleted;
             }
             if (myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
                 hasDeleteForAllCheck = true;
@@ -6781,18 +6858,33 @@ public class AlertsCreator {
                 linearLayout.addView(cellForHim, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                 deleteForOpponent[0] = false;
                 cellForHim.setChecked(deleteForOpponent[0], true);
+                CheckBoxCell cellForLocal = null;
                 if (fluffyConfig.saveDeletedMessages) {
                     cellForHim.setVisibility(View.VISIBLE);
+                    if (hasLocallyDeleted) {
+                        cellForLocal = new CheckBoxCell(activity, 1, resourcesProvider);
+                        cellForLocal.setBackgroundDrawable(Theme.getSelectorDrawable(false));
+                        cellForLocal.setText(LocaleController.getString(R.string.DeleteLocalCopy), "", false, false);
+                        cellForLocal.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
+                        linearLayout.addView(cellForLocal, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
+                        cellForLocal.setChecked(deleteLocalOnly[0], true);
+                    }
                 } else {
                     cellForHim.setVisibility(View.GONE);
                 }
+                CheckBoxCell finalCellForHim = cellForHim;
+                CheckBoxCell finalCellForLocal = cellForLocal;
                 cellForAll.setOnClickListener(v -> {
                     CheckBoxCell cell1 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];
                     cell1.setChecked(deleteForAll[0], true);
                     if (deleteForAll[0]) {
                         deleteForOpponent[0] = false;
-                        cellForHim.setChecked(false, true);
+                        finalCellForHim.setChecked(false, true);
+                        deleteLocalOnly[0] = false;
+                        if (finalCellForLocal != null) {
+                            finalCellForLocal.setChecked(false, true);
+                        }
                     }
                 });
                 cellForHim.setOnClickListener(v -> {
@@ -6802,14 +6894,34 @@ public class AlertsCreator {
                     if (deleteForOpponent[0]) {
                         deleteForAll[0] = false;
                         cellForAll.setChecked(false, true);
+                        deleteLocalOnly[0] = false;
+                        if (finalCellForLocal != null) {
+                            finalCellForLocal.setChecked(false, true);
+                        }
                     }
                 });
+                if (cellForLocal != null) {
+                    cellForLocal.setOnClickListener(v -> {
+                        CheckBoxCell cell12 = (CheckBoxCell) v;
+                        deleteLocalOnly[0] = !deleteLocalOnly[0];
+                        cell12.setChecked(deleteLocalOnly[0], true);
+                        if (deleteLocalOnly[0]) {
+                            deleteForAll[0] = false;
+                            cellForAll.setChecked(false, true);
+                            deleteForOpponent[0] = false;
+                            finalCellForHim.setChecked(false, true);
+                        }
+                    });
+                }
                 builder.setView(linearLayout);
                 builder.setCustomViewOffset(9);
             }
         }
 
         AlertDialog.OnButtonClickListener deleteAction = (dialogInterface, i) -> {
+            boolean cacheOnly = deleteLocalOnly[0];
+            boolean deleteForAllFinal = cacheOnly ? false : deleteForAll[0];
+            boolean deleteForOpponentFinal = cacheOnly ? false : deleteForOpponent[0];
             ArrayList<Integer> ids = null;
             long thisDialogId = dialogId;
             if (isSavedMessages) {
@@ -6839,7 +6951,9 @@ public class AlertsCreator {
                 if (mergeDialogId != 0 && selectedMessage.messageOwner.peer_id != null && selectedMessage.messageOwner.peer_id.chat_id == -mergeDialogId) {
                     thisDialogId = mergeDialogId;
                 }
-                MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, thisDialogId, topicId, deleteForAll[0], mode, deleteForOpponent[0]);
+                MessagesController.getInstance(currentAccount).deleteMessages(
+                        ids, random_ids, encryptedChat, thisDialogId,
+                        deleteForAllFinal, mode, cacheOnly, 0, null, topicId, false, 0, deleteForOpponentFinal);
             } else {
                 for (int a = 1; a >= 0; a--) {
                     ids = new ArrayList<>();
@@ -6856,7 +6970,9 @@ public class AlertsCreator {
                             }
                         }
                     }
-                    MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, (a == 1 && mergeDialogId != 0) ? mergeDialogId : thisDialogId, topicId, deleteForAll[0], mode, deleteForOpponent[0]);
+                    MessagesController.getInstance(currentAccount).deleteMessages(
+                            ids, random_ids, encryptedChat, (a == 1 && mergeDialogId != 0) ? mergeDialogId : thisDialogId,
+                            deleteForAllFinal, mode, cacheOnly, 0, null, topicId, false, 0, deleteForOpponentFinal);
                     selectedMessages[a].clear();
                 }
             }

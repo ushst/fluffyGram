@@ -8948,6 +8948,32 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    private final HashSet<Long> pendingLocalDeleteMessages = new HashSet<>();
+
+    private void registerLocalDeleteMessages(long dialogId, ArrayList<Integer> messageIds) {
+        if (messageIds == null || messageIds.isEmpty()) {
+            return;
+        }
+        synchronized (pendingLocalDeleteMessages) {
+            if (pendingLocalDeleteMessages.size() > 5000) {
+                pendingLocalDeleteMessages.clear();
+            }
+            for (int i = 0; i < messageIds.size(); i++) {
+                pendingLocalDeleteMessages.add(makeLocalDeleteKey(dialogId, messageIds.get(i)));
+            }
+        }
+    }
+
+    public boolean consumeLocalDeleteMessage(long dialogId, int messageId) {
+        synchronized (pendingLocalDeleteMessages) {
+            return pendingLocalDeleteMessages.remove(makeLocalDeleteKey(dialogId, messageId));
+        }
+    }
+
+    private long makeLocalDeleteKey(long dialogId, int messageId) {
+        return (dialogId << 32) ^ (messageId & 0xffffffffL);
+    }
+
     public void deleteMessages(ArrayList<Integer> messages, ArrayList<Long> randoms, TLRPC.EncryptedChat encryptedChat, long dialogId, int topicId, boolean forAll, int mode) {
         deleteMessages(messages, randoms, encryptedChat, dialogId, forAll, mode, false, 0, null, topicId, false, 0, false);
     }
@@ -8969,6 +8995,26 @@ public class MessagesController extends BaseController implements NotificationCe
         final boolean quickReplies = mode == ChatActivity.MODE_QUICK_REPLIES;
         if ((messages == null || messages.isEmpty()) && taskId == 0) {
             return;
+        }
+        if (deleteForOpponent && !forAll && fluffyConfig.saveDeletedMessages && messages != null && !messages.isEmpty()) {
+            final long markDialogId = dialogId;
+            final ArrayList<Integer> markMessages = new ArrayList<>(messages);
+            getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                MessagesStorage storage = getMessagesStorage();
+                for (int mid : markMessages) {
+                    storage.markMessagesAsIsDeletedInternal(markDialogId, mid);
+                }
+                AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(fluffyConfig.MESSAGES_DELETED_NOTIFICATION, markDialogId, new ArrayList<>(markMessages)));
+            });
+        }
+        if (cacheOnly && fluffyConfig.saveDeletedMessages && messages != null && !messages.isEmpty()) {
+            final long removalDialogId = dialogId;
+            final ArrayList<Integer> removalMessages = new ArrayList<>(messages);
+            registerLocalDeleteMessages(removalDialogId, removalMessages);
+            getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                MessagesStorage storage = getMessagesStorage();
+                storage.removeMessagesDeletionInternal(removalDialogId, removalMessages);
+            });
         }
         ArrayList<Integer> toSend = null;
         long channelId;
