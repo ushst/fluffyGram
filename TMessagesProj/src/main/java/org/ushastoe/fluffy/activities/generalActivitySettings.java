@@ -46,14 +46,19 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
-import org.ushastoe.fluffy.activities.UserStatusLogActivity;
+import android.util.Xml;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import android.content.SharedPreferences;
 
 public class generalActivitySettings extends BaseFragment {
     private ListAdapter listAdapter;
@@ -81,17 +86,20 @@ public class generalActivitySettings extends BaseFragment {
         UNMUTE_WITH_VOLUME,
         PAUSE_MUSIC_ON_MEDIA,
         BIG_PHOTO_SEND,
-        EXPORT_FLUFFY_CONFIG,
-        IMPORT_FLUFFY_CONFIG,
-        ALLOW_ATTACH_ANY_BOT,
-        USER_STATUS_LOG_VIEWER,
-        HIDE_PINNED_SMALL_SCREEN,
+        TRANSCRIBE_DISABLE_LISTEN_SIGNAL,
         DIVIDER_1,
         VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
         VOICE_PROVIDER_CREDENTIALS,
+        DIVIDER_2,
+        CONFIG_HEADER,
+        EXPORT_FLUFFY_CONFIG,
+        IMPORT_FLUFFY_CONFIG,
+        DIVIDER_3,
         EXPERIMENTAL_SETTINGS_HEADER,
-        TRANSCRIBE_DISABLE_LISTEN_SIGNAL
+        ALLOW_ATTACH_ANY_BOT,
+        USER_STATUS_LOG_VIEWER,
+        HIDE_PINNED_SMALL_SCREEN
     }
 
     private static class Row {
@@ -138,14 +146,18 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
         rows.add(new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat));
-        rows.add(new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download));
-        rows.add(new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved));
 
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
         rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
         rows.add(new Row(RowIdentifier.VOICE_PROVIDER_SELECTOR, RowType.TEXT_CELL, R.string.UseCloudflare, R.drawable.voicechat_muted));
         rows.add(new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar));
 
+        rows.add(new Row(RowIdentifier.DIVIDER_2, RowType.SHADOW_SECTION));
+        rows.add(new Row(RowIdentifier.CONFIG_HEADER, RowType.HEADER, R.string.Config));
+        rows.add(new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download));
+        rows.add(new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved));
+
+        rows.add(new Row(RowIdentifier.DIVIDER_3, RowType.SHADOW_SECTION));
         rows.add(new Row(RowIdentifier.EXPERIMENTAL_SETTINGS_HEADER, RowType.HEADER, R.string.Other));
         rows.add(new Row(RowIdentifier.USER_STATUS_LOG_VIEWER, RowType.TEXT_CELL, R.string.UserStatusLogTitle, R.drawable.menu_feature_status));
         rows.add(new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot));
@@ -354,7 +366,8 @@ public class generalActivitySettings extends BaseFragment {
             if (!AndroidUtilities.copyFile(tempFile, destinationFile)) {
                 throw new IOException("Failed to replace preferences");
             }
-            fluffyConfig.reloadFromDisk();
+            // Reload preferences by parsing the XML file manually
+            reloadPreferencesFromFile(destinationFile);
             if (listAdapter != null) {
                 listAdapter.notifyDataSetChanged();
             }
@@ -367,6 +380,50 @@ public class generalActivitySettings extends BaseFragment {
                 tempFile.delete();
             }
         }
+    }
+
+    private void reloadPreferencesFromFile(File file) throws IOException, XmlPullParserException {
+        SharedPreferences preferences = fluffyConfig.getPreferences();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.clear();
+
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        XmlPullParser parser = factory.newPullParser();
+        FileInputStream fis = new FileInputStream(file);
+        parser.setInput(fis, null);
+
+        int eventType = parser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG) {
+                String tagName = parser.getName();
+                if ("string".equals(tagName)) {
+                    String key = parser.getAttributeValue(null, "name");
+                    String value = parser.nextText();
+                    editor.putString(key, value);
+                } else if ("boolean".equals(tagName)) {
+                    String key = parser.getAttributeValue(null, "name");
+                    boolean value = Boolean.parseBoolean(parser.getAttributeValue(null, "value"));
+                    editor.putBoolean(key, value);
+                } else if ("int".equals(tagName)) {
+                    String key = parser.getAttributeValue(null, "name");
+                    int value = Integer.parseInt(parser.getAttributeValue(null, "value"));
+                    editor.putInt(key, value);
+                } else if ("long".equals(tagName)) {
+                    String key = parser.getAttributeValue(null, "name");
+                    long value = Long.parseLong(parser.getAttributeValue(null, "value"));
+                    editor.putLong(key, value);
+                } else if ("float".equals(tagName)) {
+                    String key = parser.getAttributeValue(null, "name");
+                    float value = Float.parseFloat(parser.getAttributeValue(null, "value"));
+                    editor.putFloat(key, value);
+                }
+            }
+            eventType = parser.next();
+        }
+        fis.close();
+        editor.apply();
+
+        fluffyConfig.reloadFromDisk();
     }
 
     @Override

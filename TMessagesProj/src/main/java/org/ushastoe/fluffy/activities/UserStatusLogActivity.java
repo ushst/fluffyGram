@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.activities;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.method.ScrollingMovementMethod;
@@ -67,6 +68,8 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
     private final AvatarDrawable historyDialogAvatarDrawable = new AvatarDrawable();
     private TextView historyDialogNameView;
     private UserStatusStorage.LogEntry historyDialogInitialEntry;
+    private Handler updateHandler;
+    private Runnable updateRunnable;
 
 
     @Override
@@ -147,6 +150,13 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
     public void onResume() {
         super.onResume();
         updateSubtitle();
+        startUpdateTimer();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopUpdateTimer();
     }
 
     private void reloadData(boolean manualRequest) {
@@ -344,19 +354,38 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         presentFragment(fragment);
     }
 
-    private void updateSubtitle() {
-        if (actionBar == null) {
-            return;
+    private void startUpdateTimer() {
+        if (updateHandler == null) {
+            updateHandler = new Handler();
         }
-        if (lastLoadedAt == 0) {
-            actionBar.setSubtitle(null);
-            return;
-        }
-        String timeText = formatDateTime(lastLoadedAt);
-        String countText = LocaleController.formatNumber(lastRowCount, ' ');
-        actionBar.setSubtitle(LocaleController.formatString("UserStatusLogSubtitle", R.string.UserStatusLogSubtitle, timeText, countText));
+        updateRunnable = () -> {
+            if (listAdapter != null) {
+                listAdapter.notifyDataSetChanged();
+            }
+            if (updateHandler != null) {
+                updateHandler.postDelayed(updateRunnable, 1000);
+            }
+        };
+        updateHandler.post(updateRunnable);
     }
 
+    private void stopUpdateTimer() {
+        if (updateHandler != null && updateRunnable != null) {
+            updateHandler.removeCallbacks(updateRunnable);
+        }
+    }
+
+    private void updateSubtitle() {
+        if (lastRowCount > 0) {
+            actionBar.setSubtitle(String.valueOf(lastRowCount) + " entries");
+        } else {
+            actionBar.setSubtitle(null);
+        }
+    }
+
+    private String formatDateTime(long time) {
+        return DateFormat.format("yyyy-MM-dd HH:mm:ss", new Date(time)).toString();
+    }
 
     private String buildStatusLine(UserStatusStorage.LogEntry entry) {
         String status = entry.statusText != null ? entry.statusText :
@@ -381,7 +410,7 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         } else if (entry.lastSeenAt > 0) {
             builder.append('\n');
             builder.append(LocaleController.formatString("UserStatusLogLastSeenAt", R.string.UserStatusLogLastSeenAt,
-                    formatDateTime(entry.lastSeenAt)));
+                    getLastSeenText(entry.lastSeenAt)));
         }
         builder.append('\n');
         builder.append(LocaleController.formatString("UserStatusLogAccountLabel", R.string.UserStatusLogAccountLabel,
@@ -406,12 +435,18 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         return name;
     }
 
-    private String formatDateTime(long millis) {
-        Date date = new Date(millis);
-        CharSequence time = DateFormat.format("HH:mm", date);
-        return LocaleController.formatString("formatDateAtTime", R.string.formatDateAtTime,
-                LocaleController.getInstance().getFormatterDayMonth().format(date),
-                time.toString());
+    private String getLastSeenText(long lastSeenAt) {
+        long now = System.currentTimeMillis();
+        long diffSeconds = (now - lastSeenAt) / 1000;
+        if (diffSeconds < 60) {
+            return diffSeconds + " seconds ago";
+        } else if (diffSeconds < 3600) {
+            return (diffSeconds / 60) + " minutes ago";
+        } else if (diffSeconds < 86400) {
+            return (diffSeconds / 3600) + " hours ago";
+        } else {
+            return formatDateTime(lastSeenAt);
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

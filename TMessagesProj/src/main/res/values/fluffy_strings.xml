@@ -29,6 +29,7 @@
     <string name="ImportFluffyConfigError">Failed to import configuration</string>
     <string name="ImportFluffyConfigWrongFile">Please select fluffyConfig.xml file</string>
     <string name="FluffyConfigFileMissing">Configuration file is missing</string>
+    <string name="RestartRequired">Требуется перезапуск приложения для применения изменений</string>
     <string name="CloudflareCredentialsNotSet">Cloudflare credentials are not configured.</string>
     <string name="CloudflareAccountID">Account ID</string>
     <string name="CloudflareAPIToken">API Token</string>
@@ -197,6 +198,9 @@
 
     <string name="PhotoCopy">Photo copy</string>
     <string name="Voip">Voice</string>
+
+    <string name="Ids">Id\'s</string>
+    <string name="Config">Config</string>
 
     <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
     <string name="CopyWithoutProtocol">Copy without protocol</string>

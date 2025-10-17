@@ -23572,7 +23572,7 @@ public class MessagesController extends BaseController implements NotificationCe
         if (user == null) {
             return;
         }
-        getNotificationCenter().postNotificationName(NotificationCenter.userStatusChanged, user);
+        AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.userStatusChanged, user));
     }
 
     private void notifyUserStatusChanged(long userId) {
