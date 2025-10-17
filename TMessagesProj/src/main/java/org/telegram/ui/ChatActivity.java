@@ -776,6 +776,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private Runnable pendingWebPageTimeoutRunnable;
     private Runnable waitingForCharaterEnterRunnable;
     private Runnable onChatMessagesLoaded;
+    private final Runnable subtitleUpdateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (avatarContainer == null || paused || currentUser == null) {
+                return;
+            }
+            avatarContainer.updateSubtitle();
+            AndroidUtilities.runOnUIThread(this, 1000);
+        }
+    };
 
     private TLRPC.ChatInvite chatInvite;
     private Runnable chatInviteRunnable;
@@ -3275,6 +3285,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+        AndroidUtilities.cancelRunOnUIThread(subtitleUpdateRunnable);
         if (chatActivityEnterView != null) {
             chatActivityEnterView.onDestroy();
         }
@@ -30182,6 +30193,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         flagSecure.attach();
 
+        AndroidUtilities.cancelRunOnUIThread(subtitleUpdateRunnable);
+        if (avatarContainer != null && currentUser != null) {
+            AndroidUtilities.runOnUIThread(subtitleUpdateRunnable);
+        }
+
         if (starReactionsOverlay != null) {
             starReactionsOverlay.bringToFront();
         }
@@ -30247,6 +30263,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         long replyId = threadMessageId;
         getMessagesController().markDialogAsReadNow(dialog_id, replyId);
         MediaController.getInstance().stopRaiseToEarSensors(this, true, true);
+        AndroidUtilities.cancelRunOnUIThread(subtitleUpdateRunnable);
         paused = true;
         wasPaused = true;
         if (chatMode == 0) {

@@ -104,8 +104,11 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     private int onlineCount = -1;
     private int currentConnectionState;
     private CharSequence lastSubtitle;
+    private CharSequence previousSubtitle;
     private int lastSubtitleColorKey = -1;
     private Integer overrideSubtitleColor;
+    private long lastSubtitleUpdateTime = 0;
+    private static final long MIN_SUBTITLE_UPDATE_INTERVAL = 1000;
 
     private SharedMediaLayout.SharedMediaPreloader sharedMediaPreloader;
     private Theme.ResourcesProvider resourcesProvider;
@@ -1040,6 +1043,11 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (parentFragment == null) {
             return;
         }
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastSubtitleUpdateTime < MIN_SUBTITLE_UPDATE_INTERVAL) {
+            return;
+        }
+        lastSubtitleUpdateTime = currentTime;
         if (parentFragment.getChatMode() == ChatActivity.MODE_EDIT_BUSINESS_LINK) {
             setSubtitle(BusinessLinksController.stripHttps(parentFragment.businessLink.link));
             return;
@@ -1224,6 +1232,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             setTypingAnimation(true);
         }
         lastSubtitleColorKey = useOnlineColor ? Theme.key_chat_status : Theme.key_actionBarDefaultSubtitle;
+        if (TextUtils.equals(previousSubtitle, newSubtitle)) {
+            return;
+        }
         if (lastSubtitle == null) {
             if (subtitleTextView != null) {
                 subtitleTextView.setText(newSubtitle);
@@ -1245,6 +1256,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         } else {
             lastSubtitle = newSubtitle;
         }
+        previousSubtitle = newSubtitle;
     }
 
     public static CharSequence getChatSubtitle(TLRPC.Chat chat, TLRPC.ChatFull info, int onlineCount) {

@@ -172,8 +172,10 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
                 items.addAll(latest);
                 listAdapter.notifyDataSetChanged();
                 lastLoadedAt = System.currentTimeMillis();
-                lastRowCount = totalCount;
-                updateSubtitle();
+                if (lastRowCount != totalCount) {
+                    lastRowCount = totalCount;
+                    updateSubtitle();
+                }
                 if (manualRequest && listView != null && !items.isEmpty()) {
                     listView.smoothScrollToPosition(0);
                 }
