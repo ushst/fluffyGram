@@ -160,14 +160,18 @@ public final class fluffyConfig {
 
     private fluffyConfig() {}
 
-    public static String getPreferencesFileName() {
-        return PREFS_NAME + ".xml";
+    public static SharedPreferences getPreferences() {
+        return preferences;
     }
 
     public static File getPreferencesFile() {
         Context context = ApplicationLoader.applicationContext;
         File prefsDir = new File(context.getApplicationInfo().dataDir, "shared_prefs");
         return new File(prefsDir, getPreferencesFileName());
+    }
+
+    public static String getPreferencesFileName() {
+        return PREFS_NAME + ".xml";
     }
 
     /**
