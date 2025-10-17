@@ -609,6 +609,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     public int birthdayRow;
     private int setUsernameRow;
     private int idDcRow;
+    private int idDcHeaderRow = -1;
+    private int idDcSectionRow = -1;
+    private int idDcSectionRowBefore = -1;
+    private int fluffySectionRow2 = -1;
 
     private StringBuilder userDcLine;
     private int bioRow;
@@ -10642,7 +10646,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 emptyRow = rowCount++;
             }
             if (UserObject.isUserSelf(user) && !myProfile) {
+                idDcSectionRowBefore = rowCount++;
+                idDcHeaderRow = rowCount++;
                 idDcRow = rowCount++;
+                idDcSectionRow = rowCount++;
                 if (avatarBig == null && (user.photo == null || !(user.photo.photo_big instanceof TLRPC.TL_fileLocation_layer97) && !(user.photo.photo_big instanceof TLRPC.TL_fileLocationToBeDeprecated)) && (avatarsViewPager == null || avatarsViewPager.getRealCount() == 0)) {
                     setAvatarRow = rowCount++;
                     setAvatarSectionRow = rowCount++;
@@ -10668,6 +10675,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                 fluffySectionRow = rowCount++;
                 fluffyRow = rowCount++;
+                fluffySectionRow2 = rowCount++;
                 
                 settingsSectionRow2 = rowCount++;
                 chatRow = rowCount++;
@@ -10720,7 +10728,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 versionRow = rowCount++;
             } else {
                 String username = UserObject.getPublicUsername(user);
+                idDcSectionRowBefore = rowCount++;
+                idDcHeaderRow = rowCount++;
                 idDcRow = rowCount++;
+                idDcSectionRow = rowCount++;
                 boolean hasInfo = userInfo != null && !TextUtils.isEmpty(userInfo.about) || user != null && !TextUtils.isEmpty(username);
                 boolean hasPhone = user != null && (!TextUtils.isEmpty(user.phone) || !TextUtils.isEmpty(vcardPhone));
                 if (userInfo != null && (userInfo.flags2 & 64) != 0 && (profileChannelMessageFetcher == null || !profileChannelMessageFetcher.loaded || profileChannelMessageFetcher.messageObject != null)) {
@@ -10872,7 +10883,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (chatId != 0) {
             idAccountRow = rowCount++;
+            idDcSectionRowBefore = rowCount++;
+            idDcHeaderRow = rowCount++;
             idDcRow = rowCount++;
+            idDcSectionRow = rowCount++;
             if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.about) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat)) {
                 if (actionsView == null && LocaleController.isRTL && ChatObject.isChannel(currentChat) && chatInfo != null && !currentChat.megagroup && chatInfo.linked_chat_id != 0) {
                     emptyRow = rowCount++;
@@ -13423,6 +13437,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         headerCell.setText(getString(R.string.SettingsDebug));
                     } else if (position == botPermissionsHeader) {
                         headerCell.setText(getString(R.string.BotProfilePermissions));
+                    } else if (position == idDcHeaderRow) {
+                        headerCell.setText(getString(R.string.Ids));
                     }
                     headerCell.setTextColor(dontApplyPeerColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueHeader), false));
                     break;
@@ -14287,7 +14303,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         @Override
         public int getItemViewType(int position) {
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
-                    position == fluffySectionRow || position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader ) {
+                    position == fluffySectionRow || position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader || position == idDcHeaderRow) {
                 return VIEW_TYPE_HEADER;
             } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == idAccountRow || position == idDcRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
@@ -14321,7 +14337,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     position == helpSectionCell || position == setAvatarSectionRow || position == passwordSuggestionSectionRow ||
                     position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow ||
                     position == channelDividerRow || position == graceSuggestionSectionRow || position == balanceDividerRow ||
-                    position == botPermissionsDivider || position == channelBalanceSectionRow
+                    position == botPermissionsDivider || position == channelBalanceSectionRow ||
+                    position == idDcSectionRow || position == fluffySectionRow2 || position == idDcSectionRowBefore
             ) {
                 return VIEW_TYPE_SHADOW;
             } else if (position >= membersStartRow && position < membersEndRow) {
@@ -15613,6 +15630,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, dataRow, sparseIntArray);
             put(++pointer, liteModeRow, sparseIntArray);
             put(++pointer, fluffyRow, sparseIntArray);
+            put(++pointer, fluffySectionRow2, sparseIntArray);
             put(++pointer, chatRow, sparseIntArray);
             put(++pointer, filtersRow, sparseIntArray);
             put(++pointer, stickersRow, sparseIntArray);
@@ -15640,7 +15658,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, userInfoRow, sparseIntArray);
             put(++pointer, channelInfoRow, sparseIntArray);
             put(++pointer, usernameRow, sparseIntArray);
+            put(++pointer, idDcSectionRowBefore, sparseIntArray);
+            put(++pointer, idDcHeaderRow, sparseIntArray);
             put(++pointer, idDcRow, sparseIntArray);
+            put(++pointer, idDcSectionRow, sparseIntArray);
             put(++pointer, notificationsDividerRow, sparseIntArray);
             put(++pointer, reportDividerRow, sparseIntArray);
             put(++pointer, notificationsRow, sparseIntArray);
