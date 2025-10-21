@@ -2666,6 +2666,50 @@ public class Theme {
                 themeAccents.add(themeAccent);
             }
             accentBaseColor = themeAccentsMap.get(0).accentColor;
+            ensureMonetAccent();
+        }
+
+        private void ensureMonetAccent() {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || themeAccents == null || themeAccentsMap == null) {
+                return;
+            }
+            if (isMonet() || info != null || pathToFile != null) {
+                return;
+            }
+            if (themeAccentsMap.get(MONET_ACCENT_ID) != null) {
+                return;
+            }
+
+            int accentColor = MonetHelper.getColor(isDark() ? "a1_200" : "a1_600");
+            if (accentColor == 0) {
+                return;
+            }
+
+            ThemeAccent monetAccent = new ThemeAccent();
+            monetAccent.id = MONET_ACCENT_ID;
+            monetAccent.isDefault = true;
+            monetAccent.parentTheme = this;
+            monetAccent.accentColor = accentColor;
+            monetAccent.accentColor2 = 0;
+            int messagesColor = MonetHelper.getColor(isDark() ? "a1_400" : "a1_200");
+            monetAccent.myMessagesAccentColor = messagesColor != 0 ? messagesColor : accentColor;
+            monetAccent.myMessagesGradientAccentColor1 = 0;
+            monetAccent.myMessagesGradientAccentColor2 = 0;
+            monetAccent.myMessagesGradientAccentColor3 = 0;
+            monetAccent.myMessagesAnimated = false;
+            monetAccent.backgroundOverrideColor = 0;
+            monetAccent.backgroundGradientOverrideColor1 = 0;
+            monetAccent.backgroundGradientOverrideColor2 = 0;
+            monetAccent.backgroundGradientOverrideColor3 = 0;
+            monetAccent.backgroundRotation = 45;
+            monetAccent.patternSlug = "";
+            monetAccent.patternIntensity = 0f;
+            monetAccent.patternMotion = false;
+
+            themeAccentsMap.put(monetAccent.id, monetAccent);
+            themeAccents.add(monetAccent);
+            defaultAccentCount++;
+            sortAccents(this);
         }
 
         @UiThread
@@ -3072,6 +3116,7 @@ public class Theme {
     };
 
     public static int DEFALT_THEME_ACCENT_ID = 99;
+    private static final int MONET_ACCENT_ID = 97;
     public static int selectedAutoNightType = AUTO_NIGHT_TYPE_NONE;
     public static boolean autoNightScheduleByLocation;
     public static float autoNightBrighnessThreshold = 0.25f;
