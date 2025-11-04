@@ -45,6 +45,15 @@
     <string name="ExtendedStatusOnline">Extended online status</string>
     <string name="NewMaterialSwith">Material3 switch</string>
     <string name="UseSystemTypeface">Use system font</string>
+    <string name="SelectCustomFont">Select custom font</string>
+    <string name="CustomFontDisabled">Default font</string>
+    <string name="CustomFontHint">Add TTF files to %1$s and pick them here.</string>
+    <string name="CustomFontNotFound">No fonts found</string>
+    <string name="CustomFontApplied">Custom font updated</string>
+    <string name="CustomFontUpload">Add font file</string>
+    <string name="CustomFontImportSuccess">Font saved</string>
+    <string name="CustomFontImportError">Failed to save font</string>
+    <string name="CustomFontWrongFile">Select a TTF font file</string>
     <string name="useSolarIcons">Use solar icons</string>
     <string name="callShower">Show call icon in chat</string>
     <string name="HideThisBar">Hide Business bot bar</string>

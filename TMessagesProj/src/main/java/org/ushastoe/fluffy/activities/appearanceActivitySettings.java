@@ -6,13 +6,17 @@ import static org.telegram.ui.LaunchActivity.getLastFragment;
 import static org.ushastoe.fluffy.BulletinHelper.showRestartNotification;
 
 import android.animation.AnimatorSet;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Parcelable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -26,11 +30,14 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.documentfile.provider.DocumentFile;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.MediaController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
@@ -74,8 +81,11 @@ import org.ushastoe.fluffy.activities.elements.DoubleTapCell;
 import org.ushastoe.fluffy.activities.elements.StickerSizePreviewMessagesCell;
 import org.ushastoe.fluffy.fluffyConfig;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -116,6 +126,8 @@ public class appearanceActivitySettings extends BaseFragment {
         STORIES_SHOW,
         SHOW_DIVIDER,
         SELECT_TITLE,
+        SELECT_CUSTOM_FONT,
+        CUSTOM_FONT_UPLOAD,
         SYSTEM_TYPEFACE,
         USE_SOLAR_ICONS,
         NEW_SWITCH_STYLE,
@@ -143,7 +155,8 @@ public class appearanceActivitySettings extends BaseFragment {
         DIVIDER_4,
         QUICK_SWITCHER,
         MENU_CUSTOMIZATION,
-        HIDE_BIZ_BOT_BAR
+        HIDE_BIZ_BOT_BAR,
+        CUSTOM_FONT_HINT
     }
     private static class Row {
         RowType type;
@@ -151,6 +164,7 @@ public class appearanceActivitySettings extends BaseFragment {
         int textResId;
         int iconResId;
         int subtitleResId;
+        CharSequence customText;
 
         Row(RowIdentifier id, RowType type, int textResId, int iconResId) {
             this.id = id;
@@ -171,10 +185,16 @@ public class appearanceActivitySettings extends BaseFragment {
         Row(RowIdentifier id, RowType type) {
             this(id, type, 0, 0);
         }
+
+        Row(RowIdentifier id, RowType type, CharSequence customText) {
+            this(id, type);
+            this.customText = customText;
+        }
     }
 
     private List<Row> rows = new ArrayList<>();
     private static final int stickerRaduisMax = 130;
+    private static final int REQUEST_CODE_IMPORT_CUSTOM_FONT = 2010;
     private Parcelable recyclerViewState = null;
 
     @Override
@@ -197,7 +217,12 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
         rows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
         rows.add(new Row(RowIdentifier.SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
+        rows.add(new Row(RowIdentifier.SELECT_CUSTOM_FONT, RowType.TEXT_CELL, R.string.SelectCustomFont, R.drawable.msg_photo_text_framed));
+        rows.add(new Row(RowIdentifier.CUSTOM_FONT_UPLOAD, RowType.TEXT_CELL, R.string.CustomFontUpload));
         rows.add(new Row(RowIdentifier.SYSTEM_TYPEFACE, RowType.TEXT_CHECK, R.string.UseSystemTypeface, R.drawable.msg_photo_text_framed));
+        rows.add(new Row(RowIdentifier.CUSTOM_FONT_HINT, RowType.TEXT_INFO_PRIVACY,
+                LocaleController.formatString("CustomFontHint", R.string.CustomFontHint,
+                        fluffyConfig.getFontsDirectory().getAbsolutePath())));
         rows.add(new Row(RowIdentifier.USE_SOLAR_ICONS, RowType.TEXT_CHECK, R.string.useSolarIcons, R.drawable.media_magic_cut));
         rows.add(new Row(RowIdentifier.NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
@@ -461,12 +486,22 @@ public class appearanceActivitySettings extends BaseFragment {
                 }
                 updateRows();
                 break;
+            case CUSTOM_FONT_UPLOAD:
+                startCustomFontPicker();
+                break;
+            case SELECT_CUSTOM_FONT:
+                showCustomFontDialog(context);
+                break;
             case SYSTEM_TYPEFACE:
                 fluffyConfig.toggleUseSystemFonts();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.useSystemFonts);
                     AndroidUtilities.clearTypefaceCache();
                     showRestartNotification(LaunchActivity.getSafeLastFragment());
+                }
+                int customFontRow = getRowPositionById(RowIdentifier.SELECT_CUSTOM_FONT);
+                if (customFontRow != -1) {
+                    listAdapter.notifyItemChanged(customFontRow);
                 }
                 break;
             case USE_SOLAR_ICONS:
@@ -504,6 +539,19 @@ public class appearanceActivitySettings extends BaseFragment {
             case MENU_CUSTOMIZATION:
                 showMenuItemConfigurator(context);
                 break;
+        }
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        super.onActivityResultFragment(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_IMPORT_CUSTOM_FONT && resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                importCustomFontFromUri(uri);
+            } else {
+                BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), null);
+            }
         }
     }
 
@@ -582,6 +630,172 @@ public class appearanceActivitySettings extends BaseFragment {
         }
         builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
         showDialog(builder.create());
+    }
+
+    private void showCustomFontDialog(Context context) {
+        if (context == null || getParentActivity() == null) {
+            return;
+        }
+
+        File fontsDir = fluffyConfig.getFontsDirectory();
+        File[] fontsArray = fontsDir.listFiles((dir, name) -> name != null && name.toLowerCase(Locale.ROOT).endsWith(".ttf"));
+        ArrayList<File> fontFiles = new ArrayList<>();
+        if (fontsArray != null && fontsArray.length > 0) {
+            Arrays.sort(fontsArray, (o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+            Collections.addAll(fontFiles, fontsArray);
+        }
+
+        if (fontFiles.isEmpty()) {
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontNotFound), fontsDir.getAbsolutePath());
+            return;
+        }
+
+        CharSequence[] items = new CharSequence[fontFiles.size() + 1];
+        items[0] = getString(R.string.CustomFontDisabled);
+        int checkedIndex = 0;
+        for (int i = 0; i < fontFiles.size(); i++) {
+            File file = fontFiles.get(i);
+            items[i + 1] = file.getName();
+            if (TextUtils.equals(fluffyConfig.customFontPath, file.getAbsolutePath())) {
+                checkedIndex = i + 1;
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(getString(R.string.SelectCustomFont));
+        builder.setItems(items, (dialog, which) -> {
+            if (which == checkedIndex) {
+                dialog.dismiss();
+                return;
+            }
+
+            boolean changed = false;
+            if (which == 0) {
+                if (fluffyConfig.hasCustomFont()) {
+                    fluffyConfig.clearCustomFont();
+                    changed = true;
+                }
+            } else {
+                File file = fontFiles.get(which - 1);
+                if (!TextUtils.equals(fluffyConfig.customFontPath, file.getAbsolutePath())) {
+                    fluffyConfig.setCustomFont(file.getName(), file.getAbsolutePath());
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                if (fluffyConfig.useSystemFonts) {
+                    fluffyConfig.toggleUseSystemFonts();
+                    int systemRow = getRowPositionById(RowIdentifier.SYSTEM_TYPEFACE);
+                    if (systemRow != -1) {
+                        listAdapter.notifyItemChanged(systemRow);
+                    }
+                }
+                AndroidUtilities.clearTypefaceCache();
+                int position = getRowPositionById(RowIdentifier.SELECT_CUSTOM_FONT);
+                if (position != -1) {
+                    listAdapter.notifyItemChanged(position);
+                }
+                CharSequence subtitle = which == 0 ? getString(R.string.CustomFontDisabled) : fontFiles.get(which - 1).getName();
+                BaseFragment fragment = LaunchActivity.getSafeLastFragment();
+                if (fragment != null) {
+                    BulletinHelper.showSimpleBulletin(fragment, getString(R.string.CustomFontApplied), subtitle);
+                    AndroidUtilities.runOnUIThread(() -> showRestartNotification(fragment), 200);
+                }
+            }
+
+            dialog.dismiss();
+        });
+        builder.setNegativeButton(getString("Cancel", R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
+    private void startCustomFontPicker() {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        try {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                    "font/ttf",
+                    "application/x-font-ttf",
+                    "application/x-font-truetype",
+                    "application/font-sfnt"
+            });
+            startActivityForResult(Intent.createChooser(intent, getString(R.string.CustomFontUpload)), REQUEST_CODE_IMPORT_CUSTOM_FONT);
+        } catch (Exception e) {
+            FileLog.e(e);
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), e.getLocalizedMessage());
+        }
+    }
+
+    private boolean importCustomFontFromUri(Uri uri) {
+        Activity activity = getParentActivity();
+        if (activity == null || uri == null) {
+            return false;
+        }
+
+        DocumentFile documentFile = DocumentFile.fromSingleUri(activity, uri);
+        String displayName = documentFile != null ? documentFile.getName() : null;
+        if (TextUtils.isEmpty(displayName)) {
+            displayName = MediaController.getFileName(uri);
+        }
+
+        if (TextUtils.isEmpty(displayName)) {
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), null);
+            return false;
+        }
+
+        String lowerCaseName = displayName.toLowerCase(Locale.ROOT);
+        if (!lowerCaseName.endsWith(".ttf")) {
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontWrongFile), displayName);
+            return false;
+        }
+
+        File fontsDir = fluffyConfig.getFontsDirectory();
+        if (!fontsDir.exists() && !fontsDir.mkdirs()) {
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), fontsDir.getAbsolutePath());
+            return false;
+        }
+
+        File destination = resolveFontDestination(fontsDir, displayName);
+
+        try (InputStream inputStream = activity.getContentResolver().openInputStream(uri)) {
+            if (inputStream == null) {
+                BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), displayName);
+                return false;
+            }
+            if (!AndroidUtilities.copyFile(inputStream, destination)) {
+                BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), displayName);
+                return false;
+            }
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportSuccess), destination.getAbsolutePath());
+            return true;
+        } catch (Exception e) {
+            FileLog.e(e);
+            BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.CustomFontImportError), e.getLocalizedMessage());
+            return false;
+        }
+    }
+
+    private File resolveFontDestination(File directory, String fileName) {
+        File destination = new File(directory, fileName);
+        if (!destination.exists()) {
+            return destination;
+        }
+
+        int dot = fileName.lastIndexOf('.');
+        String base = dot >= 0 ? fileName.substring(0, dot) : fileName;
+        String extension = dot >= 0 ? fileName.substring(dot) : "";
+        int index = 1;
+        while (destination.exists()) {
+            destination = new File(directory, base + " (" + index + ")" + extension);
+            index++;
+        }
+        return destination;
     }
 
     private void titleSelecter(Context context) {
@@ -1114,13 +1328,18 @@ public class appearanceActivitySettings extends BaseFragment {
                     break;
                 case TEXT_INFO_PRIVACY:
                     TextInfoPrivacyCell textInfoPrivacyCell = (TextInfoPrivacyCell) holder.itemView;
-                    textInfoPrivacyCell.setText(getString(row.textResId));
+                    CharSequence infoText = row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : "");
+                    textInfoPrivacyCell.setText(infoText);
                     break;
                 case CHAT_LIST_PREVIEW:
                     chatListPreviewCell = (ChatListPreviewCell) holder.itemView;
                     break;
                 case TEXT_CELL:
                     TextCell textCell6 = (TextCell) holder.itemView;
+                    if (row.id == RowIdentifier.CUSTOM_FONT_UPLOAD) {
+                        textCell6.setTextAndIcon(getString(row.textResId), row.iconResId, true);
+                        break;
+                    }
                     String value = "";
                     switch (row.id) {
                         case SELECT_TITLE:
@@ -1143,6 +1362,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case TRANSPARENCY:
                             value = String.valueOf(fluffyConfig.transparency);
+                            break;
+                        case SELECT_CUSTOM_FONT:
+                            value = TextUtils.isEmpty(fluffyConfig.customFontName) ? getString(R.string.CustomFontDisabled) : fluffyConfig.customFontName;
                             break;
                     }
                     textCell6.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);

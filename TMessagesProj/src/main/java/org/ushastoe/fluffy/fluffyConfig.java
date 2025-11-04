@@ -3,6 +3,7 @@ package org.ushastoe.fluffy;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.text.TextUtils;
 
 import org.telegram.messenger.ApplicationLoader;
@@ -82,6 +83,8 @@ public final class fluffyConfig {
     private static final String KEY_DISABLE_STORY_VIEW = "disableStoryView";
     private static final String KEY_DISABLE_TYPING_INDICATOR = "disableTypingIndicator";
     private static final String KEY_DISABLE_EMOJI_INDICATOR = "disableEmojiIndicator";
+    private static final String KEY_CUSTOM_FONT_PATH = "customFontPath";
+    private static final String KEY_CUSTOM_FONT_NAME = "customFontName";
 
 
 
@@ -153,6 +156,8 @@ public final class fluffyConfig {
     public static boolean disableStoryView;
     public static boolean disableTypingIndicator;
     public static boolean disableEmojiIndicator;
+    public static String customFontPath;
+    public static String customFontName;
 
 
 
@@ -237,6 +242,8 @@ public final class fluffyConfig {
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
         sortChatsByUnread = preferences.getBoolean(KEY_SORT_CHATS_BY_UNREAD, false);
         transcribeDisableListenSignal = preferences.getBoolean(KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL, false);
+        customFontPath = preferences.getString(KEY_CUSTOM_FONT_PATH, "");
+        customFontName = preferences.getString(KEY_CUSTOM_FONT_NAME, "");
 
     // Ghost mode related settings
     disableStoryView = preferences.getBoolean(KEY_DISABLE_STORY_VIEW, false);
@@ -445,6 +452,35 @@ public final class fluffyConfig {
     public static void setСustomTitle(String title) {
         customTitle = setStringSetting(KEY_CUSTOM_TITLE, title);
 
+    }
+
+    public static void setCustomFont(String name, String path) {
+        if (name == null) {
+            name = "";
+        }
+        if (path == null) {
+            path = "";
+        }
+        customFontName = setStringSetting(KEY_CUSTOM_FONT_NAME, name);
+        customFontPath = setStringSetting(KEY_CUSTOM_FONT_PATH, path);
+    }
+
+    public static void clearCustomFont() {
+        setCustomFont("", "");
+    }
+
+    public static boolean hasCustomFont() {
+        return !TextUtils.isEmpty(customFontPath);
+    }
+
+    public static File getFontsDirectory() {
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File fontsDir = new File(downloadsDir, "FluffyFonts");
+        if (!fontsDir.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            fontsDir.mkdirs();
+        }
+        return fontsDir;
     }
 
     // --- Утилитарные методы ---
