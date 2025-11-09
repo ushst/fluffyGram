@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -80,9 +81,12 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setTitle(LocaleController.getString(R.string.FG_CustomQuickRepliesTitle));
-        actionBar.setActionBarMenuOnItemClick(id -> {
-            if (id == -1) {
-                finishFragment();
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+            @Override
+            public void onItemClick(int id) {
+                if (id == -1) {
+                    finishFragment();
+                }
             }
         });
 
@@ -168,7 +172,7 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
                 .setView(container)
                 .setPositiveButton(LocaleController.getString(R.string.Save), null)
                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
-                .setNeutralButton(existing == null ? 0 : R.string.Delete, (d, which) -> {
+                .setNeutralButton(existing == null ? null : LocaleController.getString(R.string.Delete), (d, which) -> {
                     if (existing != null) {
                         FluffyQuickRepliesManager.getInstance().delete(existing.id);
                         updateRows();
