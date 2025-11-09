@@ -3442,6 +3442,7 @@ public class Theme {
     public static int colorsCount;
     public static final int key_wallpaperFileOffset = colorsCount++;
     public static final int key_dialogBackground = colorsCount++;
+    public static final int key_dialogRoundBackground = colorsCount++;
     public static final int key_dialogBackgroundGray = colorsCount++;
     public static final int key_dialogTextBlack = colorsCount++;
     public static final int key_dialogTextLink = colorsCount++;

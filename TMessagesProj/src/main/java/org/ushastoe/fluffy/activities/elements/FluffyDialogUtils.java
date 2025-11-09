@@ -79,35 +79,36 @@ public final class FluffyDialogUtils {
 
         @Override
         public int getColor(int key) {
-            switch (key) {
-                case Theme.key_dialogBackground:
-                case Theme.key_dialogRoundBackground:
-                    return Theme.getColor(Theme.key_windowBackgroundWhite);
-                case Theme.key_dialogTextBlack:
-                    return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText);
-                case Theme.key_dialogTextGray2:
-                    return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2);
-                case Theme.key_dialogTextGray3:
-                    return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3);
-                case Theme.key_dialogIcon:
-                    return Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
-                case Theme.key_dialogTextLink:
-                    return Theme.getColor(Theme.key_windowBackgroundWhiteLinkText);
-                case Theme.key_dialogButton:
-                    return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4);
-                case Theme.key_dialogButtonSelector:
-                    return Theme.getColor(Theme.key_listSelector);
-                case Theme.key_dialogScrollGlow:
-                    return Theme.getColor(Theme.key_actionBarDefault);
-                case Theme.key_dialogLineProgress:
-                    return Theme.getColor(Theme.key_featuredStickers_buttonProgress);
-                case Theme.key_dialogLineProgressBackground:
-                    return Theme.getColor(Theme.key_divider);
-                default:
-                    if (baseProvider != null) {
-                        return baseProvider.getColor(key);
-                    }
-                    return Theme.getColor(key);
+            // Theme.key_* fields may not be compile-time constants in some builds,
+            // so using them in switch case labels can cause "constant expression required" errors.
+            // Use explicit comparisons instead.
+            if (key == Theme.key_dialogBackground || key == Theme.key_dialogRoundBackground) {
+                return Theme.getColor(Theme.key_windowBackgroundWhite);
+            } else if (key == Theme.key_dialogTextBlack) {
+                return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText);
+            } else if (key == Theme.key_dialogTextGray2) {
+                return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2);
+            } else if (key == Theme.key_dialogTextGray3) {
+                return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3);
+            } else if (key == Theme.key_dialogIcon) {
+                return Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
+            } else if (key == Theme.key_dialogTextLink) {
+                return Theme.getColor(Theme.key_windowBackgroundWhiteLinkText);
+            } else if (key == Theme.key_dialogButton) {
+                return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4);
+            } else if (key == Theme.key_dialogButtonSelector) {
+                return Theme.getColor(Theme.key_listSelector);
+            } else if (key == Theme.key_dialogScrollGlow) {
+                return Theme.getColor(Theme.key_actionBarDefault);
+            } else if (key == Theme.key_dialogLineProgress) {
+                return Theme.getColor(Theme.key_featuredStickers_buttonProgress);
+            } else if (key == Theme.key_dialogLineProgressBackground) {
+                return Theme.getColor(Theme.key_divider);
+            } else {
+                if (baseProvider != null) {
+                    return baseProvider.getColor(key);
+                }
+                return Theme.getColor(key);
             }
         }
     }
