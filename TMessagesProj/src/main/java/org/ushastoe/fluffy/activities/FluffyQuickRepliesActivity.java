@@ -29,6 +29,7 @@ import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.activities.elements.FluffyQuickReplyCell;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.quickreplies.FluffyQuickRepliesManager;
@@ -121,8 +122,7 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
 
         LinearLayout container = new LinearLayout(context);
         container.setOrientation(LinearLayout.VERTICAL);
-        int padding = dp(20);
-        container.setPadding(padding, dp(8), padding, 0);
+        container.setPadding(0, dp(8), 0, 0);
 
         EditTextBoldCursor prefixField = new EditTextBoldCursor(context);
         prefixField.setHint(LocaleController.getString(R.string.FG_QuickReplyPrefixHint));
@@ -167,9 +167,9 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
         }
         prefixField.setSelection(prefixField.length());
 
-        AlertDialog dialog = new AlertDialog.Builder(context, resourceProvider)
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(context, resourceProvider)
                 .setTitle(existing == null ? LocaleController.getString(R.string.FG_QuickReplyAddTitle) : LocaleController.getString(R.string.FG_QuickReplyEditTitle))
-                .setView(container)
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(container))
                 .setPositiveButton(LocaleController.getString(R.string.Save), null)
                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                 .setNeutralButton(existing == null ? null : LocaleController.getString(R.string.Delete), (d, which) -> {
@@ -179,6 +179,8 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
                     }
                 })
                 .create();
+
+        FluffyDialogUtils.applyWindowStyling(dialog);
 
         dialog.setOnShowListener(di -> {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {

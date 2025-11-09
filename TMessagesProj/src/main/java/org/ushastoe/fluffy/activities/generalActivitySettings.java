@@ -4,7 +4,6 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -45,6 +44,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.quickreplies.FluffyQuickRepliesManager;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
@@ -506,11 +506,12 @@ public class generalActivitySettings extends BaseFragment {
             });
         }
 
-        Dialog dialog = new AlertDialog.Builder(getParentActivity())
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(getParentActivity())
                 .setTitle(getString(R.string.UseCloudflare))
-                .setView(linearLayout)
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(linearLayout))
                 .setNegativeButton(getString("Cancel", R.string.Cancel), null)
                 .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
         dialogRef.set(dialog);
         showDialog(dialog);
     }

@@ -81,6 +81,7 @@ import org.telegram.ui.ThemeActivity;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.elements.ChatListPreviewCell;
 import org.ushastoe.fluffy.activities.elements.DoubleTapCell;
+import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.activities.elements.StickerSizePreviewMessagesCell;
 import org.ushastoe.fluffy.fluffyConfig;
 
@@ -335,11 +336,12 @@ public class appearanceActivitySettings extends BaseFragment {
             linearLayout.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         }
 
-        AlertDialog dialog = new AlertDialog.Builder(getParentActivity())
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(getParentActivity())
                 .setTitle(getString(R.string.ContextMenuSettings))
-                .setView(linearLayout)
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(linearLayout))
                 .setPositiveButton(getString("Close", R.string.Close), null)
                 .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
 
         showDialog(dialog);
     }
@@ -575,11 +577,11 @@ public class appearanceActivitySettings extends BaseFragment {
         types.add(fluffyConfig.DOUBLE_TAP_ACTION_DELETE);
 
         var context = getParentActivity();
-        var builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(context);
 
         var linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        builder.setView(linearLayout);
+        builder.setView(FluffyDialogUtils.wrapWithStandardPadding(linearLayout));
 
         DoubleTapCell previewCell = new DoubleTapCell(context);
         linearLayout.addView(previewCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
@@ -627,7 +629,9 @@ public class appearanceActivitySettings extends BaseFragment {
             }
         }
         builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
-        showDialog(builder.create());
+        AlertDialog dialog = builder.create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
+        showDialog(dialog);
     }
 
     private void showCustomFontDialog(Context context) {
@@ -714,11 +718,12 @@ public class appearanceActivitySettings extends BaseFragment {
         addFontParams.topMargin = dp(12);
         rootLayout.addView(addFontButton, addFontParams);
 
-        Dialog dialog = new AlertDialog.Builder(context)
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(context)
                 .setTitle(getString(R.string.SelectCustomFont))
-                .setView(rootLayout)
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(rootLayout))
                 .setNegativeButton(getString("Cancel", R.string.Cancel), null)
                 .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
         dialogRef.set(dialog);
         showDialog(dialog);
     }
@@ -781,7 +786,7 @@ public class appearanceActivitySettings extends BaseFragment {
     }
 
     private void handleCustomFontDeletion(Context context, File file, AtomicReference<Dialog> dialogRef) {
-        AlertDialog.Builder confirmBuilder = new AlertDialog.Builder(context);
+        AlertDialog.Builder confirmBuilder = FluffyDialogUtils.themedBuilder(context);
         confirmBuilder.setTitle(file.getName());
         confirmBuilder.setMessage(LocaleController.formatString("CustomFontDeleteConfirm", R.string.CustomFontDeleteConfirm, file.getName()));
         confirmBuilder.setPositiveButton(LocaleController.getString("Delete", R.string.Delete), (dialogInterface, which) -> {
@@ -818,7 +823,9 @@ public class appearanceActivitySettings extends BaseFragment {
             }
         });
         confirmBuilder.setNegativeButton(getString("Cancel", R.string.Cancel), null);
-        showDialog(confirmBuilder.create());
+        AlertDialog dialog = confirmBuilder.create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
+        showDialog(dialog);
     }
 
     private void startCustomFontPicker() {
@@ -1009,9 +1016,9 @@ public class appearanceActivitySettings extends BaseFragment {
             customEditText.setVisibility(View.GONE);
         }
 
-        Dialog dialog = new AlertDialog.Builder(getParentActivity())
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(getParentActivity())
                 .setTitle(getString(R.string.TitleSelecter))
-                .setView(rootLayout)
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(rootLayout))
                 .setNegativeButton(getString("Cancel", R.string.Cancel), null)
                 .setPositiveButton("OK", (d, id) -> {
                     if (radioCells.get(4).isChecked()) {
@@ -1031,6 +1038,7 @@ public class appearanceActivitySettings extends BaseFragment {
                     }
                 })
                 .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
         dialogRef.set(dialog);
         showDialog(dialog);
     }
@@ -1053,7 +1061,7 @@ public class appearanceActivitySettings extends BaseFragment {
             return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(getParentActivity());
         builder.setTitle(getString(R.string.Transparency));
         builder.setMessage(getString(R.string.EnterValueBetween0And255));
 
@@ -1064,7 +1072,7 @@ public class appearanceActivitySettings extends BaseFragment {
 
         input.setText(String.valueOf(fluffyConfig.transparency));
 
-        builder.setView(input);
+        builder.setView(FluffyDialogUtils.wrapWithStandardPadding(input));
 
         builder.setPositiveButton(getString(R.string.OK), (dialog, which) -> {
             try {
@@ -1091,7 +1099,9 @@ public class appearanceActivitySettings extends BaseFragment {
 
         builder.setNegativeButton(getString(R.string.Cancel), (dialog, which) -> dialog.cancel());
 
-        showDialog(builder.create());
+        AlertDialog dialog = builder.create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
+        showDialog(dialog);
     }
 
     private void timeStampSelecter(Context context) {
@@ -1141,11 +1151,12 @@ public class appearanceActivitySettings extends BaseFragment {
             });
         }
 
-        Dialog dialog = new AlertDialog.Builder(getParentActivity())
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(getParentActivity())
                 .setTitle(getString(R.string.TimestampSelecter))
-                .setView(linearLayout)
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(linearLayout))
                 .setNegativeButton(getString(R.string.Cancel), null)
                 .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
         dialogRef.set(dialog);
         showDialog(dialog);
     }
