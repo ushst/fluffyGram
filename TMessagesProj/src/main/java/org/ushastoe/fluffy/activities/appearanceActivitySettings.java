@@ -118,7 +118,6 @@ public class appearanceActivitySettings extends BaseFragment {
         STICKER_SIZE_PREVIEW,
         STICKER_SIZE_SEEKBAR,
         STICKER_RADIUS_SEEKBAR,
-        CUSTOM_FONT_SIZE_SEEKBAR,
         NOTIFICATIONS_CHECK
     }
 
@@ -221,12 +220,13 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
         rows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
         rows.add(new Row(RowIdentifier.SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
-        rows.add(new Row(RowIdentifier.SELECT_CUSTOM_FONT, RowType.TEXT_CELL, R.string.SelectCustomFont, R.drawable.msg_photo_text_framed));
-        rows.add(new Row(RowIdentifier.CUSTOM_FONT_SIZE, RowType.CUSTOM_FONT_SIZE_SEEKBAR));
         rows.add(new Row(RowIdentifier.SYSTEM_TYPEFACE, RowType.TEXT_CHECK, R.string.UseSystemTypeface, R.drawable.msg_photo_text_framed));
-        rows.add(new Row(RowIdentifier.CUSTOM_FONT_HINT, RowType.TEXT_INFO_PRIVACY,
-                LocaleController.formatString("CustomFontHint", R.string.CustomFontHint,
-                        fluffyConfig.getFontsDirectory().getAbsolutePath())));
+        if (!fluffyConfig.useSystemFonts) {
+            rows.add(new Row(RowIdentifier.SELECT_CUSTOM_FONT, RowType.TEXT_CELL, R.string.SelectCustomFont, R.drawable.msg_photo_text_framed));
+            rows.add(new Row(RowIdentifier.CUSTOM_FONT_HINT, RowType.TEXT_INFO_PRIVACY,
+                    LocaleController.formatString("CustomFontHint", R.string.CustomFontHint,
+                            fluffyConfig.getFontsDirectory().getAbsolutePath())));
+        }
         rows.add(new Row(RowIdentifier.USE_SOLAR_ICONS, RowType.TEXT_CHECK, R.string.useSolarIcons, R.drawable.media_magic_cut));
         rows.add(new Row(RowIdentifier.NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
@@ -495,15 +495,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 break;
             case SYSTEM_TYPEFACE:
                 fluffyConfig.toggleUseSystemFonts();
+                AndroidUtilities.clearTypefaceCache();
+                showRestartNotification(LaunchActivity.getSafeLastFragment());
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.useSystemFonts);
-                    AndroidUtilities.clearTypefaceCache();
-                    showRestartNotification(LaunchActivity.getSafeLastFragment());
                 }
-                int customFontRow = getRowPositionById(RowIdentifier.SELECT_CUSTOM_FONT);
-                if (customFontRow != -1) {
-                    listAdapter.notifyItemChanged(customFontRow);
-                }
+                updateRows();
                 break;
             case USE_SOLAR_ICONS:
                 fluffyConfig.toggleUseSolarIcons();
@@ -760,17 +757,19 @@ public class appearanceActivitySettings extends BaseFragment {
             return false;
         }
 
+        boolean systemFontToggledOff = false;
         if (fluffyConfig.useSystemFonts) {
             fluffyConfig.toggleUseSystemFonts();
-            int systemRow = getRowPositionById(RowIdentifier.SYSTEM_TYPEFACE);
-            if (systemRow != -1) {
-                listAdapter.notifyItemChanged(systemRow);
-            }
+            systemFontToggledOff = true;
         }
         AndroidUtilities.clearTypefaceCache();
-        int position = getRowPositionById(RowIdentifier.SELECT_CUSTOM_FONT);
-        if (position != -1) {
-            listAdapter.notifyItemChanged(position);
+        if (systemFontToggledOff) {
+            updateRows();
+        } else {
+            int position = getRowPositionById(RowIdentifier.SELECT_CUSTOM_FONT);
+            if (position != -1) {
+                listAdapter.notifyItemChanged(position);
+            }
         }
         CharSequence subtitle = which == 0 ? getString(R.string.CustomFontDisabled) : fontFiles.get(which - 1).getName();
         BaseFragment fragment = LaunchActivity.getSafeLastFragment();
@@ -1307,83 +1306,6 @@ public class appearanceActivitySettings extends BaseFragment {
         popup[0].showAsDropDown(cell, 0, yoff, Gravity.TOP | Gravity.RIGHT);
         popup[0].dimBehind();
     }
-    public class FontSizeSeekBarCell extends FrameLayout {
-        private final int minFontSize = 12;
-        private final int maxFontSize = 30;
-        private TextView titleView;
-        private TextView valueView;
-        private SeekBarView seekBarView;
-        private OnFontSizeChangeListener listener;
-
-        public FontSizeSeekBarCell(Context context) {
-            super(context);
-            setWillNotDraw(false);
-            setPadding(dp(21), 0, dp(21), 0);
-
-            LinearLayout hLayout = new LinearLayout(context);
-            hLayout.setOrientation(LinearLayout.HORIZONTAL);
-            hLayout.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-
-            titleView = new TextView(context);
-            titleView.setText(getString(R.string.CustomFontSize));
-            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-            titleView.setTextSize(15);
-            hLayout.addView(titleView, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
-
-            valueView = new TextView(context);
-            valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
-            valueView.setTextSize(13);
-            valueView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-            hLayout.addView(valueView, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-            addView(hLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.START, 0, 8, 0, 0));
-
-            seekBarView = new SeekBarView(context);
-            seekBarView.setReportChanges(true);
-            seekBarView.setSeparatorsCount(maxFontSize - minFontSize + 1);
-            seekBarView.setDelegate(new SeekBarView.SeekBarViewDelegate() {
-                @Override
-                public void onSeekBarDrag(boolean stop, float progress) {
-                    int value = Math.round(minFontSize + (maxFontSize - minFontSize) * progress);
-                    value = Math.max(minFontSize, Math.min(maxFontSize, value));
-                    valueView.setText(String.format(Locale.US, "%d", value));
-                    if (listener != null) {
-                        listener.onFontSizeChanged(value, stop);
-                    }
-                }
-
-                @Override
-                public void onSeekBarPressed(boolean pressed) {
-                }
-
-                @Override
-                public CharSequence getContentDescription() {
-                    return String.valueOf(Math.round(minFontSize + (maxFontSize - minFontSize) * seekBarView.getProgress()));
-                }
-
-                @Override
-                public int getStepsCount() {
-                    return maxFontSize - minFontSize;
-                }
-            });
-            addView(seekBarView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.START, 0, 34, 0, 0));
-        }
-
-        public void setOnFontSizeChangeListener(OnFontSizeChangeListener listener) {
-            this.listener = listener;
-        }
-
-        public void setValue(int value) {
-            int safeValue = Math.max(minFontSize, Math.min(maxFontSize, value));
-            valueView.setText(String.format(Locale.US, "%d", safeValue));
-            float progress = (safeValue - minFontSize) / (float) (maxFontSize - minFontSize);
-            seekBarView.setProgress(progress, false);
-        }
-
-        public interface OnFontSizeChangeListener {
-            void onFontSizeChanged(int value, boolean stop);
-        }
-    }
 
     public class StickerSizeSeekBarCell extends FrameLayout {
         private TextView titleView;        private TextView valueView;
@@ -1586,11 +1508,6 @@ public class appearanceActivitySettings extends BaseFragment {
                         }
                     });
                     break;
-                case CUSTOM_FONT_SIZE_SEEKBAR:
-                    FontSizeSeekBarCell fontSizeSeekBarCell = (FontSizeSeekBarCell) holder.itemView;
-                    fontSizeSeekBarCell.setValue(SharedConfig.fontSize);
-                    fontSizeSeekBarCell.setOnFontSizeChangeListener((value, stop) -> applyFontSize(value));
-                    break;
                 case STICKER_RADIUS_SEEKBAR:
                     StickerRadiusSeekBarCell seekRadiusBarCell = (StickerRadiusSeekBarCell) holder.itemView;
                     int currentRadius = fluffyConfig.stickerRadius;
@@ -1685,7 +1602,7 @@ public class appearanceActivitySettings extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             Row row = rows.get(holder.getAdapterPosition());
-            if (row.type == RowType.STICKER_SIZE_PREVIEW || row.type == RowType.STICKER_SIZE_SEEKBAR || row.type == RowType.STICKER_RADIUS_SEEKBAR || row.type == RowType.CUSTOM_FONT_SIZE_SEEKBAR) {
+            if (row.type == RowType.STICKER_SIZE_PREVIEW || row.type == RowType.STICKER_SIZE_SEEKBAR || row.type == RowType.STICKER_RADIUS_SEEKBAR) {
                 return false;
             }
             return row.type != RowType.SHADOW_SECTION && row.type != RowType.HEADER && row.type != RowType.TEXT_INFO_PRIVACY;
@@ -1737,10 +1654,6 @@ public class appearanceActivitySettings extends BaseFragment {
                     view = new SetDefaultReactionCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
-                case 12:
-                    view = new FontSizeSeekBarCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-                    break;
                 default:
                     view = new View(mContext);
                     break;
@@ -1766,33 +1679,17 @@ public class appearanceActivitySettings extends BaseFragment {
                 case STICKER_SIZE_SEEKBAR: return 9;
                 case STICKER_RADIUS_SEEKBAR: return 10;
                 case QUICK_SWITCHER: return 11;
-                case CUSTOM_FONT_SIZE_SEEKBAR: return 12;
                 default: return -1;
             }
         }
     }
 
-    private boolean applyFontSize(int size) {
-        if (size != SharedConfig.fontSize) {
-            SharedConfig.fontSize = size;
-            SharedConfig.fontSizeIsDefault = false;
-            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
-            if (preferences != null) {
-                preferences.edit().putInt("fons_size", SharedConfig.fontSize).apply();
-            }
-            Theme.createCommonMessageResources();
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
-            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_ALL);
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class, ChatListPreviewCell.class, DoubleTapCell.class, StickerSizePreviewMessagesCell.class, StickerSizeSeekBarCell.class, FontSizeSeekBarCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class, ChatListPreviewCell.class, DoubleTapCell.class, StickerSizePreviewMessagesCell.class, StickerSizeSeekBarCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
@@ -1829,9 +1726,6 @@ public class appearanceActivitySettings extends BaseFragment {
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
 
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class, FontSizeSeekBarCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class, FontSizeSeekBarCell.class}, new String[]{"seekBarView"}, null, null, null, Theme.key_player_progressBackground));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSizeSeekBarCell.class, FontSizeSeekBarCell.class}, new String[]{"seekBarView"}, null, null, null, Theme.key_player_progress));
 
         return themeDescriptions;
     }
