@@ -35,10 +35,9 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-
-    - name: Install NDK
-      run: |
-        echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.4.7075529"
+      with:
+        packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;21.4.7075529'
+        cmdline-tools-version: 11076708
 
     - name: Create keystore file
       run: |
@@ -52,6 +51,9 @@ jobs:
         storePassword=${{ secrets.KEYSTORE_PASSWORD }}
         keyAlias=${{ secrets.KEY_ALIAS }}
         keyPassword=${{ secrets.KEY_PASSWORD }}
+        MAPS_V2_API=${{ secrets.MAPS_V2_API }}
+        TELEGRAM_APP_ID=${{ secrets.TELEGRAM_APP_ID }}
+        TELEGRAM_APP_HASH=${{ secrets.TELEGRAM_APP_HASH }}
         EOF
 
     - name: Grant execute permission for gradlew
