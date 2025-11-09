@@ -39,6 +39,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.ProfileActivity;
+import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.storage.UserStatusStorage;
 
 import org.telegram.tgnet.TLRPC;
@@ -189,12 +190,14 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         if (getParentActivity() == null) {
             return;
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(getParentActivity());
         builder.setTitle(LocaleController.getString("UserStatusLogClearTitle", R.string.UserStatusLogClearTitle));
         builder.setMessage(LocaleController.getString("UserStatusLogClearText", R.string.UserStatusLogClearText));
         builder.setPositiveButton(LocaleController.getString("Clear", R.string.Clear), (dialog, which) -> clearLog());
         builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-        showDialog(builder.create());
+        AlertDialog dialog = builder.create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
+        showDialog(dialog);
     }
 
     private void clearLog() {
@@ -269,13 +272,14 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
 
         scrollView.addView(container, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(context);
         builder.setTitle(historyDialogTitle);
-        builder.setView(scrollView);
+        builder.setView(FluffyDialogUtils.wrapWithStandardPadding(scrollView));
         builder.setPositiveButton(LocaleController.getString("UserStatusLogOpenProfile", R.string.UserStatusLogOpenProfile), (dialog, which) -> openProfile(historyDialogUserId, historyDialogAccountId));
         builder.setNegativeButton(LocaleController.getString("Close", R.string.Close), null);
 
         AlertDialog dialog = builder.create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
         dialog.setOnDismissListener(dismissDialog -> {
             if (historyDialog == dialog) {
                 historyDialog = null;
