@@ -82,6 +82,9 @@ public final class fluffyConfig {
     private static final String KEY_DISABLE_STORY_VIEW = "disableStoryView";
     private static final String KEY_DISABLE_TYPING_INDICATOR = "disableTypingIndicator";
     private static final String KEY_DISABLE_EMOJI_INDICATOR = "disableEmojiIndicator";
+    private static final String KEY_ENABLE_CUSTOM_QUICK_REPLIES = "enableDotQuickReplies";
+    private static final String KEY_CUSTOM_QUICK_REPLIES = "customQuickReplies";
+    private static final String KEY_CUSTOM_QUICK_REPLIES_NEXT_ID = "customQuickRepliesNextId";
 
 
 
@@ -153,6 +156,7 @@ public final class fluffyConfig {
     public static boolean disableStoryView;
     public static boolean disableTypingIndicator;
     public static boolean disableEmojiIndicator;
+    public static boolean enableCustomQuickReplies;
 
 
 
@@ -241,7 +245,8 @@ public final class fluffyConfig {
     // Ghost mode related settings
     disableStoryView = preferences.getBoolean(KEY_DISABLE_STORY_VIEW, false);
     disableTypingIndicator = preferences.getBoolean(KEY_DISABLE_TYPING_INDICATOR, false);
-    disableEmojiIndicator = preferences.getBoolean(KEY_DISABLE_EMOJI_INDICATOR, false);
+        disableEmojiIndicator = preferences.getBoolean(KEY_DISABLE_EMOJI_INDICATOR, false);
+        enableCustomQuickReplies = preferences.getBoolean(KEY_ENABLE_CUSTOM_QUICK_REPLIES, false);
 
         blockSticker.clear();
         String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
@@ -285,6 +290,10 @@ public final class fluffyConfig {
         shouldNOTTrustMe = toggleBooleanSetting(KEY_SHOULD_NOT_TRUST_ME, shouldNOTTrustMe);
     }
 
+    public static void toggleCustomQuickReplies() {
+        enableCustomQuickReplies = toggleBooleanSetting(KEY_ENABLE_CUSTOM_QUICK_REPLIES, enableCustomQuickReplies);
+    }
+
     public static void togglePremiumMode() {
         premiumMode = toggleBooleanSetting(KEY_PREMIUM_MODE, premiumMode);
     }
@@ -319,6 +328,21 @@ public final class fluffyConfig {
 
     public static void togglePauseMusicOnMedia() {
         pauseMusicOnMedia = toggleBooleanSetting(KEY_PAUSE_MUSIC_ON_MEDIA, pauseMusicOnMedia);
+    }
+
+    public static String getCustomQuickRepliesJson() {
+        return preferences.getString(KEY_CUSTOM_QUICK_REPLIES, "");
+    }
+
+    public static int getCustomQuickRepliesNextId() {
+        return preferences.getInt(KEY_CUSTOM_QUICK_REPLIES_NEXT_ID, 1);
+    }
+
+    public static void saveCustomQuickReplies(String json, int nextId) {
+        preferences.edit()
+                .putString(KEY_CUSTOM_QUICK_REPLIES, json)
+                .putInt(KEY_CUSTOM_QUICK_REPLIES_NEXT_ID, nextId)
+                .apply();
     }
 
     public static void toggleDownloadSpeedBoost() {

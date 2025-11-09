@@ -566,6 +566,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
 
         private final Theme.ResourcesProvider resourcesProvider;
         private boolean local;
+        private char commandPrefix = '/';
 
         public QuickReplyView(Context context, boolean reorderable, Theme.ResourcesProvider resourcesProvider) {
             super(context);
@@ -612,15 +613,19 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
             orderView.animate().alpha(reorder && !local ? 1f : 0f).start();
         }
 
+        public void setCommandPrefix(char prefix) {
+            commandPrefix = prefix;
+        }
+
         private int[] spanWidth = new int[1];
         private boolean needDivider;
         public void set(QuickRepliesController.QuickReply quickReply, String highlight, boolean divider) {
             local = quickReply != null ? quickReply.local : false;
             SpannableStringBuilder ssb = new SpannableStringBuilder();
-            if (highlight != null && highlight.length() > 0 && !highlight.startsWith("/")) {
-                highlight = "/" + highlight;
+            if (highlight != null && highlight.length() > 0 && highlight.charAt(0) != commandPrefix) {
+                highlight = commandPrefix + highlight;
             }
-            ssb.append("/").append(quickReply.name);
+            ssb.append(commandPrefix).append(quickReply.name);
             ssb.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             ssb.setSpan(new ForegroundColorSpan(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider)), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             if (highlight != null) {
