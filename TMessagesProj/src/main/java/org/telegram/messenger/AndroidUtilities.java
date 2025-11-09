@@ -2301,6 +2301,13 @@ public class AndroidUtilities {
         return result;
     }
 
+    private static boolean isCustomFontCandidate(String assetPath) {
+        return TYPEFACE_ROBOTO_REGULAR.equals(assetPath)
+                || TYPEFACE_ROBOTO_MEDIUM.equals(assetPath)
+                || TYPEFACE_ROBOTO_ITALIC.equals(assetPath)
+                || TYPEFACE_ROBOTO_MEDIUM_ITALIC.equals(assetPath);
+    }
+
     public static Typeface getTypeface(String assetPath) {
         synchronized (typefaceCache) {
             if (!typefaceCache.containsKey(assetPath)) {
@@ -2336,17 +2343,35 @@ public class AndroidUtilities {
                                 break;
                         }
                     } else {
-                        if (Build.VERSION.SDK_INT >= 26) {
-                            Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
-                            if (assetPath.contains("medium")) {
-                                builder.setWeight(700);
+                        if (fluffyConfig.hasCustomFont() && isCustomFontCandidate(assetPath)) {
+                            File customFontFile = new File(fluffyConfig.customFontPath);
+                            if (customFontFile.exists()) {
+                                Typeface baseTypeface = Typeface.createFromFile(customFontFile);
+                                int style = Typeface.NORMAL;
+                                if (assetPath.contains("medium")) {
+                                    style |= Typeface.BOLD;
+                                }
+                                if (assetPath.contains("italic")) {
+                                    style |= Typeface.ITALIC;
+                                }
+                                t = FontUtils.applyCustomStyle(baseTypeface, style);
+                            } else {
+                                fluffyConfig.clearCustomFont();
                             }
-                            if (assetPath.contains("italic")) {
-                                builder.setItalic(true);
+                        }
+                        if (t == null) {
+                            if (Build.VERSION.SDK_INT >= 26) {
+                                Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
+                                if (assetPath.contains("medium")) {
+                                    builder.setWeight(700);
+                                }
+                                if (assetPath.contains("italic")) {
+                                    builder.setItalic(true);
+                                }
+                                t = builder.build();
+                            } else {
+                                t = Typeface.createFromAsset(ApplicationLoader.applicationContext.getAssets(), assetPath);
                             }
-                            t = builder.build();
-                        } else {
-                            t = Typeface.createFromAsset(ApplicationLoader.applicationContext.getAssets(), assetPath);
                         }
                     }
                 } catch (Exception e) {
@@ -2374,6 +2399,7 @@ public class AndroidUtilities {
         synchronized (typefaceCache) {
             typefaceCache.clear();
         }
+        mediumTypeface = null;
     }
     public static void setWaitingForSms(boolean value) {
         synchronized (smsLock) {
