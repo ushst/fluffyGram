@@ -1,0 +1,105 @@
+name: Build and Release FluffyGram
+
+on:
+  push:
+    tags:
+      - 'v*'  # Запуск при создании тега версии (например, v1.0.0)
+  workflow_dispatch:  # Позволяет запустить вручную из GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        cache: 'gradle'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install NDK
+      run: |
+        echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.4.7075529"
+
+    - name: Create keystore file
+      run: |
+        mkdir -p fluffyGram_dev
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fluffyGram_dev/ushastoe-release.keystore
+
+    - name: Create local properties
+      run: |
+        cat > fluffyGram_dev/devlocal.properties << EOF
+        storeFile=../fluffyGram_dev/ushastoe-release.keystore
+        storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+        keyAlias=${{ secrets.KEY_ALIAS }}
+        keyPassword=${{ secrets.KEY_PASSWORD }}
+        EOF
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Release APKs
+      run: ./gradlew :TMessagesProj_App:assembleRelease --stacktrace
+
+    - name: Find APK files
+      id: find_apks
+      run: |
+        echo "Finding built APK files..."
+        find TMessagesProj_App/build/outputs/apk -name "*.apk" -type f
+        
+        # Сохраняем пути к APK файлам
+        echo "apk_arm64=$(find TMessagesProj_App/build/outputs/apk/bundleAfat/release -name "*.apk" -type f | head -1)" >> $GITHUB_OUTPUT
+        echo "apk_arm64_sdk23=$(find TMessagesProj_App/build/outputs/apk/bundleAfat_SDK23/release -name "*.apk" -type f | head -1)" >> $GITHUB_OUTPUT
+
+    - name: Rename APK files
+      run: |
+        # Получаем версию из gradle.properties
+        VERSION=$(grep "APP_VERSION_NAME" gradle.properties | cut -d'=' -f2)
+        VERSION_CODE=$(grep "APP_VERSION_CODE" gradle.properties | cut -d'=' -f2)
+        
+        # Переименовываем APK файлы
+        if [ -f "${{ steps.find_apks.outputs.apk_arm64 }}" ]; then
+          cp "${{ steps.find_apks.outputs.apk_arm64 }}" "FluffyGram-v${VERSION}-arm64-v8a.apk"
+        fi
+        
+        if [ -f "${{ steps.find_apks.outputs.apk_arm64_sdk23 }}" ]; then
+          cp "${{ steps.find_apks.outputs.apk_arm64_sdk23 }}" "FluffyGram-v${VERSION}-arm64-v8a-sdk23.apk"
+        fi
+
+    - name: Get version info
+      id: version
+      run: |
+        VERSION=$(grep "APP_VERSION_NAME" gradle.properties | cut -d'=' -f2)
+        VERSION_CODE=$(grep "APP_VERSION_CODE" gradle.properties | cut -d'=' -f2)
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "version_code=${VERSION_CODE}" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: FluffyGram ${{ steps.version.outputs.version }} (${{ steps.version.outputs.version_code }})
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        files: |
+          FluffyGram-*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload APKs as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: FluffyGram-APKs
+        path: FluffyGram-*.apk
+        retention-days: 30
