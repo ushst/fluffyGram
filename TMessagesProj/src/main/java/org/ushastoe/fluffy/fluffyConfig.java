@@ -15,6 +15,7 @@ import org.telegram.tgnet.TLRPC;
 import org.ushastoe.fluffy.helpers.BaseIconSet;
 import org.ushastoe.fluffy.helpers.EmptyIconSet;
 import org.ushastoe.fluffy.helpers.SolarIconSet;
+import org.ushastoe.fluffy.helpers.FontUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -261,6 +262,8 @@ public final class fluffyConfig {
                 }
             }
         }
+
+        FontUtils.updateTypefaceOverride();
     }
 
     // --- Методы-переключатели (Toggles) ---
@@ -349,6 +352,7 @@ public final class fluffyConfig {
 
     public static void toggleUseSystemFonts() {
         useSystemFonts = toggleBooleanSetting(KEY_USE_SYSTEM_FONTS, useSystemFonts);
+        FontUtils.updateTypefaceOverride();
     }
 
     public static void toggleHideTopBar() {
@@ -463,6 +467,7 @@ public final class fluffyConfig {
         }
         customFontName = setStringSetting(KEY_CUSTOM_FONT_NAME, name);
         customFontPath = setStringSetting(KEY_CUSTOM_FONT_PATH, path);
+        FontUtils.updateTypefaceOverride();
     }
 
     public static void clearCustomFont() {

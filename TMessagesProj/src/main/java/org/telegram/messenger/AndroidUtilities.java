@@ -2399,6 +2399,7 @@ public class AndroidUtilities {
         synchronized (typefaceCache) {
             typefaceCache.clear();
         }
+        mediumTypeface = null;
     }
     public static void setWaitingForSms(boolean value) {
         synchronized (smsLock) {
