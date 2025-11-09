@@ -11,34 +11,40 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.BuildVars;
 import org.ushastoe.fluffy.fluffyConfig;
 
 public class FontUtils {
-  private static final String TEST_TEXT;
+  private static final String TEST_TEXT = resolveTestText();
 
   private static final List<String> CJK_LANGUAGES = List.of("zh", "ja", "ko");
   private static final List<String> CYRILLIC_LANGUAGES =
       List.of("ru", "uk", "be", "bg", "kk", "ky", "mk", "mn", "sr", "tt", "tg", "uz");
 
-  static {
-    String language =
-        LocaleController.getInstance()
-            .getCurrentLocale()
-            .getLanguage();
+  private static String resolveTestText() {
+    String language = "";
+    try {
+      Locale locale = Locale.getDefault();
+      if (locale != null) {
+        language = locale.getLanguage();
+      }
+    } catch (Exception e) {
+      log(e);
+    }
+
     if (language != null) {
       language = language.toLowerCase(Locale.ROOT);
     } else {
       language = "";
     }
+
     if (CJK_LANGUAGES.contains(language)) {
-      TEST_TEXT = "日";
+      return "日";
     } else if (CYRILLIC_LANGUAGES.contains(language)) {
-      TEST_TEXT = "Я";
+      return "Я";
     } else {
-      TEST_TEXT = "R";
+      return "R";
     }
   }
   private static final int CANVAS_SIZE = AndroidUtilities.dp(12);
