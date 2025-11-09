@@ -55,8 +55,6 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_bots;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Business.QuickRepliesActivity;
-import org.telegram.ui.Business.QuickRepliesController;
 import org.telegram.ui.Cells.BotSwitchCell;
 import org.telegram.ui.Cells.ContextLinkCell;
 import org.telegram.ui.Cells.MentionCell;
@@ -70,6 +68,10 @@ import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.EmojiView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.activities.elements.FluffyQuickReplyCell;
+import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.quickreplies.FluffyQuickRepliesManager;
+import org.ushastoe.fluffy.quickreplies.FluffyQuickReply;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -111,7 +113,8 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
     private ArrayList<String> searchResultCommands;
     private ArrayList<String> searchResultCommandsHelp;
     private String quickRepliesQuery;
-    private ArrayList<QuickRepliesController.QuickReply> quickReplies;
+    private ArrayList<FluffyQuickReply> quickReplies;
+    private char commandPrefixChar = '/';
     private ArrayList<MediaDataController.KeywordResult> searchResultSuggestions;
     private String[] lastSearchKeyboardLanguage;
     private ArrayList<TLRPC.User> searchResultCommandsUsers;
@@ -411,7 +414,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
     }
 
     private boolean itemsEqual(Object a, Object b) {
-        if (a instanceof QuickRepliesController.QuickReply) {
+        if (a instanceof FluffyQuickReply) {
             return false;
         }
         if (a == b) {
@@ -1149,6 +1152,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
         final boolean oldHintHashtagDivider = hintHashtagDivider;
         hintHashtag = null;
         hintHashtagDivider = false;
+        commandPrefixChar = '/';
         if (usernameOnly) {
             result.append(text.substring(1));
             resultStartPosition = 0;
@@ -1195,7 +1199,14 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
 //                            delegate.needChangePanelVisibility(false);
                             return;
                         }
-                    } else if (a == 0 && botInfo != null && ch == '/') {
+                    } else if (a == 0 && ch == '/' && botInfo != null) {
+                        commandPrefixChar = '/';
+                        foundType = 2;
+                        resultStartPosition = a;
+                        resultLength = result.length() + 1;
+                        break;
+                    } else if (a == 0 && shouldTriggerCustomQuickReplies(ch, currentUser)) {
+                        commandPrefixChar = ch;
                         foundType = 2;
                         resultStartPosition = a;
                         resultLength = result.length() + 1;
@@ -1524,34 +1535,26 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
             notifyDataSetChanged();
             delegate.needChangePanelVisibility(!searchResultHashtags.isEmpty() || hintHashtag != null);
         } else if (foundType == 2) {
-            ArrayList<String> newResult = new ArrayList<>();
-            ArrayList<String> newResultHelp = new ArrayList<>();
-            ArrayList<TLRPC.User> newResultUsers = new ArrayList<>();
+            ArrayList<String> newResult = commandPrefixChar == '/' ? new ArrayList<>() : null;
+            ArrayList<String> newResultHelp = commandPrefixChar == '/' ? new ArrayList<>() : null;
+            ArrayList<TLRPC.User> newResultUsers = commandPrefixChar == '/' ? new ArrayList<>() : null;
             final String command = result.toString().toLowerCase();
-            for (int b = 0; b < botInfo.size(); b++) {
-                TL_bots.BotInfo info = botInfo.valueAt(b);
-                for (int a = 0; a < info.commands.size(); a++) {
-                    TLRPC.TL_botCommand botCommand = info.commands.get(a);
-                    if (botCommand != null && botCommand.command != null && botCommand.command.startsWith(command)) {
-                        newResult.add("/" + botCommand.command);
-                        newResultHelp.add(botCommand.description);
-                        newResultUsers.add(messagesController.getUser(info.user_id));
+            if (commandPrefixChar == '/' && botInfo != null) {
+                for (int b = 0; b < botInfo.size(); b++) {
+                    TL_bots.BotInfo info = botInfo.valueAt(b);
+                    for (int a = 0; a < info.commands.size(); a++) {
+                        TLRPC.TL_botCommand botCommand = info.commands.get(a);
+                        if (botCommand != null && botCommand.command != null && botCommand.command.startsWith(command)) {
+                            newResult.add(commandPrefixChar + botCommand.command);
+                            newResultHelp.add(botCommand.description);
+                            newResultUsers.add(messagesController.getUser(info.user_id));
+                        }
                     }
                 }
             }
-            if (parentFragment != null && !DialogObject.isEncryptedDialog(dialog_id) && parentFragment.getChatMode() == 0 && parentFragment.getCurrentUser() != null && !parentFragment.getCurrentUser().bot && !UserObject.isReplyUser(parentFragment.getCurrentUser()) && !UserObject.isService(parentFragment.getCurrentUser().id)) {
-                final QuickRepliesController quickRepliesController = QuickRepliesController.getInstance(currentAccount);
-                quickRepliesController.load();
+            if (shouldTriggerCustomQuickReplies(commandPrefixChar, parentFragment != null ? parentFragment.getCurrentUser() : null)) {
                 quickRepliesQuery = command;
-                quickReplies = new ArrayList<>();
-                for (int i = 0; i < quickRepliesController.replies.size(); i++) {
-                    final QuickRepliesController.QuickReply reply = quickRepliesController.replies.get(i);
-                    if (reply.isSpecial()) continue;
-                    final String replyName = reply.name.toLowerCase();
-                    if (replyName.startsWith(command) || AndroidUtilities.translitSafe(replyName).startsWith(command)) {
-                        quickReplies.add(reply);
-                    }
-                }
+                quickReplies = FluffyQuickRepliesManager.getInstance().search(commandPrefixChar, command);
             } else {
                 quickRepliesQuery = null;
                 quickReplies = null;
@@ -1567,7 +1570,8 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
             contextMedia = false;
             searchResultBotContext = null;
             notifyDataSetChanged();
-            delegate.needChangePanelVisibility(!newResult.isEmpty() || quickReplies != null && !quickReplies.isEmpty());
+            boolean hasCommands = newResult != null && !newResult.isEmpty();
+            delegate.needChangePanelVisibility(hasCommands || quickReplies != null && !quickReplies.isEmpty());
         } else if (foundType == 3) {
             String[] newLanguage = AndroidUtilities.getCurrentKeyboardLanguage();
             if (!Arrays.equals(newLanguage, lastSearchKeyboardLanguage)) {
@@ -1611,6 +1615,22 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
                 notifyItemChanged(itemCount - 1);
             }
         }
+    }
+
+    private boolean shouldTriggerCustomQuickReplies(char prefix, TLRPC.User currentUser) {
+        if (!FluffyQuickRepliesManager.isSupportedPrefix(prefix)) {
+            return false;
+        }
+        if (!fluffyConfig.enableCustomQuickReplies) {
+            return false;
+        }
+        if (parentFragment == null || DialogObject.isEncryptedDialog(dialog_id) || parentFragment.getChatMode() != 0) {
+            return false;
+        }
+        if (currentUser == null || currentUser.bot || UserObject.isReplyUser(currentUser) || UserObject.isService(currentUser.id)) {
+            return false;
+        }
+        return FluffyQuickRepliesManager.getInstance().hasRepliesForPrefix(prefix);
     }
 
     private void showUsersResult(ArrayList<TLObject> newResult, LongSparseArray<TLObject> newMap, boolean notify) {
@@ -1715,6 +1735,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
         if (searchResultSuggestions != null) {
             searchResultSuggestions.clear();
         }
+        commandPrefixChar = '/';
         notifyDataSetChanged();
     }
 
@@ -1888,7 +1909,7 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
                 view = textView;
                 break;
             case 5:
-                view = new QuickRepliesActivity.QuickReplyView(mContext, false, resourcesProvider);
+                view = new FluffyQuickReplyCell(mContext, resourcesProvider);
                 break;
             case 6:
                 view = new HashtagHint(mContext, stories, resourcesProvider);
@@ -1939,9 +1960,9 @@ public class MentionsAdapter extends RecyclerListView.SelectionAdapter implement
                 }
             }
         } else if (type == 5) {
-            QuickRepliesActivity.QuickReplyView cell = (QuickRepliesActivity.QuickReplyView) holder.itemView;
+            FluffyQuickReplyCell cell = (FluffyQuickReplyCell) holder.itemView;
             if (quickReplies != null && position >= 0 && position < quickReplies.size()) {
-                cell.set(quickReplies.get(position), quickRepliesQuery, USE_DIVIDERS && (position + 1) < getItemCount());
+                cell.set(quickReplies.get(position), commandPrefixChar, quickRepliesQuery, USE_DIVIDERS && (position + 1) < getItemCount());
             }
         } else if (searchResultBotContext != null) {
             boolean hasTop = searchResultBotContextSwitch != null || searchResultBotWebViewSwitch != null;

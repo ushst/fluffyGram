@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -45,6 +46,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.quickreplies.FluffyQuickRepliesManager;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
 import android.util.Xml;
 import org.xmlpull.v1.XmlPullParser;
@@ -99,7 +101,9 @@ public class generalActivitySettings extends BaseFragment {
         EXPERIMENTAL_SETTINGS_HEADER,
         ALLOW_ATTACH_ANY_BOT,
         USER_STATUS_LOG_VIEWER,
-        HIDE_PINNED_SMALL_SCREEN
+        HIDE_PINNED_SMALL_SCREEN,
+        CUSTOM_QUICK_REPLIES_TOGGLE,
+        CUSTOM_QUICK_REPLIES_MANAGE
     }
 
     private static class Row {
@@ -146,6 +150,8 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
         rows.add(new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat));
+        rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_TOGGLE, RowType.TEXT_CHECK, R.string.FG_EnableCustomQuickReplies, R.drawable.msg_bot));
+        rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE, RowType.TEXT_CELL, R.string.FG_ManageCustomQuickReplies, R.drawable.msg_settings));
 
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
         rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
@@ -262,6 +268,13 @@ public class generalActivitySettings extends BaseFragment {
                 case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
                     fluffyConfig.toggleTranscribeDisableListenSignal();
                     textCell.setChecked(fluffyConfig.transcribeDisableListenSignal);
+                    break;
+                case CUSTOM_QUICK_REPLIES_TOGGLE:
+                    fluffyConfig.toggleCustomQuickReplies();
+                    textCell.setChecked(fluffyConfig.enableCustomQuickReplies);
+                    break;
+                case CUSTOM_QUICK_REPLIES_MANAGE:
+                    presentFragment(new FluffyQuickRepliesActivity());
                     break;
                 case EXPORT_FLUFFY_CONFIG:
                     exportFluffyConfig(context);
@@ -542,6 +555,10 @@ public class generalActivitySettings extends BaseFragment {
                     if (row.id == RowIdentifier.VOICE_PROVIDER_SELECTOR) {
                         String value = getProviderLabel(fluffyConfig.voiceUseCloudflare);
                         textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
+                    } else if (row.id == RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE) {
+                        int count = FluffyQuickRepliesManager.getInstance().getRepliesCount();
+                        String value = LocaleController.formatPluralString("FG_CustomQuickRepliesCount", count);
+                        textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
                     } else {
                         textCell.setTextAndIcon(getString(row.textResId), row.iconResId, true);
                     }
@@ -580,6 +597,9 @@ public class generalActivitySettings extends BaseFragment {
                             break;
                         case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
                             checked = fluffyConfig.transcribeDisableListenSignal;
+                            break;
+                        case CUSTOM_QUICK_REPLIES_TOGGLE:
+                            checked = fluffyConfig.enableCustomQuickReplies;
                             break;
                     }
                     textCheckCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
