@@ -87,6 +87,7 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.TextViewSwitcher;
 import org.telegram.ui.Components.TransformableLoginButtonView;
 import org.telegram.ui.Components.VerticalPositionAutoAnimator;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -141,7 +142,9 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
     private int changePasscodeRow;
     private int fingerprintRow;
     private int autoLockRow;
+    private int lockOnMinimizeRow;
     private int autoLockDetailRow;
+    private int lockOnMinimizeDetailRow;
 
     private int captureHeaderRow;
     private int captureRow;
@@ -353,6 +356,12 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                             UserConfig.getInstance(currentAccount).saveConfig(false);
                         });
                         showDialog(builder.create());
+                    } else if (position == lockOnMinimizeRow) {
+                        boolean enabled = fluffyConfig.toggleLockOnMinimize();
+                        ((TextCheckCell) view).setChecked(enabled);
+                        if (lockOnMinimizeDetailRow >= 0) {
+                            listAdapter.notifyItemChanged(lockOnMinimizeDetailRow);
+                        }
                     } else if (position == fingerprintRow) {
                         SharedConfig.useFingerprintLock = !SharedConfig.useFingerprintLock;
                         UserConfig.getInstance(currentAccount).saveConfig(false);
@@ -889,6 +898,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         }
         autoLockRow = rowCount++;
         autoLockDetailRow = rowCount++;
+        lockOnMinimizeRow = rowCount++;
+        lockOnMinimizeDetailRow = rowCount++;
         captureHeaderRow = rowCount++;
         captureRow = rowCount++;
         captureDetailRow = rowCount++;
@@ -1130,7 +1141,7 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == fingerprintRow || position == autoLockRow || position == captureRow ||
+            return position == fingerprintRow || position == autoLockRow || position == lockOnMinimizeRow || position == captureRow ||
                     position == changePasscodeRow || position == disablePasscodeRow;
         }
 
@@ -1174,6 +1185,8 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                     TextCheckCell textCell = (TextCheckCell) holder.itemView;
                     if (position == fingerprintRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.UnlockFingerprint), SharedConfig.useFingerprintLock, false);
+                    } else if (position == lockOnMinimizeRow) {
+                        textCell.setTextAndCheck(LocaleController.getString(R.string.LockOnMinimize), fluffyConfig.lockOnMinimize, false);
                     } else if (position == captureRow) {
                         textCell.setTextAndCheck(LocaleController.getString(R.string.ScreenCaptureShowContent), SharedConfig.allowScreenCapture, false);
                     }
@@ -1235,6 +1248,10 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
                         cell.setText(LocaleController.getString(R.string.AutoLockInfo));
                         cell.setBackground(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                         cell.getTextView().setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
+                    } else if (position == lockOnMinimizeDetailRow) {
+                        cell.setText(LocaleController.getString(R.string.LockOnMinimizeInfo));
+                        cell.setBackground(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                        cell.getTextView().setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
                     } else if (position == captureDetailRow) {
                         cell.setText(LocaleController.getString(R.string.ScreenCaptureInfo));
                         cell.setBackground(Theme.getThemedDrawableByKey(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
@@ -1247,11 +1264,11 @@ public class PasscodeActivity extends BaseFragment implements NotificationCenter
 
         @Override
         public int getItemViewType(int position) {
-            if (position == fingerprintRow || position == captureRow) {
+            if (position == fingerprintRow || position == lockOnMinimizeRow || position == captureRow) {
                 return VIEW_TYPE_CHECK;
             } else if (position == changePasscodeRow || position == autoLockRow || position == disablePasscodeRow) {
                 return VIEW_TYPE_SETTING;
-            } else if (position == autoLockDetailRow || position == captureDetailRow || position == hintRow) {
+            } else if (position == autoLockDetailRow || position == lockOnMinimizeDetailRow || position == captureDetailRow || position == hintRow) {
                 return VIEW_TYPE_INFO;
             } else if (position == captureHeaderRow) {
                 return VIEW_TYPE_HEADER;

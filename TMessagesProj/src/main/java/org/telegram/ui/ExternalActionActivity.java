@@ -45,6 +45,7 @@ import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
 
@@ -555,6 +556,9 @@ public class ExternalActionActivity extends Activity implements INavigationLayou
             lockRunnable = null;
         }
         if (SharedConfig.passcodeHash.length() != 0) {
+            if (fluffyConfig.lockOnMinimize) {
+                SharedConfig.appLocked = true;
+            }
             SharedConfig.lastPauseTime = (int) (SystemClock.elapsedRealtime() / 1000);
             lockRunnable = new Runnable() {
                 @Override

@@ -90,6 +90,7 @@ public final class fluffyConfig {
     private static final String KEY_CUSTOM_QUICK_REPLIES_NEXT_ID = "customQuickRepliesNextId";
     private static final String KEY_CUSTOM_FONT_PATH = "customFontPath";
     private static final String KEY_CUSTOM_FONT_NAME = "customFontName";
+    private static final String KEY_LOCK_ON_MINIMIZE = "lockOnMinimize";
 
 
 
@@ -164,6 +165,7 @@ public final class fluffyConfig {
     public static boolean enableCustomQuickReplies;
     public static String customFontPath;
     public static String customFontName;
+    public static boolean lockOnMinimize;
 
 
 
@@ -256,6 +258,7 @@ public final class fluffyConfig {
     disableTypingIndicator = preferences.getBoolean(KEY_DISABLE_TYPING_INDICATOR, false);
         disableEmojiIndicator = preferences.getBoolean(KEY_DISABLE_EMOJI_INDICATOR, false);
         enableCustomQuickReplies = preferences.getBoolean(KEY_ENABLE_CUSTOM_QUICK_REPLIES, false);
+        lockOnMinimize = preferences.getBoolean(KEY_LOCK_ON_MINIMIZE, false);
 
         blockSticker.clear();
         String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
@@ -341,6 +344,16 @@ public final class fluffyConfig {
 
     public static void togglePauseMusicOnMedia() {
         pauseMusicOnMedia = toggleBooleanSetting(KEY_PAUSE_MUSIC_ON_MEDIA, pauseMusicOnMedia);
+    }
+
+    public static boolean toggleLockOnMinimize() {
+        lockOnMinimize = toggleBooleanSetting(KEY_LOCK_ON_MINIMIZE, lockOnMinimize);
+        return lockOnMinimize;
+    }
+
+    public static void setLockOnMinimize(boolean value) {
+        lockOnMinimize = value;
+        setBooleanSetting(KEY_LOCK_ON_MINIMIZE, value);
     }
 
     public static String getCustomQuickRepliesJson() {

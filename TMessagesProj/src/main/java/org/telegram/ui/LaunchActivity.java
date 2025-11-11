@@ -711,6 +711,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 } else if (id == 97 ) {
                     presentFragment(new mainActivitySettings());
                     drawerLayoutContainer.closeDrawer(true);
+                } else if (id == 121) {
+                    boolean enabled = fluffyConfig.toggleLockOnMinimize();
+                    drawerLayoutAdapter.notifyDataSetChanged();
+                    Toast.makeText(this,
+                            LocaleController.getString(enabled ? R.string.LockOnMinimizeEnabled : R.string.LockOnMinimizeDisabled),
+                            Toast.LENGTH_SHORT).show();
+                    return;
                 }
             }
         });
@@ -8062,6 +8069,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             lockRunnable = null;
         }
         if (SharedConfig.passcodeHash.length() != 0) {
+            if (fluffyConfig.lockOnMinimize) {
+                SharedConfig.appLocked = true;
+            }
             SharedConfig.lastPauseTime = (int) (SystemClock.elapsedRealtime() / 1000);
             lockRunnable = new Runnable() {
                 @Override

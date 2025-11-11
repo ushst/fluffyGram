@@ -318,6 +318,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 
         items.add(null);
         items.add(new Item(97, LocaleController.getString(R.string.fluffySettings), R.drawable.msg_emoji_cat));
+        items.add(new Item(121, getLockOnMinimizeText(), R.drawable.msg_block));
         items.add(new Item(98, LocaleController.getString(R.string.Devices), R.drawable.menu_devices));
         items.add(null);
 
@@ -350,6 +351,12 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 //        items.add(null); // divider
 //        items.add(new Item(7, LocaleController.getString(R.string.InviteFriends), inviteIcon));
 //        items.add(new Item(13, LocaleController.getString(R.string.TelegramFeatures), helpIcon));
+    }
+
+    private CharSequence getLockOnMinimizeText() {
+        String title = LocaleController.getString(R.string.LockOnMinimize);
+        String state = LocaleController.getString(fluffyConfig.lockOnMinimize ? R.string.LockOnMinimizeMenuOn : R.string.LockOnMinimizeMenuOff);
+        return title + " • " + state;
     }
 
     public boolean click(View view, int position) {
