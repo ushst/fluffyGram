@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: write
     
+    env:
+      NDK_VERSION: '21.4.7075529'
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -38,8 +41,8 @@ jobs:
     - name: Cache NDK
       uses: actions/cache@v4
       with:
-        path: /usr/local/lib/android/sdk/ndk/21.4.7075529
-        key: ndk-21.4.7075529-${{ runner.os }}
+        path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
+        key: ndk-${{ env.NDK_VERSION }}-${{ runner.os }}
 
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
@@ -61,7 +64,7 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;21.4.7075529'
+        packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;${{ env.NDK_VERSION }}'
         cmdline-tools-version: 11076708
 
     - name: Create keystore file
@@ -87,7 +90,7 @@ jobs:
     - name: Build Release APKs
       run: ./gradlew :TMessagesProj_App:assembleRelease --stacktrace
       env:
-        ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/21.4.7075529
+        ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
         NDK_CCACHE: ccache
 
     - name: Find APK files
