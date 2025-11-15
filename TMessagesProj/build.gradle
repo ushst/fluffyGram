@@ -154,7 +154,7 @@ android {
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
             buildConfigField "int", "TELEGRAM_APP_ID", localProps.getProperty('TELEGRAM_APP_ID', '0')
-            buildConfigField "String", "TELEGRAM_APP_HASH", "${localProps.getProperty('TELEGRAM_APP_HASH', 'dummy')}"
+            buildConfigField "String", "TELEGRAM_APP_HASH", "\"${localProps.getProperty('TELEGRAM_APP_HASH', 'dummy')}\""
 
             resValue 'string', 'MAPS_V2_API', localProps.getProperty("MAPS_V2_API")
         }
@@ -173,7 +173,7 @@ android {
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
             buildConfigField "int", "TELEGRAM_APP_ID", localProps.getProperty('TELEGRAM_APP_ID', '23')
-            buildConfigField "String", "TELEGRAM_APP_HASH", "${localProps.getProperty('TELEGRAM_APP_HASH', 'du23mmy')}"
+            buildConfigField "String", "TELEGRAM_APP_HASH", "\"${localProps.getProperty('TELEGRAM_APP_HASH', 'du23mmy')}\""
 
             resValue 'string', 'MAPS_V2_API', localProps.getProperty("MAPS_V2_API")
         }
