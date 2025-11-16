@@ -37,3 +37,15 @@ You will require Android Studio 3.4, Android NDK rev. 20 and Android SDK 8.1
 ### Localization
 
 We moved all translations to https://translations.telegram.org/en/android/. Please use it.
+
+### Build Optimization
+
+This repository uses comprehensive caching in GitHub Actions to speed up builds. See [docs/CACHING.md](docs/CACHING.md) for details on:
+- Cache types (Gradle, NDK, ccache, CMake)
+- Performance improvements
+- Monitoring and troubleshooting
+
+To verify cache configuration locally, run:
+```bash
+./verify-cache-config.sh
+```
