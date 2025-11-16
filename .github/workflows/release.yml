@@ -93,6 +93,9 @@ jobs:
         ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
         NDK_CCACHE: ccache
 
+    - name: Show ccache statistics
+      run: ccache -s
+
     - name: Find APK files
       id: find_apks
       run: |
