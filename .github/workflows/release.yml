@@ -39,6 +39,7 @@ jobs:
         cache: 'gradle'
 
     - name: Cache NDK
+      id: cache-ndk
       uses: actions/cache@v4
       with:
         path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
@@ -52,6 +53,7 @@ jobs:
           ${{ runner.os }}-ccache-
 
     - name: Cache CMake build
+      id: cache-cmake
       uses: actions/cache@v4
       with:
         path: |
@@ -60,6 +62,17 @@ jobs:
         key: ${{ runner.os }}-cmake-${{ hashFiles('TMessagesProj/jni/**/*.cpp', 'TMessagesProj/jni/**/*.c', 'TMessagesProj/jni/**/*.h', 'TMessagesProj/jni/**/CMakeLists.txt') }}
         restore-keys: |
           ${{ runner.os }}-cmake-
+
+    - name: Verify Cache Status
+      run: |
+        echo "=== Cache Verification Report ==="
+        echo "NDK Cache Hit: ${{ steps.cache-ndk.outputs.cache-hit }}"
+        echo "CMake Cache Hit: ${{ steps.cache-cmake.outputs.cache-hit }}"
+        echo ""
+        echo "Cache Status Legend:"
+        echo "  true  = Cache was restored successfully"
+        echo "  false = Cache was not found (will be created after build)"
+        echo "================================="
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
@@ -87,6 +100,19 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Check Gradle Cache
+      run: |
+        echo "=== Gradle Cache Information ==="
+        echo "Gradle cache is managed by actions/setup-java@v4"
+        echo "Cache directory: ~/.gradle/caches"
+        if [ -d ~/.gradle/caches ]; then
+          echo "Gradle cache exists - restored from previous build"
+          echo "Cache size: $(du -sh ~/.gradle/caches 2>/dev/null | cut -f1)"
+        else
+          echo "Gradle cache not found - will be created during build"
+        fi
+        echo "================================="
+
     - name: Build Release APKs
       run: ./gradlew :TMessagesProj_App:assembleRelease --stacktrace
       env:
@@ -94,7 +120,15 @@ jobs:
         NDK_CCACHE: ccache
 
     - name: Show ccache statistics
-      run: ccache -s
+      run: |
+        echo "=== ccache Statistics ==="
+        ccache -s
+        echo ""
+        echo "Key Metrics:"
+        echo "  - Cache hit rate indicates how effective caching is"
+        echo "  - Higher hit rate = better build performance"
+        echo "  - First run will show low hit rate (cache is being populated)"
+        echo "========================="
 
     - name: Find APK files
       id: find_apks
