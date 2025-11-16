@@ -135,6 +135,15 @@ android {
             cmake {
                 version '3.10.2'
                 arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21' //, '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+                
+                // Enable ccache for C/C++ compilation if NDK_CCACHE is set
+                def ndkCcache = System.getenv("NDK_CCACHE")
+                if (ndkCcache != null && !ndkCcache.isEmpty()) {
+                    arguments += [
+                        "-DCMAKE_C_COMPILER_LAUNCHER=${ndkCcache}",
+                        "-DCMAKE_CXX_COMPILER_LAUNCHER=${ndkCcache}"
+                    ]
+                }
             }
         }
     }
