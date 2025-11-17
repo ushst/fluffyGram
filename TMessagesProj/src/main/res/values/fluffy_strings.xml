@@ -270,4 +270,11 @@
     <string name="FG_LocalTranscribeTimeout">Local transcription timed out.</string>
     <string name="FG_LocalTranscribeIoError">Unable to read the audio file. Please try again.</string>
     <string name="FG_LocalTranscribeAppMissing">Local transcription app is not installed.</string>
+
+    <string name="LockOnMinimize">Min Lock</string>
+    <string name="LockOnMinimizeInfo">Require your passcode every time Telegram is minimized.</string>
+    <string name="LockOnMinimizeMenuOn">Enable</string>
+    <string name="LockOnMinimizeMenuOff">Disable</string>
+    <string name="LockOnMinimizeEnabled">Lock on minimize enabled</string>
+    <string name="LockOnMinimizeDisabled">Lock on minimize disabled</string>
 </resources>

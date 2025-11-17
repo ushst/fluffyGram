@@ -261,10 +261,4 @@
     <string name="RemindTodayAt">\'Отправить сегодня в\' HH:mm</string>
     <string name="RemindDayAt">\'Отправить\' d MMM \'в\' HH:mm</string>
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
-    <string name="LockOnMinimize">Блокировка при сворачивании</string>
-    <string name="LockOnMinimizeInfo">Всегда запрашивать пароль при любом сворачивании Telegram.</string>
-    <string name="LockOnMinimizeMenuOn">Включена</string>
-    <string name="LockOnMinimizeMenuOff">Отключена</string>
-    <string name="LockOnMinimizeEnabled">Блокировка при сворачивании включена</string>
-    <string name="LockOnMinimizeDisabled">Блокировка при сворачивании отключена</string>
 </resources>

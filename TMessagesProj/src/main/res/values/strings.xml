@@ -3003,12 +3003,6 @@
     <string name="AutoLockInfo">Require passcode if away for a time.</string>
     <string name="AutoLockInTime">in %1$s</string>
     <string name="AutoLockDisabled">Disabled</string>
-    <string name="LockOnMinimize">Lock on minimize</string>
-    <string name="LockOnMinimizeInfo">Require your passcode every time Telegram is minimized.</string>
-    <string name="LockOnMinimizeMenuOn">Enabled</string>
-    <string name="LockOnMinimizeMenuOff">Disabled</string>
-    <string name="LockOnMinimizeEnabled">Lock on minimize enabled</string>
-    <string name="LockOnMinimizeDisabled">Lock on minimize disabled</string>
     <string name="UnlockFingerprint">Unlock with Fingerprint</string>
     <string name="ScreenCapture">Show App Content in Task Switcher</string>
     <string name="ScreenCaptureHeader">App Content in Task Switcher</string>

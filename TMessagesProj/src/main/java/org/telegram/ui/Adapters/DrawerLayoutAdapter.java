@@ -355,7 +355,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 
     private CharSequence getLockOnMinimizeText() {
         String title = LocaleController.getString(R.string.LockOnMinimize);
-        String state = LocaleController.getString(fluffyConfig.lockOnMinimize ? R.string.LockOnMinimizeMenuOn : R.string.LockOnMinimizeMenuOff);
+        String state = LocaleController.getString(fluffyConfig.lockOnMinimize ? R.string.LockOnMinimizeMenuOff : R.string.LockOnMinimizeMenuOn);
         return title + " • " + state;
     }
 
