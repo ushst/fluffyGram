@@ -34,6 +34,8 @@ public final class fluffyConfig {
     // --- Ключи для SharedPreferences ---
     private static final String PREFS_NAME = "fluffyConfig";
     private static final String KEY_MENU_REPLY_ENABLED = "menu_reply_enabled";
+    private static final String KEY_DEV_MODE_ENABLED = "devModeEnabled";
+    private static final String KEY_SHOW_FAKE_EDIT_ICON = "showFakeEditIcon";
     private static final String KEY_MENU_FORWARD_WO_AUTHOR_ENABLED = "menu_forward_wo_author_enabled";
     private static final String KEY_MENU_JSON_VIEWER_ENABLED = "menu_json_viewer_enabled";
     private static final String KEY_MENU_CLEAR_CACHE_ENABLED = "menu_clear_cache_enabled";
@@ -112,6 +114,8 @@ public final class fluffyConfig {
 
     // --- Переменные настроек ---
     public static boolean menuReplyEnabled;
+    public static boolean devModeEnabled;
+    public static boolean showFakeEditIcon;
     public static boolean menuForwardWoAuthorEnabled;
     public static boolean menuJsonViewerEnabled;
     public static boolean menuClearFromCacheEnabled;
@@ -205,6 +209,8 @@ public final class fluffyConfig {
      */
     public static void load() {
         menuReplyEnabled = preferences.getBoolean(KEY_MENU_REPLY_ENABLED, true);
+        devModeEnabled = preferences.getBoolean(KEY_DEV_MODE_ENABLED, false);
+        showFakeEditIcon = preferences.getBoolean(KEY_SHOW_FAKE_EDIT_ICON, true);
         menuForwardWoAuthorEnabled = preferences.getBoolean(KEY_MENU_FORWARD_WO_AUTHOR_ENABLED, true);
         menuJsonViewerEnabled = preferences.getBoolean(KEY_MENU_JSON_VIEWER_ENABLED, false);
         menuClearFromCacheEnabled = preferences.getBoolean(KEY_MENU_CLEAR_CACHE_ENABLED, true);
@@ -281,6 +287,14 @@ public final class fluffyConfig {
 
     public static void toggleFrontCamera() {
         frontCamera = toggleBooleanSetting(KEY_FRONT_CAMERA, frontCamera);
+    }
+
+    public static void toggleDevModeEnabled() {
+        devModeEnabled = toggleBooleanSetting(KEY_DEV_MODE_ENABLED, devModeEnabled);
+    }
+
+    public static void toggleShowFakeEditIcon() {
+        showFakeEditIcon = toggleBooleanSetting(KEY_SHOW_FAKE_EDIT_ICON, showFakeEditIcon);
     }
 
     public static void toggleSaveDeletedMessages() {

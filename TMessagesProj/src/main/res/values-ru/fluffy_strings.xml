@@ -1,0 +1,9 @@
+<resources>
+    <string name="FG_DevMode">Режим разработчика</string>
+    <string name="FG_ShowFakeEditIndicator">Показывать отметку «изменено»</string>
+    <string name="FG_FakeEdit">Фейковое редактирование</string>
+    <string name="FG_ResetFakeEdit">Сбросить фейк-редактирование</string>
+    <string name="FG_FakeEditTitle">Фейковое редактирование сообщения</string>
+    <string name="FG_FakeEditHint">Измените текст локально — изменения не отправляются на сервер.</string>
+    <string name="FG_FakeEditResetFailed">Оригинальный текст не найден</string>
+</resources>

@@ -268,6 +268,7 @@ public class MessageObject {
     public int stableId;
 
     public boolean wasUnread;
+    public boolean isFakeEdited;
     public boolean playedGiftAnimation;
 
     public boolean hadAnimationNotReadyLoading;
@@ -1853,6 +1854,10 @@ public class MessageObject {
         replyMessageObject = replyToMessage;
         eventId = eid;
         wasUnread = !messageOwner.out && messageOwner.unread;
+        try {
+            isFakeEdited = MessagesStorage.getInstance(currentAccount).isMessageFakeEdited(messageOwner.dialog_id, messageOwner.id);
+        } catch (Exception ignore) {
+        }
 
         if (message.replyMessage != null) {
             replyMessageObject = new MessageObject(currentAccount, message.replyMessage, null, users, chats, sUsers, sChats, false, checkMediaExists, eid);

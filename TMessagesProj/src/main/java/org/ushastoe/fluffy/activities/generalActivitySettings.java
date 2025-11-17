@@ -82,6 +82,8 @@ public class generalActivitySettings extends BaseFragment {
 
     private enum RowIdentifier {
         GENERAL_HEADER,
+        DEV_MODE,
+        SHOW_FAKE_EDIT_INDICATOR,
         DOWNLOAD_SPEED_BOOST,
         SAVE_EDITED,
         SAVE_DELETED,
@@ -144,6 +146,8 @@ public class generalActivitySettings extends BaseFragment {
 
         rows.add(new Row(RowIdentifier.GENERAL_HEADER, RowType.HEADER, R.string.General));
         rows.add(new Row(RowIdentifier.DOWNLOAD_SPEED_BOOST, RowType.TEXT_CHECK, R.string.downloadSpeedBoost, R.drawable.msg_download));
+        rows.add(new Row(RowIdentifier.DEV_MODE, RowType.TEXT_CHECK, R.string.FG_DevMode, R.drawable.msg_settings));
+        rows.add(new Row(RowIdentifier.SHOW_FAKE_EDIT_INDICATOR, RowType.TEXT_CHECK, R.string.FG_ShowFakeEditIndicator, R.drawable.msg_edit));
         rows.add(new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit));
         rows.add(new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete));
         rows.add(new Row(RowIdentifier.SORT_CHATS_BY_UNREAD, RowType.TEXT_CHECK, R.string.FG_SortByUnread, R.drawable.msg_markread));
@@ -241,6 +245,19 @@ public class generalActivitySettings extends BaseFragment {
                 case DOWNLOAD_SPEED_BOOST:
                     fluffyConfig.toggleDownloadSpeedBoost();
                     textCell.setChecked(fluffyConfig.downloadSpeedBoost);
+                    break;
+                case DEV_MODE:
+                    fluffyConfig.toggleDevModeEnabled();
+                    textCell.setChecked(fluffyConfig.devModeEnabled);
+                    if (listAdapter != null) {
+                        listAdapter.notifyDataSetChanged();
+                    }
+                    break;
+                case SHOW_FAKE_EDIT_INDICATOR:
+                    if (fluffyConfig.devModeEnabled) {
+                        fluffyConfig.toggleShowFakeEditIcon();
+                        textCell.setChecked(fluffyConfig.showFakeEditIcon);
+                    }
                     break;
                 case SAVE_EDITED:
                     fluffyConfig.toggleSaveEditedMessages();
@@ -567,9 +584,16 @@ public class generalActivitySettings extends BaseFragment {
                     break;
                 case TEXT_CHECK:
                     TextCell textCheckCell = (TextCell) holder.itemView;
-                    textCheckCell.setEnabled(true);
+                    boolean enabled = true;
                     boolean checked = false;
                     switch (row.id) {
+                        case DEV_MODE:
+                            checked = fluffyConfig.devModeEnabled;
+                            break;
+                        case SHOW_FAKE_EDIT_INDICATOR:
+                            checked = fluffyConfig.showFakeEditIcon;
+                            enabled = fluffyConfig.devModeEnabled;
+                            break;
                         case DOWNLOAD_SPEED_BOOST:
                             checked = fluffyConfig.downloadSpeedBoost;
                             break;
@@ -604,6 +628,8 @@ public class generalActivitySettings extends BaseFragment {
                             checked = fluffyConfig.enableCustomQuickReplies;
                             break;
                     }
+                    textCheckCell.setEnabled(enabled);
+                    textCheckCell.setAlpha(enabled ? 1f : 0.5f);
                     textCheckCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
                     break;
             }
