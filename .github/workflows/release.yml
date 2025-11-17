@@ -163,7 +163,7 @@ jobs:
         
         # Список всех APK файлов для проверки
         echo "Available APK files:"
-        find . -name "FluffyGram-*.apk" -ls || echo "No APK files found with FluffyGram-* pattern"
+        find . -name "FluffyGram-*.apk" -type f || echo "No APK files found with FluffyGram-* pattern"
 
     - name: Get version info
       id: version
