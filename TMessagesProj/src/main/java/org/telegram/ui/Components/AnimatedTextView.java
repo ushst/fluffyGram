@@ -434,6 +434,10 @@ public class AnimatedTextView extends View {
             }
             final int width = overrideFullWidth > 0 ? overrideFullWidth : bounds.width();
             if (animated) {
+                if (TextUtils.equals(text, currentText)) {
+                    return;
+                }
+
                 if (allowCancel) {
                     if (animator != null) {
                         animator.cancel();
@@ -442,10 +446,6 @@ public class AnimatedTextView extends View {
                 } else if (isAnimating()) {
                     toSetText = text;
                     toSetTextMoveDown = moveDown;
-                    return;
-                }
-
-                if (text.equals(currentText)) {
                     return;
                 }
 
@@ -1293,7 +1293,7 @@ public class AnimatedTextView extends View {
     public void setText(CharSequence text, boolean animated, boolean moveDown) {
         animated = !first && animated;
         first = false;
-        if (animated) {
+        if (animated && !TextUtils.equals(text, drawable.getText())) {
             if (drawable.allowCancel) {
                 if (drawable.animator != null) {
                     drawable.animator.cancel();
@@ -1439,5 +1439,9 @@ public class AnimatedTextView extends View {
 
     public void setIncludeFontPadding(boolean includeFontPadding) {
         this.drawable.setIncludeFontPadding(includeFontPadding);
+    }
+
+    public void setAllowCancel(boolean allow) {
+        this.drawable.setAllowCancel(allow);
     }
 }
