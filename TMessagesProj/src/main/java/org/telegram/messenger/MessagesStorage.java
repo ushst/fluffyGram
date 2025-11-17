@@ -56,6 +56,7 @@ import org.telegram.ui.Stories.StoriesController;
 import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,6 +98,8 @@ public class MessagesStorage extends BaseController {
     private final ArrayList<MessagesController.DialogFilter> dialogFilters = new ArrayList<>();
     private final SparseArray<MessagesController.DialogFilter> dialogFiltersMap = new SparseArray<>();
     private final LongSparseArray<Boolean> unknownDialogsIds = new LongSparseArray<>();
+    private final LongSparseArray<HashSet<Integer>> fakeEditedMessageIds = new LongSparseArray<>();
+    private final LongSparseArray<Boolean> fakeEditedDialogsLoaded = new LongSparseArray<>();
     private int mainUnreadCount;
     private int archiveUnreadCount;
     private volatile int pendingMainUnreadCount;
@@ -324,7 +327,11 @@ public class MessagesStorage extends BaseController {
             database.executeFast("PRAGMA journal_mode = WAL").stepThis().dispose();
             database.executeFast("PRAGMA journal_size_limit = 10485760").stepThis().dispose();
 
-            database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_history(dialogId INTEGER, mid INTEGER, date INTEGER, message TEXT);").stepThis().dispose();
+        database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_history(dialogId INTEGER, mid INTEGER, date INTEGER, message TEXT, isFake INTEGER DEFAULT 0);").stepThis().dispose();
+        try {
+            database.executeFast("ALTER TABLE fluffy_message_history ADD COLUMN isFake INTEGER DEFAULT 0;").stepThis().dispose();
+        } catch (Exception ignore) {
+        }
             database.executeFast("CREATE TABLE IF NOT EXISTS fluffy_message_deletions(dialogId INTEGER, mid INTEGER, isDel INTEGER, PRIMARY KEY(dialogId, mid));").stepThis().dispose();
 
             if (createTable) {
@@ -5340,6 +5347,54 @@ public class MessagesStorage extends BaseController {
                 }
                 if (state != null) {
                     state.dispose();
+                }
+            }
+        });
+    }
+
+    public void updateMessageData(TLRPC.Message message) {
+        if (message == null) {
+            return;
+        }
+        final long dialogId = MessageObject.getDialogId(message);
+        final int messageId = message.id;
+        storageQueue.postRunnable(() -> {
+            SQLitePreparedStatement state = null;
+            NativeByteBuffer serializedData = null;
+            try {
+                MessageObject.normalizeFlags(message);
+                serializedData = new NativeByteBuffer(message.getObjectSize());
+                message.serializeToStream(serializedData);
+
+                state = database.executeFast("UPDATE messages_v2 SET data = ? WHERE mid = ? AND uid = ?");
+                state.bindByteBuffer(1, serializedData);
+                state.bindInteger(2, messageId);
+                state.bindLong(3, dialogId);
+                state.step();
+                state.dispose();
+                state = null;
+
+                state = database.executeFast("UPDATE messages_topics SET data = ? WHERE mid = ? AND uid = ?");
+                state.bindByteBuffer(1, serializedData);
+                state.bindInteger(2, messageId);
+                state.bindLong(3, dialogId);
+                state.step();
+                state.dispose();
+                state = null;
+
+                state = database.executeFast("UPDATE media_v4 SET data = ? WHERE mid = ? AND uid = ?");
+                state.bindByteBuffer(1, serializedData);
+                state.bindInteger(2, messageId);
+                state.bindLong(3, dialogId);
+                state.step();
+            } catch (Exception e) {
+                FileLog.e(e);
+            } finally {
+                if (state != null) {
+                    state.dispose();
+                }
+                if (serializedData != null) {
+                    serializedData.reuse();
                 }
             }
         });
@@ -13322,17 +13377,31 @@ public class MessagesStorage extends BaseController {
     }
 
     public void saveFlHistory(long dialogId, long mid, long date, String message) {
+        saveFlHistory(dialogId, mid, date, message, false);
+    }
+
+    public void saveFlHistory(long dialogId, long mid, long date, String message, boolean isFake) {
+        getStorageQueue().postRunnable(() -> saveFlHistoryInternal(dialogId, mid, date, message, isFake));
+    }
+
+    private void saveFlHistoryInternal(long dialogId, long mid, long date, String message, boolean isFake) {
+        SQLitePreparedStatement state = null;
         try {
-            String query = String.format(Locale.US,
-                    "insert into fluffy_message_history values(%d,%d,%d,'%s');"
-                    , dialogId
-                    , mid
-                    , date
-                    , android.util.Base64.encodeToString(message.getBytes(), Base64.DEFAULT)
-            );
-            database.executeFast(query).stepThis().dispose();
+            byte[] bytes = message != null ? message.getBytes(StandardCharsets.UTF_8) : new byte[0];
+            String encodedMessage = android.util.Base64.encodeToString(bytes, Base64.DEFAULT);
+            state = database.executeFast("REPLACE INTO fluffy_message_history(dialogId, mid, date, message, isFake) VALUES(?, ?, ?, ?, ?)");
+            state.bindLong(1, dialogId);
+            state.bindLong(2, mid);
+            state.bindLong(3, date);
+            state.bindString(4, encodedMessage);
+            state.bindInteger(5, isFake ? 1 : 0);
+            state.step();
         } catch (Exception e) {
-//            FileLog.e(e);
+            FileLog.e(e);
+        } finally {
+            if (state != null) {
+                state.dispose();
+            }
         }
     }
 
@@ -13355,6 +13424,110 @@ public class MessagesStorage extends BaseController {
             FileLog.e(e);
         }
         return map;
+    }
+
+    public void saveFakeEditHistory(long dialogId, long mid, long date, String message) {
+        getStorageQueue().postRunnable(() -> {
+            deleteFakeHistoryInternal(dialogId, mid);
+            saveFlHistoryInternal(dialogId, mid, date, message, true);
+        });
+        addFakeEditedMessageId(dialogId, (int) mid);
+    }
+
+    public void clearFakeEditHistory(long dialogId, long mid) {
+        getStorageQueue().postRunnable(() -> deleteFakeHistoryInternal(dialogId, mid));
+        removeFakeEditedMessageId(dialogId, (int) mid);
+    }
+
+    private void deleteFakeHistoryInternal(long dialogId, long mid) {
+        SQLitePreparedStatement state = null;
+        try {
+            state = database.executeFast("DELETE FROM fluffy_message_history WHERE dialogId = ? AND mid = ? AND isFake = 1");
+            state.bindLong(1, dialogId);
+            state.bindLong(2, mid);
+            state.step();
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            if (state != null) {
+                state.dispose();
+            }
+        }
+    }
+
+    public String getFakeEditOriginalText(long dialogId, long mid) {
+        ensureOpened();
+        SQLiteCursor cursor = null;
+        try {
+            cursor = database.queryFinalized(String.format(Locale.US, "SELECT message FROM fluffy_message_history WHERE dialogId=%d AND mid=%d AND isFake=1 LIMIT 1", dialogId, mid));
+            if (cursor.next()) {
+                String encoded = cursor.stringValue(0);
+                byte[] decoded = Base64.decode(encoded, Base64.DEFAULT);
+                return new String(decoded, StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        return null;
+    }
+
+    public boolean isMessageFakeEdited(long dialogId, int mid) {
+        ensureOpened();
+        synchronized (fakeEditedMessageIds) {
+            HashSet<Integer> ids = ensureFakeEditedCache(dialogId);
+            return ids != null && ids.contains(mid);
+        }
+    }
+
+    private HashSet<Integer> ensureFakeEditedCache(long dialogId) {
+        HashSet<Integer> ids = fakeEditedMessageIds.get(dialogId);
+        if (ids == null) {
+            ids = new HashSet<>();
+            fakeEditedMessageIds.put(dialogId, ids);
+        }
+        if (fakeEditedDialogsLoaded.get(dialogId) != null) {
+            return ids;
+        }
+        SQLiteCursor cursor = null;
+        try {
+            cursor = database.queryFinalized(String.format(Locale.US, "SELECT mid FROM fluffy_message_history WHERE dialogId=%d AND isFake=1", dialogId));
+            while (cursor.next()) {
+                ids.add(cursor.intValue(0));
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        fakeEditedDialogsLoaded.put(dialogId, true);
+        return ids;
+    }
+
+    private void addFakeEditedMessageId(long dialogId, int mid) {
+        synchronized (fakeEditedMessageIds) {
+            HashSet<Integer> ids = fakeEditedMessageIds.get(dialogId);
+            if (ids == null) {
+                ids = new HashSet<>();
+                fakeEditedMessageIds.put(dialogId, ids);
+            }
+            ids.add(mid);
+            fakeEditedDialogsLoaded.put(dialogId, true);
+        }
+    }
+
+    private void removeFakeEditedMessageId(long dialogId, int mid) {
+        synchronized (fakeEditedMessageIds) {
+            HashSet<Integer> ids = fakeEditedMessageIds.get(dialogId);
+            if (ids != null) {
+                ids.remove(mid);
+            }
+        }
     }
 
     public Boolean checkDeleted(TLRPC.Message message) {

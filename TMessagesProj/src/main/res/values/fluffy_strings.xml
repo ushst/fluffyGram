@@ -17,6 +17,13 @@
     <string name="Profile">Profile</string>
     <string name="idShow">Info</string>
     <string name="UseCloudflare">Provider voice</string>
+    <string name="FG_DevMode">Dev mode</string>
+    <string name="FG_ShowFakeEditIndicator">Show edited indicator</string>
+    <string name="FG_FakeEdit">Fake edit</string>
+    <string name="FG_ResetFakeEdit">Reset fake edit</string>
+    <string name="FG_FakeEditTitle">Fake edit message</string>
+    <string name="FG_FakeEditHint">Change message text locally. Not synced.</string>
+    <string name="FG_FakeEditResetFailed">Original text not found</string>
     <string name="ForwardFromSecret">Forward NoSender</string>
     <string name="formatTime">Format time with seconds</string>
     <string name="CloudflareCredentials">Cloudflare credentials</string>

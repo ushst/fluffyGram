@@ -16,6 +16,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -109,9 +110,10 @@ public class MessageHelper {
     public static SpannableResult createNewString(MessageObject messageObject) {
         var spannableStringBuilder = new SpannableStringBuilder();
         final SpannableStringBuilder[] spannedStrings = new SpannableStringBuilder[4];
+        final boolean showFakeIndicator = !messageObject.isFakeEdited || !fluffyConfig.devModeEnabled || fluffyConfig.showFakeEditIcon;
         final Drawable[] icons = {
                 copyDrawable(messageObject.messageOwner.isDeleted() ? Theme.chat_deleteDrawable : null),
-                copyDrawable(messageObject.isEdited() ? Theme.chat_editDrawable : null),
+                copyDrawable(messageObject.isEdited() && showFakeIndicator ? Theme.chat_editDrawable : null),
                 copyDrawable(messageObject.messageOwner.silent ? Theme.chat_silentDrawable : null),
                 copyDrawable(messageObject.messageOwner.from_scheduled ? Theme.chat_sheduleDrawable : null)
         };
