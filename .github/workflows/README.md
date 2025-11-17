@@ -42,15 +42,21 @@ base64 -i fluffyGram_dev/ushastoe-release.keystore | tr -d '\n' > keystore.txt
 #### Автоматически
 Workflow автоматически запускается при создании тега версии:
 ```bash
-git tag v12.1.1
-git push origin v12.1.1
+git tag v12.1.1-6211
+git push origin v12.1.1-6211
 ```
+
+**Важно:** Формат тега должен быть `v{VERSION}-{VERSION_CODE}` (например, `v12.1.1-6211`). Используйте дефис вместо пробелов и скобок.
 
 #### Вручную
 1. Перейдите в раздел `Actions` в вашем репозитории
 2. Выберите workflow "Build and Release FluffyGram"
 3. Нажмите `Run workflow`
-4. Выберите ветку и нажмите зеленую кнопку `Run workflow`
+4. Выберите ветку
+5. При необходимости отключите создание релиза, сняв галочку "Create a GitHub Release"
+6. Нажмите зеленую кнопку `Run workflow`
+
+**Примечание:** При ручном запуске тег создается автоматически на основе версии из `gradle.properties` в формате `v{VERSION}-{VERSION_CODE}`.
 
 ### Что делает workflow
 

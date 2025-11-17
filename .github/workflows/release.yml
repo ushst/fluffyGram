@@ -5,6 +5,12 @@ on:
     tags:
       - 'v*'  # Запуск при создании тега версии (например, v1.0.0)
   workflow_dispatch:  # Позволяет запустить вручную из GitHub UI
+    inputs:
+      create_release:
+        description: 'Create a GitHub Release'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build:
@@ -149,11 +155,21 @@ jobs:
         # Переименовываем APK файлы
         if [ -f "${{ steps.find_apks.outputs.apk_arm64 }}" ]; then
           cp "${{ steps.find_apks.outputs.apk_arm64 }}" "FluffyGram-v${VERSION}-arm64-v8a.apk"
+          echo "Created: FluffyGram-v${VERSION}-arm64-v8a.apk"
+        else
+          echo "Warning: arm64 APK not found"
         fi
         
         if [ -f "${{ steps.find_apks.outputs.apk_arm64_sdk23 }}" ]; then
           cp "${{ steps.find_apks.outputs.apk_arm64_sdk23 }}" "FluffyGram-v${VERSION}-arm64-v8a-sdk23.apk"
+          echo "Created: FluffyGram-v${VERSION}-arm64-v8a-sdk23.apk"
+        else
+          echo "Warning: arm64-sdk23 APK not found"
         fi
+        
+        # Список всех APK файлов для проверки
+        echo "Available APK files:"
+        find . -name "FluffyGram-*.apk" -type f || echo "No APK files found with FluffyGram-* pattern"
 
     - name: Get version info
       id: version
@@ -165,10 +181,10 @@ jobs:
 
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      if: (startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release))
       with:
-        tag_name: ${{ github.ref_name }}
+        tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}-{1}', steps.version.outputs.version, steps.version.outputs.version_code) || github.ref_name }}
         name: FluffyGram ${{ steps.version.outputs.version }} (${{ steps.version.outputs.version_code }})
         draft: false
         prerelease: false
