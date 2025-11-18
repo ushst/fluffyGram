@@ -1863,7 +1863,7 @@ public class ChatActivity extends BaseFragment implements
                         !message.isSponsored() && (getMessageType(message) != 1 || message.getDialogId() != mergeDialogId) &&
                         !(message.messageOwner.action instanceof TLRPC.TL_messageActionSecureValuesSent) &&
                         (currentEncryptedChat != null || message.getId() >= 0) &&
-                        (bottomOverlayChat == null || bottomOverlayChat.getVisibility() != View.VISIBLE || bottomOverlayChatWaitsReply && selectedObject != null && (MessageObject.getTopicId(currentAccount, selectedObject.messageOwner, ChatObject.isForum(currentChat)) != 0 || selectedObject.wasJustSent)) &&
+                        (bottomOverlay == null || bottomOverlay.getVisibility() != View.VISIBLE || bottomOverlayChatWaitsReply && selectedObject != null && (MessageObject.getTopicId(currentAccount, selectedObject.messageOwner, ChatObject.isForum(currentChat)) != 0 || selectedObject.wasJustSent)) &&
                         (currentChat == null || ((!ChatObject.isNotInChat(currentChat) || isThreadChat()) && (!ChatObject.isChannel(currentChat) || ChatObject.canPost(currentChat) || currentChat.megagroup) && ChatObject.canSendMessages(currentChat)));
                 boolean allowEdit = message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId;
                 if (allowEdit && messageGroup != null) {
@@ -44758,8 +44758,6 @@ public class ChatActivity extends BaseFragment implements
                 }
             }
         }).start();
-    }
-
     }
 
     private void updateBotforumTabsBottomMargin() {
