@@ -10,7 +10,7 @@ Write-Host "Сборка FluffyGram Debug..." -ForegroundColor Yellow
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Сборка Debug завершена успешно!" -ForegroundColor Green
     Write-Host "Запуск приложения..." -ForegroundColor Cyan
-    adb shell am start -n org.ushastoe.fluffy/org.telegram.ui.LaunchActivity
+    adb shell am start -n org.ushastoe.fluffy.beta/org.telegram.ui.LaunchActivity
     Write-Host "Приложение запущено!" -ForegroundColor Green
 } else {
     Write-Host "Сборка не удалась!" -ForegroundColor Red
