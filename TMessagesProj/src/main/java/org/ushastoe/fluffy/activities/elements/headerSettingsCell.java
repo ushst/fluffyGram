@@ -4,6 +4,10 @@ import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -24,15 +28,28 @@ public class headerSettingsCell extends FrameLayout {
   public headerSettingsCell(Context context) {
     super(context);
 
-    Drawable icon =
-        ContextCompat.getDrawable(context, R.mipmap.ic_launcher).mutate();
+    Drawable iconDrawable =
+      ContextCompat.getDrawable(context, R.mipmap.ic_launcher).mutate();
     int color = ContextCompat.getColor(context, R.color.ic_background_monet);
 
     logo = new ImageView(context);
-    logo.setScaleType(ImageView.ScaleType.CENTER);
+    logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
     logo.setBackground(
-        Theme.createCircleDrawable(AndroidUtilities.dp(108), color));
-    logo.setImageDrawable(icon);
+      Theme.createCircleDrawable(AndroidUtilities.dp(108), color));
+
+    // Convert the drawable into a rounded/circular bitmap drawable
+    int intrinsicW = iconDrawable.getIntrinsicWidth();
+    int intrinsicH = iconDrawable.getIntrinsicHeight();
+    int fallback = AndroidUtilities.dp(56);
+    int width = intrinsicW > 0 ? intrinsicW : fallback;
+    int height = intrinsicH > 0 ? intrinsicH : fallback;
+    Bitmap iconBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    Canvas canvas = new Canvas(iconBitmap);
+    iconDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+    iconDrawable.draw(canvas);
+    RoundedBitmapDrawable roundedIcon = RoundedBitmapDrawableFactory.create(getResources(), iconBitmap);
+    roundedIcon.setCircular(true);
+    logo.setImageDrawable(roundedIcon);
     addView(logo, LayoutHelper.createFrame(
                       108, 108, Gravity.CENTER | Gravity.TOP, 0, 20, 0, 0));
 

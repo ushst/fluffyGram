@@ -112,12 +112,12 @@ public class secretSettingsActivity extends BaseFragment {
       switch (row.type) {
       case HEADER:
         HeaderCell headerCell = (HeaderCell)holder.itemView;
-        headerCell.setText(row.textResId);
+        headerCell.setText(getString(row.textResId));
         break;
       case TEXT_INFO:
       default:
         TextInfoPrivacyCell infoCell = (TextInfoPrivacyCell)holder.itemView;
-        infoCell.setText(row.textResId);
+        infoCell.setText(getString(row.textResId));
         infoCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
         break;
       }
@@ -127,7 +127,7 @@ public class secretSettingsActivity extends BaseFragment {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       View view;
       if (RowType.values()[viewType] == RowType.HEADER) {
-        view = new HeaderCell(context, true);
+        view = new HeaderCell(context);
       } else {
         view = new TextInfoPrivacyCell(context);
       }

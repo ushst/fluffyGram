@@ -375,8 +375,8 @@ public class mainActivitySettings extends BaseFragment {
     editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
     AlertDialog.Builder builder =
         FluffyDialogUtils.themedBuilder(getParentActivity());
-    builder.setTitle(R.string.SuperSecretSettingsTitle);
-    builder.setMessage(R.string.SuperSecretSettingsDescription);
+    builder.setTitle(LocaleController.getString(R.string.SuperSecretSettingsTitle));
+    builder.setMessage(LocaleController.getString(R.string.SuperSecretSettingsDescription));
     builder.setView(FluffyDialogUtils.wrapWithStandardPadding(editText));
     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
     builder.setPositiveButton(LocaleController.getString("Done", R.string.Done),
