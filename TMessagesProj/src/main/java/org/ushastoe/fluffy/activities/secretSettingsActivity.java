@@ -127,7 +127,7 @@ public class secretSettingsActivity extends BaseFragment {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       View view;
       if (RowType.values()[viewType] == RowType.HEADER) {
-        view = new HeaderCell(context, true);
+        view = new HeaderCell(context);
       } else {
         view = new TextInfoPrivacyCell(context);
       }
