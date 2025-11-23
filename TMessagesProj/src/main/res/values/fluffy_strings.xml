@@ -2,6 +2,14 @@
 <resources>
     <string name="fluffySettings">fluffy Settings</string>
     <string name="fluffy">fluffy</string>
+    <string name="SuperSecretSettings">Super Secret Settings</string>
+    <string name="SuperSecretSettingsTitle">Super Secret Settings</string>
+    <string name="SuperSecretSettingsDescription">Введите код доступа, чтобы открыть скрытые настройки для этого аккаунта.</string>
+    <string name="SuperSecretSettingsCodeHint">Код доступа</string>
+    <string name="SuperSecretSettingsCodeError">Введите код доступа</string>
+    <string name="SuperSecretSettingsInvalid">Код не подошёл</string>
+    <string name="SuperSecretSettingsSuccess">Секретные настройки разблокированы</string>
+    <string name="SuperSecretSettingsPlaceholder">Здесь появятся суперсекретные настройки.</string>
     <string name="GhostModeDisableStoryView">Disable story view (don\'t mark as seen)</string>
     <string name="GhostModeDisableTyping">Hide my typing indicator</string>
     <string name="GhostModeDisableEmoji">Hide emoji selection indicator</string>

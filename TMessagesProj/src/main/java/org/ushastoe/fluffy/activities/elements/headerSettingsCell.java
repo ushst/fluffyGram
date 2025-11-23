@@ -19,6 +19,7 @@ import org.telegram.ui.Components.LayoutHelper;
 public class headerSettingsCell extends FrameLayout {
 
   public final TextView titleTextView;
+  private final ImageView logo;
 
   public headerSettingsCell(Context context) {
     super(context);
@@ -27,7 +28,7 @@ public class headerSettingsCell extends FrameLayout {
         ContextCompat.getDrawable(context, R.mipmap.ic_launcher).mutate();
     int color = ContextCompat.getColor(context, R.color.ic_background_monet);
 
-    ImageView logo = new ImageView(context);
+    logo = new ImageView(context);
     logo.setScaleType(ImageView.ScaleType.CENTER);
     logo.setBackground(
         Theme.createCircleDrawable(AndroidUtilities.dp(108), color));
@@ -74,5 +75,9 @@ public class headerSettingsCell extends FrameLayout {
         MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec),
                                     MeasureSpec.EXACTLY),
         MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+  }
+
+  public void setOnLogoClickListener(OnClickListener onClickListener) {
+    logo.setOnClickListener(onClickListener);
   }
 }

@@ -10,9 +10,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
+import android.widget.EditText;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,10 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -38,7 +43,11 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.messenger.UserConfig;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
+import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
+import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
+import org.ushastoe.fluffy.activities.secretSettingsActivity;
 
 public class mainActivitySettings extends BaseFragment {
   private ListAdapter listAdapter;
@@ -52,6 +61,9 @@ public class mainActivitySettings extends BaseFragment {
   private int[] location = new int[2];
   private final List<Row> rows = new ArrayList<>();
 
+  private int secretTapsCount;
+  private final Runnable resetSecretTapRunnable = () -> secretTapsCount = 0;
+
   private enum RowType { CUSTOM_HEADER, DIVIDER, HEADER, TEXT_CELL }
 
   private enum RowIdentifier {
@@ -60,6 +72,7 @@ public class mainActivitySettings extends BaseFragment {
     CATEGORY_HEADER,
     GENERAL,
       GHOST_MODE,
+    SECRET_SETTINGS,
     APPEARANCE,
     ABOUT_DIVIDER,
     LINKS_HEADER,
@@ -118,6 +131,11 @@ public class mainActivitySettings extends BaseFragment {
                      R.drawable.msg_media, false));
   rows.add(new Row(RowIdentifier.GHOST_MODE, RowType.TEXT_CELL, R.string.GhostMode,
            R.drawable.msg_secret, false));
+    if (SecretSettingsHelper.isSecretSettingsUnlocked(getCurrentUserId())) {
+      rows.add(new Row(RowIdentifier.SECRET_SETTINGS, RowType.TEXT_CELL,
+                       R.string.SuperSecretSettings, R.drawable.msg_secret,
+                       false));
+    }
     rows.add(new Row(RowIdentifier.APPEARANCE, RowType.TEXT_CELL,
                      R.string.Appearance, R.drawable.msg_theme, true));
     rows.add(new Row(RowIdentifier.ABOUT_DIVIDER, RowType.DIVIDER));
@@ -231,6 +249,9 @@ public class mainActivitySettings extends BaseFragment {
       case GHOST_MODE:
         presentFragment(new ghostModeActivitySettings());
         break;
+      case SECRET_SETTINGS:
+        presentFragment(new secretSettingsActivity());
+        break;
       case APPEARANCE:
         presentFragment(new appearanceActivitySettings());
         break;
@@ -332,6 +353,68 @@ public class mainActivitySettings extends BaseFragment {
     }
   }
 
+  private void onSecretTap() {
+    if (secretTapsCount == 0) {
+      AndroidUtilities.cancelRunOnUIThread(resetSecretTapRunnable);
+      AndroidUtilities.runOnUIThread(resetSecretTapRunnable, 1500);
+    }
+    secretTapsCount++;
+    if (secretTapsCount >= 7) {
+      secretTapsCount = 0;
+      AndroidUtilities.cancelRunOnUIThread(resetSecretTapRunnable);
+      showSecretDialog();
+    }
+  }
+
+  private void showSecretDialog() {
+    if (getParentActivity() == null) {
+      return;
+    }
+    EditText editText = new EditText(getParentActivity());
+    editText.setHint(R.string.SuperSecretSettingsCodeHint);
+    editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+    AlertDialog.Builder builder =
+        FluffyDialogUtils.themedBuilder(getParentActivity());
+    builder.setTitle(R.string.SuperSecretSettingsTitle);
+    builder.setMessage(R.string.SuperSecretSettingsDescription);
+    builder.setView(FluffyDialogUtils.wrapWithStandardPadding(editText));
+    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+    builder.setPositiveButton(LocaleController.getString("Done", R.string.Done),
+                              (dialog, which) -> handleSecretCode(editText.getText().toString()));
+    AlertDialog dialog = builder.create();
+    FluffyDialogUtils.applyWindowStyling(dialog);
+    showDialog(dialog);
+  }
+
+  private void handleSecretCode(String code) {
+    long userId = getCurrentUserId();
+    if (userId == 0) {
+      return;
+    }
+    String trimmed = code == null ? "" : code.trim();
+    if (trimmed.isEmpty()) {
+      Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsCodeError,
+                     Toast.LENGTH_SHORT)
+          .show();
+      return;
+    }
+    if (SecretSettingsHelper.verifyUnlockCode(userId, trimmed)) {
+      SecretSettingsHelper.setSecretSettingsUnlocked(userId, true);
+      updateRows();
+      Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsSuccess,
+                     Toast.LENGTH_SHORT)
+          .show();
+    } else {
+      Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsInvalid,
+                     Toast.LENGTH_SHORT)
+          .show();
+    }
+  }
+
+  private long getCurrentUserId() {
+    return UserConfig.getInstance(currentAccount).getClientUserId();
+  }
+
   private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
     private final Context mContext;
@@ -357,6 +440,7 @@ public class mainActivitySettings extends BaseFragment {
                      : 0) -
                 AndroidUtilities.dp(40),
             0, 0);
+        headerSettingsCell.setOnLogoClickListener(v -> onSecretTap());
         break;
       case HEADER:
         HeaderCell headerCell = (HeaderCell)holder.itemView;
