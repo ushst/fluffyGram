@@ -56,6 +56,7 @@ public final class fluffyConfig {
     private static final String KEY_CENTER_TITLE_IN_CHAT = "centerTitleInChat";
     private static final String KEY_USE_SOLAR_ICONS = "useSolarIcons";
     private static final String KEY_HIDE_BUTTON_WRITE = "hideButtonWrite";
+    private static final String KEY_HIDE_PAID_REACTIONS = "hidePaidReactions";
     private static final String KEY_SHOW_STORIES = "showStories";
     private static final String KEY_SHOW_DIVIDER = "showDivider";
     private static final String KEY_CUSTOM_TITLE = "customTitle";
@@ -150,6 +151,7 @@ public final class fluffyConfig {
     public static boolean showForwardWoAuthorship;
     public static boolean showViewMessageFromUser;
     public static boolean showJSON;
+    public static boolean hidePaidReactions;
     public static int readStickerMode;
     public static String customTitle;
     public static int titleType;
@@ -252,6 +254,7 @@ public final class fluffyConfig {
         showViewMessageFromUser = preferences.getBoolean(KEY_SHOW_VIEW_MESSAGE_FROM_USER, true);
         largePhoto = preferences.getBoolean(KEY_BIG_PHOTO, false);
         showJSON = preferences.getBoolean(KEY_SHOW_JSON, true);
+        hidePaidReactions = preferences.getBoolean(KEY_HIDE_PAID_REACTIONS, false);
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
         sortChatsByUnread = preferences.getBoolean(KEY_SORT_CHATS_BY_UNREAD, false);
@@ -437,6 +440,10 @@ public final class fluffyConfig {
 
     public static void toggleShowJSON() {
         showJSON = toggleBooleanSetting(KEY_SHOW_JSON, showJSON);
+    }
+
+    public static void toggleHidePaidReactions() {
+        hidePaidReactions = toggleBooleanSetting(KEY_HIDE_PAID_REACTIONS, hidePaidReactions);
     }
 
     public static void toggleSortChatsByUnread() {
