@@ -197,6 +197,7 @@
     <string name="PleaseEnterNumber">Please enter a numeric value.</string>
 
     <string name="HideGiftFromInput">Hide Gift Icon From Input</string>
+    <string name="HidePaidReactionsButton">Hide Paid Reaction Button</string>
     <string name="HideFloatingButton">Hide Floating Button</string>
     <string name="testBackFragment">Test Back Fragment Option</string>
 
