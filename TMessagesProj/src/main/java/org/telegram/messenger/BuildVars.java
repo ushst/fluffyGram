@@ -29,6 +29,10 @@ public class BuildVars {
     public static int APP_ID = BuildConfig.TELEGRAM_APP_ID;
     public static String APP_HASH = BuildConfig.TELEGRAM_APP_HASH;
 
+    // works only on official app ids, disable on your forks
+    public static boolean SUPPORTS_PASSKEYS = false;
+
+
     // SafetyNet key for Google Identity SDK, set it to empty to disable
     public static String SAFETYNET_KEY = "";
     public static String PLAYSTORE_APP_URL = "https://play.google.com/store/apps/details?id=org.telegram.messenger";
