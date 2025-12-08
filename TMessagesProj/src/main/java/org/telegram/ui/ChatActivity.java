@@ -30651,7 +30651,8 @@ public class ChatActivity extends BaseFragment implements
                                 ReactedUsersListView v = new ReactedUsersListView(container.getContext(), themeDelegate, currentAccount, message, reactionCount, false, true)
                                         .setSeenUsers(reactedView.getSeenUsers())
                                         .setOnCustomEmojiSelectedListener((reactedUsersListView1, customEmojiStickerSets) -> {
-                                            EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
+                                            if (getParentActivity() == null || getContext() == null) return;
+                                            final EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
                                                 @Override
                                                 public void dismiss() {
                                                     super.dismiss();
@@ -30740,7 +30741,8 @@ public class ChatActivity extends BaseFragment implements
                         reactedUsersListView = new ReactedUsersListView(contentView.getContext(), themeDelegate, currentAccount, primaryMessage, null, false, true)
                                 .setSeenUsers(reactedView.getSeenUsers())
                                 .setOnCustomEmojiSelectedListener((reactedUsersListView1, customEmojiStickerSets) -> {
-                                    EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
+                                    if (getParentActivity() == null || getContext() == null) return;
+                                    final EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
                                         @Override
                                         public void dismiss() {
                                             super.dismiss();
@@ -31582,7 +31584,7 @@ public class ChatActivity extends BaseFragment implements
 
                             View button = new MessageContainsEmojiButton(currentAccount, contentView.getContext(), themeDelegate, stickerSets, MessageContainsEmojiButton.EMOJI_TYPE);
                             button.setOnClickListener(e -> {
-                                EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, stickerSets) {
+                                final EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, stickerSets) {
                                     @Override
                                     public void dismiss() {
                                         super.dismiss();
@@ -39985,9 +39987,9 @@ public class ChatActivity extends BaseFragment implements
                 SecretMediaViewer.getInstance().setParentActivity(getParentActivity());
                 SecretMediaViewer.getInstance().openMedia(message, photoViewerProvider, openAction, closeAction);
             } else if (MessageObject.isAnimatedEmoji(message.getDocument()) && MessageObject.getInputStickerSet(message.getDocument()) != null) {
-                ArrayList<TLRPC.InputStickerSet> inputSets = new ArrayList<>(1);
+                final ArrayList<TLRPC.InputStickerSet> inputSets = new ArrayList<>(1);
                 inputSets.add(MessageObject.getInputStickerSet(message.getDocument()));
-                EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, inputSets);
+                final EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, inputSets);
                 alert.setCalcMandatoryInsets(isKeyboardVisible());
                 showDialog(alert);
             } else if (message.getInputStickerSet() != null) {
@@ -40251,18 +40253,19 @@ public class ChatActivity extends BaseFragment implements
                             progressDialogCurrent.end();
                             if (res instanceof TLRPC.TL_messages_stickerSet) {
                                 MediaDataController.getInstance(currentAccount).putStickerSet((TLRPC.TL_messages_stickerSet) res, false);
+                                if (getParentActivity() == null || getContext() == null) return;
 
-                                TLRPC.TL_inputStickerSetID inputStickerSet = new TLRPC.TL_inputStickerSetID();
+                                final TLRPC.TL_inputStickerSetID inputStickerSet = new TLRPC.TL_inputStickerSetID();
                                 inputStickerSet.access_hash = ((TLRPC.TL_messages_stickerSet) res).set.access_hash;
                                 inputStickerSet.id = ((TLRPC.TL_messages_stickerSet) res).set.id;
                                 if (emoji) {
-                                    ArrayList<TLRPC.InputStickerSet> inputSets = new ArrayList<>(1);
+                                    final ArrayList<TLRPC.InputStickerSet> inputSets = new ArrayList<>(1);
                                     inputSets.add(inputStickerSet);
-                                    EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, inputSets);
+                                    final EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, inputSets);
                                     alert.setCalcMandatoryInsets(isKeyboardVisible());
                                     showDialog(alert);
                                 } else {
-                                    StickersAlert alert = new StickersAlert(getParentActivity(), ChatActivity.this, inputStickerSet, null, chatActivityEnterView, themeDelegate, false);
+                                    final StickersAlert alert = new StickersAlert(getParentActivity(), ChatActivity.this, inputStickerSet, null, chatActivityEnterView, themeDelegate, false);
                                     alert.setCalcMandatoryInsets(isKeyboardVisible());
                                     showDialog(alert);
                                 }
@@ -43489,7 +43492,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     public void didPressReaction(View cell, TLRPC.ReactionCount reaction, boolean longpress, float x, float y) {
-        if (getParentActivity() == null) {
+        if (getParentActivity() == null || getContext() == null) {
             return;
         }
         if (savedMessagesTagHint != null && savedMessagesTagHint.shown()) {
@@ -43625,25 +43628,13 @@ public class ChatActivity extends BaseFragment implements
                     button.stopAnimation();
                 }
                 scrimPopupContainerLayout.addView(new ReactedUsersListView(getParentActivity(), themeDelegate, currentAccount, messageObject, reaction, false, false)
-                        .setOnCustomEmojiSelectedListener((reactedUsersListView1, customEmojiStickerSets) -> {
-                            EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
-                                @Override
-                                public void dismiss() {
-                                    super.dismiss();
-                                    dimBehindView(false);
-                                }
-                            };
-                            alert.setCalcMandatoryInsets(isKeyboardVisible());
-                            alert.setDimBehind(false);
-                            closeMenu(false);
-                            showDialog(alert);
-                        })
-                        .setOnProfileSelectedListener((view1, userId, messagePeerReaction) -> {
-                            Bundle args = new Bundle();
-                            if (userId > 0) {
-                                args.putLong("user_id", userId);
-                            } else {
-                                args.putLong("chat_id", -userId);
+                    .setOnCustomEmojiSelectedListener((reactedUsersListView1, customEmojiStickerSets) -> {
+                        if (getParentActivity() == null || getContext() == null) return;
+                        EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
+                            @Override
+                            public void dismiss() {
+                                super.dismiss();
+                                dimBehindView(false);
                             }
                             args.putInt("report_reaction_message_id", messageObject.getId());
                             args.putLong("report_reaction_from_dialog_id", dialog_id);
@@ -43660,22 +43651,8 @@ public class ChatActivity extends BaseFragment implements
                     arr.add(inputStickerSet);
                     MessageContainsEmojiButton setButton = new MessageContainsEmojiButton(currentAccount, getContext(), themeDelegate, arr, MessageContainsEmojiButton.SINGLE_REACTION_TYPE);
                     setButton.setOnClickListener(v -> {
-                        new EmojiPacksAlert(new BaseFragment() {
-                            @Override
-                            public int getCurrentAccount() {
-                                return currentAccount;
-                            }
-
-                            @Override
-                            public Context getContext() {
-                                return ChatActivity.this.getContext();
-                            }
-
-                            @Override
-                            public Theme.ResourcesProvider getResourceProvider() {
-                                return themeDelegate;
-                            }
-                        }, getContext(), themeDelegate, arr).show();
+                        if (getParentActivity() == null || getContext() == null) return;
+                        new EmojiPacksAlert(ChatActivity.this, getContext(), themeDelegate, arr).show();
                         closeMenu();
                     });
                     scrimPopupContainerLayout.addView(setButton, LayoutHelper.createFrame(240, LayoutHelper.WRAP_CONTENT));
