@@ -448,6 +448,38 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         adapter.update(false);
         layoutManager.scrollToPositionWithOffset(adapter.getItemCount(), dp(200));
 
+        recyclerListView.setPadding(backgroundPaddingLeft, 0, backgroundPaddingLeft, dp(48 + 10 + 10 + (starGift != null && starGift.limited && limitContainerWrapper == null ? 30 + 10 : 0)));
+        recyclerListView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            final PointF p = new PointF();
+
+            @Override
+            public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                float top = parent.getHeight();
+                float bottom = 0;
+                float left = 0;
+
+                if (ViewPositionWatcher.computeCoordinatesInParent(chatView, recyclerListView, p)) {
+                    left = p.x;
+                    top = Math.min(top, p.y);
+                    bottom = Math.max(bottom, p.y + chatView.getMeasuredHeight());
+                }
+                if (ViewPositionWatcher.computeCoordinatesInParent(messageEdit, recyclerListView, p)) {
+                    top = Math.min(top, p.y);
+                    bottom = Math.max(bottom, p.y + messageEdit.getMeasuredHeight() + dp(12));
+                }
+
+                if (top < bottom && chatView.backgroundView != null) {
+                    final float s = (float) (bottom - top) / chatView.backgroundView.getHeight();
+                    c.save();
+                    c.clipRect(0, top, parent.getWidth(), bottom);
+                    c.translate(left, top);
+                    c.scale(s, s);
+                    chatView.backgroundView.draw(c);
+                    c.restore();
+                }
+                super.onDraw(c, parent, state);
+            }
+        });
         recyclerListView.setOnItemClickListener((view, position) -> {
             final UItem item = adapter.getItem(reverseLayout ? position : position - 1);
             if (item == null) return;
