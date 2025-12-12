@@ -150,6 +150,7 @@ public class appearanceActivitySettings extends BaseFragment {
         STICKER_TIME_STAMP,
         TRANSPARENCY,
         REMOVE_GIFTS,
+        HIDE_PAID_REACTIONS,
         REMOVE_BUTTON,
         STICKER_HEADER,
         STICKER_BLACKLIST,
@@ -257,6 +258,7 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
         rows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
         rows.add(new Row(RowIdentifier.REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
+        rows.add(new Row(RowIdentifier.HIDE_PAID_REACTIONS, RowType.TEXT_CHECK, R.string.HidePaidReactionsButton, R.drawable.star_reaction));
         rows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
         rows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
 
@@ -464,6 +466,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleGift();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideGift);
+                }
+                break;
+            case HIDE_PAID_REACTIONS:
+                fluffyConfig.toggleHidePaidReactions();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.hidePaidReactions);
                 }
                 break;
             case REMOVE_BUTTON:
@@ -1580,6 +1588,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case REMOVE_GIFTS:
                             checked = fluffyConfig.hideGift;
+                            break;
+                        case HIDE_PAID_REACTIONS:
+                            checked = fluffyConfig.hidePaidReactions;
                             break;
                         case REMOVE_BUTTON:
                             checked = fluffyConfig.hideButtonWrite;
