@@ -10,6 +10,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingFlowParams;
@@ -71,6 +73,7 @@ import org.telegram.ui.Components.Premium.boosts.PremiumPreviewGiftSentBottomShe
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.TypefaceSpan;
+import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.LaunchActivity;
@@ -448,7 +451,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         adapter.update(false);
         layoutManager.scrollToPositionWithOffset(adapter.getItemCount(), dp(200));
 
-        recyclerListView.setPadding(backgroundPaddingLeft, 0, backgroundPaddingLeft, dp(48 + 10 + 10 + (starGift != null && starGift.limited && limitContainerWrapper == null ? 30 + 10 : 0)));
+        recyclerListView.setPadding(backgroundPaddingLeft, 0, backgroundPaddingLeft, dp(48 + 10 + 10 + (starGift != null && starGift.limited && limitContainer == null ? 30 + 10 : 0)));
         recyclerListView.addItemDecoration(new RecyclerView.ItemDecoration() {
             final PointF p = new PointF();
 
