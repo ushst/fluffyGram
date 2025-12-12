@@ -4792,7 +4792,7 @@ public class Theme {
             themeInfo.assetName = "monet_light.attheme";
             themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_50");
             themeInfo.previewInColor = MonetHelper.getColor("a2_50");
-            themeInfo.previewOutColor = MonetHelper.getColor("a1_600");
+            themeInfo.previewOutColor = MonetHelper.getColor("a1_100_night");
             themeInfo.sortIndex = 5;
             themes.add(themeInfo);
             themesDict.put("Monet Light", themeInfo);

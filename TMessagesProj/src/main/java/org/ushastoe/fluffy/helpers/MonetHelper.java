@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.graphics.Color; // Импортируем класс Color
 import android.os.Build;
 import android.os.PatternMatcher;
@@ -108,10 +109,28 @@ public class MonetHelper {
             effectiveColorKey.substring(0, effectiveColorKey.length() - 2);
       }
 
+      final String nightSuffix = "_night";
+      boolean forceNight = false;
+      if (baseColorKey.endsWith(nightSuffix)) {
+        forceNight = true;
+        baseColorKey =
+            baseColorKey.substring(0, baseColorKey.length() - nightSuffix.length());
+      }
+
       Integer id = ids.get(baseColorKey);
 
       if (id != null) {
-        int baseColor = ApplicationLoader.applicationContext.getColor(id);
+        Context baseContext = ApplicationLoader.applicationContext;
+        Context themedContext = baseContext;
+        if (forceNight) {
+          Configuration configuration =
+              new Configuration(baseContext.getResources().getConfiguration());
+          configuration.uiMode =
+              (configuration.uiMode & ~Configuration.UI_MODE_NIGHT_MASK) |
+              Configuration.UI_MODE_NIGHT_YES;
+          themedContext = baseContext.createConfigurationContext(configuration);
+        }
+        int baseColor = themedContext.getColor(id);
 
         if (isFiftyPercentTransparent) {
           int colorT =
