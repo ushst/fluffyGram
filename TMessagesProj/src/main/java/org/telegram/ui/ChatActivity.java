@@ -43629,19 +43629,34 @@ public class ChatActivity extends BaseFragment implements
                 }
                 scrimPopupContainerLayout.addView(new ReactedUsersListView(getParentActivity(), themeDelegate, currentAccount, messageObject, reaction, false, false)
                     .setOnCustomEmojiSelectedListener((reactedUsersListView1, customEmojiStickerSets) -> {
-                        if (getParentActivity() == null || getContext() == null) return;
-                        EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
+                        if (getParentActivity() == null || getContext() == null) {
+                            return;
+                        }
+                        final EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, customEmojiStickerSets) {
                             @Override
                             public void dismiss() {
                                 super.dismiss();
                                 dimBehindView(false);
                             }
-                            args.putInt("report_reaction_message_id", messageObject.getId());
-                            args.putLong("report_reaction_from_dialog_id", dialog_id);
-                            ProfileActivity fragment = new ProfileActivity(args);
-                            presentFragment(fragment);
-                            closeMenu();
-                        }), LayoutHelper.createFrame(240, LayoutHelper.WRAP_CONTENT));
+                        };
+                        alert.setCalcMandatoryInsets(isKeyboardVisible());
+                        alert.setDimBehind(false);
+                        closeMenu(false);
+                        showDialog(alert);
+                    })
+                    .setOnProfileSelectedListener((view, userId, messagePeerReaction) -> {
+                        Bundle args = new Bundle();
+                        if (userId > 0) {
+                            args.putLong("user_id", userId);
+                        } else {
+                            args.putLong("chat_id", -userId);
+                        }
+                        args.putInt("report_reaction_message_id", messageObject.getId());
+                        args.putLong("report_reaction_from_dialog_id", dialog_id);
+                        ProfileActivity fragment = new ProfileActivity(args);
+                        presentFragment(fragment);
+                        closeMenu();
+                    }), LayoutHelper.createFrame(240, LayoutHelper.WRAP_CONTENT));
             } else if (reaction.reaction instanceof TLRPC.TL_reactionCustomEmoji) {
                 TLRPC.TL_reactionCustomEmoji customEmoji = (TLRPC.TL_reactionCustomEmoji) reaction.reaction;
                 TLRPC.InputStickerSet inputStickerSet = AnimatedEmojiDrawable.getDocumentFetcher(currentAccount).findStickerSet(customEmoji.document_id);
