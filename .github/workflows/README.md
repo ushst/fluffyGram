@@ -78,7 +78,6 @@ git push origin v12.1.1-6211
 ### Собираемые варианты APK
 
 - `FluffyGram-v{VERSION}-arm64-v8a.apk` - для Android 5.0+ (API 21+)
-- `FluffyGram-v{VERSION}-arm64-v8a-sdk23.apk` - для Android 6.0+ (API 23+)
 
 ### Troubleshooting
 
