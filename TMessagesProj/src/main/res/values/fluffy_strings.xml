@@ -199,6 +199,7 @@
     <string name="HideGiftFromInput">Hide Gift Icon From Input</string>
     <string name="HidePaidReactionsButton">Hide Paid Reaction Button</string>
     <string name="HideFloatingButton">Hide Floating Button</string>
+    <string name="EmojiButtonLongPressMenu">Hold emoji button menu</string>
     <string name="testBackFragment">Test Back Fragment Option</string>
 
     <string name="StickerSizeDialogMessage">Oh so cute! A cat!</string>

@@ -56,6 +56,7 @@ public final class fluffyConfig {
     private static final String KEY_CENTER_TITLE_IN_CHAT = "centerTitleInChat";
     private static final String KEY_USE_SOLAR_ICONS = "useSolarIcons";
     private static final String KEY_HIDE_BUTTON_WRITE = "hideButtonWrite";
+    private static final String KEY_EMOJI_BUTTON_LONGPRESS_MENU = "emojiButtonLongPressMenu";
     private static final String KEY_HIDE_PAID_REACTIONS = "hidePaidReactions";
     private static final String KEY_SHOW_STORIES = "showStories";
     private static final String KEY_SHOW_DIVIDER = "showDivider";
@@ -137,6 +138,7 @@ public final class fluffyConfig {
     public static boolean centerTitleInChat;
     public static boolean useSolarIcons;
     public static boolean hideButtonWrite;
+    public static boolean emojiButtonLongPressMenu;
     public static boolean showStories;
     public static boolean showDivider;
     public static boolean showCallIcon;
@@ -249,6 +251,7 @@ public final class fluffyConfig {
         stickerSize = preferences.getInt(KEY_STICKER_SIZE, 20);
         stickerRadius = preferences.getInt(KEY_STICKER_RADIUS, 0);
         hideButtonWrite = preferences.getBoolean(KEY_HIDE_BUTTON_WRITE, false);
+        emojiButtonLongPressMenu = preferences.getBoolean(KEY_EMOJI_BUTTON_LONGPRESS_MENU, false);
         showCopyPhoto = preferences.getBoolean(KEY_SHOW_COPY_PHOTO, true);
         showForwardWoAuthorship = preferences.getBoolean(KEY_SHOW_FORWARD_WO_AUTHORSHIP, true);
         showViewMessageFromUser = preferences.getBoolean(KEY_SHOW_VIEW_MESSAGE_FROM_USER, true);
@@ -317,6 +320,10 @@ public final class fluffyConfig {
 
     public static void toggleHideButtonWrite() {
         hideButtonWrite = toggleBooleanSetting(KEY_HIDE_BUTTON_WRITE, hideButtonWrite);
+    }
+
+    public static void toggleEmojiButtonLongPressMenu() {
+        emojiButtonLongPressMenu = toggleBooleanSetting(KEY_EMOJI_BUTTON_LONGPRESS_MENU, emojiButtonLongPressMenu);
     }
 
     public static void toggleShouldNotTrustMe() {

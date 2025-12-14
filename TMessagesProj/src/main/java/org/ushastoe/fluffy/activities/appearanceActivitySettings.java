@@ -161,6 +161,7 @@ public class appearanceActivitySettings extends BaseFragment {
         QUICK_SWITCHER,
         MENU_CUSTOMIZATION,
         HIDE_BIZ_BOT_BAR,
+        EMOJI_LONGPRESS_MENU,
         CUSTOM_FONT_HINT
     }
     private static class Row {
@@ -261,6 +262,7 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.HIDE_PAID_REACTIONS, RowType.TEXT_CHECK, R.string.HidePaidReactionsButton, R.drawable.star_reaction));
         rows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
         rows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
+        rows.add(new Row(RowIdentifier.EMOJI_LONGPRESS_MENU, RowType.TEXT_CHECK, R.string.EmojiButtonLongPressMenu, R.drawable.msg_spoiler));
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
@@ -485,6 +487,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleHideTopBar();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideTopBar);
+                }
+                break;
+            case EMOJI_LONGPRESS_MENU:
+                fluffyConfig.toggleEmojiButtonLongPressMenu();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.emojiButtonLongPressMenu);
                 }
                 break;
             case MORE_INFO:
@@ -1597,6 +1605,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case HIDE_BIZ_BOT_BAR:
                             checked = fluffyConfig.hideTopBar;
+                            break;
+                        case EMOJI_LONGPRESS_MENU:
+                            checked = fluffyConfig.emojiButtonLongPressMenu;
                             break;
                         case MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;

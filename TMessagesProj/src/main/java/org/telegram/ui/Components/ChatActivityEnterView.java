@@ -571,6 +571,8 @@ public class ChatActivityEnterView extends FrameLayout implements
     private long sentFromPreview;
     private ActionBarPopupWindow sendPopupWindow;
     private ActionBarPopupWindow.ActionBarPopupWindowLayout sendPopupLayout;
+    private ActionBarPopupWindow emojiButtonPopupWindow;
+    private ActionBarPopupWindow.ActionBarPopupWindowLayout emojiButtonPopupLayout;
     private ImageView cancelBotButton;
     private ChatActivityEnterViewAnimatedIconView emojiButton;
     @Nullable
@@ -2680,6 +2682,18 @@ public class ChatActivityEnterView extends FrameLayout implements
                 }
             }
         });
+        emojiButton.setOnLongClickListener(v -> {
+            if (!fluffyConfig.emojiButtonLongPressMenu || emojiButtonRestricted) {
+                return false;
+            }
+            if (!showEmojiActionsPopup(v)) {
+                return false;
+            }
+            try {
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+            } catch (Exception ignore) { }
+            return true;
+        });
         messageEditTextContainer.addView(emojiButton, LayoutHelper.createFrame(DEFAULT_HEIGHT, DEFAULT_HEIGHT, Gravity.BOTTOM | Gravity.LEFT, 3, 0, 0, 0));
         setEmojiButtonImage(false, false);
 
@@ -4436,6 +4450,70 @@ public class ChatActivityEnterView extends FrameLayout implements
             messageSendPreview = null;
         };
     };
+
+    private boolean showEmojiActionsPopup(View anchor) {
+        if (parentActivity == null || anchor == null) {
+            return false;
+        }
+        if (emojiButtonPopupLayout == null) {
+            emojiButtonPopupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(parentActivity, resourcesProvider);
+            emojiButtonPopupLayout.setAnimationEnabled(false);
+            emojiButtonPopupLayout.setShownFromBottom(false);
+            emojiButtonPopupLayout.setupRadialSelectors(getThemedColor(Theme.key_dialogButtonSelector));
+
+            ActionBarMenuSubItem spoilerItem = new ActionBarMenuSubItem(getContext(), false, true, resourcesProvider);
+            spoilerItem.setTextAndIcon(LocaleController.getString(R.string.Spoiler), R.drawable.msg_spoiler);
+            spoilerItem.setMinimumWidth(dp(196));
+            spoilerItem.setOnClickListener(v -> {
+                if (emojiButtonPopupWindow != null && emojiButtonPopupWindow.isShowing()) {
+                    emojiButtonPopupWindow.dismiss();
+                }
+                applySpoilerToWholeMessage();
+            });
+            emojiButtonPopupLayout.addView(spoilerItem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, DEFAULT_HEIGHT));
+        }
+        if (emojiButtonPopupWindow == null) {
+            emojiButtonPopupWindow = new ActionBarPopupWindow(emojiButtonPopupLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
+                @Override
+                public void dismiss() {
+                    super.dismiss();
+                    if (emojiButton != null) {
+                        emojiButton.invalidate();
+                    }
+                }
+            };
+            emojiButtonPopupWindow.setAnimationEnabled(false);
+            emojiButtonPopupWindow.setAnimationStyle(R.style.PopupContextAnimation2);
+            emojiButtonPopupWindow.setOutsideTouchable(true);
+            emojiButtonPopupWindow.setClippingEnabled(true);
+            emojiButtonPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
+            emojiButtonPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
+            emojiButtonPopupWindow.getContentView().setFocusableInTouchMode(true);
+        }
+        emojiButtonPopupLayout.measure(MeasureSpec.makeMeasureSpec(dp(1000), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(1000), MeasureSpec.AT_MOST));
+        anchor.getLocationInWindow(location);
+        int popupX = location[0] + (anchor.getMeasuredWidth() - emojiButtonPopupLayout.getMeasuredWidth()) / 2;
+        int popupY = location[1] - emojiButtonPopupLayout.getMeasuredHeight() - dp(2);
+        popupX = Math.max(popupX, dp(4));
+        popupY = Math.max(popupY, dp(4));
+        emojiButtonPopupWindow.setFocusable(true);
+        emojiButtonPopupWindow.showAtLocation(anchor, Gravity.LEFT | Gravity.TOP, popupX, popupY);
+        return true;
+    }
+
+    private void applySpoilerToWholeMessage() {
+        if (messageEditText == null) {
+            return;
+        }
+        Editable text = messageEditText.getText();
+        if (text == null || text.length() == 0) {
+            return;
+        }
+        int len = text.length();
+        messageEditText.setSelection(0, len);
+        messageEditText.makeSelectedSpoiler();
+        messageEditText.setSelection(len);
+    }
 
     @Override
     public boolean hasOverlappingRendering() {
