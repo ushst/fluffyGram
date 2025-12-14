@@ -3,8 +3,8 @@ name: Build and Release FluffyGram
 on:
   push:
     tags:
-      - 'v*'  # Запуск при создании тега версии (например, v1.0.0)
-  workflow_dispatch:  # Позволяет запустить вручную из GitHub UI
+      - 'v*'  # Запускается при пуше нового тега (например, v1.0.0)
+  workflow_dispatch:  # Ручной запуск workflow из GitHub UI
     inputs:
       create_release:
         description: 'Create a GitHub Release'
@@ -25,7 +25,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        submodules: false  # Не используем автоматическую загрузку субмодулей
+        submodules: false  # Не подтягиваем рекурсивно приватные зависимости
 
     - name: Checkout private submodule
       run: |
@@ -142,13 +142,12 @@ jobs:
         echo "Finding built APK files..."
         find TMessagesProj_App/build/outputs/apk -name "*.apk" -type f
         
-        # Сохраняем пути к APK файлам
+        # Сохраняем пути к APK в outputs
         echo "apk_arm64=$(find TMessagesProj_App/build/outputs/apk/bundleAfat/release -name "*.apk" -type f | head -1)" >> $GITHUB_OUTPUT
-        echo "apk_arm64_sdk23=$(find TMessagesProj_App/build/outputs/apk/bundleAfat_SDK23/release -name "*.apk" -type f | head -1)" >> $GITHUB_OUTPUT
 
     - name: Rename APK files
       run: |
-        # Получаем версию из gradle.properties
+        # Читаем версии из gradle.properties
         VERSION=$(grep "APP_VERSION_NAME" gradle.properties | cut -d'=' -f2)
         VERSION_CODE=$(grep "APP_VERSION_CODE" gradle.properties | cut -d'=' -f2)
         
@@ -160,14 +159,7 @@ jobs:
           echo "Warning: arm64 APK not found"
         fi
         
-        if [ -f "${{ steps.find_apks.outputs.apk_arm64_sdk23 }}" ]; then
-          cp "${{ steps.find_apks.outputs.apk_arm64_sdk23 }}" "FluffyGram-v${VERSION}-arm64-v8a-sdk23.apk"
-          echo "Created: FluffyGram-v${VERSION}-arm64-v8a-sdk23.apk"
-        else
-          echo "Warning: arm64-sdk23 APK not found"
-        fi
-        
-        # Список всех APK файлов для проверки
+        # Показываем найденные APK для проверки
         echo "Available APK files:"
         find . -name "FluffyGram-*.apk" -type f || echo "No APK files found with FluffyGram-* pattern"
 
