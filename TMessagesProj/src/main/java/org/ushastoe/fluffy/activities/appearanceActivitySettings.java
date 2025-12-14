@@ -262,7 +262,7 @@ public class appearanceActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.HIDE_PAID_REACTIONS, RowType.TEXT_CHECK, R.string.HidePaidReactionsButton, R.drawable.star_reaction));
         rows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
         rows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
-        rows.add(new Row(RowIdentifier.EMOJI_LONGPRESS_MENU, RowType.TEXT_CHECK, R.string.EmojiButtonLongPressMenu, R.drawable.msg_spoiler));
+        rows.add(new Row(RowIdentifier.EMOJI_LONGPRESS_MENU, RowType.TEXT_CHECK, R.string.EmojiButtonLongPressMenu, R.drawable.msg_spoiler, R.string.EmojiButtonLongPressMenuSubtitle));
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
@@ -1608,6 +1608,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case EMOJI_LONGPRESS_MENU:
                             checked = fluffyConfig.emojiButtonLongPressMenu;
+                            if (row.subtitleResId != 0) {
+                                subtitle = getString(row.subtitleResId);
+                            }
                             break;
                         case MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;
@@ -1624,6 +1627,9 @@ public class appearanceActivitySettings extends BaseFragment {
                                 subtitle = getString(row.subtitleResId);
                             }
                             break;
+                    }
+                    if (subtitle == null && row.subtitleResId != 0) {
+                        subtitle = getString(row.subtitleResId);
                     }
                     textCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
 
