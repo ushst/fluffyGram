@@ -165,6 +165,16 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    packaging {
+        resources {
+            excludes += [
+                    "META-INF/**/baseline.prof",
+                    "META-INF/**/baseline-prof.txt",
+                    "META-INF/**/baseline.profm"
+            ]
+        }
+    }
     namespace 'org.telegram.messenger.regular'
 
     lintOptions {
