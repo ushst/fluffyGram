@@ -556,12 +556,41 @@ public final class fluffyConfig {
         return fontsDir;
     }
 
-    private static void ensureCustomFontPresence() {
-        File fontsDir = getFontsDirectory();
-        File[] fonts = fontsDir.listFiles((dir, name) ->
-                name != null && name.toLowerCase(Locale.ROOT).endsWith(".ttf"));
+    public static List<File> scanAvailableFonts() {
+        ArrayList<File> result = new ArrayList<>();
+        collectFontFilesRecursive(getFontsDirectory(), result);
+        result.sort((o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+        return result;
+    }
 
-        if (fonts == null || fonts.length == 0) {
+    public static void refreshCustomFontsFromStorage() {
+        ensureCustomFontPresence();
+    }
+
+    private static void collectFontFilesRecursive(File directory, List<File> out) {
+        if (directory == null || !directory.exists()) {
+            return;
+        }
+        File[] entries = directory.listFiles();
+        if (entries == null) {
+            return;
+        }
+        for (File entry : entries) {
+            if (entry == null) {
+                continue;
+            }
+            if (entry.isDirectory()) {
+                collectFontFilesRecursive(entry, out);
+            } else if (entry.isFile() && entry.getName().toLowerCase(Locale.ROOT).endsWith(".ttf")) {
+                out.add(entry);
+            }
+        }
+    }
+
+    private static void ensureCustomFontPresence() {
+        List<File> fonts = scanAvailableFonts();
+
+        if (fonts == null || fonts.isEmpty()) {
             if (!TextUtils.isEmpty(customFontPath) || !TextUtils.isEmpty(customFontName)) {
                 persistCustomFontSelection("", "");
             }

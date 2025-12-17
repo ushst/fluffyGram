@@ -88,8 +88,6 @@ import org.ushastoe.fluffy.fluffyConfig;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -655,13 +653,8 @@ public class appearanceActivitySettings extends BaseFragment {
             return;
         }
 
-        File fontsDir = fluffyConfig.getFontsDirectory();
-        File[] fontsArray = fontsDir.listFiles((dir, name) -> name != null && name.toLowerCase(Locale.ROOT).endsWith(".ttf"));
-        ArrayList<File> fontFiles = new ArrayList<>();
-        if (fontsArray != null && fontsArray.length > 0) {
-            Arrays.sort(fontsArray, (o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-            Collections.addAll(fontFiles, fontsArray);
-        }
+        fluffyConfig.refreshCustomFontsFromStorage();
+        ArrayList<File> fontFiles = new ArrayList<>(fluffyConfig.scanAvailableFonts());
 
         CharSequence[] items = new CharSequence[fontFiles.size() + 1];
         items[0] = getString(R.string.CustomFontDisabled);
