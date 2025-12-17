@@ -237,12 +237,12 @@
     <string name="FG_QuickReplyCommandAllowedChars">Имя команды может содержать только буквы, цифры, символы _ или -</string>
     <string name="FG_QuickReplyMessageError">Текст команды не может быть пустым</string>
     <string name="FG_QuickReplyDuplicateError">Команда с таким именем и префиксом уже существует</string>
-    <plurals name="FG_CustomQuickRepliesCount">
-        <item quantity="one">%d команда</item>
-        <item quantity="few">%d команды</item>
-        <item quantity="many">%d команд</item>
-        <item quantity="other">%d команд</item>
-    </plurals>
+    <string name="FG_CustomQuickRepliesCount_zero">%d команд</string>
+    <string name="FG_CustomQuickRepliesCount_one">%d команда</string>
+    <string name="FG_CustomQuickRepliesCount_two">%d команды</string>
+    <string name="FG_CustomQuickRepliesCount_few">%d команды</string>
+    <string name="FG_CustomQuickRepliesCount_many">%d команд</string>
+    <string name="FG_CustomQuickRepliesCount_other">%d команд</string>
 
     <string name="SendPhotoAsSticker">Send As Sticker</string>
 
