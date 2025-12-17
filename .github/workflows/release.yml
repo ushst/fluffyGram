@@ -25,6 +25,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
+        fetch-depth: 0
         submodules: false  # Не подтягиваем рекурсивно приватные зависимости
 
     - name: Checkout private submodule
@@ -171,6 +172,54 @@ jobs:
         echo "version=${VERSION}" >> $GITHUB_OUTPUT
         echo "version_code=${VERSION_CODE}" >> $GITHUB_OUTPUT
 
+    - name: Generate release notes from commits
+      id: release_notes
+      run: |
+        set -euo pipefail
+        git fetch --tags --force
+
+        CURRENT_TAG=""
+        if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+        fi
+
+        PREV_TAG=""
+        TAG_LIST=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags || true)
+        if [ -n "$TAG_LIST" ]; then
+          while IFS= read -r tag; do
+            if [ -z "$CURRENT_TAG" ] || [ "$tag" != "$CURRENT_TAG" ]; then
+              PREV_TAG="$tag"
+              break
+            fi
+          done <<< "$TAG_LIST"
+        fi
+
+        echo "Current tag: ${CURRENT_TAG:-<none>}"
+        echo "Previous tag: ${PREV_TAG:-<none>}"
+
+        if [ -n "$PREV_TAG" ]; then
+          COMMITS=$(git log "$PREV_TAG"..HEAD --pretty=format:"- %s (%h)")
+          HEADER="## Changes since $PREV_TAG"
+        else
+          COMMITS=$(git log -n 50 --pretty=format:"- %s (%h)")
+          HEADER="## Changes included in this release"
+        fi
+
+        if [ -z "$COMMITS" ]; then
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS="No new commits after $PREV_TAG."
+          else
+            COMMITS="No commits found."
+          fi
+        fi
+
+        RELEASE_BODY=$(printf "%s\n\n%s\n" "$HEADER" "$COMMITS")
+        {
+          echo 'body<<EOF'
+          printf '%s\n' "$RELEASE_BODY"
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
+
     - name: Delete existing release
       if: (startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release))
       run: |
@@ -194,8 +243,9 @@ jobs:
         name: FluffyGram ${{ steps.version.outputs.version }} (${{ steps.version.outputs.version_code }})
         draft: false
         prerelease: false
-        generate_release_notes: true
+        generate_release_notes: false
         append_body: false
+        body: ${{ steps.release_notes.outputs.body }}
         files: |
           FluffyGram-*.apk
       env:

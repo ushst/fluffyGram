@@ -103,9 +103,6 @@ android {
             ndk {
                 abiFilters "arm64-v8a"
             }
-            ext {
-                abiVersionCode = 1
-            }
         }
         afat {
             ndk {
@@ -117,9 +114,6 @@ android {
             sourceSets.release {
                 manifest.srcFile '../TMessagesProj/config/release/AndroidManifest_SDK23.xml'
             }
-            ext {
-                abiVersionCode = 9
-            }
         }
     }
 
@@ -128,7 +122,7 @@ android {
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
             outputFileName = "app.apk"
-            output.versionCodeOverride = defaultConfig.versionCode * 10 + variant.productFlavors.get(0).abiVersionCode
+            output.versionCodeOverride = defaultConfig.versionCode
         }
     }
 
