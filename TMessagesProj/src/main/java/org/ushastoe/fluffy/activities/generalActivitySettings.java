@@ -156,7 +156,9 @@ public class generalActivitySettings extends BaseFragment {
         rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
         rows.add(new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat));
         rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_TOGGLE, RowType.TEXT_CHECK, R.string.FG_EnableCustomQuickReplies, R.drawable.msg_bot));
-        rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE, RowType.TEXT_CELL, R.string.FG_ManageCustomQuickReplies, R.drawable.msg_settings));
+        if (fluffyConfig.enableCustomQuickReplies) {
+            rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE, RowType.TEXT_CELL, R.string.FG_ManageCustomQuickReplies, R.drawable.msg_settings));
+        }
 
         rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
         rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
@@ -290,6 +292,7 @@ public class generalActivitySettings extends BaseFragment {
                 case CUSTOM_QUICK_REPLIES_TOGGLE:
                     fluffyConfig.toggleCustomQuickReplies();
                     textCell.setChecked(fluffyConfig.enableCustomQuickReplies);
+                    updateRows();
                     break;
                 case CUSTOM_QUICK_REPLIES_MANAGE:
                     presentFragment(new FluffyQuickRepliesActivity());
