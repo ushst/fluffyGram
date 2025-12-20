@@ -373,6 +373,7 @@ public class mainActivitySettings extends BaseFragment {
     EditText editText = new EditText(getParentActivity());
     editText.setHint(R.string.SuperSecretSettingsCodeHint);
     editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+    FluffyDialogUtils.styleTextInput(editText, resourceProvider);
     AlertDialog.Builder builder =
         FluffyDialogUtils.themedBuilder(getParentActivity());
     builder.setTitle(LocaleController.getString(R.string.SuperSecretSettingsTitle));

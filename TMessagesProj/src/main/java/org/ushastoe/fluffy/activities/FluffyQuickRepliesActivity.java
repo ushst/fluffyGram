@@ -125,8 +125,7 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
 
         EditTextBoldCursor prefixField = new EditTextBoldCursor(context);
         prefixField.setHint(LocaleController.getString(R.string.FG_QuickReplyPrefixHint));
-        prefixField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
-        prefixField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4, resourceProvider));
+        FluffyDialogUtils.styleTextInput(prefixField, resourceProvider);
         prefixField.setCursorSize(dp(20));
         prefixField.setTextSize(16);
         prefixField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
@@ -141,8 +140,7 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
 
         EditTextBoldCursor commandField = new EditTextBoldCursor(context);
         commandField.setHint(LocaleController.getString(R.string.FG_QuickReplyCommandHint));
-        commandField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
-        commandField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4, resourceProvider));
+        FluffyDialogUtils.styleTextInput(commandField, resourceProvider);
         commandField.setCursorSize(dp(20));
         commandField.setTextSize(16);
         commandField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
@@ -152,8 +150,7 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
 
         EditTextBoldCursor messageField = new EditTextBoldCursor(context);
         messageField.setHint(LocaleController.getString(R.string.FG_QuickReplyMessageHint));
-        messageField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
-        messageField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4, resourceProvider));
+        FluffyDialogUtils.styleTextInput(messageField, resourceProvider);
         messageField.setCursorSize(dp(20));
         messageField.setTextSize(16);
         messageField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);

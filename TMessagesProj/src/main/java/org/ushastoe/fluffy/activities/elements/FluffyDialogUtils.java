@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.activities.elements;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
@@ -11,6 +12,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.EditTextBoldCursor;
 
 /**
  * Helper methods for building alert dialogs that match the Fluffy design system.
@@ -56,6 +58,41 @@ public final class FluffyDialogUtils {
         container.setPadding(horizontal, top, horizontal, bottom);
         container.addView(view, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         return container;
+    }
+
+    /**
+     * Applies theme-aware colors and backgrounds to dialog input fields.
+     */
+    public static void styleTextInput(EditText editText) {
+        styleTextInput(editText, null);
+    }
+
+    /**
+     * Applies theme-aware colors and backgrounds to dialog input fields using the provided resources provider.
+     */
+    public static void styleTextInput(EditText editText, @Nullable Theme.ResourcesProvider resourcesProvider) {
+        if (editText == null) {
+            return;
+        }
+        Context context = editText.getContext();
+        if (context != null) {
+            editText.setBackground(Theme.createEditTextDrawable(context, true));
+        }
+
+        int textColor = Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        int hintColor = Theme.getColor(Theme.key_windowBackgroundWhiteHintText, resourcesProvider);
+        int linkColor = Theme.getColor(Theme.key_windowBackgroundWhiteLinkText, resourcesProvider);
+        int cursorColor = Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider);
+
+        editText.setTextColor(textColor);
+        editText.setHintTextColor(hintColor);
+        editText.setLinkTextColor(linkColor);
+        editText.setHighlightColor(Theme.multAlpha(cursorColor, 0.3f));
+
+        if (editText instanceof EditTextBoldCursor) {
+            EditTextBoldCursor boldCursor = (EditTextBoldCursor) editText;
+            boldCursor.setCursorColor(cursorColor);
+        }
     }
 
     /**
