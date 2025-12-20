@@ -12,7 +12,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Parcelable;
 import android.text.InputFilter;
@@ -28,6 +30,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -73,6 +76,7 @@ import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.Components.SwipeGestureSettingsView;
+import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.DefaultThemesPreviewCell;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PeerColorActivity;
@@ -1054,6 +1058,7 @@ public class appearanceActivitySettings extends BaseFragment {
         );
         editTextParams.topMargin = dp(8);
         customEditText.setLayoutParams(editTextParams);
+        FluffyDialogUtils.styleTextInput(customEditText, resourceProvider);
 
         // Создаём радиокнопки
         for (int i = 0; i < items.length; ++i) {
@@ -1159,6 +1164,144 @@ public class appearanceActivitySettings extends BaseFragment {
         // Можно модифицировать fluffyConfig или отправить куда-то еще
     }
 
+    private static class TransparencyPreviewView extends FrameLayout {
+
+        private final Theme.ResourcesProvider resourcesProvider;
+        private final TextView incomingBubble;
+        private final TextView outgoingBubble;
+        private final int incomingBaseColor;
+        private final int outgoingBaseColor;
+
+        private final CharSequence incomingSampleText;
+        private final CharSequence outgoingSampleText;
+
+        TransparencyPreviewView(Context context, Theme.ResourcesProvider resourcesProvider) {
+            super(context);
+            this.resourcesProvider = resourcesProvider;
+
+            setClipChildren(true);
+            setClipToPadding(true);
+            setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(4), AndroidUtilities.dp(4), AndroidUtilities.dp(4));
+            setMinimumHeight(AndroidUtilities.dp(180));
+
+            Drawable wallpaper = Theme.getCachedWallpaperNonBlocking();
+            if (wallpaper != null) {
+                Drawable drawable = wallpaper.getConstantState() != null ? wallpaper.getConstantState().newDrawable().mutate() : wallpaper.mutate();
+                if (drawable instanceof MotionBackgroundDrawable) {
+                    ((MotionBackgroundDrawable) drawable).setParentView(this);
+                }
+                setBackground(drawable);
+            } else {
+                setBackgroundColor(Theme.getColor(Theme.key_chat_wallpaper, resourcesProvider));
+            }
+
+            BackgroundPlaceholderView placeholderView = new BackgroundPlaceholderView(context, resourcesProvider);
+            placeholderView.setAlpha(0.55f);
+            addView(placeholderView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+            View scrim = new View(context);
+            scrim.setBackgroundColor(Theme.multAlpha(0xFF000000, 0.09f));
+            addView(scrim, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+            LinearLayout bubbleContainer = new LinearLayout(context);
+            bubbleContainer.setOrientation(LinearLayout.VERTICAL);
+            bubbleContainer.setGravity(Gravity.BOTTOM);
+            bubbleContainer.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(12), AndroidUtilities.dp(12), AndroidUtilities.dp(12));
+            addView(bubbleContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+            incomingBaseColor = Theme.getColor(Theme.key_chat_inBubble, resourcesProvider);
+            outgoingBaseColor = Theme.getColor(Theme.key_chat_outBubble, resourcesProvider);
+            incomingSampleText = LocaleController.getString(R.string.ThemePreviewLine2);
+            outgoingSampleText = LocaleController.getString(R.string.ThemePreviewLine1);
+
+            incomingBubble = buildBubble(context, false);
+            outgoingBubble = buildBubble(context, true);
+
+            bubbleContainer.addView(incomingBubble, createBubbleLayoutParams(false));
+            bubbleContainer.addView(outgoingBubble, createBubbleLayoutParams(true));
+        }
+
+        private LinearLayout.LayoutParams createBubbleLayoutParams(boolean outgoing) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT);
+            params.gravity = outgoing ? Gravity.END : Gravity.START;
+            params.topMargin = AndroidUtilities.dp(8);
+            return params;
+        }
+
+        private TextView buildBubble(Context context, boolean outgoing) {
+            TextView textView = new TextView(context);
+            textView.setText(outgoing ? outgoingSampleText : incomingSampleText);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+            textView.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(10), AndroidUtilities.dp(14), AndroidUtilities.dp(10));
+            textView.setMaxWidth(AndroidUtilities.dp(260));
+            textView.setTextColor(Theme.getColor(outgoing ? Theme.key_chat_messageTextOut : Theme.key_chat_messageTextIn, resourcesProvider));
+            textView.setBackground(createBubbleDrawable(outgoing ? outgoingBaseColor : incomingBaseColor, fluffyConfig.transparency));
+            return textView;
+        }
+
+        private Drawable createBubbleDrawable(int baseColor, int alpha) {
+            GradientDrawable drawable = new GradientDrawable();
+            float radius = AndroidUtilities.dp(16);
+            drawable.setCornerRadii(new float[]{radius, radius, radius, radius, radius, radius, radius, radius});
+            drawable.setColor(ColorUtils.setAlphaComponent(baseColor, alpha));
+            return drawable;
+        }
+
+        void setTransparency(int alpha) {
+            incomingBubble.setBackground(createBubbleDrawable(incomingBaseColor, alpha));
+            outgoingBubble.setBackground(createBubbleDrawable(outgoingBaseColor, alpha));
+        }
+    }
+
+    private static class BackgroundPlaceholderView extends View {
+
+        private final Paint lightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint darkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint accentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int tileSize;
+        private final int stripeSpacing;
+        private final int stripeHeight;
+
+        BackgroundPlaceholderView(Context context, Theme.ResourcesProvider resourcesProvider) {
+            super(context);
+            tileSize = AndroidUtilities.dp(32);
+            stripeSpacing = AndroidUtilities.dp(70);
+            stripeHeight = AndroidUtilities.dp(2);
+
+            int baseColor = Theme.getColor(Theme.key_chat_wallpaper, resourcesProvider);
+            int accentColor = Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider);
+            int overlay = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
+
+            lightPaint.setStyle(Paint.Style.FILL);
+            lightPaint.setColor(Theme.multAlpha(overlay, 0.08f));
+
+            darkPaint.setStyle(Paint.Style.FILL);
+            darkPaint.setColor(Theme.multAlpha(baseColor, 0.2f));
+
+            accentPaint.setStyle(Paint.Style.FILL);
+            accentPaint.setColor(Theme.multAlpha(accentColor, 0.45f));
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            int width = getWidth();
+            int height = getHeight();
+
+            for (int y = 0; y < height + tileSize; y += tileSize) {
+                for (int x = 0; x < width + tileSize; x += tileSize) {
+                    boolean even = ((x / tileSize) + (y / tileSize)) % 2 == 0;
+                    Paint paint = even ? lightPaint : darkPaint;
+                    canvas.drawRect(x, y, x + tileSize, y + tileSize, paint);
+                }
+            }
+
+            for (int y = 0; y < height + stripeSpacing; y += stripeSpacing) {
+                canvas.drawRect(0, y, width, y + stripeHeight, accentPaint);
+            }
+        }
+    }
+
 
     private void showTransparencyDialog(Context context) {
         if (getParentActivity() == null) {
@@ -1169,35 +1312,49 @@ public class appearanceActivitySettings extends BaseFragment {
         builder.setTitle(getString(R.string.Transparency));
         builder.setMessage(getString(R.string.EnterValueBetween0And255));
 
-        final EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)});
-        input.setHint("0-255");
+        LinearLayout rootLayout = new LinearLayout(context);
+        rootLayout.setOrientation(LinearLayout.VERTICAL);
 
-        input.setText(String.valueOf(fluffyConfig.transparency));
+        final TransparencyPreviewView previewView = new TransparencyPreviewView(context, resourceProvider);
+        rootLayout.addView(previewView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 220, 0, 4, 0, 12));
 
-        builder.setView(FluffyDialogUtils.wrapWithStandardPadding(input));
+        TextView valueView = new TextView(context);
+        valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
+        valueView.setTextSize(14);
+        valueView.setGravity(Gravity.CENTER_HORIZONTAL);
+        rootLayout.addView(valueView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 6));
+
+        SeekBarView seekBarView = new SeekBarView(context);
+        seekBarView.setReportChanges(true);
+        rootLayout.addView(seekBarView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 38, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
+
+        final int[] selectedValue = { clampTransparency(fluffyConfig.transparency) };
+        float initialProgress = selectedValue[0] / 255f;
+        previewView.setTransparency(selectedValue[0]);
+        valueView.setText(formatTransparencyValue(selectedValue[0]));
+        seekBarView.setProgress(initialProgress, false);
+        seekBarView.setDelegate((stop, progress) -> {
+            int newValue = clampTransparency(Math.round(progress * 255f));
+            selectedValue[0] = newValue;
+            valueView.setText(formatTransparencyValue(newValue));
+            previewView.setTransparency(newValue);
+        });
+
+        builder.setView(FluffyDialogUtils.wrapWithStandardPadding(rootLayout));
 
         builder.setPositiveButton(getString(R.string.OK), (dialog, which) -> {
-            try {
-                int value = Integer.parseInt(input.getText().toString());
-                if (value >= 0 && value <= 255) {
-                    fluffyConfig.setTransparency(value);
-                    showRestartNotification(LaunchActivity.getSafeLastFragment());
+            int value = selectedValue[0];
+            fluffyConfig.setTransparency(value);
+            showRestartNotification(LaunchActivity.getSafeLastFragment());
 
-                    int position = getRowPositionById(RowIdentifier.TRANSPARENCY);
-                    if (position != -1) {
-                        RecyclerView.ViewHolder holder = listView.findViewHolderForAdapterPosition(position);
-                        if (holder != null) {
-                            listAdapter.onBindViewHolder(holder, position);
-                        }
-                    }
-
+            int position = getRowPositionById(RowIdentifier.TRANSPARENCY);
+            if (position != -1 && listAdapter != null) {
+                RecyclerView.ViewHolder holder = listView != null ? listView.findViewHolderForAdapterPosition(position) : null;
+                if (holder != null) {
+                    listAdapter.onBindViewHolder(holder, position);
                 } else {
-                    BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.InvalidValue), getString(R.string.EnterValueBetween0And255));
+                    listAdapter.notifyItemChanged(position);
                 }
-            } catch (NumberFormatException e) {
-                BulletinHelper.showSimpleBulletin(LaunchActivity.getSafeLastFragment(), getString(R.string.InvalidInput), getString(R.string.PleaseEnterNumber));
             }
         });
 
@@ -1206,6 +1363,15 @@ public class appearanceActivitySettings extends BaseFragment {
         AlertDialog dialog = builder.create();
         FluffyDialogUtils.applyWindowStyling(dialog);
         showDialog(dialog);
+    }
+
+    private String formatTransparencyValue(int value) {
+        int percent = Math.round((value / 255f) * 100f);
+        return String.format(Locale.getDefault(), "%d (%d%%)", value, percent);
+    }
+
+    private static int clampTransparency(int value) {
+        return Math.max(0, Math.min(255, value));
     }
 
     private void timeStampSelecter(Context context) {
