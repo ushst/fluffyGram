@@ -32928,11 +32928,13 @@ public class ChatActivity extends BaseFragment implements
                     long id = selectedDocument.id;
                     if (fluffyConfig.blockSticker.contains(id)) {
                         fluffyConfig.removeBlockedSticker(id);
-                        BulletinHelper.showSimpleBulletin(this, getString(R.string.StickerRemovedFromBlacklist), null);
+                        BulletinFactory.of(this)
+                                .createSimpleBulletin(ContextCompat.getDrawable(getParentActivity(), R.drawable.msg_block), getString(R.string.StickerRemovedFromBlacklist), getString(R.string.StickerBlacklistOpen), () -> presentFragment(new StickerBlacklistActivity()))
+                                .show();
                     } else {
                         fluffyConfig.addBlockedSticker(selectedDocument);
                         BulletinFactory.of(this)
-                                .createSimpleBulletin(null, getString(R.string.StickerAddedToBlacklist), getString(R.string.StickerBlacklistOpen), () -> presentFragment(new StickerBlacklistActivity()))
+                                .createSimpleBulletin(ContextCompat.getDrawable(getParentActivity(), R.drawable.msg_add), getString(R.string.StickerAddedToBlacklist), getString(R.string.StickerBlacklistOpen), () -> presentFragment(new StickerBlacklistActivity()))
                                 .show();
                     }
                     updateVisibleRows();
