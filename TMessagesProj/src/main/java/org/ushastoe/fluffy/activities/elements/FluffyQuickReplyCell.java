@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.activities.elements;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -14,8 +15,10 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
+import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.ushastoe.fluffy.quickreplies.FluffyQuickReply;
@@ -29,10 +32,13 @@ public class FluffyQuickReplyCell extends FrameLayout {
     private final TextView messageView;
     private boolean needDivider;
     private final Theme.ResourcesProvider resourcesProvider;
+    private final AvatarDrawable avatarDrawable;
+    private final ImageReceiver avatarImageReceiver;
 
     public FluffyQuickReplyCell(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.resourcesProvider = resourcesProvider;
+        setWillNotDraw(false);
 
         titleView = new TextView(context);
         titleView.setSingleLine();
@@ -43,17 +49,23 @@ public class FluffyQuickReplyCell extends FrameLayout {
         addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, LocaleController.isRTL ? 20 : 72, 10, LocaleController.isRTL ? 72 : 20, 0));
 
         messageView = new TextView(context);
-        messageView.setLines(2);
+        messageView.setSingleLine();
         messageView.setEllipsize(TextUtils.TruncateAt.END);
         messageView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         messageView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         addView(messageView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, LocaleController.isRTL ? 20 : 72, 34, LocaleController.isRTL ? 72 : 20, 0));
+
+        avatarDrawable = new AvatarDrawable(resourcesProvider);
+        avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_REPLIES);
+        avatarImageReceiver = new ImageReceiver(this);
+        avatarImageReceiver.setRoundRadius(AndroidUtilities.dp(36));
     }
 
     public void set(FluffyQuickReply reply, char prefix, String highlight, boolean divider) {
         if (reply == null) {
             titleView.setText(null);
             messageView.setText(null);
+            avatarImageReceiver.setImageBitmap((Drawable) null);
             needDivider = divider;
             invalidate();
             return;
@@ -78,9 +90,35 @@ public class FluffyQuickReplyCell extends FrameLayout {
         message = Emoji.replaceEmoji(message, messageView.getPaint().getFontMetricsInt(), false);
         messageView.setText(message);
 
+        updateAvatar(reply);
         needDivider = divider;
-        setWillNotDraw(!divider);
         invalidate();
+    }
+
+    private void updateAvatar(FluffyQuickReply reply) {
+        if (reply == null) {
+            avatarImageReceiver.setImageBitmap((Drawable) null);
+            return;
+        }
+        String nameSource = !TextUtils.isEmpty(reply.command) ? reply.command : reply.message;
+        if (TextUtils.isEmpty(nameSource)) {
+            nameSource = String.valueOf(reply.prefix);
+        }
+        long colorSeed = reply.id != 0 ? reply.id : nameSource.hashCode();
+        avatarDrawable.setInfo(colorSeed, nameSource, null);
+        avatarImageReceiver.setImageBitmap(avatarDrawable);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        avatarImageReceiver.onAttachedToWindow();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        avatarImageReceiver.onDetachedFromWindow();
     }
 
     @Override
@@ -94,6 +132,9 @@ public class FluffyQuickReplyCell extends FrameLayout {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        int avatarLeft = LocaleController.isRTL ? getMeasuredWidth() - AndroidUtilities.dp(20 + 36) : AndroidUtilities.dp(20);
+        avatarImageReceiver.setImageCoords(avatarLeft, AndroidUtilities.dp(12), AndroidUtilities.dp(36), AndroidUtilities.dp(36));
+        avatarImageReceiver.draw(canvas);
         if (needDivider) {
             Paint paint = Theme.getThemePaint(Theme.key_paint_divider, resourcesProvider);
             if (paint == null) {

@@ -5,7 +5,6 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import android.content.Context;
 import android.text.InputFilter;
 import android.text.TextUtils;
-import android.text.method.DigitsKeyListener;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -132,8 +131,12 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
         prefixField.setTextSize(16);
         prefixField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         prefixField.setSingleLine(true);
-        prefixField.setFilters(new InputFilter[]{new InputFilter.LengthFilter(1)});
-        prefixField.setKeyListener(DigitsKeyListener.getInstance(".!*"));
+        prefixField.setFocusable(false);
+        prefixField.setFocusableInTouchMode(false);
+        prefixField.setClickable(true);
+        prefixField.setCursorVisible(false);
+        prefixField.setLongClickable(false);
+        prefixField.setOnClickListener(v -> showPrefixPopup(prefixField));
         container.addView(prefixField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         EditTextBoldCursor commandField = new EditTextBoldCursor(context);
@@ -163,7 +166,8 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
             commandField.setText(existing.command);
             messageField.setText(existing.message);
         } else {
-            prefixField.setText(".");
+            char defaultPrefix = FluffyQuickRepliesManager.SUPPORTED_PREFIXES.length > 0 ? FluffyQuickRepliesManager.SUPPORTED_PREFIXES[0] : '.';
+            prefixField.setText(String.valueOf(defaultPrefix));
         }
         prefixField.setSelection(prefixField.length());
 
@@ -230,6 +234,34 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
             });
         });
 
+        showDialog(dialog);
+    }
+
+    private void showPrefixPopup(EditTextBoldCursor prefixField) {
+        Context context = prefixField.getContext();
+        if (context == null) {
+            return;
+        }
+        if (FluffyQuickRepliesManager.SUPPORTED_PREFIXES.length == 0) {
+            prefixField.setText(".");
+            prefixField.setSelection(prefixField.length());
+            return;
+        }
+        CharSequence[] options = new CharSequence[FluffyQuickRepliesManager.SUPPORTED_PREFIXES.length];
+        for (int i = 0; i < FluffyQuickRepliesManager.SUPPORTED_PREFIXES.length; i++) {
+            options[i] = String.valueOf(FluffyQuickRepliesManager.SUPPORTED_PREFIXES[i]);
+        }
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(context, resourceProvider)
+                .setTitle(LocaleController.getString(R.string.FG_QuickReplyPrefixHint))
+                .setItems(options, (d, which) -> {
+                    if (which >= 0 && which < FluffyQuickRepliesManager.SUPPORTED_PREFIXES.length) {
+                        char prefix = FluffyQuickRepliesManager.SUPPORTED_PREFIXES[which];
+                        prefixField.setText(String.valueOf(prefix));
+                        prefixField.setSelection(prefixField.length());
+                    }
+                })
+                .create();
+        dialog.setCanceledOnTouchOutside(true);
         showDialog(dialog);
     }
 
