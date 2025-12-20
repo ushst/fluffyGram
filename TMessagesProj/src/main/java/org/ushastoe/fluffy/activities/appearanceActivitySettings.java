@@ -88,6 +88,7 @@ import org.ushastoe.fluffy.fluffyConfig;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -121,7 +122,6 @@ public class appearanceActivitySettings extends BaseFragment {
     }
 
     private enum RowIdentifier {
-        GENERAL_HEADER,
         CHAT_LIST_PREVIEW,
         CENTER_TITLE,
         CENTER_TITLE_IN_CHAT,
@@ -129,18 +129,22 @@ public class appearanceActivitySettings extends BaseFragment {
         SHOW_DIVIDER,
         SELECT_TITLE,
         SELECT_CUSTOM_FONT,
-        CUSTOM_FONT_SIZE,
         SYSTEM_TYPEFACE,
         USE_SOLAR_ICONS,
         NEW_SWITCH_STYLE,
-        DIVIDER_1,
-        MAIN_HEADER,
+        CUSTOM_FONT_HINT,
+        GENERAL_LAYOUT_HEADER,
+        GENERAL_TYPOGRAPHY_HEADER,
+        PROFILE_VISIBILITY_HEADER,
         ZODIAC_SHOW,
-        DIVIDER_2,
-        CHAT_HEADER,
-        DOUBLE_TAP,
+        CHAT_INDICATORS_HEADER,
+        CHAT_CONTROLS_HEADER,
+        CHAT_INPUT_HEADER,
         STICKER_SIZE,
         STICKER_SIZE_SEEKBAR,
+        STICKER_RADIUS_SEEKBAR,
+        STICKER_APPEARANCE_HEADER,
+        STICKER_MANAGEMENT_HEADER,
         DISABLE_ROUND,
         CALL_SHOW,
         MORE_INFO,
@@ -150,17 +154,15 @@ public class appearanceActivitySettings extends BaseFragment {
         REMOVE_GIFTS,
         HIDE_PAID_REACTIONS,
         REMOVE_BUTTON,
-        STICKER_HEADER,
         STICKER_BLACKLIST,
-        DIVIDER_3,
-        STICKER_RADIUS_SEEKBAR,
-        DOUBLE_TAP_HEADER,
-        DIVIDER_4,
+        DOUBLE_TAP,
         QUICK_SWITCHER,
         MENU_CUSTOMIZATION,
         HIDE_BIZ_BOT_BAR,
         EMOJI_LONGPRESS_MENU,
-        CUSTOM_FONT_HINT
+        GESTURE_ACTIONS_HEADER,
+        GESTURE_SHORTCUTS_HEADER,
+        SECTION_DIVIDER
     }
     private static class Row {
         RowType type;
@@ -214,58 +216,151 @@ public class appearanceActivitySettings extends BaseFragment {
 
         rows.clear();
 
-        rows.add(new Row(RowIdentifier.GENERAL_HEADER, RowType.HEADER, R.string.General));
-        rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
-        rows.add(new Row(RowIdentifier.CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
-        rows.add(new Row(RowIdentifier.CENTER_TITLE_IN_CHAT, RowType.TEXT_CHECK, R.string.centerTitleInChat, R.drawable.msg_contacts_name));
-        rows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
-        rows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
-        rows.add(new Row(RowIdentifier.SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
-        rows.add(new Row(RowIdentifier.SYSTEM_TYPEFACE, RowType.TEXT_CHECK, R.string.UseSystemTypeface, R.drawable.msg_photo_text_framed));
-        if (!fluffyConfig.useSystemFonts) {
-            rows.add(new Row(RowIdentifier.SELECT_CUSTOM_FONT, RowType.TEXT_CELL, R.string.SelectCustomFont, R.drawable.msg_photo_text_framed));
-            rows.add(new Row(RowIdentifier.CUSTOM_FONT_HINT, RowType.TEXT_INFO_PRIVACY,
-                    LocaleController.formatString("CustomFontHint", R.string.CustomFontHint,
-                            fluffyConfig.getFontsDirectory().getAbsolutePath())));
-        }
-        rows.add(new Row(RowIdentifier.USE_SOLAR_ICONS, RowType.TEXT_CHECK, R.string.useSolarIcons, R.drawable.media_magic_cut));
-        rows.add(new Row(RowIdentifier.NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
-        rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
-
-        rows.add(new Row(RowIdentifier.MAIN_HEADER, RowType.HEADER, R.string.Profile));
-        rows.add(new Row(RowIdentifier.ZODIAC_SHOW, RowType.TEXT_CHECK, R.string.zodiacShow, R.drawable.msg_calendar2));
-        rows.add(new Row(RowIdentifier.DIVIDER_2, RowType.SHADOW_SECTION));
-
-        rows.add(new Row(RowIdentifier.STICKER_HEADER, RowType.HEADER, R.string.Stickers));
-        rows.add(new Row(RowIdentifier.STICKER_SIZE_SEEKBAR, RowType.STICKER_SIZE_SEEKBAR));
-        rows.add(new Row(RowIdentifier.STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
-        rows.add(new Row(RowIdentifier.STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
-        rows.add(new Row(RowIdentifier.STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
-        rows.add(new Row(RowIdentifier.STICKER_BLACKLIST, RowType.TEXT_CELL, R.string.StickerBlacklist, R.drawable.msg_block));
-        rows.add(new Row(RowIdentifier.DIVIDER_3, RowType.SHADOW_SECTION));
-
-        rows.add(new Row(RowIdentifier.DOUBLE_TAP_HEADER, RowType.HEADER, R.string.DoubleTapAction));
-        rows.add(new Row(RowIdentifier.DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
-        rows.add(new Row(RowIdentifier.QUICK_SWITCHER, RowType.QUICK_SWITCHER));
-        rows.add(new Row(RowIdentifier.MENU_CUSTOMIZATION, RowType.TEXT_CELL, R.string.ContextMenuSettings, R.drawable.msg_settings));
-        rows.add(new Row(RowIdentifier.DIVIDER_4, RowType.SHADOW_SECTION));
-
-        rows.add(new Row(RowIdentifier.CHAT_HEADER, RowType.HEADER, R.string.Chats));
-        rows.add(new Row(RowIdentifier.DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle));
-        rows.add(new Row(RowIdentifier.CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
-        rows.add(new Row(RowIdentifier.MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle));
-        rows.add(new Row(RowIdentifier.FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
-        rows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
-        rows.add(new Row(RowIdentifier.REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
-        rows.add(new Row(RowIdentifier.HIDE_PAID_REACTIONS, RowType.TEXT_CHECK, R.string.HidePaidReactionsButton, R.drawable.star_reaction));
-        rows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
-        rows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
-        rows.add(new Row(RowIdentifier.EMOJI_LONGPRESS_MENU, RowType.TEXT_CHECK, R.string.EmojiButtonLongPressMenu, R.drawable.msg_spoiler, R.string.EmojiButtonLongPressMenuSubtitle));
+        buildGeneralSection();
+        buildProfileSection();
+        buildStickerSection();
+        buildGesturesSection();
+        buildChatSection();
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
             if (recyclerViewState != null) {
                 layoutManager.onRestoreInstanceState(recyclerViewState);
+            }
+        }
+    }
+
+    private void buildGeneralSection() {
+        addHeaderRow(new Row(RowIdentifier.GENERAL_LAYOUT_HEADER, RowType.HEADER, "Layout"));
+        rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
+        List<Row> layoutRows = new ArrayList<>();
+        layoutRows.add(new Row(RowIdentifier.CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
+        layoutRows.add(new Row(RowIdentifier.CENTER_TITLE_IN_CHAT, RowType.TEXT_CHECK, R.string.centerTitleInChat, R.drawable.msg_contacts_name));
+        layoutRows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
+        layoutRows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
+        sortRows(layoutRows);
+        rows.addAll(layoutRows);
+
+        addHeaderRow(new Row(RowIdentifier.GENERAL_TYPOGRAPHY_HEADER, RowType.HEADER, "Typography"));
+        List<Row> typographyRows = new ArrayList<>();
+        typographyRows.add(new Row(RowIdentifier.SELECT_TITLE, RowType.TEXT_CELL, R.string.TitleSelecter, R.drawable.menu_tag_rename));
+        typographyRows.add(new Row(RowIdentifier.SYSTEM_TYPEFACE, RowType.TEXT_CHECK, R.string.UseSystemTypeface, R.drawable.msg_photo_text_framed));
+        typographyRows.add(new Row(RowIdentifier.USE_SOLAR_ICONS, RowType.TEXT_CHECK, R.string.useSolarIcons, R.drawable.media_magic_cut));
+        typographyRows.add(new Row(RowIdentifier.NEW_SWITCH_STYLE, RowType.TEXT_CHECK, R.string.NewMaterialSwith, R.drawable.msg_photo_switch2));
+        sortRows(typographyRows);
+        if (!fluffyConfig.useSystemFonts) {
+            int systemIndex = indexOfRow(typographyRows, RowIdentifier.SYSTEM_TYPEFACE);
+            Row customFontRow = new Row(RowIdentifier.SELECT_CUSTOM_FONT, RowType.TEXT_CELL, R.string.SelectCustomFont, R.drawable.msg_photo_text_framed);
+            Row hintRow = new Row(RowIdentifier.CUSTOM_FONT_HINT, RowType.TEXT_INFO_PRIVACY,
+                    LocaleController.formatString("CustomFontHint", R.string.CustomFontHint,
+                            fluffyConfig.getFontsDirectory().getAbsolutePath()));
+            if (systemIndex == -1) {
+                typographyRows.add(customFontRow);
+                typographyRows.add(hintRow);
+            } else {
+                typographyRows.add(systemIndex + 1, customFontRow);
+                typographyRows.add(systemIndex + 2, hintRow);
+            }
+        }
+        rows.addAll(typographyRows);
+    }
+
+    private void buildProfileSection() {
+        addHeaderRow(new Row(RowIdentifier.PROFILE_VISIBILITY_HEADER, RowType.HEADER, "Visibility"));
+        rows.add(new Row(RowIdentifier.ZODIAC_SHOW, RowType.TEXT_CHECK, R.string.zodiacShow, R.drawable.msg_calendar2));
+    }
+
+    private void buildStickerSection() {
+        addHeaderRow(new Row(RowIdentifier.STICKER_APPEARANCE_HEADER, RowType.HEADER, "Appearance"));
+        rows.add(new Row(RowIdentifier.STICKER_SIZE_SEEKBAR, RowType.STICKER_SIZE_SEEKBAR));
+        rows.add(new Row(RowIdentifier.STICKER_RADIUS_SEEKBAR, RowType.STICKER_RADIUS_SEEKBAR));
+        rows.add(new Row(RowIdentifier.STICKER_SIZE, RowType.STICKER_SIZE_PREVIEW));
+
+        addHeaderRow(new Row(RowIdentifier.STICKER_MANAGEMENT_HEADER, RowType.HEADER, "Preferences"));
+        List<Row> stickerRows = new ArrayList<>();
+        stickerRows.add(new Row(RowIdentifier.STICKER_TIME_STAMP, RowType.TEXT_CELL, R.string.TimestampSelecter, R.drawable.msg2_sticker));
+        stickerRows.add(new Row(RowIdentifier.STICKER_BLACKLIST, RowType.TEXT_CELL, R.string.StickerBlacklist, R.drawable.msg_block));
+        sortRows(stickerRows);
+        rows.addAll(stickerRows);
+    }
+
+    private void buildGesturesSection() {
+        List<Row> interactionRows = new ArrayList<>();
+        interactionRows.add(new Row(RowIdentifier.DOUBLE_TAP, RowType.DOUBLE_TAP_CELL));
+        interactionRows.add(new Row(RowIdentifier.QUICK_SWITCHER, RowType.QUICK_SWITCHER));
+        addSubcategory(RowIdentifier.GESTURE_ACTIONS_HEADER, "Interactions", interactionRows, false);
+
+        List<Row> shortcutRows = new ArrayList<>();
+        shortcutRows.add(new Row(RowIdentifier.MENU_CUSTOMIZATION, RowType.TEXT_CELL, R.string.ContextMenuSettings, R.drawable.msg_settings));
+        addSubcategory(RowIdentifier.GESTURE_SHORTCUTS_HEADER, "Shortcuts", shortcutRows, false);
+    }
+
+    private void buildChatSection() {
+        List<Row> indicatorRows = new ArrayList<>();
+        indicatorRows.add(new Row(RowIdentifier.DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle));
+        indicatorRows.add(new Row(RowIdentifier.MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle));
+        indicatorRows.add(new Row(RowIdentifier.FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
+        addSubcategory(RowIdentifier.CHAT_INDICATORS_HEADER, "Indicators", indicatorRows, true);
+
+        List<Row> controlRows = new ArrayList<>();
+        controlRows.add(new Row(RowIdentifier.CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
+        controlRows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
+        controlRows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
+        controlRows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
+        addSubcategory(RowIdentifier.CHAT_CONTROLS_HEADER, "Controls", controlRows, true);
+
+        List<Row> inputRows = new ArrayList<>();
+        inputRows.add(new Row(RowIdentifier.REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
+        inputRows.add(new Row(RowIdentifier.HIDE_PAID_REACTIONS, RowType.TEXT_CHECK, R.string.HidePaidReactionsButton, R.drawable.star_reaction));
+        inputRows.add(new Row(RowIdentifier.EMOJI_LONGPRESS_MENU, RowType.TEXT_CHECK, R.string.EmojiButtonLongPressMenu, R.drawable.msg_spoiler, R.string.EmojiButtonLongPressMenuSubtitle));
+        addSubcategory(RowIdentifier.CHAT_INPUT_HEADER, "Input", inputRows, true);
+    }
+
+    private void addSubcategory(RowIdentifier headerId, CharSequence title, List<Row> entries, boolean sortEntries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        addHeaderRow(new Row(headerId, RowType.HEADER, title));
+        if (sortEntries) {
+            sortRows(entries);
+        }
+        rows.addAll(entries);
+    }
+
+    private void sortRows(List<Row> entries) {
+        Collections.sort(entries, (row1, row2) ->
+                resolveRowTitle(row1).toString().compareToIgnoreCase(resolveRowTitle(row2).toString()));
+    }
+
+    private CharSequence resolveRowTitle(Row row) {
+        if (row.customText != null) {
+            return row.customText;
+        }
+        if (row.textResId != 0) {
+            return getString(row.textResId);
+        }
+        return "";
+    }
+
+    private int indexOfRow(List<Row> rowsList, RowIdentifier id) {
+        for (int i = 0; i < rowsList.size(); i++) {
+            if (rowsList.get(i).id == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void addHeaderRow(Row headerRow) {
+        addDividerRow();
+        rows.add(headerRow);
+    }
+
+    private void addDividerRow() {
+        if (!rows.isEmpty()) {
+            Row lastRow = rows.get(rows.size() - 1);
+            if (lastRow.type != RowType.SHADOW_SECTION) {
+                rows.add(new Row(RowIdentifier.SECTION_DIVIDER, RowType.SHADOW_SECTION));
             }
         }
     }
@@ -1456,7 +1551,8 @@ public class appearanceActivitySettings extends BaseFragment {
                     break;
                 case HEADER:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    headerCell.setText(getString(row.textResId));
+                    CharSequence headerText = row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : "");
+                    headerCell.setText(headerText);
                     break;
                 case TEXT_INFO_PRIVACY:
                     TextInfoPrivacyCell textInfoPrivacyCell = (TextInfoPrivacyCell) holder.itemView;

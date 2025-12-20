@@ -5,12 +5,20 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Base64;
 
+import androidx.collection.LongSparseArray;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 import org.ushastoe.fluffy.helpers.BaseIconSet;
 import org.ushastoe.fluffy.helpers.EmptyIconSet;
@@ -84,6 +92,7 @@ public final class fluffyConfig {
     private static final String KEY_DOUBLE_TAP_OUT_ACTION = "doubleTapOutAction";
     private static final String KEY_ID_HIDE_WALLPAPER = "idHideWallpaper";
     private static final String KEY_BLOCKED_STICKERS = "blockedStickers";
+    private static final String KEY_BLOCKED_STICKERS_DATA = "blockedStickersData";
     private static final String KEY_SORT_CHATS_BY_UNREAD = "sortChatsByUnread";
     private static final String KEY_TRANSCRIBE_DISABLE_LISTEN_SIGNAL = "transcribeDisableListenSignal";
     private static final String KEY_DISABLE_STORY_VIEW = "disableStoryView";
@@ -178,6 +187,8 @@ public final class fluffyConfig {
 
 
     public static final ArrayList<Long> blockSticker = new ArrayList<>();
+    private static final LongSparseArray<TLRPC.Document> blockedStickerDocuments =
+            new LongSparseArray<>();
 
     private fluffyConfig() {}
 
@@ -273,6 +284,7 @@ public final class fluffyConfig {
         lockOnMinimize = preferences.getBoolean(KEY_LOCK_ON_MINIMIZE, false);
 
         blockSticker.clear();
+        blockedStickerDocuments.clear();
         String blocked = preferences.getString(KEY_BLOCKED_STICKERS, "");
         if (!blocked.isEmpty()) {
             for (String s : blocked.split(";")) {
@@ -281,6 +293,34 @@ public final class fluffyConfig {
                     blockSticker.add(Long.parseLong(s));
                 } catch (NumberFormatException ignore) {
                 }
+            }
+        }
+        String blockedData = preferences.getString(KEY_BLOCKED_STICKERS_DATA, "");
+        if (!TextUtils.isEmpty(blockedData)) {
+            try {
+                JSONArray array = new JSONArray(blockedData);
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject obj = array.optJSONObject(i);
+                    if (obj == null) {
+                        continue;
+                    }
+                    long id = obj.optLong("id", 0);
+                    String encoded = obj.optString("data");
+                    if (id == 0 || TextUtils.isEmpty(encoded)) {
+                        continue;
+                    }
+                    byte[] bytes = Base64.decode(encoded, Base64.DEFAULT);
+                    SerializedData data = new SerializedData(bytes);
+                    int constructor = data.readInt32(false);
+                    TLRPC.Document document =
+                            TLRPC.Document.TLdeserialize(data, constructor, false);
+                    data.cleanup();
+                    if (document != null) {
+                        blockedStickerDocuments.put(id, document);
+                    }
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
             }
         }
 
@@ -731,25 +771,92 @@ public final class fluffyConfig {
         return !ids.contains(String.valueOf(id));
     }
 
+    public static void addBlockedSticker(TLRPC.Document document) {
+        if (document == null) {
+            return;
+        }
+        addBlockedStickerInternal(document.id, document);
+    }
+
     public static void addBlockedSticker(long id) {
+        addBlockedStickerInternal(id, null);
+    }
+
+    private static void addBlockedStickerInternal(long id, TLRPC.Document document) {
+        boolean changed = false;
         if (!blockSticker.contains(id)) {
             blockSticker.add(id);
+            changed = true;
+        }
+        if (document != null) {
+            blockedStickerDocuments.put(id, document);
+            changed = true;
+        }
+        if (changed) {
             saveBlockedStickers();
         }
     }
 
     public static void removeBlockedSticker(long id) {
         if (blockSticker.remove(id)) {
+            blockedStickerDocuments.remove(id);
             saveBlockedStickers();
         }
     }
 
+    public static TLRPC.Document getBlockedStickerDocument(long id) {
+        TLRPC.Document document = blockedStickerDocuments.get(id);
+        if (document != null) {
+            return document;
+        }
+        MediaDataController controller =
+                MediaDataController.getInstance(UserConfig.selectedAccount);
+        if (controller == null) {
+            return null;
+        }
+        int[] typesToCheck = new int[] {
+                MediaDataController.TYPE_IMAGE, MediaDataController.TYPE_FAVE,
+                MediaDataController.TYPE_EMOJI, MediaDataController.TYPE_EMOJIPACKS};
+        for (int type : typesToCheck) {
+            LongSparseArray<TLRPC.Document> documents = controller.getStickerByIds(type);
+            if (documents == null) {
+                continue;
+            }
+            document = documents.get(id);
+            if (document != null) {
+                blockedStickerDocuments.put(id, document);
+                saveBlockedStickers();
+                return document;
+            }
+        }
+        return null;
+    }
+
     private static void saveBlockedStickers() {
         ArrayList<String> ids = new ArrayList<>();
+        JSONArray documentsArray = new JSONArray();
         for (Long l : blockSticker) {
             ids.add(String.valueOf(l));
+            TLRPC.Document document = blockedStickerDocuments.get(l);
+            if (document == null) {
+                continue;
+            }
+            try {
+                SerializedData data = new SerializedData(document.getObjectSize());
+                document.serializeToStream(data);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", l);
+                jsonObject.put("data",
+                               Base64.encodeToString(data.toByteArray(), Base64.NO_WRAP));
+                documentsArray.put(jsonObject);
+                data.cleanup();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
         }
         setStringSetting(KEY_BLOCKED_STICKERS, TextUtils.join(";", ids));
+        setStringSetting(KEY_BLOCKED_STICKERS_DATA,
+                         documentsArray.length() > 0 ? documentsArray.toString() : "");
     }
 
 

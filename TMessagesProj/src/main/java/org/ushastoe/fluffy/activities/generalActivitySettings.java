@@ -59,6 +59,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import android.content.SharedPreferences;
@@ -81,7 +82,6 @@ public class generalActivitySettings extends BaseFragment {
     }
 
     private enum RowIdentifier {
-        GENERAL_HEADER,
         DEV_MODE,
         SHOW_FAKE_EDIT_INDICATOR,
         DOWNLOAD_SPEED_BOOST,
@@ -92,21 +92,26 @@ public class generalActivitySettings extends BaseFragment {
         PAUSE_MUSIC_ON_MEDIA,
         BIG_PHOTO_SEND,
         TRANSCRIBE_DISABLE_LISTEN_SIGNAL,
-        DIVIDER_1,
-        VOICE_RECOGNITION_HEADER,
         VOICE_PROVIDER_SELECTOR,
         VOICE_PROVIDER_CREDENTIALS,
-        DIVIDER_2,
-        CONFIG_HEADER,
         EXPORT_FLUFFY_CONFIG,
         IMPORT_FLUFFY_CONFIG,
-        DIVIDER_3,
-        EXPERIMENTAL_SETTINGS_HEADER,
         ALLOW_ATTACH_ANY_BOT,
         USER_STATUS_LOG_VIEWER,
         HIDE_PINNED_SMALL_SCREEN,
         CUSTOM_QUICK_REPLIES_TOGGLE,
-        CUSTOM_QUICK_REPLIES_MANAGE
+        CUSTOM_QUICK_REPLIES_MANAGE,
+        GENERAL_PRODUCTIVITY_HEADER,
+        GENERAL_HISTORY_HEADER,
+        GENERAL_MEDIA_HEADER,
+        GENERAL_DEVELOPER_HEADER,
+        GENERAL_QUICK_REPLY_HEADER,
+        VOICE_PROVIDER_DETAILS_HEADER,
+        VOICE_ALERTS_HEADER,
+        CONFIG_MANAGEMENT_HEADER,
+        EXPERIMENTS_BOTS_HEADER,
+        EXPERIMENTS_UTILITIES_HEADER,
+        DIVIDER
     }
 
     private static class Row {
@@ -114,12 +119,18 @@ public class generalActivitySettings extends BaseFragment {
         RowIdentifier id;
         int textResId;
         int iconResId;
+        CharSequence customText;
 
         Row(RowIdentifier id, RowType type, int textResId, int iconResId) {
+            this(id, type, textResId, iconResId, null);
+        }
+
+        Row(RowIdentifier id, RowType type, int textResId, int iconResId, CharSequence customText) {
             this.id = id;
             this.type = type;
             this.textResId = textResId;
             this.iconResId = iconResId;
+            this.customText = customText;
         }
 
         Row(RowIdentifier id, RowType type, int textResId) {
@@ -128,6 +139,10 @@ public class generalActivitySettings extends BaseFragment {
 
         Row(RowIdentifier id, RowType type) {
             this(id, type, 0, 0);
+        }
+
+        Row(RowIdentifier id, RowType type, CharSequence customText) {
+            this(id, type, 0, 0, customText);
         }
     }
 
@@ -144,44 +159,132 @@ public class generalActivitySettings extends BaseFragment {
 
         rows.clear();
 
-        rows.add(new Row(RowIdentifier.GENERAL_HEADER, RowType.HEADER, R.string.General));
-        rows.add(new Row(RowIdentifier.DOWNLOAD_SPEED_BOOST, RowType.TEXT_CHECK, R.string.downloadSpeedBoost, R.drawable.msg_download));
-        rows.add(new Row(RowIdentifier.DEV_MODE, RowType.TEXT_CHECK, R.string.FG_DevMode, R.drawable.msg_settings));
-        rows.add(new Row(RowIdentifier.SHOW_FAKE_EDIT_INDICATOR, RowType.TEXT_CHECK, R.string.FG_ShowFakeEditIndicator, R.drawable.msg_edit));
-        rows.add(new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit));
-        rows.add(new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete));
-        rows.add(new Row(RowIdentifier.SORT_CHATS_BY_UNREAD, RowType.TEXT_CHECK, R.string.FG_SortByUnread, R.drawable.msg_markread));
-        rows.add(new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute));
-        rows.add(new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music));
-        rows.add(new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar));
-        rows.add(new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat));
-        rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_TOGGLE, RowType.TEXT_CHECK, R.string.FG_EnableCustomQuickReplies, R.drawable.msg_bot));
-        if (fluffyConfig.enableCustomQuickReplies) {
-            rows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE, RowType.TEXT_CELL, R.string.FG_ManageCustomQuickReplies, R.drawable.msg_settings));
-        }
+        addGeneralSubcategories();
 
-        rows.add(new Row(RowIdentifier.DIVIDER_1, RowType.SHADOW_SECTION));
-        rows.add(new Row(RowIdentifier.VOICE_RECOGNITION_HEADER, RowType.HEADER, R.string.Voip));
-        rows.add(new Row(RowIdentifier.VOICE_PROVIDER_SELECTOR, RowType.TEXT_CELL, R.string.UseCloudflare, R.drawable.voicechat_muted));
-        rows.add(new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar));
+        addVoiceSubcategories();
 
-        rows.add(new Row(RowIdentifier.DIVIDER_2, RowType.SHADOW_SECTION));
-        rows.add(new Row(RowIdentifier.CONFIG_HEADER, RowType.HEADER, R.string.Config));
-        rows.add(new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download));
-        rows.add(new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved));
+        addConfigurationCategory();
 
-        rows.add(new Row(RowIdentifier.DIVIDER_3, RowType.SHADOW_SECTION));
-        rows.add(new Row(RowIdentifier.EXPERIMENTAL_SETTINGS_HEADER, RowType.HEADER, R.string.Other));
-        rows.add(new Row(RowIdentifier.USER_STATUS_LOG_VIEWER, RowType.TEXT_CELL, R.string.UserStatusLogTitle, R.drawable.menu_feature_status));
-        rows.add(new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot));
-        rows.add(new Row(RowIdentifier.HIDE_PINNED_SMALL_SCREEN, RowType.TEXT_CHECK, R.string.HidePinnedOnSmallScreen, R.drawable.msg_pin));
-
-
+        addExperimentsCategories();
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
             if (recyclerViewState != null) {
                 layoutManager.onRestoreInstanceState(recyclerViewState);
+            }
+        }
+    }
+
+    private void addGeneralSubcategories() {
+        addCategory(new Row(RowIdentifier.GENERAL_PRODUCTIVITY_HEADER, RowType.HEADER, "Productivity"),
+                asList(
+                        new Row(RowIdentifier.DOWNLOAD_SPEED_BOOST, RowType.TEXT_CHECK, R.string.downloadSpeedBoost, R.drawable.msg_download),
+                        new Row(RowIdentifier.SORT_CHATS_BY_UNREAD, RowType.TEXT_CHECK, R.string.FG_SortByUnread, R.drawable.msg_markread)
+                ), true);
+
+        addCategory(new Row(RowIdentifier.GENERAL_MEDIA_HEADER, RowType.HEADER, "Media"),
+                asList(
+                        new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute),
+                        new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music),
+                        new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar)
+                ), true);
+
+        addCategory(new Row(RowIdentifier.GENERAL_HISTORY_HEADER, RowType.HEADER, "History"),
+                asList(
+                        new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit),
+                        new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete)
+                ), true);
+
+        addCategory(new Row(RowIdentifier.GENERAL_DEVELOPER_HEADER, RowType.HEADER, "Developer Tools"),
+                asList(
+                        new Row(RowIdentifier.DEV_MODE, RowType.TEXT_CHECK, R.string.FG_DevMode, R.drawable.msg_settings),
+                        new Row(RowIdentifier.SHOW_FAKE_EDIT_INDICATOR, RowType.TEXT_CHECK, R.string.FG_ShowFakeEditIndicator, R.drawable.msg_edit)
+                ), true);
+
+        List<Row> quickRows = new ArrayList<>();
+        quickRows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_TOGGLE, RowType.TEXT_CHECK, R.string.FG_EnableCustomQuickReplies, R.drawable.msg_bot));
+        if (fluffyConfig.enableCustomQuickReplies) {
+            quickRows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE, RowType.TEXT_CELL, R.string.FG_ManageCustomQuickReplies, R.drawable.msg_settings));
+        }
+        addCategory(new Row(RowIdentifier.GENERAL_QUICK_REPLY_HEADER, RowType.HEADER, "Quick Replies"), quickRows, false);
+    }
+
+    private void addVoiceSubcategories() {
+        addCategory(new Row(RowIdentifier.VOICE_PROVIDER_DETAILS_HEADER, RowType.HEADER, "Provider"),
+                asList(
+                        new Row(RowIdentifier.VOICE_PROVIDER_SELECTOR, RowType.TEXT_CELL, R.string.UseCloudflare, R.drawable.voicechat_muted),
+                        new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar)
+                ), false);
+
+        addCategory(new Row(RowIdentifier.VOICE_ALERTS_HEADER, RowType.HEADER, "Alerts"),
+                asList(
+                        new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat)
+                ), false);
+    }
+
+    private void addConfigurationCategory() {
+        addCategory(new Row(RowIdentifier.CONFIG_MANAGEMENT_HEADER, RowType.HEADER, "Backup"),
+                asList(
+                        new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download),
+                        new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved)
+                ), true);
+    }
+
+    private void addExperimentsCategories() {
+        addCategory(new Row(RowIdentifier.EXPERIMENTS_BOTS_HEADER, RowType.HEADER, "Bots"),
+                asList(
+                        new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot)
+                ), false);
+
+        addCategory(new Row(RowIdentifier.EXPERIMENTS_UTILITIES_HEADER, RowType.HEADER, "Utilities"),
+                asList(
+                        new Row(RowIdentifier.USER_STATUS_LOG_VIEWER, RowType.TEXT_CELL, R.string.UserStatusLogTitle, R.drawable.menu_feature_status),
+                        new Row(RowIdentifier.HIDE_PINNED_SMALL_SCREEN, RowType.TEXT_CHECK, R.string.HidePinnedOnSmallScreen, R.drawable.msg_pin)
+                ), true);
+    }
+
+    private void addCategory(Row headerRow, List<Row> entries, boolean sortEntries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        addHeaderRow(headerRow);
+        if (sortEntries) {
+            sortRows(entries);
+        }
+        rows.addAll(entries);
+    }
+
+    private void sortRows(List<Row> entries) {
+        Collections.sort(entries, (row1, row2) ->
+                resolveRowTitle(row1).toString().compareToIgnoreCase(resolveRowTitle(row2).toString()));
+    }
+
+    private CharSequence resolveRowTitle(Row row) {
+        if (row.customText != null) {
+            return row.customText;
+        }
+        if (row.textResId != 0) {
+            return getString(row.textResId);
+        }
+        return "";
+    }
+
+    private ArrayList<Row> asList(Row... rowItems) {
+        ArrayList<Row> list = new ArrayList<>(rowItems.length);
+        Collections.addAll(list, rowItems);
+        return list;
+    }
+
+    private void addHeaderRow(Row headerRow) {
+        addDividerRow();
+        rows.add(headerRow);
+    }
+
+    private void addDividerRow() {
+        if (!rows.isEmpty()) {
+            Row lastRow = rows.get(rows.size() - 1);
+            if (lastRow.type != RowType.SHADOW_SECTION) {
+                rows.add(new Row(RowIdentifier.DIVIDER, RowType.SHADOW_SECTION));
             }
         }
     }
@@ -570,7 +673,8 @@ public class generalActivitySettings extends BaseFragment {
                     break;
                 case HEADER:
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    headerCell.setText(getString(row.textResId));
+                    CharSequence headerText = row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : "");
+                    headerCell.setText(headerText);
                     break;
                 case TEXT_CELL:
                     TextCell textCell = (TextCell) holder.itemView;

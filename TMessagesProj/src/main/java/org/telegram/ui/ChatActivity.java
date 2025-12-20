@@ -303,6 +303,7 @@ import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.StickerBlacklistActivity;
 import org.ushastoe.fluffy.activities.fluffyMessageHistory;
 import org.ushastoe.fluffy.activities.mainActivitySettings;
 import org.ushastoe.fluffy.fluffyConfig;
@@ -32923,13 +32924,16 @@ public class ChatActivity extends BaseFragment implements
             }
             case OPTION_BLOCK_STICKER: {
                 if (selectedObject != null && selectedObject.getDocument() != null) {
-                    long id = selectedObject.getDocument().id;
+                    TLRPC.Document selectedDocument = selectedObject.getDocument();
+                    long id = selectedDocument.id;
                     if (fluffyConfig.blockSticker.contains(id)) {
                         fluffyConfig.removeBlockedSticker(id);
                         BulletinHelper.showSimpleBulletin(this, getString(R.string.StickerRemovedFromBlacklist), null);
                     } else {
-                        fluffyConfig.addBlockedSticker(id);
-                        BulletinHelper.showSimpleBulletin(this, getString(R.string.StickerAddedToBlacklist), null);
+                        fluffyConfig.addBlockedSticker(selectedDocument);
+                        BulletinFactory.of(this)
+                                .createSimpleBulletin(null, getString(R.string.StickerAddedToBlacklist), getString(R.string.StickerBlacklistOpen), () -> presentFragment(new StickerBlacklistActivity()))
+                                .show();
                     }
                     updateVisibleRows();
                 }

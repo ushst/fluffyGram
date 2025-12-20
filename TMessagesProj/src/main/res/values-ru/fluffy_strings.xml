@@ -24,6 +24,7 @@
     <string name="FG_QuickReplyDuplicateError">Команда с таким именем и префиксом уже существует</string>
     <string name="FG_QuickReplyDeleteTitle">Удалить команды</string>
     <string name="FG_QuickReplyDeleteMessage">Удалить выбранные команды?</string>
+    <string name="StickerBlacklistOpen">Открыть черный список</string>
     <string name="FG_CustomQuickRepliesCount_zero">%d команд</string>
     <string name="FG_CustomQuickRepliesCount_one">%d команда</string>
     <string name="FG_CustomQuickRepliesCount_two">%d команды</string>
