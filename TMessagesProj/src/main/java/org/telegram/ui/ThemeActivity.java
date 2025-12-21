@@ -2010,6 +2010,37 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         }
     }
 
+    private void refreshThemeAsset(Theme.ThemeInfo themeInfo) {
+        if (themeInfo == null || themeInfo.assetName == null) {
+            return;
+        }
+        File assetFile = new File(ApplicationLoader.getFilesDirFixed(), themeInfo.assetName);
+        if (assetFile.exists()) {
+            assetFile.delete();
+        }
+        if (!TextUtils.isEmpty(themeInfo.pathToWallpaper)) {
+            File wallpaperFile = new File(themeInfo.pathToWallpaper);
+            if (wallpaperFile.exists()) {
+                wallpaperFile.delete();
+            }
+            themeInfo.pathToWallpaper = null;
+        }
+        themeInfo.previewParsed = false;
+        themeInfo.themeLoaded = false;
+        themeInfo.badWallpaper = false;
+        Theme.clearPreviousTheme();
+        Theme.refreshThemeColors(true, true);
+        boolean isCurrentDayTheme = Theme.getCurrentTheme() == themeInfo;
+        boolean isCurrentNightTheme = Theme.getCurrentNightTheme() == themeInfo;
+        if (isCurrentDayTheme || isCurrentNightTheme) {
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, themeInfo, isCurrentNightTheme, null, themeInfo.currentAccentId);
+        }
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.themeListUpdated);
+        if (parentLayout != null) {
+            parentLayout.rebuildAllFragmentViews(true, true);
+        }
+    }
+
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
         private final static int TYPE_TEXT_SETTING = 1;
         private final static int TYPE_TEXT_INFO_PRIVACY = 2;
@@ -2063,14 +2094,27 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             boolean hasDelete;
             if (themeInfo.pathToFile == null) {
                 hasDelete = false;
-                items = new CharSequence[]{
-                        null,
-                        getString("ExportTheme", R.string.ExportTheme)
-                };
-                icons = new int[]{
-                        0,
-                        R.drawable.msg_shareout
-                };
+                if (themeInfo.assetName != null) {
+                    items = new CharSequence[]{
+                            null,
+                            getString("ExportTheme", R.string.ExportTheme),
+                            getString("Refresh", R.string.Refresh)
+                    };
+                    icons = new int[]{
+                            0,
+                            R.drawable.msg_shareout,
+                            R.drawable.msg_reset
+                    };
+                } else {
+                    items = new CharSequence[]{
+                            null,
+                            getString("ExportTheme", R.string.ExportTheme)
+                    };
+                    icons = new int[]{
+                            0,
+                            R.drawable.msg_shareout
+                    };
+                }
             } else {
                 hasDelete = themeInfo.info == null || !themeInfo.info.isDefault;
                 items = new CharSequence[]{
@@ -2154,10 +2198,14 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         FileLog.e(e);
                     }
                 } else if (which == 2) {
-                    if (parentLayout != null) {
-                        Theme.applyTheme(themeInfo);
-                        parentLayout.rebuildAllFragmentViews(true, true);
-                        new ThemeEditorView().show(getParentActivity(), themeInfo);
+                    if (themeInfo.pathToFile != null) {
+                        if (parentLayout != null) {
+                            Theme.applyTheme(themeInfo);
+                            parentLayout.rebuildAllFragmentViews(true, true);
+                            new ThemeEditorView().show(getParentActivity(), themeInfo);
+                        }
+                    } else if (themeInfo.assetName != null) {
+                        refreshThemeAsset(themeInfo);
                     }
                 } else if (which == 3) {
                     presentFragment(new ThemeSetUrlActivity(themeInfo, null, false));
