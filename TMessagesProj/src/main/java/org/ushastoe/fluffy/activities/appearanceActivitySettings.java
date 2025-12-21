@@ -166,7 +166,8 @@ public class appearanceActivitySettings extends BaseFragment {
         EMOJI_LONGPRESS_MENU,
         GESTURE_ACTIONS_HEADER,
         GESTURE_SHORTCUTS_HEADER,
-        SECTION_DIVIDER
+        SECTION_DIVIDER,
+        ONLINE_STATUS_RING
     }
     private static class Row {
         RowType type;
@@ -303,6 +304,7 @@ public class appearanceActivitySettings extends BaseFragment {
         List<Row> indicatorRows = new ArrayList<>();
         indicatorRows.add(new Row(RowIdentifier.DISABLE_ROUND, RowType.TEXT_CHECK, R.string.DisableNumberRounding, R.drawable.msg_archive_show, R.string.DisableNumberRoundingSubtitle));
         indicatorRows.add(new Row(RowIdentifier.MORE_INFO, RowType.TEXT_CHECK, R.string.ExtendedStatusOnline, R.drawable.msg_contacts_time, R.string.ExtendedStatusOnlineSubtitle));
+        indicatorRows.add(new Row(RowIdentifier.ONLINE_STATUS_RING, RowType.TEXT_CHECK, R.string.OnlineRingIndicator, R.drawable.msg_contacts_time, R.string.OnlineRingIndicatorSubtitle));
         indicatorRows.add(new Row(RowIdentifier.FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
         addSubcategory(RowIdentifier.CHAT_INDICATORS_HEADER, "Indicators", indicatorRows, true);
 
@@ -596,6 +598,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleMoreInfoOnline();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.moreInfoOnline);
+                }
+                break;
+            case ONLINE_STATUS_RING:
+                fluffyConfig.toggleOnlineStatusRing();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.onlineStatusRing);
                 }
                 break;
             case NEW_SWITCH_STYLE:
@@ -1869,6 +1877,12 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case MORE_INFO:
                             checked = fluffyConfig.moreInfoOnline;
+                            if (row.subtitleResId != 0) {
+                                subtitle = getString(row.subtitleResId);
+                            }
+                            break;
+                        case ONLINE_STATUS_RING:
+                            checked = fluffyConfig.onlineStatusRing;
                             if (row.subtitleResId != 0) {
                                 subtitle = getString(row.subtitleResId);
                             }

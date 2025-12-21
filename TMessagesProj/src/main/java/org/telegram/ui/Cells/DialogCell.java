@@ -118,6 +118,7 @@ import org.telegram.ui.Components.TimerDrawable;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.URLSpanNoUnderlineBold;
+import org.ushastoe.fluffy.fluffyConfig;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
 import org.telegram.ui.DialogsActivity;
@@ -4638,18 +4639,37 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 boolean isOnline = isOnline();
                 wasDrawnOnline = isOnline;
                 if (isOnline || onlineProgress != 0) {
-                    int top = (int) (storyParams.originalAvatarRect.bottom - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 6 : 8));
-                    int left;
-                    if (LocaleController.isRTL) {
-                        left = (int) (storyParams.originalAvatarRect.left + dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 10 : 6));
+                    if (fluffyConfig.onlineStatusRing) {
+                        float centerX = storyParams.originalAvatarRect.centerX();
+                        float centerY = storyParams.originalAvatarRect.centerY();
+                        float ringRadius = storyParams.originalAvatarRect.width() / 2f + AndroidUtilities.dpf2(2);
+                        Paint.Style previousStyle = Theme.dialogs_onlineCirclePaint.getStyle();
+                        float previousStrokeWidth = Theme.dialogs_onlineCirclePaint.getStrokeWidth();
+                        canvas.save();
+                        canvas.scale(onlineProgress, onlineProgress, centerX, centerY);
+                        Theme.dialogs_onlineCirclePaint.setStyle(Paint.Style.STROKE);
+                        Theme.dialogs_onlineCirclePaint.setStrokeWidth(AndroidUtilities.dpf2(4));
+                        Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
+                        canvas.drawCircle(centerX, centerY, ringRadius, Theme.dialogs_onlineCirclePaint);
+                        Theme.dialogs_onlineCirclePaint.setStrokeWidth(AndroidUtilities.dpf2(2.5f));
+                        Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider));
+                        canvas.drawCircle(centerX, centerY, ringRadius, Theme.dialogs_onlineCirclePaint);
+                        Theme.dialogs_onlineCirclePaint.setStyle(previousStyle);
+                        Theme.dialogs_onlineCirclePaint.setStrokeWidth(previousStrokeWidth);
+                        canvas.restore();
                     } else {
-                        left = (int) (storyParams.originalAvatarRect.right - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 10 : 6));
+                        int top = (int) (storyParams.originalAvatarRect.bottom - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 6 : 8));
+                        int left;
+                        if (LocaleController.isRTL) {
+                            left = (int) (storyParams.originalAvatarRect.left + dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 10 : 6));
+                        } else {
+                            left = (int) (storyParams.originalAvatarRect.right - dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 10 : 6));
+                        }
+                        Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
+                        canvas.drawCircle(left, top, dp(7) * onlineProgress, Theme.dialogs_onlineCirclePaint);
+                        Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider));
+                        canvas.drawCircle(left, top, dp(5) * onlineProgress, Theme.dialogs_onlineCirclePaint);
                     }
-
-                    Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
-                    canvas.drawCircle(left, top, dp(7) * onlineProgress, Theme.dialogs_onlineCirclePaint);
-                    Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider));
-                    canvas.drawCircle(left, top, dp(5) * onlineProgress, Theme.dialogs_onlineCirclePaint);
                     if (isOnline) {
                         if (onlineProgress < 1.0f) {
                             onlineProgress += 16f / 150.0f;
