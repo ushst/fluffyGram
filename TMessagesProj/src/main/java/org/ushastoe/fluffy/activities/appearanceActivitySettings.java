@@ -13,6 +13,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -27,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -58,7 +61,6 @@ import org.telegram.ui.CacheControlActivity;
 import org.telegram.ui.Cells.AppIconsSelectorCell;
 import org.telegram.ui.Cells.BrightnessControlCell;
 import org.telegram.ui.Cells.ChatListCell;
-import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.RadioColorCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
@@ -111,6 +113,8 @@ public class appearanceActivitySettings extends BaseFragment {
     private String TAG = "fluffy";
 
     private enum RowType {
+        HERO_CARD,
+        INFO_BLOCK,
         HEADER,
         TEXT_CHECK,
         TEXT_CELL,
@@ -126,6 +130,8 @@ public class appearanceActivitySettings extends BaseFragment {
     }
 
     private enum RowIdentifier {
+        APPEARANCE_HERO,
+        APPEARANCE_INFO,
         CHAT_LIST_PREVIEW,
         CENTER_TITLE,
         CENTER_TITLE_IN_CHAT,
@@ -201,6 +207,18 @@ public class appearanceActivitySettings extends BaseFragment {
             this(id, type);
             this.customText = customText;
         }
+
+        static Row createHero(CharSequence subtitle, int iconResId) {
+            Row row = new Row(RowIdentifier.APPEARANCE_HERO, RowType.HERO_CARD, R.string.Appearance, iconResId);
+            row.customText = subtitle;
+            return row;
+        }
+
+        static Row createInfo(CharSequence text) {
+            Row row = new Row(RowIdentifier.APPEARANCE_INFO, RowType.INFO_BLOCK);
+            row.customText = text;
+            return row;
+        }
     }
 
     private List<Row> rows = new ArrayList<>();
@@ -221,12 +239,17 @@ public class appearanceActivitySettings extends BaseFragment {
 
         rows.clear();
 
+        rows.add(Row.createHero(LocaleController.getString("AppearanceHeroSubtitle", R.string.AppearanceHeroSubtitle), R.drawable.msg_theme));
+
         buildGeneralSection();
         buildProfileSection();
         buildStickerSection();
         buildGesturesSection();
         buildChatSection();
 
+        if (!rows.isEmpty() && rows.get(rows.size() - 1).type == RowType.SHADOW_SECTION) {
+            rows.remove(rows.size() - 1);
+        }
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
             if (recyclerViewState != null) {
@@ -237,13 +260,13 @@ public class appearanceActivitySettings extends BaseFragment {
 
     private void buildGeneralSection() {
         addHeaderRow(new Row(RowIdentifier.GENERAL_LAYOUT_HEADER, RowType.HEADER, "Layout"));
-        rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
         List<Row> layoutRows = new ArrayList<>();
         layoutRows.add(new Row(RowIdentifier.CENTER_TITLE, RowType.TEXT_CHECK, R.string.centerTitle, R.drawable.msg_contacts_name));
         layoutRows.add(new Row(RowIdentifier.CENTER_TITLE_IN_CHAT, RowType.TEXT_CHECK, R.string.centerTitleInChat, R.drawable.msg_contacts_name));
         layoutRows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
         layoutRows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
         sortRows(layoutRows);
+        rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
         rows.addAll(layoutRows);
 
         addHeaderRow(new Row(RowIdentifier.GENERAL_TYPOGRAPHY_HEADER, RowType.HEADER, "Typography"));
@@ -365,7 +388,7 @@ public class appearanceActivitySettings extends BaseFragment {
     private void addDividerRow() {
         if (!rows.isEmpty()) {
             Row lastRow = rows.get(rows.size() - 1);
-            if (lastRow.type != RowType.SHADOW_SECTION) {
+            if (lastRow.type != RowType.SHADOW_SECTION && lastRow.type != RowType.HERO_CARD) {
                 rows.add(new Row(RowIdentifier.SECTION_DIVIDER, RowType.SHADOW_SECTION));
             }
         }
@@ -492,6 +515,10 @@ public class appearanceActivitySettings extends BaseFragment {
         };
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        int padding = AndroidUtilities.dp(12);
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.addItemDecoration(new CardBackgroundDecoration());
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setAdapter(listAdapter);
 
@@ -1453,7 +1480,8 @@ public class appearanceActivitySettings extends BaseFragment {
         public SetDefaultReactionCell(Context context) {
             super(context);
 
-            setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+            setBackground(null);
+            setPadding(AndroidUtilities.dp(21), 0, AndroidUtilities.dp(21), 0);
 
             textView = new TextView(context);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
@@ -1604,6 +1632,7 @@ public class appearanceActivitySettings extends BaseFragment {
             super(context);
             setWillNotDraw(false);
             setPadding(dp(21), 0, dp(21), 0);
+            setBackground(null);
 
             LinearLayout hLayout = new LinearLayout(context);
             hLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -1656,6 +1685,7 @@ public class appearanceActivitySettings extends BaseFragment {
             super(context);
             setWillNotDraw(false);
             setPadding(dp(21), 0, dp(21), 0);
+            setBackground(null);
 
             LinearLayout hLayout = new LinearLayout(context);
             hLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -1718,15 +1748,23 @@ public class appearanceActivitySettings extends BaseFragment {
             Row row = rows.get(position);
 
             switch (row.type) {
+                case HERO_CARD:
+                    HeroCardHolder heroHolder = (HeroCardHolder) holder;
+                    heroHolder.bind(row);
+                    break;
+                case INFO_BLOCK:
+                    InfoBlockHolder infoHolder = (InfoBlockHolder) holder;
+                    infoHolder.bind(row);
+                    break;
                 case SHADOW_SECTION:
-                    holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                    holder.itemView.setBackground(null);
                     break;
                 case NOTIFICATIONS_CHECK:
                     break;
                 case HEADER:
-                    HeaderCell headerCell = (HeaderCell) holder.itemView;
+                    TextView headerTextView = (TextView) holder.itemView;
                     CharSequence headerText = row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : "");
-                    headerCell.setText(headerText);
+                    headerTextView.setText(headerText);
                     break;
                 case TEXT_INFO_PRIVACY:
                     TextInfoPrivacyCell textInfoPrivacyCell = (TextInfoPrivacyCell) holder.itemView;
@@ -1910,6 +1948,9 @@ public class appearanceActivitySettings extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             Row row = rows.get(holder.getAdapterPosition());
+            if (row.type == RowType.HERO_CARD || row.type == RowType.INFO_BLOCK) {
+                return false;
+            }
             if (row.type == RowType.STICKER_SIZE_PREVIEW || row.type == RowType.STICKER_SIZE_SEEKBAR || row.type == RowType.STICKER_RADIUS_SEEKBAR) {
                 return false;
             }
@@ -1918,31 +1959,44 @@ public class appearanceActivitySettings extends BaseFragment {
 
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view;
+            boolean customLayoutParams = false;
             switch (viewType) {
                 case 0:
-                    view = new ShadowSectionCell(mContext);
+                    view = new View(mContext);
+                    RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, AndroidUtilities.dp(12));
+                    params.topMargin = AndroidUtilities.dp(2);
+                    params.bottomMargin = AndroidUtilities.dp(2);
+                    view.setLayoutParams(params);
+                    view.setBackground(null);
+                    customLayoutParams = true;
                     break;
                 case 1:
                     view = new TextCell(mContext, 0, false, true, null);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    applyCellBackground(view);
                     break;
                 case 2:
                     view = new NotificationsCheckCell(mContext, 21, 60, true);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    applyCellBackground(view);
                     break;
                 case 3:
-                    view = new HeaderCell(mContext);
-                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+                    TextView headerView = new TextView(mContext);
+                    headerView.setTypeface(AndroidUtilities.bold());
+                    headerView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+                    headerView.setLetterSpacing(0.02f);
+                    headerView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader));
+                    headerView.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(2), AndroidUtilities.dp(8), AndroidUtilities.dp(6));
+                    view = headerView;
                     break;
                 case 4:
                     view = new TextInfoPrivacyCell(mContext);
                     break;
                 case 5:
                     view = new ChatListPreviewCell(mContext);
+                    applyCellBackground(view);
                     break;
                 case 6:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    applyCellBackground(view);
                     break;
                 case 7:
                     view = new DoubleTapCell(mContext);
@@ -1952,21 +2006,34 @@ public class appearanceActivitySettings extends BaseFragment {
                     break;
                 case 9:
                     view = new StickerSizeSeekBarCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    view.setBackground(null);
                     break;
                 case 10:
                     view = new StickerRadiusSeekBarCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    view.setBackground(null);
                     break;
                 case 11:
                     view = new SetDefaultReactionCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    applyCellBackground(view);
+                    break;
+                case 12:
+                    view = new AppearanceHeroCardView(mContext);
+                    break;
+                case 13:
+                    view = createInfoBlockView(mContext);
                     break;
                 default:
                     view = new View(mContext);
                     break;
             }
-            view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
+            if (!customLayoutParams) {
+                view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
+            }
+            if (viewType == 12) {
+                return new HeroCardHolder((AppearanceHeroCardView) view);
+            } else if (viewType == 13) {
+                return new InfoBlockHolder(view);
+            }
             return new RecyclerListView.Holder(view);
         }
 
@@ -1987,17 +2054,166 @@ public class appearanceActivitySettings extends BaseFragment {
                 case STICKER_SIZE_SEEKBAR: return 9;
                 case STICKER_RADIUS_SEEKBAR: return 10;
                 case QUICK_SWITCHER: return 11;
+                case HERO_CARD: return 12;
+                case INFO_BLOCK: return 13;
                 default: return -1;
             }
         }
+
+        private class HeroCardHolder extends RecyclerView.ViewHolder {
+            private final AppearanceHeroCardView heroCardView;
+
+            HeroCardHolder(AppearanceHeroCardView view) {
+                super(view);
+                heroCardView = view;
+            }
+
+            void bind(Row row) {
+                CharSequence title = row.textResId != 0 ? getString(row.textResId) : row.customText;
+                heroCardView.bind(row.iconResId, title, row.customText);
+            }
+        }
+
+        private class InfoBlockHolder extends RecyclerView.ViewHolder {
+            InfoBlockHolder(View view) {
+                super(view);
+            }
+
+            void bind(Row row) {
+                if (itemView instanceof TextView) {
+                    ((TextView) itemView).setText(row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : ""));
+                }
+            }
+        }
+
+        private View createInfoBlockView(Context context) {
+            TextView textView = new TextView(context);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+            params.bottomMargin = AndroidUtilities.dp(16);
+            textView.setLayoutParams(params);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+            textView.setLineSpacing(AndroidUtilities.dp(2), 1.05f);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
+            textView.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), Theme.getColor(Theme.key_windowBackgroundWhite)));
+            textView.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(14), AndroidUtilities.dp(18), AndroidUtilities.dp(14));
+            return textView;
+        }
+
+        private void applyCellBackground(View view) {
+            view.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+        }
     }
 
+    private static class AppearanceHeroCardView extends FrameLayout {
+        private final ImageView iconView;
+        private final TextView titleView;
+        private final TextView subtitleView;
+
+        AppearanceHeroCardView(Context context) {
+            super(context);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+            params.bottomMargin = AndroidUtilities.dp(16);
+            setLayoutParams(params);
+            setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(22), Theme.getColor(Theme.key_windowBackgroundWhite)));
+            setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(18), AndroidUtilities.dp(20), AndroidUtilities.dp(18));
+
+            iconView = new ImageView(context);
+            iconView.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueIcon));
+            addView(iconView, LayoutHelper.createFrame(52, 52, Gravity.START | Gravity.TOP));
+
+            titleView = new TextView(context);
+            titleView.setTypeface(AndroidUtilities.bold());
+            titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.TOP, 64, 0, 0, 0));
+
+            subtitleView = new TextView(context);
+            subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            subtitleView.setLineSpacing(AndroidUtilities.dp(2), 1.1f);
+            subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
+            addView(subtitleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.TOP, 64, 30, 0, 0));
+        }
+
+        void bind(int iconRes, CharSequence title, CharSequence subtitle) {
+            iconView.setImageResource(iconRes);
+            titleView.setText(title);
+            subtitleView.setText(subtitle);
+        }
+    }
+
+    private class CardBackgroundDecoration extends RecyclerView.ItemDecoration {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+        private final Path path = new Path();
+        private final float radius = AndroidUtilities.dp(22);
+        private final float verticalPadding = AndroidUtilities.dp(4);
+        private final float horizontalInset = AndroidUtilities.dp(2);
+        private final float[] radii = new float[8];
+
+        CardBackgroundDecoration() {
+            paint.setStyle(Paint.Style.FILL);
+        }
+
+        @Override
+        public void onDraw(Canvas canvas, RecyclerView parent, RecyclerView.State state) {
+            paint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                View child = parent.getChildAt(i);
+                int position = parent.getChildAdapterPosition(child);
+                if (!isCardRow(position)) {
+                    continue;
+                }
+                boolean top = !isCardRow(position - 1);
+                boolean bottom = !isCardRow(position + 1);
+                float left = child.getLeft() + horizontalInset;
+                float right = child.getRight() - horizontalInset;
+                float topY = child.getTop() - (top ? verticalPadding : 0);
+                float bottomY = child.getBottom() + (bottom ? verticalPadding : 0);
+                rect.set(left, topY, right, bottomY);
+                setRadii(top, bottom);
+                path.reset();
+                path.addRoundRect(rect, radii, Path.Direction.CW);
+                canvas.drawPath(path, paint);
+            }
+        }
+
+        private void setRadii(boolean top, boolean bottom) {
+            float topRadius = top ? radius : 0f;
+            float bottomRadius = bottom ? radius : 0f;
+            radii[0] = radii[1] = topRadius;
+            radii[2] = radii[3] = topRadius;
+            radii[4] = radii[5] = bottomRadius;
+            radii[6] = radii[7] = bottomRadius;
+        }
+
+        private boolean isCardRow(int position) {
+            if (position < 0 || position >= rows.size()) {
+                return false;
+            }
+            RowType type = rows.get(position).type;
+            switch (type) {
+                case TEXT_CELL:
+                case TEXT_CHECK:
+                case TEXT_INFO_PRIVACY:
+                case NOTIFICATIONS_CHECK:
+                case CHAT_LIST_PREVIEW:
+                case DOUBLE_TAP_CELL:
+                case QUICK_SWITCHER:
+                case STICKER_SIZE_PREVIEW:
+                case STICKER_SIZE_SEEKBAR:
+                case STICKER_RADIUS_SEEKBAR:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
 
     @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class, ChatListPreviewCell.class, DoubleTapCell.class, StickerSizePreviewMessagesCell.class, StickerSizeSeekBarCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, BrightnessControlCell.class, ThemeTypeCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class, ChatListPreviewCell.class, DoubleTapCell.class, StickerSizePreviewMessagesCell.class, StickerSizeSeekBarCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
@@ -2021,8 +2237,6 @@ public class appearanceActivitySettings extends BaseFragment {
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"imageView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayIcon));
 
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
 
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));

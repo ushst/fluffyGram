@@ -1,26 +1,18 @@
 package org.ushastoe.fluffy.activities;
 
-import static org.telegram.messenger.LocaleController.getString;
-
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.text.InputType;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 import android.widget.EditText;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 import java.util.ArrayList;
-import java.util.List;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.LocaleController;
@@ -33,16 +25,8 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.CacheControlActivity;
-import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.NotificationsCheckCell;
-import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
-import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Cells.TextInfoPrivacyCell;
-import org.telegram.ui.Cells.TextSettingsCell;
-import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.messenger.UserConfig;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
 import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
@@ -50,107 +34,16 @@ import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
 import org.ushastoe.fluffy.activities.secretSettingsActivity;
 
 public class mainActivitySettings extends BaseFragment {
-  private ListAdapter listAdapter;
-  private RecyclerListView listView;
-  private LinearLayoutManager layoutManager;
-
-  private headerSettingsCell headerSettingsCell;
-  private View actionBarBackground;
-  private AnimatorSet actionBarAnimator;
-
-  private int[] location = new int[2];
-  private final List<Row> rows = new ArrayList<>();
+  private LinearLayout primaryMenuContainer;
 
   private int secretTapsCount;
   private final Runnable resetSecretTapRunnable = () -> secretTapsCount = 0;
-
-  private enum RowType { CUSTOM_HEADER, DIVIDER, HEADER, TEXT_CELL }
-
-  private enum RowIdentifier {
-    ABOUT_FLUFFY,
-    CATEGORY_DIVIDER,
-    CATEGORY_HEADER,
-    GENERAL,
-      GHOST_MODE,
-    SECRET_SETTINGS,
-    APPEARANCE,
-    ABOUT_DIVIDER,
-    LINKS_HEADER,
-    CHANNEL,
-    GITHUB
-  }
-
-  private static class Row {
-    final RowIdentifier id;
-    final RowType type;
-    Integer textResId;
-    Integer valueResId;
-    Integer iconResId;
-    boolean hasDivider;
-
-    Row(RowIdentifier id, RowType type) {
-      this.id = id;
-      this.type = type;
-    }
-
-    Row(RowIdentifier id, RowType type, int textResId) {
-      this(id, type);
-      this.textResId = textResId;
-    }
-
-    Row(RowIdentifier id, RowType type, int textResId, int iconResId,
-        boolean hasDivider) {
-      this(id, type, textResId);
-      this.iconResId = iconResId;
-      this.hasDivider = hasDivider;
-    }
-
-    Row(RowIdentifier id, RowType type, int textResId, int valueResId,
-        int iconResId, boolean hasDivider) {
-      this(id, type, textResId, iconResId, hasDivider);
-      this.valueResId = valueResId;
-    }
-  }
 
   @Override
   public boolean onFragmentCreate() {
     super.onFragmentCreate();
     DownloadController.getInstance(currentAccount).loadAutoDownloadConfig(true);
-    updateRows();
     return true;
-  }
-
-  private void updateRows() {
-    rows.clear();
-
-    rows.add(new Row(RowIdentifier.ABOUT_FLUFFY, RowType.CUSTOM_HEADER));
-    rows.add(new Row(RowIdentifier.CATEGORY_DIVIDER, RowType.DIVIDER));
-    rows.add(new Row(RowIdentifier.CATEGORY_HEADER, RowType.HEADER,
-                     R.string.Categories));
-    rows.add(new Row(RowIdentifier.GENERAL, RowType.TEXT_CELL, R.string.General,
-                     R.drawable.msg_media, false));
-  rows.add(new Row(RowIdentifier.GHOST_MODE, RowType.TEXT_CELL, R.string.GhostMode,
-           R.drawable.msg_secret, false));
-    if (SecretSettingsHelper.isSecretSettingsUnlocked(getCurrentUserId())) {
-      rows.add(new Row(RowIdentifier.SECRET_SETTINGS, RowType.TEXT_CELL,
-                       R.string.SuperSecretSettings, R.drawable.msg_secret,
-                       false));
-    }
-    rows.add(new Row(RowIdentifier.APPEARANCE, RowType.TEXT_CELL,
-                     R.string.Appearance, R.drawable.msg_theme, true));
-    rows.add(new Row(RowIdentifier.ABOUT_DIVIDER, RowType.DIVIDER));
-    rows.add(
-        new Row(RowIdentifier.LINKS_HEADER, RowType.HEADER, R.string.Links));
-    rows.add(new Row(RowIdentifier.CHANNEL, RowType.TEXT_CELL,
-                     R.string.ProfileChannel, R.string.fluffy_channel_link,
-                     R.drawable.msg_channel, true));
-    rows.add(new Row(RowIdentifier.GITHUB, RowType.TEXT_CELL,
-                     R.string.SourceCode, R.string.fluffy_github_link,
-                     R.drawable.msg_delete, false));
-
-    if (listAdapter != null) {
-      listAdapter.notifyDataSetChanged();
-    }
   }
 
   @Override
@@ -162,182 +55,57 @@ public class mainActivitySettings extends BaseFragment {
   @Override
   public View createView(Context context) {
     actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-    actionBar.setBackground(null);
-    actionBar.setTitleColor(
-        Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-    actionBar.setItemsColor(
-        Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), false);
-    actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_listSelector),
-                                      false);
-    actionBar.setCastShadows(false);
-    actionBar.setAddToContainer(false);
-    actionBar.setOccupyStatusBar(!AndroidUtilities.isTablet());
-    actionBar.setTitle(getString(R.string.fluffy));
-    actionBar.getTitleTextView().setAlpha(0.0f);
-    actionBar.setActionBarMenuOnItemClick(
-        new ActionBar.ActionBarMenuOnItemClick() {
-          @Override
-          public void onItemClick(int id) {
-            if (id == -1) {
-              finishFragment();
-            }
-          }
-        });
-
-    fragmentView = new FrameLayout(context) {
+    actionBar.setAllowOverlayTitle(true);
+    actionBar.setTitle(l10n("fluffy", R.string.fluffy));
+    actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
       @Override
-      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        FrameLayout.LayoutParams layoutParams =
-            (FrameLayout.LayoutParams)actionBarBackground.getLayoutParams();
-        layoutParams.height =
-            ActionBar.getCurrentActionBarHeight() +
-            (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight
-                                            : 0) +
-            AndroidUtilities.dp(3);
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-      }
-
-      @Override
-      protected void onLayout(boolean changed, int left, int top, int right,
-                              int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        checkScroll(false);
-      }
-    };
-    fragmentView.setBackgroundColor(
-        Theme.getColor(Theme.key_windowBackgroundGray));
-    fragmentView.setTag(Theme.key_windowBackgroundGray);
-    FrameLayout frameLayout = (FrameLayout)fragmentView;
-
-    listAdapter = new ListAdapter(context);
-
-    listView = new RecyclerListView(context) {
-      @Override
-      public Integer getSelectorColor(int position) {
-        return getThemedColor(Theme.key_listSelector);
-      }
-    };
-    listView.setVerticalScrollBarEnabled(false);
-    listView.setLayoutManager(
-        layoutManager = new LinearLayoutManager(
-            context, LinearLayoutManager.VERTICAL, false));
-    listView.setAdapter(listAdapter);
-
-    DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
-    itemAnimator.setDurations(350);
-    itemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-    itemAnimator.setDelayAnimations(false);
-    itemAnimator.setSupportsChangeAnimations(false);
-    listView.setItemAnimator(itemAnimator);
-    listView.setOnItemClickListener((view, position, x, y) -> {
-      Row row = rows.get(position);
-      if (row == null)
-        return;
-
-      switch (row.id) {
-      case GITHUB:
-        Browser.openUrl(getParentActivity(),
-                        "https://github.com/krolchonok/Telegram");
-        break;
-      case CHANNEL:
-        MessagesController.getInstance(currentAccount)
-            .openByUserName("fluffyGram", this, 1);
-        break;
-      case GENERAL:
-        presentFragment(new generalActivitySettings());
-        break;
-      case GHOST_MODE:
-        presentFragment(new ghostModeActivitySettings());
-        break;
-      case SECRET_SETTINGS:
-        presentFragment(new secretSettingsActivity());
-        break;
-      case APPEARANCE:
-        presentFragment(new appearanceActivitySettings());
-        break;
+      public void onItemClick(int id) {
+        if (id == -1) {
+          finishFragment();
+        }
       }
     });
 
-    frameLayout.addView(listView,
-                        LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
-                                                 LayoutHelper.MATCH_PARENT));
+    ScrollView scrollView = new ScrollView(context);
+    scrollView.setFillViewport(true);
+    scrollView.setVerticalScrollBarEnabled(false);
+    scrollView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+    fragmentView = scrollView;
 
-    listView.setOnScrollListener(new RecyclerView.OnScrollListener() {
-      @Override
-      public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        super.onScrolled(recyclerView, dx, dy);
-        checkScroll(true);
-      }
-    });
+    LinearLayout content = new LinearLayout(context);
+    content.setOrientation(LinearLayout.VERTICAL);
+    content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(24));
+    scrollView.addView(content, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
 
-    actionBarBackground = new View(context) {
-      private final Paint paint = new Paint();
+    content.addView(createHeroCard(context), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 20));
 
-      @Override
-      protected void onDraw(Canvas canvas) {
-        paint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        int h = getMeasuredHeight() - AndroidUtilities.dp(3);
-        canvas.drawRect(0, 0, getMeasuredWidth(), h, paint);
-        parentLayout.drawHeaderShadow(canvas, h);
-      }
-    };
-    actionBarBackground.setAlpha(0.0f);
-    frameLayout.addView(actionBarBackground,
-                        LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
-                                                 LayoutHelper.WRAP_CONTENT));
-    frameLayout.addView(actionBar,
-                        LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
-                                                 LayoutHelper.WRAP_CONTENT));
+    content.addView(createSectionTitle(context, l10n("Categories", R.string.Categories)), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 6));
+    FrameLayout primaryCard = createCardContainer(context);
+    primaryMenuContainer = new LinearLayout(context);
+    primaryMenuContainer.setOrientation(LinearLayout.VERTICAL);
+    primaryCard.addView(primaryMenuContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+    content.addView(primaryCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 24));
+
+    populatePrimaryItems(context);
+
+    content.addView(createSectionTitle(context, l10n("Links", R.string.Links)), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 6));
+    FrameLayout linksCard = createCardContainer(context);
+    LinearLayout linksContainer = new LinearLayout(context);
+    linksContainer.setOrientation(LinearLayout.VERTICAL);
+    linksCard.addView(linksContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+    addLinkRows(context, linksContainer);
+    content.addView(linksCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 20));
+
+    TextView info = new TextView(context);
+    info.setText(l10n("FluffySettingsInfo", R.string.FluffySettingsInfo));
+    info.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
+    info.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+    info.setLineSpacing(AndroidUtilities.dp(2), 1.05f);
+    info.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), Theme.getColor(Theme.key_windowBackgroundWhite)));
+    info.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(14), AndroidUtilities.dp(18), AndroidUtilities.dp(14));
+    content.addView(info, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
     return fragmentView;
-  }
-
-  private void checkScroll(boolean animated) {
-    int first = layoutManager.findFirstVisibleItemPosition();
-    boolean show;
-    if (first != 0) {
-      show = true;
-    } else {
-      RecyclerView.ViewHolder holder =
-          listView.findViewHolderForAdapterPosition(first);
-      if (holder == null) {
-        show = true;
-      } else {
-        headerSettingsCell = (headerSettingsCell)holder.itemView;
-        headerSettingsCell.getLocationOnScreen(location);
-        show = location[1] + headerSettingsCell.getMeasuredHeight() <
-               actionBar.getBottom();
-      }
-    }
-    boolean visible = actionBarBackground.getTag() == null;
-    if (show != visible) {
-      actionBarBackground.setTag(show ? null : 1);
-      if (actionBarAnimator != null) {
-        actionBarAnimator.cancel();
-        actionBarAnimator = null;
-      }
-      if (animated) {
-        actionBarAnimator = new AnimatorSet();
-        actionBarAnimator.playTogether(
-            ObjectAnimator.ofFloat(actionBarBackground, View.ALPHA,
-                                   show ? 1.0f : 0.0f),
-            ObjectAnimator.ofFloat(actionBar.getTitleTextView(), View.ALPHA,
-                                   show ? 1.0f : 0.0f));
-        actionBarAnimator.setDuration(250);
-        actionBarAnimator.addListener(new AnimatorListenerAdapter() {
-          @Override
-          public void onAnimationEnd(Animator animation) {
-            if (animation.equals(actionBarAnimator)) {
-              actionBarAnimator = null;
-            }
-          }
-        });
-        actionBarAnimator.start();
-      } else {
-        actionBarBackground.setAlpha(show ? 1.0f : 0.0f);
-        actionBar.getTitleTextView().setAlpha(show ? 1.0f : 0.0f);
-      }
-    }
   }
 
   @Override
@@ -348,8 +116,8 @@ public class mainActivitySettings extends BaseFragment {
   @Override
   public void onResume() {
     super.onResume();
-    if (listAdapter != null) {
-      listAdapter.notifyDataSetChanged();
+    if (primaryMenuContainer != null && getContext() != null) {
+      populatePrimaryItems(getContext());
     }
   }
 
@@ -401,7 +169,9 @@ public class mainActivitySettings extends BaseFragment {
     }
     if (SecretSettingsHelper.verifyUnlockCode(userId, trimmed)) {
       SecretSettingsHelper.setSecretSettingsUnlocked(userId, true);
-      updateRows();
+      if (getContext() != null) {
+        populatePrimaryItems(getContext());
+      }
       Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsSuccess,
                      Toast.LENGTH_SHORT)
           .show();
@@ -416,203 +186,104 @@ public class mainActivitySettings extends BaseFragment {
     return UserConfig.getInstance(currentAccount).getClientUserId();
   }
 
-  private class ListAdapter extends RecyclerListView.SelectionAdapter {
+  private static class MenuEntry {
+    final String key;
+    final int resId;
+    final int iconResId;
+    final Runnable action;
 
-    private final Context mContext;
-
-    public ListAdapter(Context context) { mContext = context; }
-
-    @Override
-    public int getItemCount() {
-      return rows.size();
+    MenuEntry(String key, int resId, int iconResId, Runnable action) {
+      this.key = key;
+      this.resId = resId;
+      this.iconResId = iconResId;
+      this.action = action;
     }
+  }
+  private View createHeroCard(Context context) {
+    FrameLayout card = new FrameLayout(context);
+    card.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(26), Theme.getColor(Theme.key_windowBackgroundWhite)));
+    card.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(10), AndroidUtilities.dp(10), AndroidUtilities.dp(10));
+    headerSettingsCell hero = new headerSettingsCell(context);
+    hero.setOnLogoClickListener(v -> onSecretTap());
+    hero.setBackgroundColor(0x00000000);
+    card.addView(hero, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
+        Gravity.TOP | Gravity.FILL_HORIZONTAL,
+        AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4)));
+    return card;
+  }
 
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-      Row row = rows.get(position);
-      switch (row.type) {
-      case CUSTOM_HEADER:
-        headerSettingsCell = (headerSettingsCell)holder.itemView;
-        headerSettingsCell.setPadding(
-            0,
-            ActionBar.getCurrentActionBarHeight() +
-                (actionBar.getOccupyStatusBar()
-                     ? AndroidUtilities.statusBarHeight
-                     : 0) -
-                AndroidUtilities.dp(40),
-            0, 0);
-        headerSettingsCell.setOnLogoClickListener(v -> onSecretTap());
-        break;
-      case HEADER:
-        HeaderCell headerCell = (HeaderCell)holder.itemView;
-        headerCell.setText(getString(row.textResId));
-        break;
-      case DIVIDER:
-        holder.itemView.setBackground(
-            Theme.getThemedDrawable(mContext, R.drawable.greydivider,
-                                    Theme.key_windowBackgroundGrayShadow));
-        break;
-      case TEXT_CELL:
-        TextCell textCell = (TextCell)holder.itemView;
-        String value =
-            (row.valueResId != null) ? getString(row.valueResId) : null;
-        if (value != null) {
-          textCell.setTextAndValueAndIcon(getString(row.textResId), value,
-                                          row.iconResId, row.hasDivider);
-        } else {
-          textCell.setTextAndIcon(getString(row.textResId), row.iconResId,
-                                  row.hasDivider);
-        }
-        break;
-      }
-    }
+  private TextView createSectionTitle(Context context, CharSequence text) {
+    TextView title = new TextView(context);
+    title.setText(text);
+    title.setTypeface(AndroidUtilities.bold());
+    title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+    title.setLetterSpacing(0.02f);
+    title.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader));
+    title.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), 0);
+    return title;
+  }
 
-    @Override
-    public boolean isEnabled(RecyclerView.ViewHolder holder) {
-      int position = holder.getAdapterPosition();
-      if (position < 0 || position >= rows.size()) {
-        return false;
-      }
-      RowType type = rows.get(position).type;
-      return type == RowType.TEXT_CELL;
-    }
+  private FrameLayout createCardContainer(Context context) {
+    FrameLayout card = new FrameLayout(context);
+    card.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(22), Theme.getColor(Theme.key_windowBackgroundWhite)));
+    card.setPadding(AndroidUtilities.dp(2), AndroidUtilities.dp(4), AndroidUtilities.dp(2), AndroidUtilities.dp(4));
+    return card;
+  }
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                      int viewType) {
-      View view;
-      switch (RowType.values()[viewType]) {
-      case DIVIDER:
-        view = new ShadowSectionCell(mContext);
-        break;
-      case CUSTOM_HEADER:
-        view = new headerSettingsCell(mContext);
-        view.setBackgroundColor(
-            Theme.getColor(Theme.key_windowBackgroundWhite));
-        break;
-      case HEADER:
-        view = new HeaderCell(mContext);
-        view.setBackgroundColor(
-            getThemedColor(Theme.key_windowBackgroundWhite));
-        break;
-      case TEXT_CELL:
-      default:
-        view = new TextCell(mContext);
-        view.setBackgroundColor(
-            Theme.getColor(Theme.key_windowBackgroundWhite));
-        break;
-      }
-      view.setLayoutParams(new RecyclerView.LayoutParams(
-          RecyclerView.LayoutParams.MATCH_PARENT,
-          RecyclerView.LayoutParams.WRAP_CONTENT));
-      return new RecyclerListView.Holder(view);
+  private void populatePrimaryItems(Context context) {
+    if (primaryMenuContainer == null) {
+      return;
     }
+    primaryMenuContainer.removeAllViews();
+    ArrayList<MenuEntry> entries = new ArrayList<>();
+    entries.add(new MenuEntry("General", R.string.General, R.drawable.msg_media,
+        () -> presentFragment(new generalActivitySettings())));
+    entries.add(new MenuEntry("GhostMode", R.string.GhostMode, R.drawable.msg_secret,
+        () -> presentFragment(new ghostModeActivitySettings())));
+    if (SecretSettingsHelper.isSecretSettingsUnlocked(getCurrentUserId())) {
+      entries.add(new MenuEntry("SuperSecretSettings", R.string.SuperSecretSettings, R.drawable.msg_secret,
+          () -> presentFragment(new secretSettingsActivity())));
+    }
+    entries.add(new MenuEntry("Appearance", R.string.Appearance, R.drawable.msg_theme,
+        () -> presentFragment(new appearanceActivitySettings())));
 
-    @Override
-    public int getItemViewType(int position) {
-      if (position >= 0 && position < rows.size()) {
-        return rows.get(position).type.ordinal();
-      }
-      return RowType.TEXT_CELL.ordinal();
+    for (int i = 0; i < entries.size(); i++) {
+      MenuEntry entry = entries.get(i);
+      TextCell cell = new TextCell(context);
+      cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+      cell.setTextAndIcon(l10n(entry.key, entry.resId), entry.iconResId, i != entries.size() - 1);
+      cell.setOnClickListener(v -> entry.action.run());
+      primaryMenuContainer.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
     }
+  }
+
+  private void addLinkRows(Context context, LinearLayout container) {
+    TextCell channelCell = new TextCell(context);
+    channelCell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+    channelCell.setTextAndValueAndIcon(l10n("ProfileChannel", R.string.ProfileChannel), l10n("fluffy_channel_link", R.string.fluffy_channel_link), R.drawable.msg_channel, true);
+    channelCell.setOnClickListener(v -> MessagesController.getInstance(currentAccount).openByUserName("fluffyGram", this, 1));
+    container.addView(channelCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+    TextCell githubCell = new TextCell(context);
+    githubCell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+    githubCell.setTextAndValueAndIcon(l10n("SourceCode", R.string.SourceCode), l10n("fluffy_github_link", R.string.fluffy_github_link), R.drawable.msg_delete, false);
+    githubCell.setOnClickListener(v -> Browser.openUrl(getParentActivity(), "https://github.com/krolchonok/Telegram"));
+    container.addView(githubCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+  }
+
+  private String l10n(String key, int resId) {
+    return LocaleController.getString(key, resId);
   }
 
   @Override
   public ArrayList<ThemeDescription> getThemeDescriptions() {
     ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-    themeDescriptions.add(new ThemeDescription(
-        listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR,
-        new Class[] {TextSettingsCell.class, TextCheckCell.class,
-                     HeaderCell.class, NotificationsCheckCell.class},
-        null, null, null, Theme.key_windowBackgroundWhite));
-    themeDescriptions.add(new ThemeDescription(
-        fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null,
-        Theme.key_windowBackgroundGray));
-
-    themeDescriptions.add(
-        new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null,
-                             null, null, null, Theme.key_actionBarDefault));
-    themeDescriptions.add(new ThemeDescription(
-        listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null,
-        Theme.key_actionBarDefault));
-    themeDescriptions.add(new ThemeDescription(
-        actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null,
-        Theme.key_actionBarDefaultIcon));
-    themeDescriptions.add(new ThemeDescription(
-        actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null,
-        Theme.key_actionBarDefaultTitle));
-    themeDescriptions.add(new ThemeDescription(
-        actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null,
-        null, Theme.key_actionBarDefaultSelector));
-
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {NotificationsCheckCell.class},
-        new String[] {"textView"}, null, null, null,
-        Theme.key_windowBackgroundWhiteBlackText));
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {NotificationsCheckCell.class},
-        new String[] {"valueTextView"}, null, null, null,
-        Theme.key_windowBackgroundWhiteGrayText2));
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {NotificationsCheckCell.class},
-        new String[] {"checkBox"}, null, null, null, Theme.key_switchTrack));
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {NotificationsCheckCell.class},
-        new String[] {"checkBox"}, null, null, null,
-        Theme.key_switchTrackChecked));
-
-    themeDescriptions.add(
-        new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null,
-                             null, null, null, Theme.key_listSelector));
-
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {View.class}, Theme.dividerPaint, null, null,
-        Theme.key_divider));
-
-    themeDescriptions.add(
-        new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER,
-                             new Class[] {ShadowSectionCell.class}, null, null,
-                             null, Theme.key_windowBackgroundGrayShadow));
-
-    themeDescriptions.add(
-        new ThemeDescription(listView, 0, new Class[] {TextSettingsCell.class},
-                             new String[] {"textView"}, null, null, null,
-                             Theme.key_windowBackgroundWhiteBlackText));
-    themeDescriptions.add(
-        new ThemeDescription(listView, 0, new Class[] {TextSettingsCell.class},
-                             new String[] {"valueTextView"}, null, null, null,
-                             Theme.key_windowBackgroundWhiteValueText));
-
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {HeaderCell.class}, new String[] {"textView"},
-        null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
-
-    themeDescriptions.add(
-        new ThemeDescription(listView, 0, new Class[] {TextCheckCell.class},
-                             new String[] {"textView"}, null, null, null,
-                             Theme.key_windowBackgroundWhiteBlackText));
-    themeDescriptions.add(
-        new ThemeDescription(listView, 0, new Class[] {TextCheckCell.class},
-                             new String[] {"valueTextView"}, null, null, null,
-                             Theme.key_windowBackgroundWhiteGrayText2));
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {TextCheckCell.class},
-        new String[] {"checkBox"}, null, null, null, Theme.key_switchTrack));
-    themeDescriptions.add(
-        new ThemeDescription(listView, 0, new Class[] {TextCheckCell.class},
-                             new String[] {"checkBox"}, null, null, null,
-                             Theme.key_switchTrackChecked));
-
-    themeDescriptions.add(
-        new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER,
-                             new Class[] {TextInfoPrivacyCell.class}, null,
-                             null, null, Theme.key_windowBackgroundGrayShadow));
-    themeDescriptions.add(new ThemeDescription(
-        listView, 0, new Class[] {TextInfoPrivacyCell.class},
-        new String[] {"textView"}, null, null, null,
-        Theme.key_windowBackgroundWhiteGrayText4));
-
+    themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
+    themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
+    themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
+    themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
+    themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
     return themeDescriptions;
   }
 }

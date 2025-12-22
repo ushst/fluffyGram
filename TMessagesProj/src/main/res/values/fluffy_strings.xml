@@ -13,6 +13,13 @@
     <string name="GhostModeDisableStoryView">Disable story view (don\'t mark as seen)</string>
     <string name="GhostModeDisableTyping">Hide my typing indicator</string>
     <string name="GhostModeDisableEmoji">Hide emoji selection indicator</string>
+    <string name="GhostModeSubtitle">Stay invisible while you catch up on stories or draft replies.</string>
+    <string name="GhostModeInfo">Ghost Mode keeps your story views, typing status and emoji reactions private. Enable the toggles you need and switch them off anytime.</string>
+    <string name="GeneralHeroSubtitle">Tune fluffy\'s behavior for downloads, storage and experiments.</string>
+    <string name="GeneralInfo">Changes apply instantly. Some tools (like config import/export) may request storage access.</string>
+    <string name="AppearanceHeroSubtitle">Customize how chats look, feel and react to your gestures.</string>
+    <string name="AppearanceInfo">Visual tweaks apply instantly. Some options (fonts, themes) may ask for a quick restart.</string>
+    <string name="FluffySettingsInfo">Access advanced tweaks from these sections or tap the logo seven times to unlock secrets.</string>
     <string name="info_fork">custom telegram messenger with tweek\'s</string>
     <string name="meow">Meow</string>
     <string name="RestartAppToTakeEffect">Restart for aplly</string>

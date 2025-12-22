@@ -21,6 +21,7 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -74,7 +75,7 @@ public class DoubleTapCell extends LinearLayout {
   public DoubleTapCell(Context context) {
     super(context);
     setOrientation(VERTICAL);
-    setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+    setBackgroundColor(Color.TRANSPARENT);
     setPadding(AndroidUtilities.dp(13), 0, AndroidUtilities.dp(13),
                AndroidUtilities.dp(10));
 

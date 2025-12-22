@@ -10855,15 +10855,14 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean sendTyping(long dialogId, long threadMsgId, int action, String emojicon, int classGuid) {
-        // Respect Ghost Mode settings
-        // actions 10 and 11 are emoji-related in this client; treat them separately
-        if (fluffyConfig.disableTypingIndicator && action != 10 && action != 11) {
-            return false;
-        }
-        if (fluffyConfig.disableEmojiIndicator && (action == 10 || action == 11)) {
-            return false;
-        }
         if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
+            return false;
+        }
+        final boolean blockRegularTyping = fluffyConfig.disableTypingIndicator && action != 10 && action != 11;
+        final boolean blockEmojiTyping = fluffyConfig.disableEmojiIndicator && (action == 10 || action == 11);
+        if (blockRegularTyping || blockEmojiTyping) {
+            // Make sure we also clear any local bookkeeping so UI elements stop animating immediately.
+            cancelTyping(action, dialogId, threadMsgId);
             return false;
         }
         final long selfId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();

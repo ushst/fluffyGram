@@ -86,14 +86,6 @@ public class headerSettingsCell extends FrameLayout {
                 Gravity.CENTER | Gravity.TOP, 60, 180, 60, 27));
   }
 
-  @Override
-  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    super.onMeasure(
-        MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec),
-                                    MeasureSpec.EXACTLY),
-        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-  }
-
   public void setOnLogoClickListener(OnClickListener onClickListener) {
     logo.setOnClickListener(onClickListener);
   }

@@ -23,7 +23,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -46,9 +45,7 @@ public class ChatListPreviewCell extends FrameLayout {
 
   private final FrameLayout preview;
 
-  private final RectF rect = new RectF();
   private final TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-  private final Paint outlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
   private float statusProgress;
   private float titleProgress;
@@ -62,12 +59,7 @@ public class ChatListPreviewCell extends FrameLayout {
   public ChatListPreviewCell(Context context) {
     super(context);
     setWillNotDraw(false);
-    setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-
-    outlinePaint.setStyle(Paint.Style.STROKE);
-    outlinePaint.setColor(ColorUtils.setAlphaComponent(
-        Theme.getColor(Theme.key_switchTrack), 0x3F));
-    outlinePaint.setStrokeWidth(Math.max(2, AndroidUtilities.dp(1f)));
+    setBackgroundColor(Color.TRANSPARENT);
 
     preview = new FrameLayout(context) {
       @SuppressLint("DrawAllocation")
@@ -96,17 +88,6 @@ public class ChatListPreviewCell extends FrameLayout {
         float titleMoveDelta =
             (w - width - AndroidUtilities.dp(30) * statusProgress) / 2f -
             AndroidUtilities.dp(78);
-
-        rect.set(0, 0, w, h);
-        Theme.dialogs_onlineCirclePaint.setColor(Color.argb(20, r, g, b));
-        canvas.drawRoundRect(rect, AndroidUtilities.dp(8),
-                             AndroidUtilities.dp(8),
-                             Theme.dialogs_onlineCirclePaint);
-
-        float stroke = outlinePaint.getStrokeWidth() / 2;
-        rect.set(stroke, stroke, w - stroke, h - stroke);
-        canvas.drawRoundRect(rect, AndroidUtilities.dp(8),
-                             AndroidUtilities.dp(8), outlinePaint);
 
         Drawable search =
             ContextCompat.getDrawable(context, R.drawable.ic_ab_search)

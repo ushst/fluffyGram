@@ -12,10 +12,14 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcelable;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -33,14 +37,9 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.CacheControlActivity;
-import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.RadioColorCell;
-import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
-import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
-import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -75,13 +74,17 @@ public class generalActivitySettings extends BaseFragment {
     private static final int REQUEST_CODE_IMPORT_FLUFFY_CONFIG = 1003;
 
     private enum RowType {
-        HEADER,
+        HERO_CARD,
+        CARD_SECTION,
+        INFO_BLOCK,
         TEXT_CHECK,
         TEXT_CELL,
-        SHADOW_SECTION
+        TEXT_INFO_PRIVACY
     }
 
     private enum RowIdentifier {
+        GENERAL_HERO,
+        GENERAL_INFO,
         DEV_MODE,
         SHOW_FAKE_EDIT_INDICATOR,
         DOWNLOAD_SPEED_BOOST,
@@ -110,8 +113,7 @@ public class generalActivitySettings extends BaseFragment {
         VOICE_ALERTS_HEADER,
         CONFIG_MANAGEMENT_HEADER,
         EXPERIMENTS_BOTS_HEADER,
-        EXPERIMENTS_UTILITIES_HEADER,
-        DIVIDER
+        EXPERIMENTS_UTILITIES_HEADER
     }
 
     private static class Row {
@@ -119,7 +121,9 @@ public class generalActivitySettings extends BaseFragment {
         RowIdentifier id;
         int textResId;
         int iconResId;
+        int subtitleResId;
         CharSequence customText;
+        List<Row> children;
 
         Row(RowIdentifier id, RowType type, int textResId, int iconResId) {
             this(id, type, textResId, iconResId, null);
@@ -144,6 +148,22 @@ public class generalActivitySettings extends BaseFragment {
         Row(RowIdentifier id, RowType type, CharSequence customText) {
             this(id, type, 0, 0, customText);
         }
+
+        static Row createSection(RowIdentifier id, CharSequence title, List<Row> children) {
+            Row row = new Row(id, RowType.CARD_SECTION, 0, 0, title);
+            row.children = children;
+            return row;
+        }
+
+        static Row createHero(RowIdentifier id, CharSequence subtitle, int iconResId) {
+            Row row = new Row(id, RowType.HERO_CARD, R.string.General, iconResId, subtitle);
+            return row;
+        }
+
+        static Row createInfo(RowIdentifier id, CharSequence text) {
+            Row row = new Row(id, RowType.INFO_BLOCK, 0, 0, text);
+            return row;
+        }
     }
 
     @Override
@@ -159,6 +179,10 @@ public class generalActivitySettings extends BaseFragment {
 
         rows.clear();
 
+        rows.add(Row.createHero(RowIdentifier.GENERAL_HERO,
+                LocaleController.getString("GeneralHeroSubtitle", R.string.GeneralHeroSubtitle),
+                R.drawable.msg_settings));
+
         addGeneralSubcategories();
 
         addVoiceSubcategories();
@@ -166,6 +190,9 @@ public class generalActivitySettings extends BaseFragment {
         addConfigurationCategory();
 
         addExperimentsCategories();
+
+        rows.add(Row.createInfo(RowIdentifier.GENERAL_INFO,
+                LocaleController.getString("GeneralInfo", R.string.GeneralInfo)));
 
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
@@ -176,26 +203,26 @@ public class generalActivitySettings extends BaseFragment {
     }
 
     private void addGeneralSubcategories() {
-        addCategory(new Row(RowIdentifier.GENERAL_PRODUCTIVITY_HEADER, RowType.HEADER, "Productivity"),
+        addCategory(RowIdentifier.GENERAL_PRODUCTIVITY_HEADER, "Productivity",
                 asList(
                         new Row(RowIdentifier.DOWNLOAD_SPEED_BOOST, RowType.TEXT_CHECK, R.string.downloadSpeedBoost, R.drawable.msg_download),
                         new Row(RowIdentifier.SORT_CHATS_BY_UNREAD, RowType.TEXT_CHECK, R.string.FG_SortByUnread, R.drawable.msg_markread)
                 ), true);
 
-        addCategory(new Row(RowIdentifier.GENERAL_MEDIA_HEADER, RowType.HEADER, "Media"),
+        addCategory(RowIdentifier.GENERAL_MEDIA_HEADER, "Media",
                 asList(
                         new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute),
                         new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music),
                         new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar)
                 ), true);
 
-        addCategory(new Row(RowIdentifier.GENERAL_HISTORY_HEADER, RowType.HEADER, "History"),
+        addCategory(RowIdentifier.GENERAL_HISTORY_HEADER, "History",
                 asList(
                         new Row(RowIdentifier.SAVE_EDITED, RowType.TEXT_CHECK, R.string.saveEditRow, R.drawable.msg_edit),
                         new Row(RowIdentifier.SAVE_DELETED, RowType.TEXT_CHECK, R.string.saveDelRow, R.drawable.msg_delete)
                 ), true);
 
-        addCategory(new Row(RowIdentifier.GENERAL_DEVELOPER_HEADER, RowType.HEADER, "Developer Tools"),
+        addCategory(RowIdentifier.GENERAL_DEVELOPER_HEADER, "Developer Tools",
                 asList(
                         new Row(RowIdentifier.DEV_MODE, RowType.TEXT_CHECK, R.string.FG_DevMode, R.drawable.msg_settings),
                         new Row(RowIdentifier.SHOW_FAKE_EDIT_INDICATOR, RowType.TEXT_CHECK, R.string.FG_ShowFakeEditIndicator, R.drawable.msg_edit)
@@ -206,24 +233,24 @@ public class generalActivitySettings extends BaseFragment {
         if (fluffyConfig.enableCustomQuickReplies) {
             quickRows.add(new Row(RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE, RowType.TEXT_CELL, R.string.FG_ManageCustomQuickReplies, R.drawable.msg_settings));
         }
-        addCategory(new Row(RowIdentifier.GENERAL_QUICK_REPLY_HEADER, RowType.HEADER, "Quick Replies"), quickRows, false);
+        addCategory(RowIdentifier.GENERAL_QUICK_REPLY_HEADER, "Quick Replies", quickRows, false);
     }
 
     private void addVoiceSubcategories() {
-        addCategory(new Row(RowIdentifier.VOICE_PROVIDER_DETAILS_HEADER, RowType.HEADER, "Provider"),
+        addCategory(RowIdentifier.VOICE_PROVIDER_DETAILS_HEADER, "Provider",
                 asList(
                         new Row(RowIdentifier.VOICE_PROVIDER_SELECTOR, RowType.TEXT_CELL, R.string.UseCloudflare, R.drawable.voicechat_muted),
                         new Row(RowIdentifier.VOICE_PROVIDER_CREDENTIALS, RowType.TEXT_CELL, R.string.CloudflareCredentials, R.drawable.msg_voicechat_solar)
                 ), false);
 
-        addCategory(new Row(RowIdentifier.VOICE_ALERTS_HEADER, RowType.HEADER, "Alerts"),
+        addCategory(RowIdentifier.VOICE_ALERTS_HEADER, "Alerts",
                 asList(
                         new Row(RowIdentifier.TRANSCRIBE_DISABLE_LISTEN_SIGNAL, RowType.TEXT_CHECK, R.string.FG_TranscribeDisableListenSignal, R.drawable.msg_voicechat)
                 ), false);
     }
 
     private void addConfigurationCategory() {
-        addCategory(new Row(RowIdentifier.CONFIG_MANAGEMENT_HEADER, RowType.HEADER, "Backup"),
+        addCategory(RowIdentifier.CONFIG_MANAGEMENT_HEADER, "Backup",
                 asList(
                         new Row(RowIdentifier.EXPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ExportFluffyConfig, R.drawable.msg_download),
                         new Row(RowIdentifier.IMPORT_FLUFFY_CONFIG, RowType.TEXT_CELL, R.string.ImportFluffyConfig, R.drawable.msg_saved)
@@ -231,27 +258,26 @@ public class generalActivitySettings extends BaseFragment {
     }
 
     private void addExperimentsCategories() {
-        addCategory(new Row(RowIdentifier.EXPERIMENTS_BOTS_HEADER, RowType.HEADER, "Bots"),
+        addCategory(RowIdentifier.EXPERIMENTS_BOTS_HEADER, "Bots",
                 asList(
                         new Row(RowIdentifier.ALLOW_ATTACH_ANY_BOT, RowType.TEXT_CHECK, R.string.AllowAttachAnyBot, R.drawable.msg_bot)
                 ), false);
 
-        addCategory(new Row(RowIdentifier.EXPERIMENTS_UTILITIES_HEADER, RowType.HEADER, "Utilities"),
+        addCategory(RowIdentifier.EXPERIMENTS_UTILITIES_HEADER, "Utilities",
                 asList(
                         new Row(RowIdentifier.USER_STATUS_LOG_VIEWER, RowType.TEXT_CELL, R.string.UserStatusLogTitle, R.drawable.menu_feature_status),
                         new Row(RowIdentifier.HIDE_PINNED_SMALL_SCREEN, RowType.TEXT_CHECK, R.string.HidePinnedOnSmallScreen, R.drawable.msg_pin)
                 ), true);
     }
 
-    private void addCategory(Row headerRow, List<Row> entries, boolean sortEntries) {
+    private void addCategory(RowIdentifier headerId, CharSequence title, List<Row> entries, boolean sortEntries) {
         if (entries == null || entries.isEmpty()) {
             return;
         }
-        addHeaderRow(headerRow);
         if (sortEntries) {
             sortRows(entries);
         }
-        rows.addAll(entries);
+        rows.add(Row.createSection(headerId, title, entries));
     }
 
     private void sortRows(List<Row> entries) {
@@ -273,20 +299,6 @@ public class generalActivitySettings extends BaseFragment {
         ArrayList<Row> list = new ArrayList<>(rowItems.length);
         Collections.addAll(list, rowItems);
         return list;
-    }
-
-    private void addHeaderRow(Row headerRow) {
-        addDividerRow();
-        rows.add(headerRow);
-    }
-
-    private void addDividerRow() {
-        if (!rows.isEmpty()) {
-            Row lastRow = rows.get(rows.size() - 1);
-            if (lastRow.type != RowType.SHADOW_SECTION) {
-                rows.add(new Row(RowIdentifier.DIVIDER, RowType.SHADOW_SECTION));
-            }
-        }
     }
 
     @Override
@@ -324,6 +336,9 @@ public class generalActivitySettings extends BaseFragment {
         };
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        int padding = AndroidUtilities.dp(12);
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter);
 
@@ -334,19 +349,11 @@ public class generalActivitySettings extends BaseFragment {
         itemAnimator.setSupportsChangeAnimations(false);
         listView.setItemAnimator(itemAnimator);
 
-        // Упрощенный обработчик нажатий
-        listView.setOnItemClickListener((view, position) -> {
-            Row row = rows.get(position);
-            handleItemClick(row.id, view, context);
-        });
-
         return fragmentView;
     }
 
-    private void handleItemClick(RowIdentifier rowId, View view, Context context) {
-        if (view instanceof TextCell) {
-            TextCell textCell = (TextCell) view;
-            switch (rowId) {
+    private void handleItemClick(Row row, TextCell textCell, Context context) {
+        switch (row.id) {
                 case DOWNLOAD_SPEED_BOOST:
                     fluffyConfig.toggleDownloadSpeedBoost();
                     textCell.setChecked(fluffyConfig.downloadSpeedBoost);
@@ -423,7 +430,6 @@ public class generalActivitySettings extends BaseFragment {
                 case VOICE_PROVIDER_SELECTOR:
                     selectProvider(context);
                     break;
-            }
         }
     }
 
@@ -576,15 +582,6 @@ public class generalActivitySettings extends BaseFragment {
         }
     }
 
-    private int getRowPositionById(RowIdentifier id) {
-        for (int i = 0; i < rows.size(); i++) {
-            if (rows.get(i).id == id) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
     private String getProviderLabel(int provider) {
         switch (provider) {
             case fluffyConfig.TRANSCRIBE_PROVIDER_CLOUDFLARE:
@@ -622,9 +619,8 @@ public class generalActivitySettings extends BaseFragment {
             linearLayout.addView(cell);
             cell.setOnClickListener(v -> {
                 fluffyConfig.setProviderVoice(index);
-                int position = getRowPositionById(RowIdentifier.VOICE_PROVIDER_SELECTOR);
-                if (position != -1) {
-                    listAdapter.notifyItemChanged(position);
+                if (listAdapter != null) {
+                    listAdapter.notifyDataSetChanged();
                 }
                 dialogRef.get().dismiss();
             });
@@ -650,11 +646,49 @@ public class generalActivitySettings extends BaseFragment {
         }
     }
 
+    private static class HeroCardView extends FrameLayout {
+        private final ImageView iconView;
+        private final TextView titleView;
+        private final TextView subtitleView;
+
+        HeroCardView(Context context) {
+            super(context);
+            int radius = AndroidUtilities.dp(22);
+            setBackground(Theme.createRoundRectDrawable(radius, Theme.getColor(Theme.key_windowBackgroundWhite)));
+            setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(18), AndroidUtilities.dp(20), AndroidUtilities.dp(18));
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+            params.bottomMargin = AndroidUtilities.dp(16);
+            setLayoutParams(params);
+
+            iconView = new ImageView(context);
+            iconView.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueIcon));
+            addView(iconView, LayoutHelper.createFrame(52, 52, Gravity.START | Gravity.TOP));
+
+            titleView = new TextView(context);
+            titleView.setTypeface(AndroidUtilities.bold());
+            titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.TOP, 64, 0, 0, 0));
+
+            subtitleView = new TextView(context);
+            subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            subtitleView.setLineSpacing(AndroidUtilities.dp(2), 1.1f);
+            subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
+            addView(subtitleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.TOP, 64, 30, 0, 0));
+        }
+
+        void bind(int iconRes, CharSequence title, CharSequence subtitle) {
+            iconView.setImageResource(iconRes);
+            titleView.setText(title);
+            subtitleView.setText(subtitle);
+        }
+    }
+
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
-        private Context mContext;
+        private final Context mContext;
 
-        public ListAdapter(Context context) {
+        ListAdapter(Context context) {
             mContext = context;
         }
 
@@ -666,132 +700,237 @@ public class generalActivitySettings extends BaseFragment {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             Row row = rows.get(position);
-
             switch (row.type) {
-                case SHADOW_SECTION:
-                    holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                case HERO_CARD:
+                    ((HeroCardHolder) holder).bind(row);
                     break;
-                case HEADER:
-                    HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    CharSequence headerText = row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : "");
-                    headerCell.setText(headerText);
+                case CARD_SECTION:
+                    ((CardSectionHolder) holder).bind(row);
                     break;
-                case TEXT_CELL:
-                    TextCell textCell = (TextCell) holder.itemView;
-                    if (row.id == RowIdentifier.VOICE_PROVIDER_SELECTOR) {
-                        String value = getProviderLabel(fluffyConfig.voiceUseCloudflare);
-                        textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
-                    } else if (row.id == RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE) {
-                        int count = FluffyQuickRepliesManager.getInstance().getRepliesCount();
-                        String value = LocaleController.formatPluralString("FG_CustomQuickRepliesCount", count);
-                        textCell.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);
-                    } else {
-                        textCell.setTextAndIcon(getString(row.textResId), row.iconResId, true);
-                    }
-                    break;
-                case TEXT_CHECK:
-                    TextCell textCheckCell = (TextCell) holder.itemView;
-                    boolean enabled = true;
-                    boolean checked = false;
-                    switch (row.id) {
-                        case DEV_MODE:
-                            checked = fluffyConfig.devModeEnabled;
-                            break;
-                        case SHOW_FAKE_EDIT_INDICATOR:
-                            checked = fluffyConfig.showFakeEditIcon;
-                            enabled = fluffyConfig.devModeEnabled;
-                            break;
-                        case DOWNLOAD_SPEED_BOOST:
-                            checked = fluffyConfig.downloadSpeedBoost;
-                            break;
-                        case BIG_PHOTO_SEND:
-                            checked = fluffyConfig.largePhoto;
-                            break;
-                        case ALLOW_ATTACH_ANY_BOT:
-                            checked = fluffyConfig.allowAttachAnyBot;
-                            break;
-                        case HIDE_PINNED_SMALL_SCREEN:
-                            checked = fluffyConfig.hidePinnedInSmallMode;
-                            break;
-                        case SAVE_EDITED:
-                            checked = fluffyConfig.saveEditedMessages;
-                            break;
-                        case SAVE_DELETED:
-                            checked = fluffyConfig.saveDeletedMessages;
-                            break;
-                        case SORT_CHATS_BY_UNREAD:
-                            checked = fluffyConfig.sortChatsByUnread;
-                            break;
-                        case UNMUTE_WITH_VOLUME:
-                            checked = fluffyConfig.unmuteVideoWithVolume;
-                            break;
-                        case PAUSE_MUSIC_ON_MEDIA:
-                            checked = fluffyConfig.pauseMusicOnMedia;
-                            break;
-                        case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
-                            checked = fluffyConfig.transcribeDisableListenSignal;
-                            break;
-                        case CUSTOM_QUICK_REPLIES_TOGGLE:
-                            checked = fluffyConfig.enableCustomQuickReplies;
-                            break;
-                    }
-                    textCheckCell.setEnabled(enabled);
-                    textCheckCell.setAlpha(enabled ? 1f : 0.5f);
-                    textCheckCell.setTextAndCheckAndIcon(getString(row.textResId), checked, row.iconResId, true);
+                case INFO_BLOCK:
+                    ((InfoBlockHolder) holder).bind(row);
                     break;
             }
         }
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            int position = holder.getAdapterPosition();
-            if (position < 0 || position >= rows.size()) {
-                return false;
-            }
-            Row row = rows.get(position);
-            return row.type != RowType.SHADOW_SECTION && row.type != RowType.HEADER;
+            return false;
         }
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view;
-            switch (viewType) {
-                case 0: // HEADER
-                    view = new HeaderCell(mContext);
-                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-                    break;
-                case 1: // TEXT_CHECK
-                    view = new TextCell(mContext, 0, false, true, null);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-                    break;
-                case 2: // TEXT_CELL
-                    view = new TextCell(mContext);
-                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-                    break;
-                case 3: // SHADOW_SECTION
-                default:
-                    view = new ShadowSectionCell(mContext);
-                    break;
+            if (viewType == 0) {
+                return new HeroCardHolder(new HeroCardView(mContext));
+            } else if (viewType == 1) {
+                return new CardSectionHolder(mContext);
+            } else {
+                return new InfoBlockHolder(mContext);
             }
-            view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
-            return new RecyclerListView.Holder(view);
         }
-
 
         @Override
         public int getItemViewType(int position) {
             Row row = rows.get(position);
-            switch (row.type) {
-                case HEADER:
-                    return 0;
-                case TEXT_CHECK:
-                    return 1;
-                case TEXT_CELL:
-                    return 2;
-                case SHADOW_SECTION:
-                    return 3;
-                default:
-                    return 3;
+            if (row.type == RowType.HERO_CARD) {
+                return 0;
+            } else if (row.type == RowType.CARD_SECTION) {
+                return 1;
+            }
+            return 2;
+        }
+
+        private class HeroCardHolder extends RecyclerView.ViewHolder {
+            private final HeroCardView heroCardView;
+
+            HeroCardHolder(HeroCardView view) {
+                super(view);
+                heroCardView = view;
+            }
+
+            void bind(Row row) {
+                CharSequence title = row.textResId != 0 ? getString(row.textResId) : row.customText;
+                CharSequence subtitle = row.customText;
+                heroCardView.bind(row.iconResId, title, subtitle);
+            }
+        }
+
+        private class CardSectionHolder extends RecyclerView.ViewHolder {
+            private final TextView titleView;
+            private final LinearLayout contentLayout;
+
+            CardSectionHolder(Context context) {
+                super(new LinearLayout(context));
+                LinearLayout root = (LinearLayout) itemView;
+                root.setOrientation(LinearLayout.VERTICAL);
+                RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+                params.bottomMargin = AndroidUtilities.dp(14);
+                root.setLayoutParams(params);
+                root.setPadding(0, 0, 0, 0);
+
+                titleView = new TextView(context);
+                titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+                titleView.setTypeface(AndroidUtilities.bold());
+                titleView.setLetterSpacing(0.02f);
+                titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader));
+                titleView.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), AndroidUtilities.dp(6));
+                root.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+                FrameLayout card = new FrameLayout(context);
+                card.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(22), Theme.getColor(Theme.key_windowBackgroundWhite)));
+                card.setPadding(AndroidUtilities.dp(2), AndroidUtilities.dp(4), AndroidUtilities.dp(2), AndroidUtilities.dp(4));
+                root.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+                contentLayout = new LinearLayout(context);
+                contentLayout.setOrientation(LinearLayout.VERTICAL);
+                contentLayout.setDividerDrawable(null);
+                card.addView(contentLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+            }
+
+            void bind(Row row) {
+                CharSequence title = row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : "");
+                titleView.setText(title);
+                contentLayout.removeAllViews();
+                if (row.children == null) {
+                    return;
+                }
+                for (int i = 0; i < row.children.size(); i++) {
+                    Row child = row.children.get(i);
+                    View childView = createChildView(child, shouldDrawDivider(row.children, i));
+                    if (childView != null) {
+                        contentLayout.addView(childView);
+                    }
+                }
+            }
+
+            private boolean shouldDrawDivider(List<Row> children, int index) {
+                for (int i = index + 1; i < children.size(); i++) {
+                    Row next = children.get(i);
+                    if (next.type == RowType.TEXT_INFO_PRIVACY) {
+                        continue;
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            private View createChildView(Row child, boolean needDivider) {
+                switch (child.type) {
+                    case TEXT_CELL: {
+                        TextCell cell = new TextCell(mContext);
+                        applyInteractiveBackground(cell);
+                        bindTextCell(cell, child, needDivider);
+                        cell.setOnClickListener(v -> handleItemClick(child, cell, mContext));
+                        return cell;
+                    }
+                    case TEXT_CHECK: {
+                        TextCell cell = new TextCell(mContext, 0, false, true, null);
+                        applyInteractiveBackground(cell);
+                        bindCheckCell(cell, child, needDivider);
+                        cell.setOnClickListener(v -> handleItemClick(child, cell, mContext));
+                        return cell;
+                    }
+                    case TEXT_INFO_PRIVACY: {
+                        TextInfoPrivacyCell infoCell = new TextInfoPrivacyCell(mContext);
+                        infoCell.setBackground(null);
+                        infoCell.setText(child.customText != null ? child.customText : (child.textResId != 0 ? getString(child.textResId) : ""));
+                        LinearLayout.LayoutParams params = LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT);
+                        params.topMargin = AndroidUtilities.dp(6);
+                        infoCell.setLayoutParams(params);
+                        return infoCell;
+                    }
+                    default:
+                        return null;
+                }
+            }
+
+            private void bindTextCell(TextCell cell, Row child, boolean needDivider) {
+                String title = child.textResId != 0 ? getString(child.textResId) : (child.customText != null ? child.customText.toString() : "");
+                if (child.id == RowIdentifier.VOICE_PROVIDER_SELECTOR) {
+                    String value = getProviderLabel(fluffyConfig.voiceUseCloudflare);
+                    cell.setTextAndValueAndIcon(title, value, child.iconResId, needDivider);
+                } else if (child.id == RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE) {
+                    int count = FluffyQuickRepliesManager.getInstance().getRepliesCount();
+                    String value = LocaleController.formatPluralString("FG_CustomQuickRepliesCount", count);
+                    cell.setTextAndValueAndIcon(title, value, child.iconResId, needDivider);
+                } else {
+                    cell.setTextAndIcon(title, child.iconResId, needDivider);
+                }
+            }
+
+            private void bindCheckCell(TextCell cell, Row child, boolean needDivider) {
+                boolean enabled = true;
+                boolean checked = false;
+                switch (child.id) {
+                    case DEV_MODE:
+                        checked = fluffyConfig.devModeEnabled;
+                        break;
+                    case SHOW_FAKE_EDIT_INDICATOR:
+                        checked = fluffyConfig.showFakeEditIcon;
+                        enabled = fluffyConfig.devModeEnabled;
+                        break;
+                    case DOWNLOAD_SPEED_BOOST:
+                        checked = fluffyConfig.downloadSpeedBoost;
+                        break;
+                    case BIG_PHOTO_SEND:
+                        checked = fluffyConfig.largePhoto;
+                        break;
+                    case ALLOW_ATTACH_ANY_BOT:
+                        checked = fluffyConfig.allowAttachAnyBot;
+                        break;
+                    case HIDE_PINNED_SMALL_SCREEN:
+                        checked = fluffyConfig.hidePinnedInSmallMode;
+                        break;
+                    case SAVE_EDITED:
+                        checked = fluffyConfig.saveEditedMessages;
+                        break;
+                    case SAVE_DELETED:
+                        checked = fluffyConfig.saveDeletedMessages;
+                        break;
+                    case SORT_CHATS_BY_UNREAD:
+                        checked = fluffyConfig.sortChatsByUnread;
+                        break;
+                    case UNMUTE_WITH_VOLUME:
+                        checked = fluffyConfig.unmuteVideoWithVolume;
+                        break;
+                    case PAUSE_MUSIC_ON_MEDIA:
+                        checked = fluffyConfig.pauseMusicOnMedia;
+                        break;
+                    case TRANSCRIBE_DISABLE_LISTEN_SIGNAL:
+                        checked = fluffyConfig.transcribeDisableListenSignal;
+                        break;
+                    case CUSTOM_QUICK_REPLIES_TOGGLE:
+                        checked = fluffyConfig.enableCustomQuickReplies;
+                        break;
+                }
+                cell.setEnabled(enabled);
+                cell.setAlpha(enabled ? 1f : 0.5f);
+                cell.setTextAndCheckAndIcon(getString(child.textResId), checked, child.iconResId, needDivider);
+            }
+
+            private void applyInteractiveBackground(View view) {
+                view.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            }
+        }
+
+        private class InfoBlockHolder extends RecyclerView.ViewHolder {
+            private final TextView textView;
+
+            InfoBlockHolder(Context context) {
+                super(new TextView(context));
+                textView = (TextView) itemView;
+                RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+                params.bottomMargin = AndroidUtilities.dp(16);
+                textView.setLayoutParams(params);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+                textView.setLineSpacing(AndroidUtilities.dp(2), 1.05f);
+                textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
+                textView.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), Theme.getColor(Theme.key_windowBackgroundWhite)));
+                textView.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(14), AndroidUtilities.dp(18), AndroidUtilities.dp(14));
+            }
+
+            void bind(Row row) {
+                textView.setText(row.customText != null ? row.customText : (row.textResId != 0 ? getString(row.textResId) : ""));
             }
         }
     }
@@ -800,7 +939,7 @@ public class generalActivitySettings extends BaseFragment {
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, NotificationsCheckCell.class, TextCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextCell.class, TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
@@ -809,28 +948,8 @@ public class generalActivitySettings extends BaseFragment {
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
 
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{ShadowSectionCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
-
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
-        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
-
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
 
         return themeDescriptions;
