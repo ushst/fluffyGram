@@ -340,6 +340,7 @@ import org.ushastoe.fluffy.helpers.IpApiHelper;
 import org.ushastoe.fluffy.helpers.IpInfoBottomSheet;
 import org.ushastoe.fluffy.helpers.JsonBottomSheet;
 import org.ushastoe.fluffy.helpers.MessageHelper;
+import org.ushastoe.fluffy.helpers.TranslitHelper;
 import org.ushastoe.fluffy.activities.MessageDetailsActivity;
 import android.graphics.BitmapFactory;
 import me.vkryl.android.animator.BoolAnimator;
@@ -1186,6 +1187,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_ABOUT_REVENUE_SHARING_ADS = 33;
     public final static int OPTION_REPORT_AD = 34;
     public final static int OPTION_REMOVE_ADS = 35;
+    public final static int OPTION_TRANSLIT = 36;
     public final static int OPTION_SEND_NOW = 100;
     public final static int OPTION_EDIT_SCHEDULE_TIME = 102;
     public final static int OPTION_SPEED_PROMO = 103;
@@ -33375,6 +33377,11 @@ public class ChatActivity extends BaseFragment implements
                 showDialog(builder.create());
                 break;
             }
+            case OPTION_TRANSLIT: {
+                showTranslitDialog(selectedObject, selectedObjectGroup);
+                preserveDim = true;
+                break;
+            }
             case OPTION_VIEW_REPLIES_OR_THREAD: {
                 MessageObject message = selectedObjectGroup != null ? selectedObjectGroup.findPrimaryMessageObject() : selectedObject;
                 if (message != null) {
@@ -33562,6 +33569,37 @@ public class ChatActivity extends BaseFragment implements
         selectedObjectGroup = null;
         selectedObjectToEditCaption = null;
         closeMenu(!preserveDim);
+    }
+
+    private void showTranslitDialog(MessageObject message, MessageObject.GroupedMessages group) {
+        if (message == null || getParentActivity() == null) {
+            return;
+        }
+        CharSequence originalText = message.getMessageTextToTranslate(group, null);
+        if (TextUtils.isEmpty(originalText)) {
+            return;
+        }
+        String convertedText = TranslitHelper.convert(originalText);
+        if (TextUtils.isEmpty(convertedText)) {
+            return;
+        }
+        String prefix = LocaleController.getString(R.string.TranslitResultPrefix);
+        final String previewText = TextUtils.isEmpty(prefix) ? convertedText : prefix + "\n" + convertedText;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+        builder.setTitle(LocaleController.getString(R.string.TranslitMessage));
+        builder.setMessage(previewText);
+        builder.setPositiveButton(LocaleController.getString(R.string.Send), (dialog, which) -> sendTranslitMessage(message, previewText));
+        builder.setNegativeButton(LocaleController.getString(R.string.Close), null);
+        showDialog(builder.create());
+    }
+
+    private void sendTranslitMessage(MessageObject replyToMessage, String text) {
+        if (replyToMessage == null || TextUtils.isEmpty(text)) {
+            return;
+        }
+        SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(text, dialog_id, replyToMessage, getThreadMessage(), null, false, null, null, null, true, 0, 0, null, false);
+        getSendMessagesHelper().sendMessage(params);
     }
 
     public void showSuggestionOfferForEditMessage(MessageSuggestionParams oldParams) {
@@ -44077,10 +44115,19 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_PIN);
                     icons.add(R.drawable.msg_pin);
                 }
-                if (selectedObject != null && selectedObject.contentType == 0 && (!TextUtils.isEmpty(selectedObject.getMessageTextToTranslate(groupedMessages, null)) && !selectedObject.isAnimatedEmoji() && !selectedObject.isDice())) {
+                boolean hasProcessableText = false;
+                if (selectedObject != null && selectedObject.contentType == 0 && !selectedObject.isAnimatedEmoji() && !selectedObject.isDice()) {
+                    CharSequence textForActions = selectedObject.getMessageTextToTranslate(groupedMessages, null);
+                    hasProcessableText = !TextUtils.isEmpty(textForActions);
+                }
+                if (hasProcessableText) {
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+
+                    items.add(LocaleController.getString(R.string.TranslitMessage));
+                    options.add(OPTION_TRANSLIT);
+                    icons.add(R.drawable.msg_language);
                 }
                 if (message.canEditMessage(currentChat) && message.type != MessageObject.TYPE_POLL) {
                     items.add(LocaleController.getString(R.string.Edit));
@@ -44413,10 +44460,19 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_PIN);
                     icons.add(R.drawable.msg_pin);
                 }
-                if (selectedObject != null && selectedObject.contentType == 0 && (!TextUtils.isEmpty(selectedObject.getMessageTextToTranslate(selectedObjectGroup, null)) && !selectedObject.isAnimatedEmoji() && !selectedObject.isDice())) {
+                boolean hasProcessableText = false;
+                if (selectedObject != null && selectedObject.contentType == 0 && !selectedObject.isAnimatedEmoji() && !selectedObject.isDice()) {
+                    CharSequence textForActions = selectedObject.getMessageTextToTranslate(selectedObjectGroup, null);
+                    hasProcessableText = !TextUtils.isEmpty(textForActions);
+                }
+                if (hasProcessableText) {
                     items.add(LocaleController.getString(R.string.TranslateMessage));
                     options.add(OPTION_TRANSLATE);
                     icons.add(R.drawable.msg_translate);
+
+                    items.add(LocaleController.getString(R.string.TranslitMessage));
+                    options.add(OPTION_TRANSLIT);
+                    icons.add(R.drawable.msg_language);
                 }
                 if (allowEdit) {
                     items.add(LocaleController.getString(R.string.Edit));

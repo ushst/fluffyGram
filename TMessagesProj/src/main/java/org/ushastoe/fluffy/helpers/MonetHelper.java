@@ -4,15 +4,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color; // Импортируем класс Color
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.PatternMatcher;
+import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.RequiresApi;
+import java.io.File;
 import java.util.HashMap;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.ushastoe.fluffy.fluffyConfig;
@@ -132,7 +138,7 @@ public class MonetHelper {
         }
         int baseColor = themedContext.getColor(id);
 
-        if (isFiftyPercentTransparent) {
+        if (isFiftyPercentTransparent && shouldUseTransparentColors()) {
           int colorT =
               Color.argb(fluffyConfig.transparency, Color.red(baseColor),
                          Color.green(baseColor), Color.blue(baseColor));
@@ -149,6 +155,77 @@ public class MonetHelper {
     } catch (Exception e) {
       FileLog.e("Error loading color " + color, e);
       return 0;
+    }
+  }
+
+  // Only enable transparency when a wallpaper/pattern background is active.
+  private static boolean shouldUseTransparentColors() {
+    Drawable wallpaper = Theme.getCachedWallpaperNonBlocking();
+    if (wallpaper != null) {
+      return !(wallpaper instanceof ColorDrawable);
+    }
+
+    Theme.ThemeInfo activeTheme = Theme.getActiveTheme();
+    if (activeTheme != null && activeTheme.overrideWallpaper != null) {
+      Theme.OverrideWallpaperInfo overrideWallpaper =
+          activeTheme.overrideWallpaper;
+      if (overrideWallpaper.isColor()) {
+        boolean hasGradient =
+            overrideWallpaper.gradientColor1 != 0 ||
+            overrideWallpaper.gradientColor2 != 0 ||
+            overrideWallpaper.gradientColor3 != 0;
+        boolean hasWallpaperFile = !TextUtils.isEmpty(overrideWallpaper.fileName);
+        return hasGradient || hasWallpaperFile;
+      }
+      return true;
+    }
+
+    if (Theme.hasWallpaperFromTheme()) {
+      return true;
+    }
+
+    return hasWallpaperConfiguredInPreferences();
+  }
+
+  private static boolean hasWallpaperConfiguredInPreferences() {
+    try {
+      SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+      if (preferences == null) {
+        return false;
+      }
+      boolean override = preferences.getBoolean("overrideThemeWallpaper", false);
+      long selectedBackgroundId =
+          preferences.getLong("selectedBackground2", 1000001L);
+      if (!override && selectedBackgroundId != -1) {
+        return false;
+      }
+
+      String slug = preferences.getString("selectedBackgroundSlug", "");
+      if (!TextUtils.isEmpty(slug)) {
+        if (!Theme.DEFAULT_BACKGROUND_SLUG.equals(slug) &&
+            !Theme.COLOR_BACKGROUND_SLUG.equals(slug)) {
+          return true;
+        }
+      }
+
+      int gradient1 = preferences.getInt("selectedGradientColor", 0);
+      int gradient2 = preferences.getInt("selectedGradientColor2", 0);
+      int gradient3 = preferences.getInt("selectedGradientColor3", 0);
+      if (gradient1 != 0 || gradient2 != 0 || gradient3 != 0) {
+        return true;
+      }
+
+      File wallpaperFile =
+          new File(ApplicationLoader.getFilesDirFixed(), "wallpaper.jpg");
+      if (wallpaperFile.exists()) {
+        return true;
+      }
+      File originalFile = new File(ApplicationLoader.getFilesDirFixed(),
+                                   "wallpaper_original.jpg");
+      return originalFile.exists();
+    } catch (Throwable e) {
+      FileLog.e(e);
+      return false;
     }
   }
 
