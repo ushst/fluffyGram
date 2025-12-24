@@ -138,7 +138,7 @@ public class MonetHelper {
         }
         int baseColor = themedContext.getColor(id);
 
-        if (isFiftyPercentTransparent && shouldUseTransparentColors()) {
+        if (isFiftyPercentTransparent) {
           int colorT =
               Color.argb(fluffyConfig.transparency, Color.red(baseColor),
                          Color.green(baseColor), Color.blue(baseColor));
