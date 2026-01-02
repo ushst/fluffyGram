@@ -164,6 +164,7 @@ public class appearanceActivitySettings extends BaseFragment {
         REMOVE_GIFTS,
         HIDE_PAID_REACTIONS,
         REMOVE_BUTTON,
+        FORCE_CHAT_SNOW,
         STICKER_BLACKLIST,
         DOUBLE_TAP,
         QUICK_SWITCHER,
@@ -335,6 +336,7 @@ public class appearanceActivitySettings extends BaseFragment {
         controlRows.add(new Row(RowIdentifier.CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
         controlRows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
         controlRows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
+        controlRows.add(new Row(RowIdentifier.FORCE_CHAT_SNOW, RowType.TEXT_CHECK, R.string.AlwaysSnowflakes, R.drawable.msg_theme, R.string.AlwaysSnowflakesSubtitle));
         controlRows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
         addSubcategory(RowIdentifier.CHAT_CONTROLS_HEADER, "Controls", controlRows, true);
 
@@ -613,6 +615,15 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig.toggleHideTopBar();
                 if (view instanceof TextCell) {
                     ((TextCell) view).setChecked(fluffyConfig.hideTopBar);
+                }
+                break;
+            case FORCE_CHAT_SNOW:
+                fluffyConfig.toggleForceChatSnow();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.forceChatSnow);
+                }
+                if (parentLayout != null) {
+                    parentLayout.rebuildAllFragmentViews(false, false);
                 }
                 break;
             case EMOJI_LONGPRESS_MENU:
@@ -1903,6 +1914,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case REMOVE_BUTTON:
                             checked = fluffyConfig.hideButtonWrite;
+                            break;
+                        case FORCE_CHAT_SNOW:
+                            checked = fluffyConfig.forceChatSnow;
                             break;
                         case HIDE_BIZ_BOT_BAR:
                             checked = fluffyConfig.hideTopBar;

@@ -29,6 +29,8 @@
     <string name="GeneralInfo">Изменения применяются сразу. Некоторые инструменты (например, импорт/экспорт конфигурации) могут запросить доступ к памяти.</string>
     <string name="AppearanceHeroSubtitle">Подстройте внешний вид чатов, анимации и жесты под себя.</string>
     <string name="AppearanceInfo">Визуальные изменения применяются мгновенно. Отдельные пункты (шрифты, темы) могут попросить перезапуск.</string>
+    <string name="AlwaysSnowflakes">Снежинки в чате</string>
+    <string name="AlwaysSnowflakesSubtitle">Всегда показывать новогодний снег в чатах.</string>
     <string name="FluffySettingsInfo">Открывайте нужные разделы ниже или нажмите на логотип семь раз, чтобы открыть секретные настройки.</string>
     <string name="FG_CustomQuickRepliesCount_zero">%d команд</string>
     <string name="FG_CustomQuickRepliesCount_one">%d команда</string>

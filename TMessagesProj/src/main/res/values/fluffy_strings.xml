@@ -19,6 +19,8 @@
     <string name="GeneralInfo">Changes apply instantly. Some tools (like config import/export) may request storage access.</string>
     <string name="AppearanceHeroSubtitle">Customize how chats look, feel and react to your gestures.</string>
     <string name="AppearanceInfo">Visual tweaks apply instantly. Some options (fonts, themes) may ask for a quick restart.</string>
+    <string name="AlwaysSnowflakes">Snowfall in chats</string>
+    <string name="AlwaysSnowflakesSubtitle">Keep the New Year snowflakes enabled all year long.</string>
     <string name="FluffySettingsInfo">Access advanced tweaks from these sections or tap the logo seven times to unlock secrets.</string>
     <string name="info_fork">custom telegram messenger with tweek\'s</string>
     <string name="meow">Meow</string>

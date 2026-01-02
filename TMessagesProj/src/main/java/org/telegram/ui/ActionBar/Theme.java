@@ -5246,7 +5246,7 @@ public class Theme {
     }
 
     public static boolean canStartHolidayAnimation() {
-        return canStartHolidayAnimation;
+        return canStartHolidayAnimation || fluffyConfig.forceChatSnow;
     }
 
     public static int getEventType() {
@@ -5277,13 +5277,16 @@ public class Theme {
             int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
             int minutes = calendar.get(Calendar.MINUTE);
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
-            if (monthOfYear == 0 && dayOfMonth == 1 && hour <= 23) {
+            boolean dateAllowsAnimation = monthOfYear == 0 && dayOfMonth == 1 && hour <= 23;
+            boolean dateAllowsDrawable = monthOfYear == 11 && dayOfMonth >= (BuildVars.DEBUG_PRIVATE_VERSION ? 29 : 31) && dayOfMonth <= 31 || monthOfYear == 0 && dayOfMonth == 1;
+            boolean forceSnow = fluffyConfig.forceChatSnow;
+            if (dateAllowsAnimation) {
                 canStartHolidayAnimation = true;
-            } else {
+            } else if (!forceSnow) {
                 canStartHolidayAnimation = false;
             }
             if (dialogs_holidayDrawable == null) {
-                if (monthOfYear == 11 && dayOfMonth >= (BuildVars.DEBUG_PRIVATE_VERSION ? 29 : 31) && dayOfMonth <= 31 || monthOfYear == 0 && dayOfMonth == 1) {
+                if (dateAllowsDrawable || forceSnow) {
                     dialogs_holidayDrawable = ApplicationLoader.applicationContext.getResources().getDrawable(R.drawable.newyear);
                     dialogs_holidayDrawableOffsetX = -dp(3);
                     dialogs_holidayDrawableOffsetY = -dp(-7);
