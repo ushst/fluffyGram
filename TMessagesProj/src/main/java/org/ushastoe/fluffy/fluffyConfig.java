@@ -3,9 +3,14 @@ package org.ushastoe.fluffy;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Insets;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.view.View;
+import android.view.WindowInsets;
 
 import androidx.collection.LongSparseArray;
 
@@ -24,6 +29,8 @@ import org.ushastoe.fluffy.helpers.BaseIconSet;
 import org.ushastoe.fluffy.helpers.EmptyIconSet;
 import org.ushastoe.fluffy.helpers.SolarIconSet;
 import org.ushastoe.fluffy.helpers.FontUtils;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.LaunchActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -109,6 +116,7 @@ public final class fluffyConfig {
     private static final String KEY_CUSTOM_FONT_PATH = "customFontPath";
     private static final String KEY_CUSTOM_FONT_NAME = "customFontName";
     private static final String KEY_LOCK_ON_MINIMIZE = "lockOnMinimize";
+    private static final String KEY_EDGE_TO_EDGE_MODE = "edgeToEdgeMode";
 
 
 
@@ -127,6 +135,9 @@ public final class fluffyConfig {
     public static final int TRANSCRIBE_PROVIDER_TELEGRAM = 0;
     public static final int TRANSCRIBE_PROVIDER_CLOUDFLARE = 1;
     public static final int TRANSCRIBE_PROVIDER_LOCAL = 2;
+    public static final int EDGE_MODE_ENABLE = 0;
+    public static final int EDGE_MODE_DISABLE = 1;
+    public static final int EDGE_MODE_AUTO = 2;
 
     // --- Переменные настроек ---
     public static boolean menuReplyEnabled;
@@ -193,6 +204,9 @@ public final class fluffyConfig {
     public static String customFontPath;
     public static String customFontName;
     public static boolean lockOnMinimize;
+    public static int edgeToEdgeMode;
+
+    private static Boolean cachedEdgeToEdgeSupport;
 
 
 
@@ -297,6 +311,8 @@ public final class fluffyConfig {
         disableEmojiIndicator = preferences.getBoolean(KEY_DISABLE_EMOJI_INDICATOR, false);
         enableCustomQuickReplies = preferences.getBoolean(KEY_ENABLE_CUSTOM_QUICK_REPLIES, false);
         lockOnMinimize = preferences.getBoolean(KEY_LOCK_ON_MINIMIZE, false);
+        edgeToEdgeMode = preferences.getInt(KEY_EDGE_TO_EDGE_MODE, EDGE_MODE_AUTO);
+        cachedEdgeToEdgeSupport = null;
 
         blockSticker.clear();
         blockedStickerDocuments.clear();
@@ -368,6 +384,16 @@ public final class fluffyConfig {
 
     public static void toggleAllowAttachAnyBot() {
         allowAttachAnyBot = toggleBooleanSetting(KEY_ALLOW_ATTACH_ANY_BOT, allowAttachAnyBot);
+    }
+
+    public static void setEdgeToEdgeMode(int mode) {
+        int safeMode = mode;
+        if (safeMode < EDGE_MODE_ENABLE || safeMode > EDGE_MODE_AUTO) {
+            safeMode = EDGE_MODE_AUTO;
+        }
+        edgeToEdgeMode = safeMode;
+        cachedEdgeToEdgeSupport = null;
+        preferences.edit().putInt(KEY_EDGE_TO_EDGE_MODE, edgeToEdgeMode).apply();
     }
     public static void toggleGift() {
         hideGift = toggleBooleanSetting(KEY_HIDE_GIFT, hideGift);
@@ -499,6 +525,52 @@ public final class fluffyConfig {
 
     public static void toggleHideTopBar() {
         hideTopBar = toggleBooleanSetting(KEY_HIDE_TOP_BAR, hideTopBar);
+    }
+
+    public static boolean isEdgeToEdgeSupported() {
+        if (edgeToEdgeMode == EDGE_MODE_ENABLE) {
+            return true;
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || edgeToEdgeMode == EDGE_MODE_DISABLE) {
+            cachedEdgeToEdgeSupport = false;
+            return false;
+        }
+        if (edgeToEdgeMode == EDGE_MODE_AUTO && cachedEdgeToEdgeSupport != null) {
+            return cachedEdgeToEdgeSupport;
+        }
+        BaseFragment fragment = LaunchActivity.getSafeLastFragment();
+        Activity activity = fragment != null ? fragment.getParentActivity() : null;
+        if (activity == null) {
+            cachedEdgeToEdgeSupport = false;
+            return false;
+        }
+        boolean supported = isGestureNavigation(activity) || isGestureNavigationFallback(activity.getWindow() != null ? activity.getWindow().getDecorView() : null);
+        cachedEdgeToEdgeSupport = supported;
+        return supported;
+    }
+
+    private static boolean isGestureNavigation(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || context == null) {
+            return false;
+        }
+        try {
+            int mode = Settings.Secure.getInt(context.getContentResolver(), "navigation_mode");
+            return mode == 2;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean isGestureNavigationFallback(View view) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || view == null) {
+            return false;
+        }
+        WindowInsets windowInsets = view.getRootWindowInsets();
+        if (windowInsets == null) {
+            return false;
+        }
+        Insets navInsets = windowInsets.getInsets(WindowInsets.Type.navigationBars());
+        return navInsets.bottom == 0;
     }
 
     public static void toggleForceChatSnow() {

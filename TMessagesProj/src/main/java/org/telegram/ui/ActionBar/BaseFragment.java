@@ -59,6 +59,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.StoryViewer;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
+import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
 
@@ -1369,6 +1370,6 @@ public abstract class BaseFragment {
 
     public boolean isSupportEdgeToEdge() {
         // warn: overridden method must return a constant
-        return false;
+        return fluffyConfig.isEdgeToEdgeSupported();
     }
 }

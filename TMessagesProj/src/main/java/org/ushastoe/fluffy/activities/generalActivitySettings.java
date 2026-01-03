@@ -93,6 +93,7 @@ public class generalActivitySettings extends BaseFragment {
         SORT_CHATS_BY_UNREAD,
         UNMUTE_WITH_VOLUME,
         PAUSE_MUSIC_ON_MEDIA,
+        EDGE_TO_EDGE_MODE,
         BIG_PHOTO_SEND,
         TRANSCRIBE_DISABLE_LISTEN_SIGNAL,
         VOICE_PROVIDER_SELECTOR,
@@ -107,6 +108,7 @@ public class generalActivitySettings extends BaseFragment {
         GENERAL_PRODUCTIVITY_HEADER,
         GENERAL_HISTORY_HEADER,
         GENERAL_MEDIA_HEADER,
+        GENERAL_DISPLAY_HEADER,
         GENERAL_DEVELOPER_HEADER,
         GENERAL_QUICK_REPLY_HEADER,
         VOICE_PROVIDER_DETAILS_HEADER,
@@ -214,6 +216,11 @@ public class generalActivitySettings extends BaseFragment {
                         new Row(RowIdentifier.UNMUTE_WITH_VOLUME, RowType.TEXT_CHECK, R.string.unmuteVideoWithVolume, R.drawable.media_unmute),
                         new Row(RowIdentifier.PAUSE_MUSIC_ON_MEDIA, RowType.TEXT_CHECK, R.string.PauseMusicOnMedia, R.drawable.msg_filled_data_music),
                         new Row(RowIdentifier.BIG_PHOTO_SEND, RowType.TEXT_CHECK, R.string.SendLargePhoto, R.drawable.msg_filled_data_photos_solar)
+                ), true);
+
+        addCategory(RowIdentifier.GENERAL_DISPLAY_HEADER, "Display",
+                asList(
+                        new Row(RowIdentifier.EDGE_TO_EDGE_MODE, RowType.TEXT_CELL, R.string.EdgeToEdgeMode, R.drawable.msg_theme)
                 ), true);
 
         addCategory(RowIdentifier.GENERAL_HISTORY_HEADER, "History",
@@ -390,6 +397,9 @@ public class generalActivitySettings extends BaseFragment {
                 case PAUSE_MUSIC_ON_MEDIA:
                     fluffyConfig.togglePauseMusicOnMedia();
                     textCell.setChecked(fluffyConfig.pauseMusicOnMedia);
+                    break;
+                case EDGE_TO_EDGE_MODE:
+                    showEdgeToEdgeModeDialog();
                     break;
                 case BIG_PHOTO_SEND:
                     fluffyConfig.toggleLargePhoto();
@@ -592,6 +602,89 @@ public class generalActivitySettings extends BaseFragment {
             default:
                 return getString(R.string.FG_TranscribeProviderTelegram);
         }
+    }
+
+    private String getEdgeToEdgeModeLabel(int mode) {
+        switch (mode) {
+            case fluffyConfig.EDGE_MODE_ENABLE:
+                return getString(R.string.EdgeToEdgeForce);
+            case fluffyConfig.EDGE_MODE_DISABLE:
+                return getString(R.string.EdgeToEdgeDisable);
+            case fluffyConfig.EDGE_MODE_AUTO:
+            default:
+                return getString(R.string.EdgeToEdgeAuto);
+        }
+    }
+
+    private int edgeModeToIndex(int mode) {
+        switch (mode) {
+            case fluffyConfig.EDGE_MODE_ENABLE:
+                return 1;
+            case fluffyConfig.EDGE_MODE_DISABLE:
+                return 2;
+            default:
+                return 0;
+        }
+    }
+
+    private int indexToEdgeMode(int index) {
+        switch (index) {
+            case 1:
+                return fluffyConfig.EDGE_MODE_ENABLE;
+            case 2:
+                return fluffyConfig.EDGE_MODE_DISABLE;
+            default:
+                return fluffyConfig.EDGE_MODE_AUTO;
+        }
+    }
+
+    private void showEdgeToEdgeModeDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+        LinearLayout linearLayout = new LinearLayout(getParentActivity());
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        CharSequence[] items = new CharSequence[]{
+                getString(R.string.EdgeToEdgeAuto),
+                getString(R.string.EdgeToEdgeForce),
+                getString(R.string.EdgeToEdgeDisable)
+        };
+
+        final int currentIndex = edgeModeToIndex(fluffyConfig.edgeToEdgeMode);
+        for (int i = 0; i < items.length; ++i) {
+            final int index = i;
+            RadioColorCell cell = new RadioColorCell(getParentActivity());
+            cell.setPadding(dp(4), 0, dp(4), 0);
+            cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+            cell.setTextAndValue(items[index], index == currentIndex);
+            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            linearLayout.addView(cell);
+            cell.setOnClickListener(v -> {
+                int newMode = indexToEdgeMode(index);
+                if (newMode != fluffyConfig.edgeToEdgeMode) {
+                    fluffyConfig.setEdgeToEdgeMode(newMode);
+                    if (listAdapter != null) {
+                        listAdapter.notifyDataSetChanged();
+                    }
+                    BulletinHelper.showRestartNotification(this);
+                }
+                Dialog dlg = dialogRef.get();
+                if (dlg != null) {
+                    dlg.dismiss();
+                }
+            });
+        }
+
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(getParentActivity())
+                .setTitle(getString(R.string.EdgeToEdgeMode))
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(linearLayout))
+                .setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null)
+                .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
+        dialogRef.set(dialog);
+        showDialog(dialog);
     }
 
     private void selectProvider(Context context) {
@@ -848,6 +941,9 @@ public class generalActivitySettings extends BaseFragment {
                 String title = child.textResId != 0 ? getString(child.textResId) : (child.customText != null ? child.customText.toString() : "");
                 if (child.id == RowIdentifier.VOICE_PROVIDER_SELECTOR) {
                     String value = getProviderLabel(fluffyConfig.voiceUseCloudflare);
+                    cell.setTextAndValueAndIcon(title, value, child.iconResId, needDivider);
+                } else if (child.id == RowIdentifier.EDGE_TO_EDGE_MODE) {
+                    String value = getEdgeToEdgeModeLabel(fluffyConfig.edgeToEdgeMode);
                     cell.setTextAndValueAndIcon(title, value, child.iconResId, needDivider);
                 } else if (child.id == RowIdentifier.CUSTOM_QUICK_REPLIES_MANAGE) {
                     int count = FluffyQuickRepliesManager.getInstance().getRepliesCount();

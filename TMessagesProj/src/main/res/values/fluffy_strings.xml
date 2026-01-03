@@ -17,6 +17,10 @@
     <string name="GhostModeInfo">Ghost Mode keeps your story views, typing status and emoji reactions private. Enable the toggles you need and switch them off anytime.</string>
     <string name="GeneralHeroSubtitle">Tune fluffy\'s behavior for downloads, storage and experiments.</string>
     <string name="GeneralInfo">Changes apply instantly. Some tools (like config import/export) may request storage access.</string>
+    <string name="EdgeToEdgeMode">Edge-to-Edge</string>
+    <string name="EdgeToEdgeAuto">Automatic</string>
+    <string name="EdgeToEdgeForce">Always on</string>
+    <string name="EdgeToEdgeDisable">Disabled</string>
     <string name="AppearanceHeroSubtitle">Customize how chats look, feel and react to your gestures.</string>
     <string name="AppearanceInfo">Visual tweaks apply instantly. Some options (fonts, themes) may ask for a quick restart.</string>
     <string name="AlwaysSnowflakes">Snowfall in chats</string>
