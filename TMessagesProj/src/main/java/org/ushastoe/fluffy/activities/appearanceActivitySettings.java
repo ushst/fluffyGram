@@ -165,6 +165,9 @@ public class appearanceActivitySettings extends BaseFragment {
         HIDE_PAID_REACTIONS,
         REMOVE_BUTTON,
         FORCE_CHAT_SNOW,
+        SNOW_EFFECT_STYLE,
+        SNOW_EFFECT_COLOR_MODE,
+        SNOW_EFFECT_SPEED,
         STICKER_BLACKLIST,
         DOUBLE_TAP,
         QUICK_SWITCHER,
@@ -226,6 +229,38 @@ public class appearanceActivitySettings extends BaseFragment {
     private static final int stickerRaduisMax = 130;
     private static final int REQUEST_CODE_IMPORT_CUSTOM_FONT = 2010;
     private Parcelable recyclerViewState = null;
+    private static final String[] SNOW_EFFECT_STYLE_STRING_KEYS = new String[]{
+            "SnowEffectStyleClassic",
+            "SnowEffectStyleStars",
+            "SnowEffectStyleBubbles",
+            "SnowEffectStyleCrystal",
+            "SnowEffectStyleHearts",
+            "SnowEffectStyleDrops",
+            "SnowEffectStyleConfetti",
+            "SnowEffectStylePixels",
+            "SnowEffectStyleCodeWords"
+    };
+    private static final int[] SNOW_EFFECT_STYLE_STRING_RES = new int[]{
+            R.string.SnowEffectStyleClassic,
+            R.string.SnowEffectStyleStars,
+            R.string.SnowEffectStyleBubbles,
+            R.string.SnowEffectStyleCrystal,
+            R.string.SnowEffectStyleHearts,
+            R.string.SnowEffectStyleDrops,
+            R.string.SnowEffectStyleConfetti,
+            R.string.SnowEffectStylePixels,
+            R.string.SnowEffectStyleCodeWords
+    };
+    private static final int[] SNOW_EFFECT_COLOR_MODE_STRING_RES = new int[]{
+            R.string.SnowEffectColorTheme,
+            R.string.SnowEffectColorGradient,
+            R.string.SnowEffectColorMatrix
+    };
+    private static final int[] SNOW_EFFECT_SPEED_STRING_RES = new int[]{
+            R.string.SnowEffectSpeedSlow,
+            R.string.SnowEffectSpeedNormal,
+            R.string.SnowEffectSpeedFast
+    };
 
     @Override
     public boolean onFragmentCreate() {
@@ -332,13 +367,19 @@ public class appearanceActivitySettings extends BaseFragment {
         indicatorRows.add(new Row(RowIdentifier.FORMAT_TIME_WITH_SECONDS, RowType.TEXT_CHECK, R.string.formatTime, R.drawable.menu_premium_clock, R.string.formatTimeSubtitle));
         addSubcategory(RowIdentifier.CHAT_INDICATORS_HEADER, "Indicators", indicatorRows, true);
 
+        addHeaderRow(new Row(RowIdentifier.CHAT_CONTROLS_HEADER, RowType.HEADER, "Controls"));
+        rows.add(new Row(RowIdentifier.FORCE_CHAT_SNOW, RowType.TEXT_CHECK, R.string.AlwaysSnowflakes, R.drawable.msg_theme, R.string.AlwaysSnowflakesSubtitle));
+        rows.add(new Row(RowIdentifier.SNOW_EFFECT_STYLE, RowType.TEXT_CELL, R.string.SnowEffectStyle, R.drawable.msg_spoiler, R.string.SnowEffectStyleSubtitle));
+        rows.add(new Row(RowIdentifier.SNOW_EFFECT_COLOR_MODE, RowType.TEXT_CELL, R.string.SnowEffectColorMode, R.drawable.msg_photo_text_framed, R.string.SnowEffectColorModeSubtitle));
+        rows.add(new Row(RowIdentifier.SNOW_EFFECT_SPEED, RowType.TEXT_CELL, R.string.SnowEffectSpeed, R.drawable.msg_spoiler, R.string.SnowEffectSpeedSubtitle));
+
         List<Row> controlRows = new ArrayList<>();
         controlRows.add(new Row(RowIdentifier.CALL_SHOW, RowType.TEXT_CHECK, R.string.callShower, R.drawable.calls_menu_phone));
         controlRows.add(new Row(RowIdentifier.TRANSPARENCY, RowType.TEXT_CELL, R.string.Transparency, R.drawable.msg_blur_radial));
         controlRows.add(new Row(RowIdentifier.REMOVE_BUTTON, RowType.TEXT_CHECK, R.string.HideFloatingButton, R.drawable.msg_openin));
-        controlRows.add(new Row(RowIdentifier.FORCE_CHAT_SNOW, RowType.TEXT_CHECK, R.string.AlwaysSnowflakes, R.drawable.msg_theme, R.string.AlwaysSnowflakesSubtitle));
         controlRows.add(new Row(RowIdentifier.HIDE_BIZ_BOT_BAR, RowType.TEXT_CHECK, R.string.HideThisBar, R.drawable.msg_cancel));
-        addSubcategory(RowIdentifier.CHAT_CONTROLS_HEADER, "Controls", controlRows, true);
+        sortRows(controlRows);
+        rows.addAll(controlRows);
 
         List<Row> inputRows = new ArrayList<>();
         inputRows.add(new Row(RowIdentifier.REMOVE_GIFTS, RowType.TEXT_CHECK, R.string.HideGiftFromInput, R.drawable.filled_gift_simple));
@@ -472,6 +513,112 @@ public class appearanceActivitySettings extends BaseFragment {
         FluffyDialogUtils.applyWindowStyling(dialog);
 
         showDialog(dialog);
+    }
+
+    private CharSequence getSnowEffectStyleLabel() {
+        int style = Math.max(fluffyConfig.SNOW_EFFECT_STYLE_SNOWFLAKE,
+                Math.min(fluffyConfig.snowEffectStyle, SNOW_EFFECT_STYLE_STRING_KEYS.length - 1));
+        return LocaleController.getString(SNOW_EFFECT_STYLE_STRING_KEYS[style], SNOW_EFFECT_STYLE_STRING_RES[style]);
+    }
+
+    private CharSequence getSnowColorModeLabel() {
+        int mode = Math.max(fluffyConfig.SNOW_EFFECT_COLOR_MODE_THEME,
+                Math.min(fluffyConfig.snowEffectColorMode, SNOW_EFFECT_COLOR_MODE_STRING_RES.length - 1));
+        String key = mode == fluffyConfig.SNOW_EFFECT_COLOR_MODE_THEME ? "SnowEffectColorTheme" :
+                mode == fluffyConfig.SNOW_EFFECT_COLOR_MODE_RAINBOW ? "SnowEffectColorGradient" :
+                        "SnowEffectColorMatrix";
+        return LocaleController.getString(key, SNOW_EFFECT_COLOR_MODE_STRING_RES[mode]);
+    }
+
+    private CharSequence getSnowSpeedLabel() {
+        int mode = Math.max(fluffyConfig.SNOW_EFFECT_SPEED_SLOW,
+                Math.min(fluffyConfig.snowEffectSpeedMode, SNOW_EFFECT_SPEED_STRING_RES.length - 1));
+        String key = mode == fluffyConfig.SNOW_EFFECT_SPEED_SLOW ? "SnowEffectSpeedSlow" :
+                mode == fluffyConfig.SNOW_EFFECT_SPEED_NORMAL ? "SnowEffectSpeedNormal" :
+                        "SnowEffectSpeedFast";
+        return LocaleController.getString(key, SNOW_EFFECT_SPEED_STRING_RES[mode]);
+    }
+
+    private void showSnowEffectStyleSelector(Context context, TextCell cell) {
+        if (context == null) {
+            return;
+        }
+        CharSequence[] options = new CharSequence[SNOW_EFFECT_STYLE_STRING_KEYS.length];
+        for (int i = 0; i < options.length; i++) {
+            options[i] = LocaleController.getString(SNOW_EFFECT_STYLE_STRING_KEYS[i], SNOW_EFFECT_STYLE_STRING_RES[i]);
+        }
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(context);
+        builder.setTitle(getString(R.string.SnowEffectStyle));
+        builder.setItems(options, (dialog, which) -> {
+            if (which >= 0 && which < options.length) {
+                fluffyConfig.setSnowEffectStyle(which);
+                if (cell != null) {
+                    cell.setValue(getSnowEffectStyleLabel(), true);
+                }
+                if (listAdapter != null) {
+                    listAdapter.notifyDataSetChanged();
+                }
+                if (parentLayout != null) {
+                    parentLayout.rebuildAllFragmentViews(false, false);
+                }
+            }
+            dialog.dismiss();
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), (dialog, which) -> dialog.dismiss());
+        showDialog(builder.create());
+    }
+
+    private void showSnowEffectColorModeSelector(Context context, TextCell cell) {
+        if (context == null) {
+            return;
+        }
+        CharSequence[] options = new CharSequence[SNOW_EFFECT_COLOR_MODE_STRING_RES.length];
+        options[0] = LocaleController.getString("SnowEffectColorTheme", R.string.SnowEffectColorTheme);
+        options[1] = LocaleController.getString("SnowEffectColorGradient", R.string.SnowEffectColorGradient);
+        options[2] = LocaleController.getString("SnowEffectColorMatrix", R.string.SnowEffectColorMatrix);
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(context);
+        builder.setTitle(getString(R.string.SnowEffectColorMode));
+        builder.setItems(options, (dialog, which) -> {
+            if (which >= 0 && which < options.length) {
+                fluffyConfig.setSnowEffectColorMode(which);
+                if (cell != null) {
+                    cell.setValue(getSnowColorModeLabel(), true);
+                }
+                if (parentLayout != null) {
+                    parentLayout.rebuildAllFragmentViews(false, false);
+                }
+            }
+            dialog.dismiss();
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), (dialog, which) -> dialog.dismiss());
+        showDialog(builder.create());
+    }
+
+    private void showSnowEffectSpeedSelector(Context context, TextCell cell) {
+        if (context == null) {
+            return;
+        }
+        CharSequence[] options = new CharSequence[]{
+                LocaleController.getString("SnowEffectSpeedSlow", R.string.SnowEffectSpeedSlow),
+                LocaleController.getString("SnowEffectSpeedNormal", R.string.SnowEffectSpeedNormal),
+                LocaleController.getString("SnowEffectSpeedFast", R.string.SnowEffectSpeedFast)
+        };
+        AlertDialog.Builder builder = FluffyDialogUtils.themedBuilder(context);
+        builder.setTitle(getString(R.string.SnowEffectSpeed));
+        builder.setItems(options, (dialog, which) -> {
+            if (which >= 0 && which < options.length) {
+                fluffyConfig.setSnowEffectSpeedMode(which);
+                if (cell != null) {
+                    cell.setValue(getSnowSpeedLabel(), true);
+                }
+                if (parentLayout != null) {
+                    parentLayout.rebuildAllFragmentViews(false, false);
+                }
+            }
+            dialog.dismiss();
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), (dialog, which) -> dialog.dismiss());
+        showDialog(builder.create());
     }
     private int getRowPositionById(RowIdentifier id) {
         for (int i = 0; i < rows.size(); i++) {
@@ -625,6 +772,15 @@ public class appearanceActivitySettings extends BaseFragment {
                 if (parentLayout != null) {
                     parentLayout.rebuildAllFragmentViews(false, false);
                 }
+                break;
+            case SNOW_EFFECT_STYLE:
+                showSnowEffectStyleSelector(context, view instanceof TextCell ? (TextCell) view : null);
+                break;
+            case SNOW_EFFECT_COLOR_MODE:
+                showSnowEffectColorModeSelector(context, view instanceof TextCell ? (TextCell) view : null);
+                break;
+            case SNOW_EFFECT_SPEED:
+                showSnowEffectSpeedSelector(context, view instanceof TextCell ? (TextCell) view : null);
                 break;
             case EMOJI_LONGPRESS_MENU:
                 fluffyConfig.toggleEmojiButtonLongPressMenu();
@@ -1812,6 +1968,15 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case SELECT_CUSTOM_FONT:
                             value = TextUtils.isEmpty(fluffyConfig.customFontName) ? getString(R.string.CustomFontDisabled) : fluffyConfig.customFontName;
+                            break;
+                        case SNOW_EFFECT_STYLE:
+                            value = getSnowEffectStyleLabel().toString();
+                            break;
+                        case SNOW_EFFECT_COLOR_MODE:
+                            value = getSnowColorModeLabel().toString();
+                            break;
+                        case SNOW_EFFECT_SPEED:
+                            value = getSnowSpeedLabel().toString();
                             break;
                     }
                     textCell6.setTextAndValueAndIcon(getString(row.textResId), value, row.iconResId, true);

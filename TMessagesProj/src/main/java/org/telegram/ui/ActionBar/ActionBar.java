@@ -232,11 +232,23 @@ public class ActionBar extends FrameLayout {
         }
     }
 
+    private boolean shouldRenderSnowEffect() {
+        return supportsHolidayImage || fluffyConfig.forceChatSnow;
+    }
+
+    private void ensureHolidayDrawingResources() {
+        if (fontMetricsInt == null) {
+            fontMetricsInt = new Paint.FontMetricsInt();
+        }
+        if (rect == null) {
+            rect = new Rect();
+        }
+    }
+
     public void setSupportsHolidayImage(boolean value) {
         supportsHolidayImage = value;
-        if (supportsHolidayImage) {
-            fontMetricsInt = new Paint.FontMetricsInt();
-            rect = new Rect();
+        if (value) {
+            ensureHolidayDrawingResources();
         }
         invalidate();
     }
@@ -260,7 +272,7 @@ public class ActionBar extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (supportsHolidayImage && !titleOverlayShown && !LocaleController.isRTL && ev.getAction() == MotionEvent.ACTION_DOWN) {
+        if (shouldRenderSnowEffect() && !titleOverlayShown && !LocaleController.isRTL && ev.getAction() == MotionEvent.ACTION_DOWN) {
             Drawable drawable = Theme.getCurrentHolidayDrawable();
             if (drawable != null && drawable.getBounds().contains((int) ev.getX(), (int) ev.getY())) {
                 manualStart = true;
@@ -294,12 +306,16 @@ public class ActionBar extends FrameLayout {
         }
 
         boolean clip = shouldClipChild(child);
+        boolean drawSnowOverlay = shouldRenderSnowEffect();
+        if (drawSnowOverlay) {
+            ensureHolidayDrawingResources();
+        }
         if (clip) {
             canvas.save();
             canvas.clipRect(0, -getTranslationY() + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0), getMeasuredWidth(), getMeasuredHeight());
         }
         boolean result = super.drawChild(canvas, child, drawingTime);
-        if (supportsHolidayImage && !titleOverlayShown && !LocaleController.isRTL && (child == titleTextView[0] || child == titleTextView[1] || child == titlesContainer && useContainerForTitles)) {
+        if (drawSnowOverlay && !titleOverlayShown && !LocaleController.isRTL && (child == titleTextView[0] || child == titleTextView[1] || child == titlesContainer && useContainerForTitles)) {
             Drawable drawable = Theme.getCurrentHolidayDrawable();
             if (drawable != null) {
                 SimpleTextView titleView = child == titlesContainer ? titleTextView[0] : (SimpleTextView) child;
@@ -308,9 +324,11 @@ public class ActionBar extends FrameLayout {
                     textPaint.getFontMetricsInt(fontMetricsInt);
                     textPaint.getTextBounds((String) titleView.getText(), 0, 1, rect);
                     int x = titleView.getTextStartX() + Theme.getCurrentHolidayDrawableXOffset() + (rect.width() - (drawable.getIntrinsicWidth() + Theme.getCurrentHolidayDrawableXOffset())) / 2;
-                    int y = titleView.getTextStartY() + Theme.getCurrentHolidayDrawableYOffset() + (int) Math.ceil((titleView.getTextHeight() - rect.height()) / 2.0f) + (int) (dp(8) * (1f - titlesContainer.getScaleY()));
+                    float containerScale = titlesContainer != null ? titlesContainer.getScaleY() : 1f;
+                    int y = titleView.getTextStartY() + Theme.getCurrentHolidayDrawableYOffset() + (int) Math.ceil((titleView.getTextHeight() - rect.height()) / 2.0f) + (int) (dp(8) * (1f - containerScale));
                     drawable.setBounds(x, y - drawable.getIntrinsicHeight(), x + drawable.getIntrinsicWidth(), y);
-                    drawable.setAlpha((int) (255 * titlesContainer.getAlpha() * titleView.getAlpha()));
+                    float containerAlpha = titlesContainer != null ? titlesContainer.getAlpha() : 1f;
+                    drawable.setAlpha((int) (255 * containerAlpha * titleView.getAlpha()));
                     drawable.draw(canvas);
                     if (overlayTitleAnimationInProgress) {
                         child.invalidate();
@@ -1499,7 +1517,8 @@ public class ActionBar extends FrameLayout {
         titleOverlayShown = title != null;
         if ((textToSet != null && titleTextView[0] == null) || getMeasuredWidth() == 0 || (titleTextView[0] != null && titleTextView[0].getVisibility() != View.VISIBLE)) {
             createTitleTextView(0);
-            if (supportsHolidayImage) {
+            if (shouldRenderSnowEffect()) {
+                ensureHolidayDrawingResources();
                 titleTextView[0].invalidate();
                 invalidate();
             }

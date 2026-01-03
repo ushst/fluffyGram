@@ -60,7 +60,10 @@ public final class fluffyConfig {
     private static final String KEY_USE_SYSTEM_FONTS = "useSystemFonts";
     private static final String KEY_HIDE_TOP_BAR = "hideTopBar";
     private static final String KEY_FORCE_CHAT_SNOW = "forceChatSnow";
+    private static final String KEY_SNOW_EFFECT_STYLE = "snowEffectStyle";
     private static final String KEY_HIDE_PINNED_IN_SMALL_MODE = "hidePinnedInSmallMode";
+    private static final String KEY_SNOW_EFFECT_COLOR_MODE = "snowEffectColorMode";
+    private static final String KEY_SNOW_EFFECT_SPEED = "snowEffectSpeed";
     private static final String KEY_CENTER_TITLE = "centerTitle";
     private static final String KEY_CENTER_TITLE_IN_CHAT = "centerTitleInChat";
     private static final String KEY_USE_SOLAR_ICONS = "useSolarIcons";
@@ -145,7 +148,10 @@ public final class fluffyConfig {
     public static boolean useSystemFonts;
     public static boolean hideTopBar;
     public static boolean forceChatSnow;
+    public static int snowEffectStyle;
     public static boolean hidePinnedInSmallMode;
+    public static int snowEffectColorMode;
+    public static int snowEffectSpeedMode;
     public static boolean centerTitle;
     public static boolean centerTitleInChat;
     public static boolean useSolarIcons;
@@ -257,6 +263,9 @@ public final class fluffyConfig {
         useSystemFonts = preferences.getBoolean(KEY_USE_SYSTEM_FONTS, false);
         hideTopBar = preferences.getBoolean(KEY_HIDE_TOP_BAR, false);
         forceChatSnow = preferences.getBoolean(KEY_FORCE_CHAT_SNOW, false);
+        snowEffectStyle = preferences.getInt(KEY_SNOW_EFFECT_STYLE, SNOW_EFFECT_STYLE_SNOWFLAKE);
+        snowEffectColorMode = preferences.getInt(KEY_SNOW_EFFECT_COLOR_MODE, SNOW_EFFECT_COLOR_MODE_THEME);
+        snowEffectSpeedMode = preferences.getInt(KEY_SNOW_EFFECT_SPEED, SNOW_EFFECT_SPEED_NORMAL);
         hidePinnedInSmallMode = preferences.getBoolean(KEY_HIDE_PINNED_IN_SMALL_MODE, false);
         doubleTapInAction = preferences.getInt(KEY_DOUBLE_TAP_IN_ACTION, DOUBLE_TAP_ACTION_REACTION);
         doubleTapOutAction = preferences.getInt(KEY_DOUBLE_TAP_OUT_ACTION, DOUBLE_TAP_ACTION_REACTION);
@@ -469,12 +478,46 @@ public final class fluffyConfig {
         FontUtils.updateTypefaceOverride();
     }
 
+    public static final int SNOW_EFFECT_STYLE_SNOWFLAKE = 0;
+    public static final int SNOW_EFFECT_STYLE_STAR = 1;
+    public static final int SNOW_EFFECT_STYLE_BUBBLE = 2;
+    public static final int SNOW_EFFECT_STYLE_CRYSTAL = 3;
+    public static final int SNOW_EFFECT_STYLE_HEART = 4;
+    public static final int SNOW_EFFECT_STYLE_DROP = 5;
+    public static final int SNOW_EFFECT_STYLE_CONFETTI = 6;
+    public static final int SNOW_EFFECT_STYLE_PIXELS = 7;
+    public static final int SNOW_EFFECT_STYLE_CODEWORDS = 8;
+    public static final int SNOW_EFFECT_STYLE_MAX = SNOW_EFFECT_STYLE_CODEWORDS;
+    public static final int SNOW_EFFECT_COLOR_MODE_THEME = 0;
+    public static final int SNOW_EFFECT_COLOR_MODE_RAINBOW = 1;
+    public static final int SNOW_EFFECT_COLOR_MODE_MATRIX = 2;
+    public static final int SNOW_EFFECT_COLOR_MODE_MAX = SNOW_EFFECT_COLOR_MODE_MATRIX;
+    public static final int SNOW_EFFECT_SPEED_SLOW = 0;
+    public static final int SNOW_EFFECT_SPEED_NORMAL = 1;
+    public static final int SNOW_EFFECT_SPEED_FAST = 2;
+    public static final int SNOW_EFFECT_SPEED_MAX = SNOW_EFFECT_SPEED_FAST;
+
     public static void toggleHideTopBar() {
         hideTopBar = toggleBooleanSetting(KEY_HIDE_TOP_BAR, hideTopBar);
     }
 
     public static void toggleForceChatSnow() {
         forceChatSnow = toggleBooleanSetting(KEY_FORCE_CHAT_SNOW, forceChatSnow);
+    }
+
+    public static void setSnowEffectStyle(int style) {
+        int newStyle = Math.max(SNOW_EFFECT_STYLE_SNOWFLAKE, Math.min(style, SNOW_EFFECT_STYLE_MAX));
+        snowEffectStyle = setIntSetting(KEY_SNOW_EFFECT_STYLE, newStyle);
+    }
+
+    public static void setSnowEffectColorMode(int mode) {
+        int newMode = Math.max(SNOW_EFFECT_COLOR_MODE_THEME, Math.min(mode, SNOW_EFFECT_COLOR_MODE_MAX));
+        snowEffectColorMode = setIntSetting(KEY_SNOW_EFFECT_COLOR_MODE, newMode);
+    }
+
+    public static void setSnowEffectSpeedMode(int mode) {
+        int newMode = Math.max(SNOW_EFFECT_SPEED_SLOW, Math.min(mode, SNOW_EFFECT_SPEED_MAX));
+        snowEffectSpeedMode = setIntSetting(KEY_SNOW_EFFECT_SPEED, newMode);
     }
     public static void toggleHidePinnedInSmallMode() {
         hidePinnedInSmallMode = toggleBooleanSetting(KEY_HIDE_PINNED_IN_SMALL_MODE, hidePinnedInSmallMode);
