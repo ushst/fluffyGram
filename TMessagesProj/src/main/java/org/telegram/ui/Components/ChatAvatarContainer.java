@@ -59,6 +59,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Business.BusinessLinksController;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.Forum.ForumUtilities;
+import org.telegram.ui.Components.SnowflakesEffect;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.TopicsFragment;
@@ -118,6 +119,8 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emojiStatusDrawable;
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable botVerificationDrawable;
+
+    private SnowflakesEffect snowflakesEffect;
 
     protected boolean useAnimatedSubtitle() {
         return false;
@@ -412,11 +415,23 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         bounce.setPressed(pressed);
     }
 
+    private boolean shouldDrawSnowEffect() {
+        return Theme.canStartHolidayAnimation();
+    }
+
     @Override
     protected void dispatchDraw(Canvas canvas) {
         canvas.save();
         final float s = bounce.getScale(.02f);
         canvas.scale(s, s, getWidth() / 2f, getHeight() / 2f);
+        if (shouldDrawSnowEffect()) {
+            if (snowflakesEffect == null) {
+                snowflakesEffect = new SnowflakesEffect(0);
+            }
+            snowflakesEffect.onDraw(this, canvas);
+        } else if (snowflakesEffect != null) {
+            snowflakesEffect = null;
+        }
         super.dispatchDraw(canvas);
         canvas.restore();
     }
