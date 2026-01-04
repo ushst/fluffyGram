@@ -117,6 +117,7 @@ public final class fluffyConfig {
     private static final String KEY_CUSTOM_FONT_NAME = "customFontName";
     private static final String KEY_LOCK_ON_MINIMIZE = "lockOnMinimize";
     private static final String KEY_EDGE_TO_EDGE_MODE = "edgeToEdgeMode";
+    private static final String KEY_SIDE_MENU_SEPARATORS = "sideMenuSeparators";
 
 
 
@@ -205,6 +206,7 @@ public final class fluffyConfig {
     public static String customFontName;
     public static boolean lockOnMinimize;
     public static int edgeToEdgeMode;
+    public static boolean sideMenuSeparators;
 
     private static Boolean cachedEdgeToEdgeSupport;
 
@@ -312,6 +314,7 @@ public final class fluffyConfig {
         enableCustomQuickReplies = preferences.getBoolean(KEY_ENABLE_CUSTOM_QUICK_REPLIES, false);
         lockOnMinimize = preferences.getBoolean(KEY_LOCK_ON_MINIMIZE, false);
         edgeToEdgeMode = preferences.getInt(KEY_EDGE_TO_EDGE_MODE, EDGE_MODE_AUTO);
+        sideMenuSeparators = preferences.getBoolean(KEY_SIDE_MENU_SEPARATORS, false);
         cachedEdgeToEdgeSupport = null;
 
         blockSticker.clear();
@@ -453,6 +456,10 @@ public final class fluffyConfig {
 
     public static void togglePauseMusicOnMedia() {
         pauseMusicOnMedia = toggleBooleanSetting(KEY_PAUSE_MUSIC_ON_MEDIA, pauseMusicOnMedia);
+    }
+
+    public static void toggleSideMenuSeparators() {
+        sideMenuSeparators = toggleBooleanSetting(KEY_SIDE_MENU_SEPARATORS, sideMenuSeparators);
     }
 
     public static boolean toggleLockOnMinimize() {

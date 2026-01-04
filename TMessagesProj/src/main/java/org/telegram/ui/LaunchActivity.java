@@ -586,8 +586,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         itemAnimator = new SideMenultItemAnimator(sideMenu);
         sideMenu.setItemAnimator(itemAnimator);
         sideMenu.setClipToPadding(false);
-        sideMenu.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
-        sideMenuContainer.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
+        sideMenu.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        sideMenuContainer.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         sideMenu.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         sideMenu.setAllowItemsInteractionDuringAnimation(false);
         sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, itemAnimator, drawerLayoutContainer));
@@ -8970,6 +8970,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return instance.getActionBarLayout().getSafeLastFragment();
         }
         return null;
+    }
+
+    public void refreshDrawerMenu() {
+        if (drawerLayoutAdapter != null) {
+            drawerLayoutAdapter.notifyDataSetChanged();
+        }
     }
 
     public int getNavigationBarColor() {

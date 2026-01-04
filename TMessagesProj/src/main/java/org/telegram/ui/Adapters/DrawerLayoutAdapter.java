@@ -32,6 +32,7 @@ import org.telegram.ui.Cells.DrawerAddCell;
 import org.telegram.ui.Cells.DrawerProfileCell;
 import org.telegram.ui.Cells.DrawerUserCell;
 import org.telegram.ui.Cells.EmptyCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SideMenultItemAnimator;
 import org.ushastoe.fluffy.fluffyConfig;
@@ -40,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
+
+    private static final int VIEW_TYPE_SECTION = 7;
 
     private Context mContext;
     private DrawerLayoutContainer mDrawerLayoutContainer;
@@ -131,6 +134,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
                     }
                 };
                 break;
+            case VIEW_TYPE_SECTION:
+                view = new ShadowSectionCell(mContext, 20, Theme.getColor(Theme.key_windowBackgroundGray));
+                break;
             case 2:
                 view = new DividerCell(mContext);
                 break;
@@ -206,6 +212,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         }
         if (i < 0 || i >= items.size() || items.get(i) == null) {
             return 2;
+        }
+        if (items.get(i).type == Item.TYPE_SECTION) {
+            return VIEW_TYPE_SECTION;
         }
         return 3;
     }
@@ -316,11 +325,15 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             showDivider = true;
         }
 
-        items.add(null);
+        if (fluffyConfig.sideMenuSeparators) {
+            items.add(Item.section());
+        }
         items.add(new Item(97, LocaleController.getString(R.string.fluffySettings), R.drawable.msg_emoji_cat));
         items.add(new Item(121, getLockOnMinimizeText(), R.drawable.msg_block));
         items.add(new Item(98, LocaleController.getString(R.string.Devices), R.drawable.menu_devices));
-        items.add(null);
+        if (fluffyConfig.sideMenuSeparators) {
+            items.add(Item.section());
+        }
 
         showDivider = true;
         if (ApplicationLoader.applicationLoaderInstance != null) {
@@ -338,8 +351,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
                 }
             }
         }
-        if (showDivider) {
-            items.add(null); // divider
+        if (showDivider && fluffyConfig.sideMenuSeparators) {
+            items.add(Item.section()); // divider
         }
         items.add(new Item(2, LocaleController.getString(R.string.NewGroup), newGroupIcon));
         //items.add(new Item(3, LocaleController.getString(R.string.NewSecretChat), newSecretIcon));
@@ -414,9 +427,14 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     public static class Item {
+        public static final int TYPE_ACTION = 0;
+        public static final int TYPE_BOT = 1;
+        public static final int TYPE_SECTION = 2;
+
         public int icon;
         public CharSequence text;
         public int id;
+        public int type = TYPE_ACTION;
         TLRPC.TL_attachMenuBot bot;
         View.OnClickListener listener;
         public boolean error;
@@ -425,11 +443,13 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             this.icon = icon;
             this.id = id;
             this.text = text;
+            this.type = TYPE_ACTION;
         }
 
         public Item(TLRPC.TL_attachMenuBot bot) {
             this.bot = bot;
             this.id = (int) (100 + (bot.bot_id >> 16));
+            this.type = TYPE_BOT;
         }
 
         public void bind(DrawerActionCell actionCell) {
@@ -439,6 +459,14 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
                 actionCell.setTextAndIcon(id, text, icon);
             }
             actionCell.setError(error);
+        }
+
+        private Item(int type) {
+            this.type = type;
+        }
+
+        public static Item section() {
+            return new Item(TYPE_SECTION);
         }
 
         @Keep

@@ -137,6 +137,7 @@ public class appearanceActivitySettings extends BaseFragment {
         CENTER_TITLE_IN_CHAT,
         STORIES_SHOW,
         SHOW_DIVIDER,
+        SIDE_MENU_SEPARATORS,
         SELECT_TITLE,
         SELECT_CUSTOM_FONT,
         SYSTEM_TYPEFACE,
@@ -301,6 +302,7 @@ public class appearanceActivitySettings extends BaseFragment {
         layoutRows.add(new Row(RowIdentifier.CENTER_TITLE_IN_CHAT, RowType.TEXT_CHECK, R.string.centerTitleInChat, R.drawable.msg_contacts_name));
         layoutRows.add(new Row(RowIdentifier.STORIES_SHOW, RowType.TEXT_CHECK, R.string.storiesShower, R.drawable.menu_feature_stories));
         layoutRows.add(new Row(RowIdentifier.SHOW_DIVIDER, RowType.TEXT_CHECK, R.string.dividerShower, R.drawable.ic_colorpicker_solar));
+        layoutRows.add(new Row(RowIdentifier.SIDE_MENU_SEPARATORS, RowType.TEXT_CHECK, R.string.SideMenuSeparators, R.drawable.menu_sidebar));
         sortRows(layoutRows);
         rows.add(new Row(RowIdentifier.CHAT_LIST_PREVIEW, RowType.CHAT_LIST_PREVIEW));
         rows.addAll(layoutRows);
@@ -708,6 +710,15 @@ public class appearanceActivitySettings extends BaseFragment {
                     ((TextCell) view).setChecked(fluffyConfig.showDivider);
                     Theme.applyCommonTheme();
                     parentLayout.rebuildAllFragmentViews(true, true);
+                }
+                break;
+            case SIDE_MENU_SEPARATORS:
+                fluffyConfig.toggleSideMenuSeparators();
+                if (view instanceof TextCell) {
+                    ((TextCell) view).setChecked(fluffyConfig.sideMenuSeparators);
+                }
+                if (LaunchActivity.instance != null) {
+                    LaunchActivity.instance.refreshDrawerMenu();
                 }
                 break;
             case CALL_SHOW:
@@ -2052,6 +2063,9 @@ public class appearanceActivitySettings extends BaseFragment {
                             break;
                         case SHOW_DIVIDER:
                             checked = fluffyConfig.showDivider;
+                            break;
+                        case SIDE_MENU_SEPARATORS:
+                            checked = fluffyConfig.sideMenuSeparators;
                             break;
                         case CENTER_TITLE:
                             checked = fluffyConfig.centerTitle;
