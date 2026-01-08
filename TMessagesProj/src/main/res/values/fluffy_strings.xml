@@ -257,6 +257,9 @@
     <string name="save_message">Save Message</string>
     <string name="report_chat">Report Chat</string>
     <string name="json">JSON</string>
+    <string name="Metadata">Metadata</string>
+    <string name="MetadataEmpty">No metadata found</string>
+    <string name="MetadataUnavailable">Download the file to view metadata</string>
     <string name="AllowAttachAnyBot">Allow attaching any bot</string>
     <string name="FG_EnableCustomQuickReplies">Enable quick commands</string>
     <string name="FG_ManageCustomQuickReplies">Manage quick commands</string>

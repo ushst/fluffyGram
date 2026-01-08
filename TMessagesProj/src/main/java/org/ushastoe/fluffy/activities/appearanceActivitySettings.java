@@ -488,6 +488,12 @@ public class appearanceActivitySettings extends BaseFragment {
                 fluffyConfig::toggleShowJSON
         ));
 
+        menuItems.add(new MenuItemConfig(
+                context.getString(R.string.Metadata),
+                () -> fluffyConfig.showOfficeMetadata,
+                fluffyConfig::toggleShowOfficeMetadata
+        ));
+
 
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);

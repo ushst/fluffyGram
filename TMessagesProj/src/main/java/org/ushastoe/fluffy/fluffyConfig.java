@@ -93,6 +93,7 @@ public final class fluffyConfig {
     private static final String KEY_SHOW_FORWARD_WO_AUTHORSHIP = "showForwardWoAuthorship";
     private static final String KEY_SHOW_VIEW_MESSAGE_FROM_USER = "showViewMessageFromUser";
     private static final String KEY_SHOW_JSON = "showJSON";
+    private static final String KEY_SHOW_OFFICE_METADATA = "showOfficeMetadata";
     private static final String KEY_ALLOW_ATTACH_ANY_BOT = "allowAttachAnyBot";
     private static final String KEY_BIG_PHOTO = "bigPhoto";
     private static final String KEY_READ_STICKER_MODE = "readSticker";
@@ -184,6 +185,7 @@ public final class fluffyConfig {
     public static boolean showForwardWoAuthorship;
     public static boolean showViewMessageFromUser;
     public static boolean showJSON;
+    public static boolean showOfficeMetadata;
     public static boolean hidePaidReactions;
     public static int readStickerMode;
     public static String customTitle;
@@ -299,6 +301,7 @@ public final class fluffyConfig {
         showViewMessageFromUser = preferences.getBoolean(KEY_SHOW_VIEW_MESSAGE_FROM_USER, true);
         largePhoto = preferences.getBoolean(KEY_BIG_PHOTO, false);
         showJSON = preferences.getBoolean(KEY_SHOW_JSON, true);
+        showOfficeMetadata = preferences.getBoolean(KEY_SHOW_OFFICE_METADATA, false);
         hidePaidReactions = preferences.getBoolean(KEY_HIDE_PAID_REACTIONS, false);
         showDivider = preferences.getBoolean(KEY_SHOW_DIVIDER, true);
         customTitle = preferences.getString(KEY_CUSTOM_TITLE, "none");
@@ -623,6 +626,10 @@ public final class fluffyConfig {
 
     public static void toggleShowJSON() {
         showJSON = toggleBooleanSetting(KEY_SHOW_JSON, showJSON);
+    }
+
+    public static void toggleShowOfficeMetadata() {
+        showOfficeMetadata = toggleBooleanSetting(KEY_SHOW_OFFICE_METADATA, showOfficeMetadata);
     }
 
     public static void toggleHidePaidReactions() {

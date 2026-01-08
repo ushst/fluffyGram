@@ -340,6 +340,7 @@ import org.ushastoe.fluffy.helpers.IpApiHelper;
 import org.ushastoe.fluffy.helpers.IpInfoBottomSheet;
 import org.ushastoe.fluffy.helpers.JsonBottomSheet;
 import org.ushastoe.fluffy.helpers.MessageHelper;
+import org.ushastoe.fluffy.helpers.MetadataHelper;
 import org.ushastoe.fluffy.helpers.TranslitHelper;
 import org.ushastoe.fluffy.activities.MessageDetailsActivity;
 import android.graphics.BitmapFactory;
@@ -1209,6 +1210,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int OPTION_BLOCK_STICKER = 9996;
     private final static int OPTION_FAKE_EDIT = 9997;
     private final static int OPTION_RESET_FAKE_EDIT = 9998;
+    private final static int OPTION_OFFICE_METADATA = 9999;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -1365,6 +1367,28 @@ public class ChatActivity extends BaseFragment implements
         }
         if (avatarContainer != null) {
             avatarContainer.ignoreTouches = !show;
+        }
+        updateChatMenuDots();
+    }
+
+    private void updateChatMenuDots() {
+        boolean doNotDrawDots = fluffyConfig.centerTitleInChat && getChatMode() != ChatActivity.MODE_SAVED
+                && getDialogId() != 0 && getDialogId() != UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
+        int dotsDrawable = doNotDrawDots ? 0 : R.drawable.ic_ab_other;
+        if (editTextItem != null) {
+            ActionBarMenuItem itemView = editTextItem.getView();
+            if (itemView != null) {
+                itemView.setIcon(dotsDrawable);
+            }
+        }
+        if (attachItem != null) {
+            ActionBarMenuItem itemView = attachItem.getView();
+            if (itemView != null) {
+                itemView.setIcon(dotsDrawable);
+            }
+        }
+        if (headerItem != null) {
+            headerItem.setIcon(dotsDrawable);
         }
     }
 
@@ -2259,6 +2283,7 @@ public class ChatActivity extends BaseFragment implements
 
 
             }
+            updateChatMenuDots();
         }
 
         @Override
@@ -2329,6 +2354,7 @@ public class ChatActivity extends BaseFragment implements
                     attachItem.setVisibility(View.VISIBLE);
                 }
             }
+            updateChatMenuDots();
         }
 
         @Override
@@ -2345,6 +2371,7 @@ public class ChatActivity extends BaseFragment implements
             if (attachItem != null) {
                 attachItem.setVisibility(View.GONE);
             }
+            updateChatMenuDots();
         }
 
         @Override
@@ -4602,6 +4629,7 @@ public class ChatActivity extends BaseFragment implements
         }
         menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
 
+        updateChatMenuDots();
         updateTitle(false);
         avatarContainer.updateOnlineCount();
         avatarContainer.updateSubtitle();
@@ -17965,7 +17993,7 @@ public class ChatActivity extends BaseFragment implements
                         }
                     } else {
                         if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
-                            ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(40);
+                            ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(56);
                         }
                     }
                 }
@@ -33498,6 +33526,12 @@ public class ChatActivity extends BaseFragment implements
                 FactCheckController.getInstance(currentAccount).openFactCheckEditor(getContext(), getResourceProvider(), msg, false);
                 break;
             }
+            case OPTION_OFFICE_METADATA: {
+                if (selectedObject != null) {
+                    MetadataHelper.showMetadata(this, selectedObject, getResourceProvider());
+                }
+                break;
+            }
             case OPTION_DETAILS: {
                 if (selectedObject != null) {
                     JsonBottomSheet.getMessageId(selectedObject);
@@ -44331,6 +44365,11 @@ public class ChatActivity extends BaseFragment implements
                             }
                         }
                     }
+                    if (fluffyConfig.showOfficeMetadata && MetadataHelper.shouldShowMetadata(selectedObject)) {
+                        items.add(LocaleController.getString(R.string.Metadata));
+                        options.add(OPTION_OFFICE_METADATA);
+                        icons.add(R.drawable.msg_info);
+                    }
                 } else if (type == 5) {
                     items.add(LocaleController.getString(R.string.ApplyLocalizationFile));
                     options.add(OPTION_APPLY_LOCALIZATION_OR_THEME);
@@ -44355,17 +44394,24 @@ public class ChatActivity extends BaseFragment implements
                         options.add(OPTION_SHARE);
                         icons.add(R.drawable.msg_shareout);
                     }
-                } else if (type == 6 && !noforwardsOrPaidMedia && !selectedObject.hasRevealedExtendedMedia()) {
-                    if (!selectedObject.needDrawBluredPreview() && !selectedObject.isVoiceOnce() && !selectedObject.isRoundOnce()) {
-                        items.add(LocaleController.getString(R.string.SaveToGallery));
-                        options.add(OPTION_SAVE_TO_GALLERY2);
-                        icons.add(R.drawable.msg_gallery);
-                        items.add(LocaleController.getString(R.string.SaveToDownloads));
-                        options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
-                        icons.add(R.drawable.msg_download);
-                        items.add(LocaleController.getString(R.string.ShareFile));
-                        options.add(OPTION_SHARE);
-                        icons.add(R.drawable.msg_shareout);
+                } else if (type == 6) {
+                    if (!noforwardsOrPaidMedia && !selectedObject.hasRevealedExtendedMedia()) {
+                        if (!selectedObject.needDrawBluredPreview() && !selectedObject.isVoiceOnce() && !selectedObject.isRoundOnce()) {
+                            items.add(LocaleController.getString(R.string.SaveToGallery));
+                            options.add(OPTION_SAVE_TO_GALLERY2);
+                            icons.add(R.drawable.msg_gallery);
+                            items.add(LocaleController.getString(R.string.SaveToDownloads));
+                            options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
+                            icons.add(R.drawable.msg_download);
+                            items.add(LocaleController.getString(R.string.ShareFile));
+                            options.add(OPTION_SHARE);
+                            icons.add(R.drawable.msg_shareout);
+                        }
+                    }
+                    if (fluffyConfig.showOfficeMetadata && MetadataHelper.shouldShowMetadata(selectedObject)) {
+                        items.add(LocaleController.getString(R.string.Metadata));
+                        options.add(OPTION_OFFICE_METADATA);
+                        icons.add(R.drawable.msg_info);
                     }
                 } else if (type == 7) {
                     if (selectedObject.isMask()) {
@@ -44536,32 +44582,39 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_VIEW_IN_TOPIC);
                     icons.add(R.drawable.msg_viewintopic);
                 }
-                if (type == 4 && !noforwardsOrPaidMedia && !selectedObject.hasRevealedExtendedMedia() && !selectedObject.needDrawBluredPreview()) {
-                    if (selectedObject.isVideo()) {
-                        items.add(LocaleController.getString(R.string.SaveToGallery));
-                        options.add(OPTION_SAVE_TO_GALLERY);
-                        icons.add(R.drawable.msg_gallery);
-                        items.add(LocaleController.getString(R.string.ShareFile));
-                        options.add(OPTION_SHARE);
-                        icons.add(R.drawable.msg_shareout);
-                    } else if (selectedObject.isMusic() && !selectedObject.isVoiceOnce() && !selectedObject.isRoundOnce()) {
-                        items.add(LocaleController.getString(R.string.SaveToMusic));
-                        options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
-                        icons.add(R.drawable.msg_download);
-                        items.add(LocaleController.getString(R.string.ShareFile));
-                        options.add(OPTION_SHARE);
-                        icons.add(R.drawable.msg_shareout);
-                    } else if (!selectedObject.isVideo() && selectedObject.getDocument() != null && !selectedObject.isVoiceOnce() && !selectedObject.isRoundOnce()) {
-                        items.add(LocaleController.getString(R.string.SaveToDownloads));
-                        options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
-                        icons.add(R.drawable.msg_download);
-                        items.add(LocaleController.getString(R.string.ShareFile));
-                        options.add(OPTION_SHARE);
-                        icons.add(R.drawable.msg_shareout);
-                    } else {
-                        items.add(LocaleController.getString(R.string.SaveToGallery));
-                        options.add(OPTION_SAVE_TO_GALLERY);
-                        icons.add(R.drawable.msg_gallery);
+                if (type == 4) {
+                    if (!noforwardsOrPaidMedia && !selectedObject.hasRevealedExtendedMedia() && !selectedObject.needDrawBluredPreview()) {
+                        if (selectedObject.isVideo()) {
+                            items.add(LocaleController.getString(R.string.SaveToGallery));
+                            options.add(OPTION_SAVE_TO_GALLERY);
+                            icons.add(R.drawable.msg_gallery);
+                            items.add(LocaleController.getString(R.string.ShareFile));
+                            options.add(OPTION_SHARE);
+                            icons.add(R.drawable.msg_shareout);
+                        } else if (selectedObject.isMusic() && !selectedObject.isVoiceOnce() && !selectedObject.isRoundOnce()) {
+                            items.add(LocaleController.getString(R.string.SaveToMusic));
+                            options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
+                            icons.add(R.drawable.msg_download);
+                            items.add(LocaleController.getString(R.string.ShareFile));
+                            options.add(OPTION_SHARE);
+                            icons.add(R.drawable.msg_shareout);
+                        } else if (!selectedObject.isVideo() && selectedObject.getDocument() != null && !selectedObject.isVoiceOnce() && !selectedObject.isRoundOnce()) {
+                            items.add(LocaleController.getString(R.string.SaveToDownloads));
+                            options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
+                            icons.add(R.drawable.msg_download);
+                            items.add(LocaleController.getString(R.string.ShareFile));
+                            options.add(OPTION_SHARE);
+                            icons.add(R.drawable.msg_shareout);
+                        } else {
+                            items.add(LocaleController.getString(R.string.SaveToGallery));
+                            options.add(OPTION_SAVE_TO_GALLERY);
+                            icons.add(R.drawable.msg_gallery);
+                        }
+                    }
+                    if (fluffyConfig.showOfficeMetadata && MetadataHelper.shouldShowMetadata(selectedObject)) {
+                        items.add(LocaleController.getString(R.string.Metadata));
+                        options.add(OPTION_OFFICE_METADATA);
+                        icons.add(R.drawable.msg_info);
                     }
                 } else if (type == 5) {
                     items.add(LocaleController.getString(R.string.ApplyLocalizationFile));
