@@ -35498,6 +35498,10 @@ public class ChatActivity extends BaseFragment implements
             }
         } else {
             logSponsoredClicked(messageObject, false, false);
+            if (str != null && str.startsWith("fluffy://")) {
+                openFluffyDeepLink(str);
+                return;
+            }
             String username = Browser.extractUsername(str);
             if (username != null) {
                 username = username.toLowerCase();
@@ -35815,6 +35819,10 @@ public class ChatActivity extends BaseFragment implements
             }
         } else {
             final String urlFinal = ((URLSpan) url).getURL();
+            if (urlFinal != null && urlFinal.startsWith("fluffy://")) {
+                openFluffyDeepLink(urlFinal);
+                return;
+            }
             if (urlFinal != null && urlFinal.startsWith("tel:")) {
                 didPressPhoneNumber(cell, url, urlFinal.substring(4));
             } else if (longPress) {
@@ -35851,6 +35859,16 @@ public class ChatActivity extends BaseFragment implements
                 }
                 processExternalUrl(2, urlFinal, url, cell, forceAlert, false);
             }
+        }
+    }
+
+    private void openFluffyDeepLink(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.setClass(getParentActivity(), LaunchActivity.class);
+            getParentActivity().startActivity(intent);
+        } catch (Exception e) {
+            FileLog.e(e);
         }
     }
 
