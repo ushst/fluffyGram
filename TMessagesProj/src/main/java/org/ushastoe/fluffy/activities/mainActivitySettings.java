@@ -246,8 +246,6 @@ public class mainActivitySettings extends BaseFragment {
     ArrayList<MenuEntry> entries = new ArrayList<>();
     entries.add(new MenuEntry("General", R.string.General, R.drawable.msg_media,
         () -> presentFragment(new generalActivitySettings())));
-    entries.add(new MenuEntry("GhostMode", R.string.GhostMode, R.drawable.msg_secret,
-        () -> presentFragment(new ghostModeActivitySettings())));
     if (SecretSettingsHelper.isSecretSettingsUnlocked(getCurrentUserId())) {
       entries.add(new MenuEntry("SuperSecretSettings", R.string.SuperSecretSettings, R.drawable.msg_secret,
           () -> presentFragment(new secretSettingsActivity())));

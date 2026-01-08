@@ -26,6 +26,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.messenger.UserConfig;
 import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
+import org.ushastoe.fluffy.activities.ghostModeActivitySettings;
 
 public class secretSettingsActivity extends BaseFragment {
 
@@ -35,7 +36,7 @@ public class secretSettingsActivity extends BaseFragment {
 
   private enum RowType { HEADER, TEXT_INFO, TEXT_CELL }
 
-  private enum RowIdentifier { SECRET_HEADER, SECRET_DESCRIPTION, SECRET_DISABLE }
+  private enum RowIdentifier { SECRET_HEADER, SECRET_DESCRIPTION, SECRET_GHOST_MODE, SECRET_DISABLE }
 
   private static class Row {
     final RowIdentifier id;
@@ -62,6 +63,8 @@ public class secretSettingsActivity extends BaseFragment {
                      R.string.SuperSecretSettings));
     rows.add(new Row(RowIdentifier.SECRET_DESCRIPTION, RowType.TEXT_INFO,
                      R.string.SuperSecretSettingsPlaceholder));
+    rows.add(new Row(RowIdentifier.SECRET_GHOST_MODE, RowType.TEXT_CELL,
+                     R.string.GhostMode));
     rows.add(new Row(RowIdentifier.SECRET_DISABLE, RowType.TEXT_CELL,
                      R.string.SuperSecretSettingsDisable));
     if (listAdapter != null) {
@@ -94,7 +97,9 @@ public class secretSettingsActivity extends BaseFragment {
     listView.setVerticalScrollBarEnabled(false);
     listView.setOnItemClickListener((view, position) -> {
       Row row = rows.get(position);
-      if (row.id == RowIdentifier.SECRET_DISABLE) {
+      if (row.id == RowIdentifier.SECRET_GHOST_MODE) {
+        presentFragment(new ghostModeActivitySettings());
+      } else if (row.id == RowIdentifier.SECRET_DISABLE) {
         long userId = UserConfig.getInstance(currentAccount).getClientUserId();
         SecretSettingsHelper.setSecretSettingsUnlocked(userId, false);
         Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsDisabled,
@@ -151,7 +156,8 @@ public class secretSettingsActivity extends BaseFragment {
         break;
       case TEXT_CELL:
         TextCell textCell = (TextCell)holder.itemView;
-        textCell.setTextAndIcon(getString(row.textResId), R.drawable.msg_delete, true);
+        int icon = row.id == RowIdentifier.SECRET_DISABLE ? R.drawable.msg_delete : R.drawable.msg_secret;
+        textCell.setTextAndIcon(getString(row.textResId), icon, true);
         break;
       }
     }
