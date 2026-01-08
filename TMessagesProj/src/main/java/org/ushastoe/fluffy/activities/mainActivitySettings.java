@@ -122,6 +122,14 @@ public class mainActivitySettings extends BaseFragment {
   }
 
   private void onSecretTap() {
+    if (SecretSettingsHelper.isSecretSettingsUnlocked(getCurrentUserId())) {
+      if (getParentActivity() != null) {
+        Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsAlreadyUnlocked,
+                       Toast.LENGTH_SHORT)
+            .show();
+      }
+      return;
+    }
     if (secretTapsCount == 0) {
       AndroidUtilities.cancelRunOnUIThread(resetSecretTapRunnable);
       AndroidUtilities.runOnUIThread(resetSecretTapRunnable, 1500);

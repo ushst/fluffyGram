@@ -6,6 +6,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,9 +20,12 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.messenger.UserConfig;
+import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
 
 public class secretSettingsActivity extends BaseFragment {
 
@@ -29,9 +33,9 @@ public class secretSettingsActivity extends BaseFragment {
   private ListAdapter listAdapter;
   private final List<Row> rows = new ArrayList<>();
 
-  private enum RowType { HEADER, TEXT_INFO }
+  private enum RowType { HEADER, TEXT_INFO, TEXT_CELL }
 
-  private enum RowIdentifier { SECRET_HEADER, SECRET_DESCRIPTION }
+  private enum RowIdentifier { SECRET_HEADER, SECRET_DESCRIPTION, SECRET_DISABLE }
 
   private static class Row {
     final RowIdentifier id;
@@ -58,6 +62,8 @@ public class secretSettingsActivity extends BaseFragment {
                      R.string.SuperSecretSettings));
     rows.add(new Row(RowIdentifier.SECRET_DESCRIPTION, RowType.TEXT_INFO,
                      R.string.SuperSecretSettingsPlaceholder));
+    rows.add(new Row(RowIdentifier.SECRET_DISABLE, RowType.TEXT_CELL,
+                     R.string.SuperSecretSettingsDisable));
     if (listAdapter != null) {
       listAdapter.notifyDataSetChanged();
     }
@@ -68,6 +74,14 @@ public class secretSettingsActivity extends BaseFragment {
     actionBar.setBackButtonImage(R.drawable.ic_ab_back);
     actionBar.setAllowOverlayTitle(true);
     actionBar.setTitle(getString(R.string.SuperSecretSettings));
+    actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+      @Override
+      public void onItemClick(int id) {
+        if (id == -1) {
+          finishFragment();
+        }
+      }
+    });
 
     fragmentView = new FrameLayout(context);
     fragmentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
@@ -78,6 +92,17 @@ public class secretSettingsActivity extends BaseFragment {
     listView.setLayoutManager(new LinearLayoutManager(context));
     listView.setAdapter(listAdapter);
     listView.setVerticalScrollBarEnabled(false);
+    listView.setOnItemClickListener((view, position) -> {
+      Row row = rows.get(position);
+      if (row.id == RowIdentifier.SECRET_DISABLE) {
+        long userId = UserConfig.getInstance(currentAccount).getClientUserId();
+        SecretSettingsHelper.setSecretSettingsUnlocked(userId, false);
+        Toast.makeText(getParentActivity(), R.string.SuperSecretSettingsDisabled,
+                       Toast.LENGTH_SHORT)
+            .show();
+        finishFragment();
+      }
+    });
 
     frameLayout.addView(listView,
                         LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
@@ -87,7 +112,7 @@ public class secretSettingsActivity extends BaseFragment {
 
   @Override
   public boolean canBeginSlide() {
-    return false;
+    return true;
   }
 
   private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -98,7 +123,11 @@ public class secretSettingsActivity extends BaseFragment {
 
     @Override
     public boolean isEnabled(RecyclerView.ViewHolder holder) {
-      return false;
+      int position = holder.getAdapterPosition();
+      if (position < 0 || position >= rows.size()) {
+        return false;
+      }
+      return rows.get(position).type == RowType.TEXT_CELL;
     }
 
     @Override
@@ -120,6 +149,10 @@ public class secretSettingsActivity extends BaseFragment {
         infoCell.setText(getString(row.textResId));
         infoCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
         break;
+      case TEXT_CELL:
+        TextCell textCell = (TextCell)holder.itemView;
+        textCell.setTextAndIcon(getString(row.textResId), R.drawable.msg_delete, true);
+        break;
       }
     }
 
@@ -128,6 +161,8 @@ public class secretSettingsActivity extends BaseFragment {
       View view;
       if (RowType.values()[viewType] == RowType.HEADER) {
         view = new HeaderCell(context);
+      } else if (RowType.values()[viewType] == RowType.TEXT_CELL) {
+        view = new TextCell(context);
       } else {
         view = new TextInfoPrivacyCell(context);
       }
@@ -151,7 +186,7 @@ public class secretSettingsActivity extends BaseFragment {
                                           null, null, null, null,
                                           Theme.key_windowBackgroundGray));
     descriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR,
-                                          new Class[] {HeaderCell.class, TextInfoPrivacyCell.class},
+                                          new Class[] {HeaderCell.class, TextInfoPrivacyCell.class, TextCell.class},
                                           null, null, null,
                                           Theme.key_windowBackgroundWhite));
     descriptions.add(new ThemeDescription(listView, 0,
@@ -162,6 +197,10 @@ public class secretSettingsActivity extends BaseFragment {
                                           new Class[] {TextInfoPrivacyCell.class},
                                           new String[] {"textView"}, null, null, null,
                                           Theme.key_windowBackgroundWhiteGrayText2));
+    descriptions.add(new ThemeDescription(listView, 0,
+                                          new Class[] {TextCell.class},
+                                          new String[] {"textView"}, null, null, null,
+                                          Theme.key_windowBackgroundWhiteBlackText));
 
     return descriptions;
   }

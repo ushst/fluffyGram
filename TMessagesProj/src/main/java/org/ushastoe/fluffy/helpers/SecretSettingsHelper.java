@@ -20,12 +20,13 @@ public final class SecretSettingsHelper {
 
     // TODO: replace with the actual public key issued by the server
     private static final String PUBLIC_KEY_BASE64 =
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw4vQd2pb5H0JKmS0CBf+" +
-            "NuHkTzShxUClAAqWAF70+VruMcrQ88Nhm6ZBx2A9DaeO0/gzF+4YeqjqtqlXg9gY" +
-            "yMvrg65BGqk8+Vh8N+YGa0NBySnz45yPp4Ds7hP1mOoBsWYKDkAlAAXUyZ7iJsmu" +
-            "xlIb4TyKXTT3qdyA7e0BPY3VRk5YqDkLZfOp/S3w6ZrzkR7wTfVNAV1fENyJ0L0p" +
-            "Le8IfV3PMNK0i6qwfbKEmf3zdSdVqQGQPvYbh9Zk4uRfGQj2OGcyHWdVQFO1c0W+" +
-            "dS8ivwxOxjUAG72GxWaw9pLtYCHX2+nGk+VUZRWgczw9O/XXIwIDAQAB";
+            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqNz86dTI8p4whE8zi/Yp" +
+            "scPnZqEjADHFhLt9hXiboU/m/Kxyr9M+bq0qXu8w9n9wmxbhbA/U+0F/HnPbTmOw" +
+            "V4gec7C/DxHCPaePVfTvtehbsq4voSR+O+QCfzQpe5ebUylfSnFjXQ9pggyOl6Ro" +
+            "+XBYkelheQzY3OcCCAElCqIMv0BG5Qg/Is7k2VgFYLKoKEzw83VisOVw6aLebqZp" +
+            "hDMmKgRncRh+6iRR7MxG6XP0H+vOGiNWZPia8ecLEuKrRirPVz+c7rkC3wsxSD1I" +
+            "R45fwAstejZcEjaZ1vCMgSUwUlmgtRmD0cI2eVMZ3Dwv31SuERZExsEuQwF+L0Pg" +
+            "KQIDAQAB";
 
     private SecretSettingsHelper() {
     }
@@ -52,14 +53,23 @@ public final class SecretSettingsHelper {
         if (userId == 0 || code == null || code.isEmpty()) {
             return false;
         }
+        String normalized = code.trim().replace(" ", "+");
         try {
             Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
             signature.initVerify(getPublicKey());
             signature.update(String.valueOf(userId).getBytes(StandardCharsets.UTF_8));
-            return signature.verify(Base64.decode(code, Base64.DEFAULT));
+            return signature.verify(Base64.decode(normalized, Base64.DEFAULT));
         } catch (Exception e) {
-            FileLog.e("Secret settings verification failed", e);
-            return false;
+            try {
+                Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
+                signature.initVerify(getPublicKey());
+                signature.update(String.valueOf(userId).getBytes(StandardCharsets.UTF_8));
+                String urlSafe = normalized.replace("-", "+").replace("_", "/");
+                return signature.verify(Base64.decode(urlSafe, Base64.DEFAULT));
+            } catch (Exception e2) {
+                FileLog.e("Secret settings verification failed", e);
+                return false;
+            }
         }
     }
 

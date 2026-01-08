@@ -7747,9 +7747,9 @@ public class MessageObject {
             messageOwner instanceof TLRPC.TL_message_secret ||
             getMedia(messageOwner) instanceof TLRPC.TL_messageMediaInvoice ||
             isOut() && messageOwner.send_state != MESSAGE_SEND_STATE_SENT ||
-            messageOwner.id < 0
+            messageOwner.id < 0 ||
+            messageText != null && messageText.toString().contains("fluffy://")
         );
-
         if (useManualParse) {
             addLinks(isOutOwner(), messageText, true, true);
         } else {

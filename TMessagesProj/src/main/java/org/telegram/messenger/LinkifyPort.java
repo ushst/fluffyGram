@@ -174,7 +174,7 @@ public class LinkifyPort {
     private static final String HOST_NAME = "(" + IRI_LABEL + "\\.)+" + TLD;
     private static final String DOMAIN_NAME_STR = "(" + HOST_NAME + "|" + IP_ADDRESS_STRING + ")";
     private static final Pattern DOMAIN_NAME = Pattern.compile(DOMAIN_NAME_STR);
-    private static final String PROTOCOL = "(?i:http|https|ton|tg|tonsite)://";
+    private static final String PROTOCOL = "(?i:http|https|ton|tg|tonsite|fluffy)://";
     private static final String WORD_BOUNDARY = "(?:\\b|$|^)";
     private static final String USER_INFO = "(?:[a-zA-Z0-9\\$\\-\\_\\.\\+\\!\\*\\'\\(\\)"
             + "\\,\\;\\?\\&\\=]|(?:\\%[a-fA-F0-9]{2})){1,64}(?:\\:(?:[a-zA-Z0-9\\$\\-\\_"
@@ -182,6 +182,7 @@ public class LinkifyPort {
     private static final String PORT_NUMBER = "\\:\\d{1,5}";
     private static final String PATH_AND_QUERY = "[/\\?](?:(?:[" + LABEL_CHAR + ";/\\?:@&=#~" + "\\-\\.\\+!\\*'\\(\\),_\\$])|(?:%[a-fA-F0-9]{2}))*";
     private static final String RELAXED_DOMAIN_NAME = "(?:" + "(?:" + IRI_LABEL + "(?:\\.(?=\\S))" + ")*" + "(?:" + IRI_LABEL + "(?:\\.(?=\\S))" + "?)" + "|" + IP_ADDRESS_STRING + ")";
+    private static final String FLUFFY_URL_WITH_PROTOCOL = "(?i:fluffy)://\\S+";
 
     private static final String WEB_URL_WITHOUT_PROTOCOL = "("
             + WORD_BOUNDARY
@@ -208,7 +209,7 @@ public class LinkifyPort {
 
     static {
         try {
-            WEB_URL = Pattern.compile("(" + WEB_URL_WITH_PROTOCOL + "|" + WEB_URL_WITHOUT_PROTOCOL + ")");
+            WEB_URL = Pattern.compile("(" + FLUFFY_URL_WITH_PROTOCOL + "|" + WEB_URL_WITH_PROTOCOL + "|" + WEB_URL_WITHOUT_PROTOCOL + ")");
         } catch (Exception e) {
             FileLog.e(e);
         }

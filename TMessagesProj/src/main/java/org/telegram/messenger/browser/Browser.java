@@ -225,6 +225,7 @@ public class Browser {
 
     public static boolean urlMustNotHaveConfirmation(String url) {
         return (
+            url != null && url.startsWith("fluffy://") ||
             isTelegraphUrl(url, false, true) ||
             url.matches("^(https://)?t\\.me/iv\\??(/.*|$)") || // t.me/iv?
             url.matches("^(https://)?telegram\\.org/(blog|tour)(/.*|$)") || // telegram.org/blog, telegram.org/tour

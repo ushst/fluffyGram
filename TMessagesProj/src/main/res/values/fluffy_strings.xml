@@ -9,6 +9,9 @@
     <string name="SuperSecretSettingsCodeError">Введите код доступа</string>
     <string name="SuperSecretSettingsInvalid">Код не подошёл</string>
     <string name="SuperSecretSettingsSuccess">Секретные настройки разблокированы</string>
+    <string name="SuperSecretSettingsAlreadyUnlocked">Секретные настройки уже разблокированы</string>
+    <string name="SuperSecretSettingsDisable">Отключить секретные настройки</string>
+    <string name="SuperSecretSettingsDisabled">Секретные настройки отключены</string>
     <string name="SuperSecretSettingsPlaceholder">Здесь появятся суперсекретные настройки.</string>
     <string name="GhostModeDisableStoryView">Disable story view (don\'t mark as seen)</string>
     <string name="GhostModeDisableTyping">Hide my typing indicator</string>

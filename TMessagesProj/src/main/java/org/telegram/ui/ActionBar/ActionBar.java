@@ -320,9 +320,16 @@ public class ActionBar extends FrameLayout {
             if (drawable != null) {
                 SimpleTextView titleView = child == titlesContainer ? titleTextView[0] : (SimpleTextView) child;
                 if (titleView != null && titleView.getVisibility() == View.VISIBLE && titleView.getText() instanceof String) {
+                    String titleText = (String) titleView.getText();
+                    if (titleText.length() == 0) {
+                        if (clip) {
+                            canvas.restore();
+                        }
+                        return result;
+                    }
                     TextPaint textPaint = titleView.getTextPaint();
                     textPaint.getFontMetricsInt(fontMetricsInt);
-                    textPaint.getTextBounds((String) titleView.getText(), 0, 1, rect);
+                    textPaint.getTextBounds(titleText, 0, 1, rect);
                     int x = titleView.getTextStartX() + Theme.getCurrentHolidayDrawableXOffset() + (rect.width() - (drawable.getIntrinsicWidth() + Theme.getCurrentHolidayDrawableXOffset())) / 2;
                     float containerScale = titlesContainer != null ? titlesContainer.getScaleY() : 1f;
                     int y = titleView.getTextStartY() + Theme.getCurrentHolidayDrawableYOffset() + (int) Math.ceil((titleView.getTextHeight() - rect.height()) / 2.0f) + (int) (dp(8) * (1f - containerScale));

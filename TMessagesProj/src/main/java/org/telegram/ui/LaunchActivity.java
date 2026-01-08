@@ -239,7 +239,9 @@ import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.activities.mainActivitySettings;
+import org.ushastoe.fluffy.activities.secretSettingsActivity;
 import org.ushastoe.fluffy.fluffyConfig;
+import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
 import org.ushastoe.fluffy.helpers.MonetHelper;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
@@ -2348,6 +2350,52 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         final String scheme = data.getScheme();
                         if (scheme != null) {
                             switch (scheme) {
+                                case "fluffy": {
+                                    String unlockCode = null;
+                                    String raw = data.toString();
+                                    int codeIndex = raw.indexOf("code=");
+                                    if (codeIndex >= 0) {
+                                        unlockCode = raw.substring(codeIndex + 5);
+                                        int cut = unlockCode.indexOf('&');
+                                        if (cut >= 0) {
+                                            unlockCode = unlockCode.substring(0, cut);
+                                        }
+                                        cut = unlockCode.indexOf('#');
+                                        if (cut >= 0) {
+                                            unlockCode = unlockCode.substring(0, cut);
+                                        }
+                                        unlockCode = Uri.decode(unlockCode);
+                                    }
+                                    if (TextUtils.isEmpty(unlockCode)) {
+                                        String path = data.getPath();
+                                        if (!TextUtils.isEmpty(path) && path.startsWith("/code/")) {
+                                            unlockCode = Uri.decode(path.substring(6));
+                                        }
+                                    }
+                                    long userId = UserConfig.getInstance(currentAccount).getClientUserId();
+                                    if (SecretSettingsHelper.isSecretSettingsUnlocked(userId)) {
+                                        Toast.makeText(this, LocaleController.getString(R.string.SuperSecretSettingsAlreadyUnlocked), Toast.LENGTH_SHORT).show();
+                                        presentFragment(new secretSettingsActivity());
+                                        intent.setAction(null);
+                                        if (progress != null) {
+                                            progress.end();
+                                        }
+                                        return true;
+                                    }
+                                    boolean unlocked = SecretSettingsHelper.verifyUnlockCode(userId, unlockCode);
+                                    if (unlocked) {
+                                        SecretSettingsHelper.setSecretSettingsUnlocked(userId, true);
+                                        Toast.makeText(this, LocaleController.getString(R.string.SuperSecretSettingsSuccess), Toast.LENGTH_SHORT).show();
+                                        presentFragment(new secretSettingsActivity());
+                                    } else {
+                                        Toast.makeText(this, LocaleController.getString(R.string.SuperSecretSettingsInvalid), Toast.LENGTH_SHORT).show();
+                                    }
+                                    intent.setAction(null);
+                                    if (progress != null) {
+                                        progress.end();
+                                    }
+                                    return true;
+                                }
                                 case "tonsite":
                                     Browser.openUrl(this, data);
                                     intent.setAction(null);
