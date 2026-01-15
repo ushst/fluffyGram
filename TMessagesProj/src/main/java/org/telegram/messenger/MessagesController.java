@@ -101,6 +101,7 @@ import org.telegram.ui.Components.TranscribeButton;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.EditWidgetActivity;
 import org.telegram.ui.LaunchActivity;
+import org.telegram.ui.MainTabsActivity;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SecretMediaViewer;
@@ -21466,7 +21467,8 @@ public class MessagesController extends BaseController implements NotificationCe
             }
         }
         boolean doNotCloseLast = false;
-        if (LaunchActivity.getLastFragment() instanceof DialogsActivity) {
+        BaseFragment lastFragment = LaunchActivity.getLastFragment();
+        if (lastFragment instanceof DialogsActivity || lastFragment instanceof MainTabsActivity) {
             doNotCloseLast = true;
         }
         if (reason != null) {
@@ -23773,6 +23775,7 @@ public class MessagesController extends BaseController implements NotificationCe
     
     private ArrayList<Utilities.Callback<Boolean>> loadingStakeDiceInfo;
 
+    private ArrayList<Utilities.Callback<Boolean>> loadingStakeDiceInfo;
     public TLRPC.EmojiGameInfo stakeDiceInfo;
     public void loadStakeDiceInfo(Utilities.Callback<Boolean> isAvailable) {
         if (stakeDiceInfo != null) {

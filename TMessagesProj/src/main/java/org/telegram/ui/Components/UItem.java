@@ -57,6 +57,7 @@ public class UItem extends AdapterWithDiffUtils.Item {
     public Utilities.Callback<Integer> intCallback;
 
     public View.OnClickListener clickCallback;
+    public View.OnClickListener clickCallback2;
 
     public Object object;
     public Object object2;
@@ -80,11 +81,19 @@ public class UItem extends AdapterWithDiffUtils.Item {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM, false);
         i.id = id;
         i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
         return i;
     }
     public static UItem asCustom(View view) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM, false);
         i.view = view;
+        i.intValue = LayoutHelper.MATCH_PARENT;
+        return i;
+    }
+    public static UItem asCustom(View view, int heightDp) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_CUSTOM, false);
+        i.view = view;
+        i.intValue = heightDp;
         return i;
     }
 

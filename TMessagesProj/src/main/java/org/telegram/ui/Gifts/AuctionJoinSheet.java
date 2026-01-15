@@ -259,6 +259,7 @@ public class AuctionJoinSheet extends BottomSheetWithRecyclerListView implements
         }
 
         buttonView = new ButtonWithCounterView(context, resourcesProvider);
+        buttonView.setRound();
         buttonView.setOnClickListener(v -> {
             if (auction != null && !auction.isFinished()) {
                 if ((dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId()) && auction.previewAttributes != null) {

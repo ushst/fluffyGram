@@ -65,7 +65,7 @@ import java.util.ArrayList;
 
 public abstract class BaseFragment {
 
-    protected boolean isFinished;
+    public boolean isFinished;
     protected boolean finishing;
     public Dialog visibleDialog;
     protected int currentAccount = UserConfig.selectedAccount;
@@ -687,10 +687,6 @@ public abstract class BaseFragment {
 
     }
 
-    public void onSlideProgressFront(boolean isOpen, float progress) {
-
-    }
-
     public void onTransitionAnimationProgress(boolean isOpen, float progress) {
 
     }
@@ -923,7 +919,7 @@ public abstract class BaseFragment {
 
     }
 
-    protected Animator getCustomSlideTransition(boolean topFragment, boolean backAnimation, float distanceToMove) {
+    public Animator getCustomSlideTransition(boolean topFragment, boolean backAnimation, float distanceToMove) {
         return null;
     }
 
@@ -932,10 +928,6 @@ public abstract class BaseFragment {
     }
 
     public void prepareFragmentToSlide(boolean topFragment, boolean beginSlide) {
-
-    }
-
-    public void setProgressToDrawerOpened(float v) {
 
     }
 
@@ -1298,6 +1290,19 @@ public abstract class BaseFragment {
             updateSheetsVisibility();
         }
         return storyViewer;
+    }
+
+
+    public void setTitleOverlayTextIfActionBarAttached(String title, int titleId, Runnable action) {
+        if (actionBar != null && actionBar.shouldAddToContainer()) {
+            setTitleOverlayText(title, titleId, action);
+        }
+    }
+
+    public void setTitleOverlayText(String title, int titleId, Runnable action) {
+        if (actionBar != null) {
+            actionBar.setTitleOverlayText(title, titleId, action);
+        }
     }
 
     public void removeSheet(BaseFragment.AttachedSheet sheet) {

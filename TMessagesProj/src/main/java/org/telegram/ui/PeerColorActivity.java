@@ -733,6 +733,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             buttonCollectible = getString(R.string.UserColorApplyCollectible);
 
             button = new ButtonWithCounterView(getContext(), getResourceProvider());
+            button.setRound();
             button.text.setHacks(true, true, true);
             button.setText(isChannel ? buttonUnlocked : (!getUserConfig().isPremium() ? buttonLocked : (selectedEmojiCollectible != null ? buttonCollectible : buttonUnlocked)), false);
             button.setOnClickListener(v -> buttonClick());

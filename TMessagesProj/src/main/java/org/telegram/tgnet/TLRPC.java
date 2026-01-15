@@ -21706,6 +21706,7 @@ public class TLRPC {
         public long bot_verification_icon;
         public long send_paid_messages_stars;
         public boolean bot_forum_view;
+        public boolean bot_forum_can_manage_topics;
 
         public static User TLdeserialize(InputSerializedData stream, int constructor, boolean exception) {
             User result = null;
@@ -21934,6 +21935,7 @@ public class TLRPC {
             bot_business = (flags2 & 2048) != 0;
             bot_has_main_app = (flags2 & 8192) != 0;
             bot_forum_view = hasFlag(flags2, FLAG_16);
+            bot_forum_can_manage_topics = hasFlag(flags2, FLAG_17);
 
             id = stream.readInt64(exception);
             if ((flags & 1) != 0) {
@@ -22031,6 +22033,7 @@ public class TLRPC {
             flags2 = bot_business ? (flags2 | 2048) : (flags2 &~ 2048);
             flags2 = bot_has_main_app ? (flags2 | 8192) : (flags2 &~ 8192);
             flags2 = setFlag(flags2, FLAG_16, bot_forum_view);
+            flags2 = setFlag(flags2, FLAG_17, bot_forum_can_manage_topics);
             stream.writeInt32(flags2);
             stream.writeInt64(id);
             if ((flags & 1) != 0) {

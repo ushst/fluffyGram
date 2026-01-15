@@ -40,6 +40,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Keep;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -89,6 +90,7 @@ import java.util.HashMap;
 public class WallpapersListActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     private int rowCount;
+    @Keep
     private int uploadImageRow;
     private int setColorRow;
     private int sectionRow;

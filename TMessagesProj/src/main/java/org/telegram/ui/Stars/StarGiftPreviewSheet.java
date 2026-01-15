@@ -9,7 +9,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
@@ -17,7 +16,6 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
-import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -29,11 +27,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -65,11 +62,14 @@ import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
+import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
 import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
+import org.telegram.ui.Components.glass.GlassTabView;
+import org.telegram.ui.Components.glass.GlassTabsView;
 import org.telegram.ui.Gifts.GiftSheet;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 
@@ -111,7 +111,7 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
     private final TextView giftStatusTextView;
     private final TL_stars.StarGift gift;
     private final View gradientTop;
-
+    private final ViewGroupPartRenderer viewGroupPartRenderer;
 
     private final DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
     private final @Nullable BlurredBackgroundSourceRenderNode glassSourceRenderNode;
@@ -124,6 +124,7 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
         this.currentAccount = currentAccount;
         this.gift = gift;
 
+        this.viewGroupPartRenderer = new ViewGroupPartRenderer(recyclerListView, container, recyclerListView::drawChild);
         this.backdrops = TlUtils.findAllInstances(attributes, TL_stars.starGiftAttributeBackdrop.class);
         this.rBackdrops = new BagRandomizer<>(backdrops);
         this.rBackdrops.setReshuffleIfEnd(false);
@@ -754,28 +755,6 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
         }
     }
 
-    private final RectF tmpViewRectF = new RectF();
-    private final PointF tmpViewPointF = new PointF();
-    private void drawList(Canvas canvas, RectF position) {
-        final long drawingTime = SystemClock.uptimeMillis();
-        ViewPositionWatcher.computeCoordinatesInParent(recyclerListView, container, tmpViewPointF);
-        canvas.save();
-        canvas.clipRect(position);
-        canvas.translate(tmpViewPointF.x, tmpViewPointF.y);
-        for (int i = 0; i < recyclerListView.getChildCount(); i++) {
-            View child = recyclerListView.getChildAt(i);
-
-            ViewPositionWatcher.computeCoordinatesInParent(child, container, tmpViewPointF);
-            tmpViewRectF.set(tmpViewPointF.x, tmpViewPointF.y, tmpViewPointF.x + child.getWidth(), tmpViewPointF.y + child.getHeight());
-            if (!tmpViewRectF.intersect(position)) {
-                continue;
-            }
-
-            recyclerListView.drawChild(canvas, child, drawingTime);
-        }
-        canvas.restore();
-    }
-
     private void invalidateMergedVisibleBlurredPositionsAndSourcesPositions() {
         invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS);
     }
@@ -813,15 +792,7 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
             return;
         }
 
-        final RectF position = scrollableViewNoiseSuppressor.getPosition(0);
-        Canvas c = scrollableViewNoiseSuppressor.beginRecordingRect(0);
-        c.save();
-        c.translate(-position.left, -position.top);
-        drawList(c, position);
-        c.restore();
-        scrollableViewNoiseSuppressor.endRecordingRect();
-
-        scrollableViewNoiseSuppressor.invalidateResultRenderNodes(container.getWidth(), container.getHeight());
+        scrollableViewNoiseSuppressor.invalidateResultRenderNodes(viewGroupPartRenderer, container.getWidth(), container.getHeight());
     }
 
     private int lastBottomInset;
@@ -874,7 +845,6 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 4, 20, 4, 0));
 
             percentView = new AnimatedTextView(context);
-            percentView.setText("WTF");
             percentView.setTypeface(AndroidUtilities.bold());
             percentView.setTextColor(Color.WHITE);
             percentView.setGravity(Gravity.RIGHT);
@@ -885,87 +855,40 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
         }
     }
 
-    private static class Tab extends FrameLayout implements FactorAnimator.Target {
-        private final TextView textView;
-        private final ImageView imageView;
-
-        private final BoolAnimator isSelectedAnimator = new BoolAnimator(0, this, CubicBezierInterpolator.EASE_OUT_QUINT, 300);
-        private int color;
-
-        public Tab(@NonNull Context context) {
-            super(context);
-            imageView = new ImageView(context);
-            addView(imageView, LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 6, 0, 0));
-
-            imageView.setColorFilter(new PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN));
-
-            textView = new TextView(context);
-            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
-            textView.setSingleLine();
-            textView.setLines(1);
-            textView.setEllipsize(TextUtils.TruncateAt.END);
-            textView.setTypeface(AndroidUtilities.bold());
-            textView.setGravity(Gravity.CENTER);
-            addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 30, 0, 0));
-        }
-
-        public static Tab create(Context context, Theme.ResourcesProvider resourcesProvider, @DrawableRes int drawableRes, @StringRes int stringRes, Runnable onClick) {
-            Tab tab = new Tab(context);
-            tab.textView.setText(LocaleController.getString(stringRes));
-            tab.imageView.setImageResource(drawableRes);
-            tab.color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
-            tab.setOnClickListener(v -> onClick.run());
-            tab.updateColors();
-            ScaleStateListAnimator.apply(tab);
-            return tab;
-        }
-
-        @Override
-        public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
-            updateColors();
-        }
-
-        private void updateColors() {
-            final int alpha = lerp(153, 255, isSelectedAnimator.getFloatValue());
-
-            imageView.setColorFilter(new PorterDuffColorFilter(ColorUtils.setAlphaComponent(color, alpha), PorterDuff.Mode.SRC_IN));
-            textView.setTextColor(ColorUtils.setAlphaComponent(color, alpha));
-        }
-    }
-
-    private static class TabsSelectorView extends LinearLayout implements FactorAnimator.Target {
-        public final FactorAnimator animator = new FactorAnimator(0, this, CubicBezierInterpolator.EASE_OUT_QUINT, 320);
+    private static class TabsSelectorView extends GlassTabsView implements FactorAnimator.Target {
+        public final FactorAnimator animator = new FactorAnimator(0, this, CubicBezierInterpolator.EASE_OUT_QUINT, 320 * 5);
         public final Utilities.Callback<Integer> onTabSelectListener;
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        private final Tab[] tabs;
+        private GlassTabView[] tabs;
 
         public TabsSelectorView(Context context, Theme.ResourcesProvider resourcesProvider, Utilities.Callback<Integer> onTabSelectListener) {
             super(context);
-            setOrientation(HORIZONTAL);
 
             this.onTabSelectListener = onTabSelectListener;
-            paint.setColor(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider));
-            paint.setAlpha(16);
 
-            this.tabs = new Tab[]{
-                Tab.create(context, resourcesProvider, R.drawable.filled_gift_models_24, R.string.GiftPreviewModels, () -> selectTab(0)),
-                Tab.create(context, resourcesProvider, R.drawable.filled_gift_palette_24, R.string.GiftPreviewBackdrops, () -> selectTab(1)),
-                Tab.create(context, resourcesProvider, R.drawable.filled_gift_symbols_24, R.string.GiftPreviewSymbols, () -> selectTab(2))
+            setLensColor(
+                Theme.multAlpha(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider), 24 / 255f),
+                Theme.multAlpha(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider), 32 / 255f)
+            );
+
+            this.tabs = new GlassTabView[]{
+                GlassTabView.create(context, resourcesProvider, R.drawable.filled_gift_models_24, R.string.GiftPreviewModels, () -> selectTab(0)),
+                GlassTabView.create(context, resourcesProvider, R.drawable.filled_gift_palette_24, R.string.GiftPreviewBackdrops, () -> selectTab(1)),
+                GlassTabView.create(context, resourcesProvider, R.drawable.filled_gift_symbols_24, R.string.GiftPreviewSymbols, () -> selectTab(2))
             };
 
-            addView(tabs[0], LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
-            addView(tabs[1], LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
-            addView(tabs[2], LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
+            linearLayout.addView(tabs[0], LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
+            linearLayout.addView(tabs[1], LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
+            linearLayout.addView(tabs[2], LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
 
-            tabs[0].isSelectedAnimator.setValue(true, false);
+            tabs[0].setSelected(true, false);
         }
 
         private int selectedTab;
         private void selectTab(int tab) {
             if (selectedTab != tab) {
-                tabs[selectedTab].isSelectedAnimator.setValue(false, true);
-                tabs[tab].isSelectedAnimator.setValue(true, true);
+                tabs[selectedTab].setSelected(false, true);
+                tabs[tab].setSelected(true, true);
 
                 selectedTab = tab;
                 animator.animateTo(tab);
@@ -977,19 +900,28 @@ public class StarGiftPreviewSheet extends BottomSheetWithRecyclerListView {
             return selectedTab;
         }
 
-        @Override
-        protected void dispatchDraw(@NonNull Canvas canvas) {
+        private void updateLens() {
             final float start = animator.getFactor();
             final float left = lerp(dp(8), getMeasuredWidth() - dp(8), start / 3);
             final float right = lerp(dp(8), getMeasuredWidth() - dp(8), (start + 1) / 3);
 
-            canvas.drawRoundRect(left, dp(8), right, getMeasuredHeight() - dp(8), dp(24), dp(24), paint);
+            setLensBounds((int) left, dp(8), (int) right, getMeasuredHeight() - dp(8));
 
-            super.dispatchDraw(canvas);
+            int a = MathUtils.clamp((int) ((1f - Math.abs(start - 1f)) * 255), 0, 255);
+
+//            setLensVisibility(a);
+
+        }
+
+        @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            updateLens();
         }
 
         @Override
         public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
+            updateLens();
             invalidate();
         }
     }

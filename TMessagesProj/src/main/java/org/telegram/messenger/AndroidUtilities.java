@@ -41,6 +41,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -123,6 +124,7 @@ import androidx.annotation.RawRes;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.math.MathUtils;
 import androidx.core.view.WindowCompat;
@@ -245,6 +247,8 @@ public class AndroidUtilities {
     public final static String TYPEFACE_ROBOTO_REGULAR = "fonts/rregular.ttf";
     public final static String TYPEFACE_ROBOTO_ITALIC = "fonts/ritalic.ttf";
     public final static String TYPEFACE_ROBOTO_MEDIUM = "fonts/rmedium.ttf";
+    public final static String TYPEFACE_ROBOTO_BOLD = "fonts/rbold.ttf";
+    public final static String TYPEFACE_ROBOTO_EXTRA_BOLD = "fonts/rextrabold.ttf";
     public final static String TYPEFACE_ROBOTO_MEDIUM_ITALIC = "fonts/rmediumitalic.ttf";
     public final static String TYPEFACE_ROBOTO_MONO = "fonts/rmono.ttf";
     public final static String TYPEFACE_MERRIWEATHER_BOLD = "fonts/mw_bold.ttf";
@@ -575,7 +579,7 @@ public class AndroidUtilities {
             index = startIndex;
         }
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(str);
-        if (runnable != null && index >= 0) {
+        if (/*runnable != null &&*/ index >= 0) {
             if (type == REPLACING_TAG_TYPE_LINK_NBSP) {
                 spannableStringBuilder.replace(index, index + len, AndroidUtilities.replaceMultipleCharSequence(" ", spannableStringBuilder.subSequence(index, index + len), " "));
             }
@@ -1027,6 +1031,34 @@ public class AndroidUtilities {
             countDownLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static Bitmap getBitmapFromWindow(Window window) {
+        if (window == null || window.getDecorView() == null) {
+            return null;
+        }
+
+        final Bitmap bitmap = Bitmap.createBitmap(window.getDecorView().getWidth(), window.getDecorView().getHeight(), Bitmap.Config.ARGB_8888);
+        final boolean[] success = new boolean[] { false };
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        PixelCopy.request(window, bitmap, copyResult -> {
+            success[0] = copyResult == PixelCopy.SUCCESS;
+            countDownLatch.countDown();
+        }, Utilities.searchQueue.getHandler());
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (success[0]) {
+            return bitmap;
+        } else {
+            bitmap.recycle();
+            return null;
         }
     }
 
@@ -2314,6 +2346,13 @@ public class AndroidUtilities {
                 || TYPEFACE_ROBOTO_MEDIUM.equals(assetPath)
                 || TYPEFACE_ROBOTO_ITALIC.equals(assetPath)
                 || TYPEFACE_ROBOTO_MEDIUM_ITALIC.equals(assetPath);
+                
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static Typeface buildRobotoFlexTypeface(int width) {
+        return new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), "fonts/roboto_flex.ttf")
+            .setWeight(width)
+            .setFontVariationSettings("'wght' " + width)
+            .build();
     }
 
     public static Typeface getTypeface(String assetPath) {
@@ -2349,6 +2388,15 @@ public class AndroidUtilities {
                             default:
                                 t = Build.VERSION.SDK_INT >= 28 ? Typeface.create(Typeface.SANS_SERIF, 400, false) : Typeface.create("sans-serif", Typeface.NORMAL);
                                 break;
+                    }
+                    Typeface t;
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
+                        if (assetPath.contains("rextrabold")) {
+                            builder.setWeight(800);
+                        }
+                        if (assetPath.contains("medium") || assetPath.contains("rbold")) {
+                            builder.setWeight(700);
                         }
                     } else {
                         if (fluffyConfig.hasCustomFont() && isCustomFontCandidate(assetPath)) {
@@ -2558,20 +2606,18 @@ public class AndroidUtilities {
 
     public static ArrayList<File> getDataDirs() {
         ArrayList<File> result = null;
-        if (Build.VERSION.SDK_INT >= 19) {
-            File[] dirs = ApplicationLoader.applicationContext.getExternalFilesDirs(null);
-            if (dirs != null) {
-                for (int a = 0; a < dirs.length; a++) {
-                    if (dirs[a] == null) {
-                        continue;
-                    }
-                    String path = dirs[a].getAbsolutePath();
-
-                    if (result == null) {
-                        result = new ArrayList<>();
-                    }
-                    result.add(dirs[a]);
+        File[] dirs = ApplicationLoader.applicationContext.getExternalFilesDirs(null);
+        if (dirs != null) {
+            for (int a = 0; a < dirs.length; a++) {
+                if (dirs[a] == null) {
+                    continue;
                 }
+                String path = dirs[a].getAbsolutePath();
+
+                if (result == null) {
+                    result = new ArrayList<>();
+                }
+                result.add(dirs[a]);
             }
         }
         if (result == null) {
@@ -2586,29 +2632,27 @@ public class AndroidUtilities {
     public static ArrayList<File> getRootDirs() {
         HashSet<String> pathes = new HashSet<>();
         ArrayList<File> result = null;
-        if (Build.VERSION.SDK_INT >= 19) {
-            File[] dirs = ApplicationLoader.applicationContext.getExternalFilesDirs(null);
-            if (dirs != null) {
-                for (int a = 0; a < dirs.length; a++) {
-                    if (dirs[a] == null) {
-                        continue;
+        File[] dirs = ApplicationLoader.applicationContext.getExternalFilesDirs(null);
+        if (dirs != null) {
+            for (int a = 0; a < dirs.length; a++) {
+                if (dirs[a] == null) {
+                    continue;
+                }
+                String path = dirs[a].getAbsolutePath();
+                int idx = path.indexOf("/Android");
+                if (idx >= 0) {
+                    if (result == null) {
+                        result = new ArrayList<>();
                     }
-                    String path = dirs[a].getAbsolutePath();
-                    int idx = path.indexOf("/Android");
-                    if (idx >= 0) {
-                        if (result == null) {
-                            result = new ArrayList<>();
+                    File file = new File(path.substring(0, idx));
+                    for (int i = 0; i < result.size(); i++) {
+                        if (result.get(i).getPath().equals(file.getPath())) {
+                            continue;
                         }
-                        File file = new File(path.substring(0, idx));
-                        for (int i = 0; i < result.size(); i++) {
-                            if (result.get(i).getPath().equals(file.getPath())) {
-                                continue;
-                            }
-                        }
-                        if (file != null && !pathes.contains(file.getAbsolutePath())) {
-                            pathes.add(file.getAbsolutePath());
-                            result.add(file);
-                        }
+                    }
+                    if (file != null && !pathes.contains(file.getAbsolutePath())) {
+                        pathes.add(file.getAbsolutePath());
+                        result.add(file);
                     }
                 }
             }
@@ -2760,13 +2804,11 @@ public class AndroidUtilities {
                     display.getSize(displaySize);
                     screenRefreshRate = display.getRefreshRate();
                     screenMaxRefreshRate = screenRefreshRate;
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                        float[] rates = display.getSupportedRefreshRates();
-                        if (rates != null) {
-                            for (int i = 0; i < rates.length; ++i) {
-                                if (rates[i] > screenMaxRefreshRate) {
-                                    screenMaxRefreshRate = rates[i];
-                                }
+                    float[] rates = display.getSupportedRefreshRates();
+                    if (rates != null) {
+                        for (int i = 0; i < rates.length; ++i) {
+                            if (rates[i] > screenMaxRefreshRate) {
+                                screenMaxRefreshRate = rates[i];
                             }
                         }
                     }
@@ -2810,7 +2852,6 @@ public class AndroidUtilities {
     }
 
     public static void setPreferredMaxRefreshRate(Window window) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
         if (window == null) return;
         final WindowManager wm = window.getWindowManager();
         if (wm == null) return;
@@ -2824,7 +2865,6 @@ public class AndroidUtilities {
     }
 
     public static void setPreferredMaxRefreshRate(WindowManager wm, View windowView, WindowManager.LayoutParams params) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
         if (wm == null) return;
         if (Math.abs(params.preferredRefreshRate - screenMaxRefreshRate) > 0.2) {
             params.preferredRefreshRate = screenMaxRefreshRate;
@@ -3104,7 +3144,7 @@ public class AndroidUtilities {
     private static Field mStableInsetsField;
 
     public static int getViewInset(View view) {
-        if (view == null || Build.VERSION.SDK_INT < 21 || view.getHeight() == AndroidUtilities.displaySize.y || view.getHeight() == AndroidUtilities.displaySize.y - statusBarHeight) {
+        if (view == null || view.getHeight() == AndroidUtilities.displaySize.y || view.getHeight() == AndroidUtilities.displaySize.y - statusBarHeight) {
             return 0;
         }
         try {
@@ -3136,18 +3176,7 @@ public class AndroidUtilities {
         Point size = new Point();
         try {
             WindowManager windowManager = (WindowManager) ApplicationLoader.applicationContext.getSystemService(Context.WINDOW_SERVICE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                windowManager.getDefaultDisplay().getRealSize(size);
-            } else {
-                try {
-                    Method mGetRawW = Display.class.getMethod("getRawWidth");
-                    Method mGetRawH = Display.class.getMethod("getRawHeight");
-                    size.set((Integer) mGetRawW.invoke(windowManager.getDefaultDisplay()), (Integer) mGetRawH.invoke(windowManager.getDefaultDisplay()));
-                } catch (Exception e) {
-                    size.set(windowManager.getDefaultDisplay().getWidth(), windowManager.getDefaultDisplay().getHeight());
-                    FileLog.e(e);
-                }
-            }
+            windowManager.getDefaultDisplay().getRealSize(size);
         } catch (Exception e) {
             FileLog.e(e);
         }
@@ -3205,31 +3234,29 @@ public class AndroidUtilities {
     }
 
     public static void setViewPagerEdgeEffectColor(ViewPager viewPager, int color) {
-        if (Build.VERSION.SDK_INT >= 21) {
-            try {
-                Field field = ViewPager.class.getDeclaredField("mLeftEdge");
-                field.setAccessible(true);
-                EdgeEffect mLeftEdge = (EdgeEffect) field.get(viewPager);
-                if (mLeftEdge != null) {
-                    mLeftEdge.setColor(color);
-                }
-
-                field = ViewPager.class.getDeclaredField("mRightEdge");
-                field.setAccessible(true);
-                EdgeEffect mRightEdge = (EdgeEffect) field.get(viewPager);
-                if (mRightEdge != null) {
-                    mRightEdge.setColor(color);
-                }
-            } catch (Exception ignore) {
-
+        try {
+            Field field = ViewPager.class.getDeclaredField("mLeftEdge");
+            field.setAccessible(true);
+            EdgeEffect mLeftEdge = (EdgeEffect) field.get(viewPager);
+            if (mLeftEdge != null) {
+                mLeftEdge.setColor(color);
             }
+
+            field = ViewPager.class.getDeclaredField("mRightEdge");
+            field.setAccessible(true);
+            EdgeEffect mRightEdge = (EdgeEffect) field.get(viewPager);
+            if (mRightEdge != null) {
+                mRightEdge.setColor(color);
+            }
+        } catch (Exception ignore) {
+
         }
     }
 
     public static void setScrollViewEdgeEffectColor(HorizontalScrollView scrollView, int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             scrollView.setEdgeEffectColor(color);
-        } else if (Build.VERSION.SDK_INT >= 21) {
+        } else {
             try {
                 Field field = HorizontalScrollView.class.getDeclaredField("mEdgeGlowLeft");
                 field.setAccessible(true);
@@ -3254,7 +3281,7 @@ public class AndroidUtilities {
         if (Build.VERSION.SDK_INT >= 29) {
             scrollView.setTopEdgeEffectColor(color);
             scrollView.setBottomEdgeEffectColor(color);
-        } else if (Build.VERSION.SDK_INT >= 21) {
+        } else {
             try {
                 Field field = ScrollView.class.getDeclaredField("mEdgeGlowTop");
                 field.setAccessible(true);
@@ -3275,9 +3302,8 @@ public class AndroidUtilities {
         }
     }
 
-    @SuppressLint("NewApi")
     public static void clearDrawableAnimation(View view) {
-        if (Build.VERSION.SDK_INT < 21 || view == null) {
+        if (view == null) {
             return;
         }
         Drawable drawable;
@@ -3667,11 +3693,9 @@ public class AndroidUtilities {
         return storageDir;
     }
 
-    @SuppressLint("NewApi")
     public static String getPath(final Uri uri) {
         try {
-            final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-            if (isKitKat && DocumentsContract.isDocumentUri(ApplicationLoader.applicationContext, uri)) {
+            if (DocumentsContract.isDocumentUri(ApplicationLoader.applicationContext, uri)) {
                 if (isExternalStorageDocument(uri)) {
                     final String docId = DocumentsContract.getDocumentId(uri);
                     final String[] split = docId.split(":");
@@ -3843,11 +3867,7 @@ public class AndroidUtilities {
     }
 
     public static boolean isAirplaneModeOn() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            return Settings.System.getInt(ApplicationLoader.applicationContext.getContentResolver(), Settings.System.AIRPLANE_MODE_ON, 0) != 0;
-        } else {
-            return Settings.Global.getInt(ApplicationLoader.applicationContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
-        }
+        return Settings.Global.getInt(ApplicationLoader.applicationContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
     }
 
     public static File generateVideoPath() {
@@ -4558,7 +4578,14 @@ public class AndroidUtilities {
         return accessibilityManager.isEnabled() && accessibilityManager.isTouchExplorationEnabled();
     }
 
-    public static boolean handleProxyIntent(Activity activity, Intent intent) {
+    public static boolean isProxyLink(Uri data) {
+        final Activity activity = AndroidUtilities.getActivity();
+        if (activity == null) return false;
+        final Intent intent = new Intent(Intent.ACTION_VIEW, data);
+        return handleProxyIntent(activity, intent, false);
+    }
+
+    public static boolean handleProxyIntent(Activity activity, Intent intent, boolean invoked) {
         if (intent == null) {
             return false;
         }
@@ -4618,7 +4645,7 @@ public class AndroidUtilities {
                     if (secret == null) {
                         secret = "";
                     }
-                    showProxyAlert(activity, address, port, user, password, secret);
+                    if (invoked) showProxyAlert(activity, address, port, user, password, secret);
                     return true;
                 }
             }
@@ -6694,11 +6721,7 @@ public class AndroidUtilities {
 
     public static boolean isInAirplaneMode(Context context) {
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                return Settings.System.getInt(context.getContentResolver(), Settings.System.AIRPLANE_MODE_ON, 0) != 0;
-            } else {
-                return Settings.Global.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
-            }
+            return Settings.Global.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
         } catch (Exception ignore) {
             return false;
         }
@@ -6760,9 +6783,13 @@ public class AndroidUtilities {
 
 
     public static void printStackTrace(String tag) {
+        if (!BuildConfig.DEBUG_PRIVATE_VERSION) {
+            return;
+        }
+
         final String t = "[" + tag + "]";
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-        for (int a = 0; a < elements.length; a++) {
+        for (int a = 3, N = Math.min(elements.length, 8); a < N; a++) {
             FileLog.d(t + " " + elements[a]);
         }
         FileLog.d(t);
@@ -6784,8 +6811,26 @@ public class AndroidUtilities {
     }
 
     public static float getNavigationBarThirdButtonsFactor(int height) {
-        return MathUtils.clamp(((float) height - dp(24)) / dp(24), 0f, 1f);
+        return MathUtils.clamp(((float) height - dp(32)) / dp(16), 0f, 1f);
     }
+
+    public static float getNavigationBarThirdButtonsFactor(float min, float max, int height) {
+        return lerp(min, max, getNavigationBarThirdButtonsFactor(height));
+    }
+
+    private static final Paint navbarProtactionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    public static void drawNavigationBarProtection(Canvas canvas, View view, int color, int navigationBarHeight) {
+        drawNavigationBarProtection(canvas, view, color, navigationBarHeight, 1);
+    }
+
+    public static void drawNavigationBarProtection(Canvas canvas, View view, int color, int navigationBarHeight, float alpha) {
+        navbarProtactionPaint.setColor(Theme.multAlpha(color, alpha * AndroidUtilities.getNavigationBarThirdButtonsFactor(0, 0.75f, navigationBarHeight)));
+        canvas.drawRect(
+                0, view.getMeasuredHeight() - navigationBarHeight,
+                view.getMeasuredWidth(), view.getMeasuredHeight(), navbarProtactionPaint);
+    }
+
 
 
 

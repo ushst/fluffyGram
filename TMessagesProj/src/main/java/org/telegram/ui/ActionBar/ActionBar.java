@@ -9,6 +9,7 @@
 package org.telegram.ui.ActionBar;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.telegram.messenger.AndroidUtilities.lerp;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -26,7 +27,6 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -44,6 +44,7 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import androidx.annotation.StringRes;
 import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -63,6 +64,8 @@ import org.telegram.ui.Components.SnowflakesEffect;
 import org.ushastoe.fluffy.fluffyConfig;
 
 import java.util.ArrayList;
+
+import me.vkryl.android.animator.ReplaceAnimator;
 
 public class ActionBar extends FrameLayout {
 
@@ -91,7 +94,7 @@ public class ActionBar extends FrameLayout {
     private ActionBarMenu actionMode;
     private String actionModeTag;
     private boolean ignoreLayoutRequest;
-    protected boolean occupyStatusBar = Build.VERSION.SDK_INT >= 21;
+    protected boolean occupyStatusBar = true;
     protected boolean actionModeVisible;
     private boolean addToContainer = true;
     private boolean clipContent;
@@ -1336,6 +1339,9 @@ public class ActionBar extends FrameLayout {
                 if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
                     subtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
                 }
+                if (titleOverlayContainer != null) {
+                    titleOverlayContainer.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST));
+                }
                 if (additionalSubtitleTextView != null && additionalSubtitleTextView.getVisibility() != GONE) {
                     additionalSubtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
                 }
@@ -1352,7 +1358,7 @@ public class ActionBar extends FrameLayout {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
-            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
+            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == titleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
                 continue;
             }
             measureChildWithMargins(child, widthMeasureSpec, 0, MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY), 0);
@@ -1395,6 +1401,10 @@ public class ActionBar extends FrameLayout {
                 titleTextView[i].layout(textLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), textLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
             }
         }
+        if (titleOverlayContainer != null) {
+            int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - titleOverlayContainer.getMeasuredHeight()) / 2 - dp(2);
+            titleOverlayContainer.layout(textLeft, additionalTop + textTop, textLeft + titleOverlayContainer.getMeasuredWidth(), additionalTop + textTop + titleOverlayContainer.getMeasuredHeight());
+        }
         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - subtitleTextView.getTextHeight()) / 2 - dp(2);
             subtitleTextView.layout(textLeft, additionalTop + textTop, textLeft + subtitleTextView.getMeasuredWidth(), additionalTop + textTop + subtitleTextView.getTextHeight());
@@ -1417,7 +1427,7 @@ public class ActionBar extends FrameLayout {
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
-            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
+            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == titleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
                 continue;
             }
 
@@ -1508,6 +1518,15 @@ public class ActionBar extends FrameLayout {
             return;
         }
         lastOverlayTitle = title;
+
+        if (titleOverlayContainer != null) {
+            CharSequence textToSet = title != null ? LocaleController.getString(title, titleId) : null;
+            titleOverlayContainer.setText(textToSet, true);
+            titleActionRunnable = action != null ? action : lastRunnable;
+            titleOverlayShown = title != null;
+            return;
+        }
+
 
         CharSequence textToSet = title != null ? LocaleController.getString(title, titleId) : lastTitle;
         Drawable rightDrawableToSet = title != null ? null : lastRightDrawable;
@@ -1826,7 +1845,7 @@ public class ActionBar extends FrameLayout {
     }
 
     public void beginDelayedTransition() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !LocaleController.isRTL) {
+        if (!LocaleController.isRTL) {
             TransitionSet transitionSet = new TransitionSet();
             transitionSet.setOrdering(TransitionSet.ORDERING_TOGETHER);
             transitionSet.addTransition(new Fade());
@@ -1943,5 +1962,33 @@ public class ActionBar extends FrameLayout {
 
     public FrameLayout getTitlesContainer() {
         return titlesContainer;
+    }
+
+    public void updateColors() {
+        if (titleOverlayContainer != null) {
+            titleOverlayContainer.updateColors();
+        }
+    }
+
+    private ActionBarAnimatedSubtitleOverlayContainer titleOverlayContainer;
+    public FrameLayout createTitleOverlayContainer() {
+        if (titleOverlayContainer == null) {
+            titleOverlayContainer = new ActionBarAnimatedSubtitleOverlayContainer(getContext(), resourcesProvider, ellipsizeSpanAnimator) {
+                @Override
+                public void onItemChanged(ReplaceAnimator<?> animator) {
+                    super.onItemChanged(animator);
+                    final float overlayVisibility = getTotalVisibility();
+                    if (titlesContainer != null) {
+                        titlesContainer.setTranslationY(overlayVisibility * dp(-9));
+                    }
+                }
+            };
+            titleOverlayContainer.setClipChildren(false);
+            addView(titleOverlayContainer);
+        }
+        return titleOverlayContainer;
+    }
+    public FrameLayout getTitleOverlayContainer() {
+        return titleOverlayContainer;
     }
 }

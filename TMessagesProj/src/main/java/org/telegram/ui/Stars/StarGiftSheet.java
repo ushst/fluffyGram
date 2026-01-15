@@ -81,6 +81,7 @@ import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ChatThemeController;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.Emoji;
+import org.telegram.messenger.GiftAuctionController;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
@@ -413,15 +414,15 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
 
         upgradeFeatureCells = new AffiliateProgramFragment.FeatureCell[3];
         upgradeFeatureCells[0] = new AffiliateProgramFragment.FeatureCell(context, resourcesProvider);
-        upgradeFeatureCells[0].set(R.drawable.menu_feature_unique, getString(R.string.Gift2UpgradeFeature1Title), getString(R.string.Gift2UpgradeFeature1Text));
+        upgradeFeatureCells[0].set(R.drawable.menu_feature_unique, getString(R.string.Gift2UpgradeFeature1Title), getString(R.string.GiftsFeature1Text));
         upgradeLayout.addView(upgradeFeatureCells[0], LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         upgradeFeatureCells[1] = new AffiliateProgramFragment.FeatureCell(context, resourcesProvider);
-        upgradeFeatureCells[1].set(R.drawable.menu_feature_transfer, getString(R.string.Gift2UpgradeFeature2Title), getString(R.string.Gift2UpgradeFeature2Text));
+        upgradeFeatureCells[1].set(R.drawable.menu_feature_tradable, getString(R.string.Gift2UpgradeFeature3Title), getString(R.string.GiftsFeature2Text));
         upgradeLayout.addView(upgradeFeatureCells[1], LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         upgradeFeatureCells[2] = new AffiliateProgramFragment.FeatureCell(context, resourcesProvider);
-        upgradeFeatureCells[2].set(R.drawable.menu_feature_tradable, getString(R.string.Gift2UpgradeFeature3Title), getString(R.string.Gift2UpgradeFeature3Text));
+        upgradeFeatureCells[2].set(R.drawable.menu_wear, getString(R.string.GiftsFeature3Title), getString(R.string.GiftsFeature3Text));
         upgradeLayout.addView(upgradeFeatureCells[2], LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         checkboxSeparator = new View(context);
@@ -2871,8 +2872,23 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
                 if (index == 2) roller.modelText = textView;
             }
         } else {
+            final boolean[] loading = new boolean[1];
             final ButtonSpan.TextViewButtons[] textViewArr = new ButtonSpan.TextViewButtons[1];
-            final TableRow row = tableView.addRow(name, attr.name, percents(attr.rarity_permille), () -> showHint(LocaleController.formatString(R.string.Gift2RarityHint, percents(attr.rarity_permille)), textViewArr[0], false));
+            final TableRow row = tableView.addRow(name, attr.name, percents(attr.rarity_permille), () -> {
+                if (loading[0]) {
+                    return;
+                }
+                loading[0] = true;
+                final TL_stars.StarGift gift = getGift();
+                GiftAuctionController.getInstance(currentAccount).requestAuctionUpgrades(gift.gift_id, attrs -> {
+                    if (attrs != null) {
+                        new StarGiftPreviewSheet(getContext(), resourcesProvider, currentAccount, gift, attrs).show();
+                    } else {
+                        showHint(LocaleController.formatString(R.string.Gift2RarityHint, percents(attr.rarity_permille)), textViewArr[0], false);
+                    }
+                    loading[0] = false;
+                });
+            });
             textViewArr[0] = (ButtonSpan.TextViewButtons) ((TableView.TableRowContent) row.getChildAt(1)).getChildAt(0);
         }
     }
@@ -5408,9 +5424,15 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
             checkboxSeparator.setVisibility(View.VISIBLE);
         }
 
-        upgradeFeatureCells[0].set(R.drawable.menu_feature_unique,   getString(R.string.Gift2UpgradeFeature1Title), prepaying ? formatString(R.string.Gift2PrepayUpgradeFeature1Text, DialogObject.getShortName(currentAccount, dialogId)) : getString(R.string.Gift2UpgradeFeature1Text));
-        upgradeFeatureCells[1].set(R.drawable.menu_feature_transfer, getString(R.string.Gift2UpgradeFeature2Title), prepaying ? formatString(R.string.Gift2PrepayUpgradeFeature2Text, DialogObject.getShortName(currentAccount, dialogId)) : getString(R.string.Gift2UpgradeFeature2Text));
-        upgradeFeatureCells[2].set(R.drawable.menu_feature_tradable, getString(R.string.Gift2UpgradeFeature3Title), prepaying ? formatString(R.string.Gift2PrepayUpgradeFeature3Text, DialogObject.getShortName(currentAccount, dialogId)) : getString(R.string.Gift2UpgradeFeature3Text));
+        if (prepaying) {
+            upgradeFeatureCells[0].set(R.drawable.menu_feature_unique,   getString(R.string.Gift2UpgradeFeature1Title), prepaying ? formatString(R.string.Gift2PrepayUpgradeFeature1Text, DialogObject.getShortName(currentAccount, dialogId)) : getString(R.string.Gift2UpgradeFeature1Text));
+            upgradeFeatureCells[1].set(R.drawable.menu_feature_transfer, getString(R.string.Gift2UpgradeFeature2Title), prepaying ? formatString(R.string.Gift2PrepayUpgradeFeature2Text, DialogObject.getShortName(currentAccount, dialogId)) : getString(R.string.Gift2UpgradeFeature2Text));
+            upgradeFeatureCells[2].set(R.drawable.menu_feature_tradable, getString(R.string.Gift2UpgradeFeature3Title), prepaying ? formatString(R.string.Gift2PrepayUpgradeFeature3Text, DialogObject.getShortName(currentAccount, dialogId)) : getString(R.string.Gift2UpgradeFeature3Text));
+        } else {
+            upgradeFeatureCells[0].set(R.drawable.menu_feature_unique, getString(R.string.Gift2UpgradeFeature1Title), getString(R.string.GiftsFeature1Text));
+            upgradeFeatureCells[1].set(R.drawable.menu_feature_tradable, getString(R.string.Gift2UpgradeFeature3Title), getString(R.string.GiftsFeature2Text));
+            upgradeFeatureCells[2].set(R.drawable.menu_wear, getString(R.string.GiftsFeature3Title), getString(R.string.GiftsFeature3Text));
+        }
 
         AndroidUtilities.runOnUIThread(() -> {
             switchPage(PAGE_UPGRADE, true);

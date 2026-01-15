@@ -5570,10 +5570,18 @@ public class MessageObject {
                     final String amountFmt = amount.asFormatString();
 
                     final int key;
-                    if (amount.currency == AmountUtils.Currency.STARS) {
-                        key = isOut() ? R.string.GiftOfferOfferedTextStarsRejectedOut : R.string.GiftOfferOfferedTextStarsRejected;
+                    if (action.expired) {
+                        if (amount.currency == AmountUtils.Currency.STARS) {
+                            key = isOut() ? R.string.GiftOfferOfferedTextStarsExpiredOut : R.string.GiftOfferOfferedTextStarsExpired;
+                        } else {
+                            key = isOut() ? R.string.GiftOfferOfferedTextTONExpiredOut : R.string.GiftOfferOfferedTextTONExpired;
+                        }
                     } else {
-                        key = isOut() ? R.string.GiftOfferOfferedTextTONRejectedOut : R.string.GiftOfferOfferedTextTONRejected;
+                        if (amount.currency == AmountUtils.Currency.STARS) {
+                            key = isOut() ? R.string.GiftOfferOfferedTextStarsRejectedOut : R.string.GiftOfferOfferedTextStarsRejected;
+                        } else {
+                            key = isOut() ? R.string.GiftOfferOfferedTextTONRejectedOut : R.string.GiftOfferOfferedTextTONRejected;
+                        }
                     }
 
                     messageText = replaceTags(formatString(key, userName, amountFmt, giftName));
@@ -12488,6 +12496,9 @@ public class MessageObject {
     public CharSequence getMessageTextToTranslate(GroupedMessages groupedMessages, int[] messageIdToTranslate) {
         if (translated || summarized || isRestrictedMessage) {
             return null;
+        }
+        if (summarized) {
+            return messageText;
         }
         CharSequence messageTextToTranslate = null;
         if (type != MessageObject.TYPE_EMOJIS && type != MessageObject.TYPE_ANIMATED_STICKER && type != MessageObject.TYPE_STICKER) {

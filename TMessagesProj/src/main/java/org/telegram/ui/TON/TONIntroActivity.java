@@ -271,6 +271,7 @@ public class TONIntroActivity extends GradientHeaderActivity implements Notifica
 
         if (allowTopUp) {
             buyButton = new ButtonWithCounterView(getContext(), resourceProvider);
+            buyButton.setRound();
             buyButton.setText(getString(R.string.TopUpViaFragment), false);
             buyButton.setOnClickListener(v -> {
                 Browser.openUrlInSystemBrowser(getContext(), getString(R.string.TopUpViaFragmentLink));

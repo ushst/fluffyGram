@@ -30,6 +30,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -85,13 +86,16 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private boolean useProxyForCalls;
 
     private int rowCount;
+    @Keep
     private int useProxyRow;
     private int useProxyShadowRow;
     private int connectionsHeaderRow;
     private int proxyStartRow;
     private int proxyEndRow;
+    @Keep
     private int proxyAddRow;
     private int proxyShadowRow;
+    @Keep
     private int callsRow;
     private int rotationRow;
     private int rotationTimeoutRow;

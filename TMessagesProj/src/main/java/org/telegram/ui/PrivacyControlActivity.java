@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DiffUtil;
@@ -132,11 +133,14 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
 
     private boolean prevSubtypeContacts;
 
+    @Keep
     private int setBirthdayRow;
     private int messageRow;
     private int sectionRow;
+    @Keep
     private int everybodyRow;
     private int myContactsRow;
+    @Keep
     private int nobodyRow;
     private int detailRow;
     private int detailRow2;
@@ -148,23 +152,29 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
     private int phoneEverybodyRow;
     private int phoneContactsRow;
     private int phoneDetailRow;
+    @Keep
     private int photoForRestRow;
+    @Keep
     private int currentPhotoForRestRow;
     private int photoForRestDescriptionRow;
     private int p2pSectionRow;
     private int p2pRow;
     private int p2pDetailRow;
+    @Keep
     private int readRow;
     private int readDetailRow;
     private int readPremiumRow;
     private int readPremiumDetailRow;
     private int payRow;
     private int priceHeaderRow;
+    @Keep
     private int priceRow;
     private int priceButtonRow;
     private int priceInfoRow;
+    @Keep
     private int showGiftIconRow;
     private int showGiftIconInfoRow;
+    @Keep
     private int giftTypesHeaderRow;
     private int giftTypeUnlimitedRow;
     private int giftTypeLimitedRow;
@@ -2011,7 +2021,7 @@ public class PrivacyControlActivity extends BaseFragment implements Notification
 
                                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.premiumPromoUpdated);
                                 updateRows(true);
-                            }, null, false, getResourceProvider()).create());
+                            }, null, false, false, getResourceProvider()).create());
                         }), true));
                         backgroundResId = R.drawable.greydivider;
                     } else if (position == detailRow) {

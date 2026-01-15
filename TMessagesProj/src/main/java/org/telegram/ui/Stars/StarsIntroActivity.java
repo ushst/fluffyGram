@@ -359,6 +359,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
         buttonsLayout.addView(oneButtonsLayout);
 
         buyButton = new ButtonWithCounterView(getContext(), resourceProvider);
+        buyButton.setRound();
         buyButton.setText("", false);
         buyButton.setOnClickListener(v -> {
             if (MessagesController.getInstance(currentAccount).isFrozen()) {
@@ -379,6 +380,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
         buttonsLayout.addView(twoButtonsLayout);
 
         topupButton = new ButtonWithCounterView(getContext(), resourceProvider);
+        topupButton.setRound();
         SpannableStringBuilder ssb = new SpannableStringBuilder("x  ");
         ssb.setSpan(new ColoredImageSpan(R.drawable.mini_topup, ColoredImageSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         ssb.append(getString(R.string.StarsTopUp));
@@ -389,6 +391,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
         twoButtonsLayout.addView(topupButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.CENTER, 1, 0, 0, 8, 0));
 
         withdrawButton = new ButtonWithCounterView(getContext(), resourceProvider);
+        withdrawButton.setRound();
         ssb = new SpannableStringBuilder("x  ");
         ssb.setSpan(new ColoredImageSpan(R.drawable.mini_stats, ColoredImageSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         ssb.append(getString(R.string.StarsStats));
@@ -401,6 +404,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
         balanceLayout.addView(buttonsLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.CENTER, 20, 17, 20, 0));
 
         giftButton = new ButtonWithCounterView(getContext(), false, resourceProvider);
+        giftButton.setRound();
         SpannableStringBuilder sb2 = new SpannableStringBuilder();
         sb2.append("G  ");
         sb2.setSpan(new ColoredImageSpan(R.drawable.menu_stars_gift), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
