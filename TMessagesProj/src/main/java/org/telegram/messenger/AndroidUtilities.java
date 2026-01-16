@@ -6735,9 +6735,9 @@ public class AndroidUtilities {
     public static String getBuildVersionInfo() {
         try {
             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            int code = pInfo.versionCode / 10;
+            int code = pInfo.versionCode;
             String abi = "";
-            switch (pInfo.versionCode % 10) {
+            switch (pInfo.versionCode) {
                 case 1:
                 case 2:
                     abi = "store bundled " + Build.CPU_ABI + " " + Build.CPU_ABI2;
