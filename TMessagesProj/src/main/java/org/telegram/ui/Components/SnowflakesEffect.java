@@ -517,18 +517,35 @@ public class SnowflakesEffect {
         if (batchParticlesBuffer != null) {
             final int count = Math.min(maxCount, particles.size());
             final int texSize = dp(TEXTURE_SIZE_DP);
+            int batchCount = 0;
 
             for (int a = 0; a < count; a++) {
                 Particle particle = particles.get(a);
+                if (!isBatchDrawable(particle)) {
+                    continue;
+                }
+                if (batchCount >= batchParticlesBuffer.vertexCount) {
+                    break;
+                }
                 final float x = particle.x, y = particle.y;
                 final float h = particle.type == 0 ? (texSize / 2f) : (texSize / 2f * particle.scale);
                 final float tx = particle.type == 0 ? texSize : 0;
 
-                batchParticlesBuffer.setParticleColor(a, ColorUtils.setAlphaComponent(color, (int) (255 * particle.alpha)));
-                batchParticlesBuffer.setParticleVertexCords(a, x - h, y - h, x + h, y + h);
-                batchParticlesBuffer.setParticleTextureCords(a, tx, 0, tx + texSize, texSize);
+                batchParticlesBuffer.setParticleColor(batchCount,
+                        ColorUtils.setAlphaComponent(particle.color, (int) (255 * particle.alpha)));
+                batchParticlesBuffer.setParticleVertexCords(batchCount, x - h, y - h, x + h, y + h);
+                batchParticlesBuffer.setParticleTextureCords(batchCount, tx, 0, tx + texSize, texSize);
+                batchCount++;
             }
-            BatchParticlesDrawHelper.draw(canvas, batchParticlesBuffer, count, batchParticlesPaint);
+            if (batchCount > 0) {
+                BatchParticlesDrawHelper.draw(canvas, batchParticlesBuffer, batchCount, batchParticlesPaint);
+            }
+            for (int a = 0; a < count; a++) {
+                Particle particle = particles.get(a);
+                if (!isBatchDrawable(particle)) {
+                    particle.draw(canvas);
+                }
+            }
         } else {
             final int count = particles.size();
             for (int a = 0; a < count; a++) {
@@ -599,6 +616,16 @@ public class SnowflakesEffect {
         updateParticles(dt);
         lastAnimationTime = newTime;
         parent.invalidate();
+    }
+
+    private boolean isBatchDrawable(Particle particle) {
+        if (particle == null) {
+            return false;
+        }
+        if (particle.type == 0) {
+            return true;
+        }
+        return particle.effectStyle == fluffyConfig.SNOW_EFFECT_STYLE_SNOWFLAKE;
     }
 
 
