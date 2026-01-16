@@ -8565,9 +8565,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     public void refreshDrawerMenu() {
-        if (drawerLayoutAdapter != null) {
-            drawerLayoutAdapter.notifyDataSetChanged();
-        }
     }
 
     public int getNavigationBarColor() {

@@ -20407,8 +20407,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
     private SummaryIcon summarizeIcon;
-
-    private SummaryIcon summarizeIcon;
     public void drawSummarizeButton(Canvas canvas) {
         summarizeButtonX = sideStartX;
         summarizeButtonY = getPaddingTop() + dp(8);

@@ -10886,12 +10886,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else if (id == NotificationCenter.appConfigUpdated) {
             updateDialogsHint();
         }  else if (id == NotificationCenter.fluffy_floatingButtonSettingsChanged) {
-            if (floatingButton != null) {
-                floatingButton.setVisibility(fluffyConfig.hideButtonWrite ? View.GONE : View.VISIBLE);
-            }
-            if (floatingButtonContainer != null) {
-                hideFloatingButton(fluffyConfig.hideButtonWrite);
-            }
+            hideFloatingButton(hideButtonWrite);
         } else if (id == NotificationCenter.activeAuctionsUpdated) {
             updateDialogsHint();
         }

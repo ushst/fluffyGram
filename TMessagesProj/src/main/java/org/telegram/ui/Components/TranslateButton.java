@@ -472,11 +472,7 @@ public class TranslateButton extends FrameLayout {
         );
 
         layout.addView(
-<<<<<<< HEAD
-            new ChannelMonetizationLayout.FeatureCell(context, R.drawable.menu_feature_withdrawals, getString(R.string.CocoonFeature3Title), AndroidUtilities.replaceSingleTag(getString(R.string.CocoonFeature3Text), () -> {
-=======
             new ChannelMonetizationLayout.FeatureCell(context, R.drawable.menu_gift, getString(R.string.CocoonFeature3Title), AndroidUtilities.replaceSingleTag(getString(R.string.CocoonFeature3Text), () -> {
->>>>>>> 80aa0d769 (Redesign WIP)
                 sheet[0].dismiss();
                 Browser.openUrlInSystemBrowser(context, getString(R.string.CocoonFeature3TextLink));
             }), resourcesProvider),

@@ -332,22 +332,15 @@ public class IconsSet {
     solar.put(R.drawable.msg_round_file_s, R.drawable.msg_round_file_solar);
     solar.put(R.drawable.msg_satellite, R.drawable.msg_satellite_solar);
     solar.put(R.drawable.msg_saved, R.drawable.msg_saved_solar);
-    solar.put(R.drawable.msg_saved_14, R.drawable.msg_saved_14_solar);
-    solar.put(R.drawable.msg_saved_hw, R.drawable.msg_saved_hw_solar);
-    solar.put(R.drawable.msg_saved_ny, R.drawable.msg_saved_ny_solar);
     solar.put(R.drawable.msg_screencast, R.drawable.msg_screencast_solar);
     solar.put(R.drawable.msg_screencast_off,
               R.drawable.msg_screencast_off_solar);
     solar.put(R.drawable.msg_search, R.drawable.msg_search_solar);
     solar.put(R.drawable.msg_secret, R.drawable.msg_secret_solar);
-    solar.put(R.drawable.msg_secret_ny, R.drawable.msg_secret_ny_solar);
     solar.put(R.drawable.msg_select, R.drawable.msg_select_solar);
     solar.put(R.drawable.msg_send, R.drawable.msg_send_solar);
     solar.put(R.drawable.msg_sendfile, R.drawable.msg_sendfile_solar);
     solar.put(R.drawable.msg_settings, R.drawable.msg_settings_solar);
-    solar.put(R.drawable.msg_settings_14, R.drawable.msg_settings_14_solar);
-    solar.put(R.drawable.msg_settings_hw, R.drawable.msg_settings_hw_solar);
-    solar.put(R.drawable.msg_settings_ny, R.drawable.msg_settings_ny_solar);
     solar.put(R.drawable.msg_settings_old, R.drawable.msg_settings_solar);
     solar.put(R.drawable.msg_share, R.drawable.msg_share_solar);
     solar.put(R.drawable.msg_share_filled, R.drawable.msg_share_filled_solar);
@@ -413,13 +406,9 @@ public class IconsSet {
     solar.put(R.drawable.profile_discuss, R.drawable.profile_discuss_solar);
     solar.put(R.drawable.profile_phone, R.drawable.profile_phone_solar);
     solar.put(R.drawable.profile_video, R.drawable.profile_video_solar);
-    solar.put(R.drawable.msg2_proxy_off, R.drawable.proxy_off_solar);
-    solar.put(R.drawable.msg2_proxy_on, R.drawable.proxy_on_solar);
     solar.put(R.drawable.qr_flashlight, R.drawable.qr_flashlight_solar);
     solar.put(R.drawable.qr_gallery, R.drawable.qr_gallery_solar);
     solar.put(R.drawable.reactionbutton, R.drawable.msg_reactions_solar);
-    solar.put(R.drawable.reactionchatslist,
-              R.drawable.msg_reactions_filled_solar);
     solar.put(R.drawable.screencast_big, R.drawable.screencast_big_solar);
     solar.put(R.drawable.search_files_filled, R.drawable.msg_round_file_solar);
     solar.put(R.drawable.share, R.drawable.msg_filled_shareout_solar);
@@ -449,7 +438,6 @@ public class IconsSet {
 
     solar.put(R.drawable.msg2_chats_add, R.drawable.msg_chats_add_solar);
     solar.put(R.drawable.msg2_link2, R.drawable.msg_link2_solar);
-    solar.put(R.drawable.msg2_night_auto, R.drawable.msg_night_auto_solar);
     solar.put(R.drawable.msg_online, R.drawable.msg_online_solar);
     solar.put(R.drawable.msg_link_folder, R.drawable.msg_link2_solar);
     solar.put(R.drawable.msg_bot, R.drawable.msg_bots_solar);

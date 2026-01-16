@@ -914,25 +914,19 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
 
             float offset = (titleView.getMeasuredHeight() - titleView.getTextHeight()) / 2f;
 
-           
-            // float toX = AndroidUtilities.dp(28) * Math.min(1, animateToCount) + AndroidUtilities.dp(14) * Math.max(0, animateToCount - 1);
-            titleView.setTranslationY(bottomY + AndroidUtilities.dp(14) - offset + AndroidUtilities.dp(FAKE_TOP_PADDING));
-            int cellWidth = dp(72);
-            lastViewRight += -cellWidth + dp(6) + getAvatarRight(cellWidth, collapsedProgress) + dp(12);
-            titleView.setTranslationX(lastViewRight);
-            titleView.getDrawable().setRightPadding(lastViewRight + actionBar.menu.getItemsMeasuredWidth(false) * progress);
-
             if (fluffyConfig.centerTitle) {
                 offset -= AndroidUtilities.dp(1.65F);
             }
 
-            titleView.setTranslationY(y + AndroidUtilities.dp(14) - offset + AndroidUtilities.dp(FAKE_TOP_PADDING));
-            int cellWidth = AndroidUtilities.dp(72);
-            lastViewRight += -cellWidth + AndroidUtilities.dp(6) + getAvatarRight(cellWidth, collapsedProgress) + AndroidUtilities.dp(12);
-
+            // float toX = AndroidUtilities.dp(28) * Math.min(1, animateToCount) + AndroidUtilities.dp(14) * Math.max(0, animateToCount - 1);
+            titleView.setTranslationY(bottomY + AndroidUtilities.dp(14) - offset + AndroidUtilities.dp(FAKE_TOP_PADDING));
+            int cellWidth = dp(72);
+            lastViewRight += -cellWidth + dp(6) + getAvatarRight(cellWidth, collapsedProgress) + dp(12);
             if (fluffyConfig.centerTitle) {
                 lastViewRight -= AndroidUtilities.dp(7);
             }
+            titleView.setTranslationX(lastViewRight);
+            titleView.getDrawable().setRightPadding(lastViewRight + actionBar.menu.getItemsMeasuredWidth(false) * progress);
 
             telegramLogoView.setTranslationX(titleView.getTranslationX() - dpf2(3.33f));
             telegramLogoView.setTranslationY(bottomY + dp(14 + FAKE_TOP_PADDING + 4.333f) + translationOffset /*titleView.getTranslationY() + dpf2(37.33f)*/);

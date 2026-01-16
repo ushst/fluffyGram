@@ -2346,7 +2346,8 @@ public class AndroidUtilities {
                 || TYPEFACE_ROBOTO_MEDIUM.equals(assetPath)
                 || TYPEFACE_ROBOTO_ITALIC.equals(assetPath)
                 || TYPEFACE_ROBOTO_MEDIUM_ITALIC.equals(assetPath);
-                
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static Typeface buildRobotoFlexTypeface(int width) {
         return new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), "fonts/roboto_flex.ttf")
@@ -2388,15 +2389,6 @@ public class AndroidUtilities {
                             default:
                                 t = Build.VERSION.SDK_INT >= 28 ? Typeface.create(Typeface.SANS_SERIF, 400, false) : Typeface.create("sans-serif", Typeface.NORMAL);
                                 break;
-                    }
-                    Typeface t;
-                    if (Build.VERSION.SDK_INT >= 26) {
-                        Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
-                        if (assetPath.contains("rextrabold")) {
-                            builder.setWeight(800);
-                        }
-                        if (assetPath.contains("medium") || assetPath.contains("rbold")) {
-                            builder.setWeight(700);
                         }
                     } else {
                         if (fluffyConfig.hasCustomFont() && isCustomFontCandidate(assetPath)) {
@@ -2418,7 +2410,10 @@ public class AndroidUtilities {
                         if (t == null) {
                             if (Build.VERSION.SDK_INT >= 26) {
                                 Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
-                                if (assetPath.contains("medium")) {
+                                if (assetPath.contains("rextrabold")) {
+                                    builder.setWeight(800);
+                                }
+                                if (assetPath.contains("medium") || assetPath.contains("rbold")) {
                                     builder.setWeight(700);
                                 }
                                 if (assetPath.contains("italic")) {

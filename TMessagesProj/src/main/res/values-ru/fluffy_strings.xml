@@ -1,4 +1,5 @@
 <resources>
+    <string name="fluffySettings">Настройки fluffy</string>
     <string name="FG_DevMode">Режим разработчика</string>
     <string name="FG_ShowFakeEditIndicator">Показывать отметку «изменено»</string>
     <string name="FG_FakeEdit">Фейковое редактирование</string>

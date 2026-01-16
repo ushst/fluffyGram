@@ -44,6 +44,18 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
     public ChatActivityEnterViewAnimatedIconView(Context context, int sizeDp) {
         super(context);
         this.sizeDp = sizeDp;
+        overlayTextPaint.setTextSize(AndroidUtilities.dp(12));
+        overlayTextPaint.setTextAlign(Paint.Align.CENTER);
+        overlayTextPaint.setTypeface(AndroidUtilities.bold());
+        overlayTextPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelIcons));
+    }
+
+    public void setOverlayText(String text) {
+        if (TextUtils.equals(overlayText, text)) {
+            return;
+        }
+        overlayText = text;
+        invalidate();
     }
 
     public void setState(State state, boolean animate) {
@@ -145,5 +157,15 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
         KEYBOARD,
         SMILE,
         GIF
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (!TextUtils.isEmpty(overlayText)) {
+            float x = getWidth() / 2f;
+            float y = getHeight() / 2f - (overlayTextPaint.ascent() + overlayTextPaint.descent()) / 2f;
+            canvas.drawText(overlayText, x, y, overlayTextPaint);
+        }
     }
 }

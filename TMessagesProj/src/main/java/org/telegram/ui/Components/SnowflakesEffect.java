@@ -99,8 +99,9 @@ public class SnowflakesEffect {
                 }
                 case 1:
                 default: {
-                    if (particleBitmap == null) {
-                        particleBitmap = createParticlesBitmap(false);
+                    Bitmap shapeBitmap = getEffectBitmap(effectStyle, effectVariant);
+                    if (shapeBitmap == null) {
+                        return;
                     }
                     bitmapPaint.setAlpha((int) (255 * alpha));
                     canvas.save();
@@ -263,6 +264,7 @@ public class SnowflakesEffect {
         float px1 = -AndroidUtilities.dpf2(0.57f) * 2;
         float py1 = AndroidUtilities.dpf2(1.55f) * 2;
         float angle = (float) -Math.PI / 2;
+        float angleDiff = (float) (Math.PI / 180 * 60);
         for (int a = 0; a < 6; a++) {
             float x = AndroidUtilities.dp(8);
             float y = AndroidUtilities.dp(8);

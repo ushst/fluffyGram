@@ -23774,8 +23774,6 @@ public class MessagesController extends BaseController implements NotificationCe
     }
     
     private ArrayList<Utilities.Callback<Boolean>> loadingStakeDiceInfo;
-
-    private ArrayList<Utilities.Callback<Boolean>> loadingStakeDiceInfo;
     public TLRPC.EmojiGameInfo stakeDiceInfo;
     public void loadStakeDiceInfo(Utilities.Callback<Boolean> isAvailable) {
         if (stakeDiceInfo != null) {

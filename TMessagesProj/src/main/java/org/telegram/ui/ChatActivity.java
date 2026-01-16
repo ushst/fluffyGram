@@ -24027,26 +24027,6 @@ public class ChatActivity extends BaseFragment implements
         }
     }
 
-    private void saveGeneralScroll() {
-        int scrollByCellHeight = 0;
-        ChatMessageCell scrollByCell = null;
-        for (int i = 0; i < chatListView.getChildCount(); ++i) {
-            View child = chatListView.getChildAt(i);
-            if (child instanceof ChatMessageCell) {
-                ChatMessageCell cell = (ChatMessageCell) child;
-
-                int visibleHeight = Math.min(cell.getBottom(), chatListView.getHeight()) - Math.max(0, cell.getTop());
-                if (visibleHeight > scrollByCellHeight) {
-                    scrollByCell = cell;
-                    scrollByCellHeight = visibleHeight;
-                }
-            }
-        }
-        if (scrollByCell != null) {
-            chatLayoutManager.scrollToPositionWithOffset(chatListView.getChildAdapterPosition(scrollByCell), scrollByCell.getTop() - (int) chatListViewPaddingTop, false);
-        }
-    }
-
     private int getScrollingOffsetForView(View v) {
         FileLog.d("getScrollingOffsetForView view=" + v + " results in {"+(chatListView.getMeasuredHeight() - v.getBottom() - chatListView.getPaddingBottom())+"} chatHeight=" + chatListView.getMeasuredHeight() + " bottom=" + v.getBottom() + " paddingBottom=" + chatListView.getPaddingBottom());
         return chatListView.getMeasuredHeight() - v.getBottom() - chatListView.getPaddingBottom();

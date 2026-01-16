@@ -211,11 +211,7 @@ public class DialogsHintCell extends FrameLayout {
             MeasureSpec.makeMeasureSpec(width - dp(36 + 8) - getPaddingLeft() - getPaddingRight(), MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.y, MeasureSpec.AT_MOST)
         );
-<<<<<<< HEAD
-        this.height = parentView.getMeasuredHeight() + getPaddingTop() + getPaddingBottom() + 1;
-=======
         this.height = contentView.getMeasuredHeight() + getPaddingTop() + getPaddingBottom();
->>>>>>> 80aa0d769 (Redesign WIP)
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
 
         closeView.setTranslationY((getPaddingBottom() - getPaddingTop()) / 2f);
