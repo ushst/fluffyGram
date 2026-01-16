@@ -56,6 +56,7 @@ public class mainActivitySettings extends BaseFragment {
   public View createView(Context context) {
     actionBar.setBackButtonImage(R.drawable.ic_ab_back);
     actionBar.setAllowOverlayTitle(true);
+    actionBar.setUseContainerForTitles();
     actionBar.setTitle(l10n("fluffy", R.string.fluffy));
     actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
       @Override

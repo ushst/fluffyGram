@@ -442,9 +442,10 @@ public class ActionBar extends FrameLayout {
         if (titleTextView[i] != null) {
             return;
         }
+        boolean shouldCenterTitle = isCenterTitle || fluffyConfig.centerTitle;
+        boolean useFullWidthCenter = fluffyConfig.centerTitle;
         titleTextView[i] = new SimpleTextView(getContext());
-        titleTextView[i].setGravity(isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
-        titleTextView[i].setGravity((fluffyConfig.centerTitle ? Gravity.CENTER : Gravity.LEFT)| Gravity.CENTER_VERTICAL);
+        titleTextView[i].setGravity((shouldCenterTitle ? Gravity.CENTER : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         if (titleColorToSet != 0) {
             titleTextView[i].setTextColor(titleColorToSet);
         } else {
@@ -456,9 +457,9 @@ public class ActionBar extends FrameLayout {
         titleTextView[i].setPadding(0, dp(8), 0, dp(8));
         titleTextView[i].setRightDrawableTopPadding(-dp(1));
         if (useContainerForTitles) {
-            titlesContainer.addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (fluffyConfig.centerTitle ? Gravity.CENTER : Gravity.LEFT) | Gravity.TOP));
+            titlesContainer.addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (shouldCenterTitle ? Gravity.CENTER : Gravity.LEFT) | Gravity.TOP));
         } else {
-            addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
+            addView(titleTextView[i], 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (shouldCenterTitle ? Gravity.CENTER : Gravity.LEFT) | Gravity.TOP));
         }
     }
 
@@ -1250,6 +1251,7 @@ public class ActionBar extends FrameLayout {
         int height = MeasureSpec.getSize(heightMeasureSpec);
         int actionBarHeight = getCurrentActionBarHeight();
         int actionBarHeightSpec = MeasureSpec.makeMeasureSpec(actionBarHeight, MeasureSpec.EXACTLY);
+        boolean useFullWidthCenter = fluffyConfig.centerTitle;
 
         ignoreLayoutRequest = true;
         if (actionModeTop != null) {
@@ -1299,7 +1301,10 @@ public class ActionBar extends FrameLayout {
 
         for (int i = 0; i < 2; i++) {
             if (titleTextView[0] != null && titleTextView[0].getVisibility() != GONE || subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
-                int availableWidth = width - (menu != null ? menu.getMeasuredWidth() : 0) - dp(16) - textLeft - titleRightMargin;
+                int availableWidth = width - dp(16) - titleRightMargin;
+                if (!useFullWidthCenter) {
+                    availableWidth -= (menu != null ? menu.getMeasuredWidth() : 0) + textLeft;
+                }
 
                 if (((fromBottom && i == 0) || (!fromBottom && i == 1)) && overlayTitleAnimation && titleAnimationRunning) {
                     titleTextView[i].setTextSize(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
@@ -1372,6 +1377,8 @@ public class ActionBar extends FrameLayout {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         int additionalTop = occupyStatusBar ? AndroidUtilities.statusBarHeight : 0;
+        boolean shouldCenterTitle = isCenterTitle || fluffyConfig.centerTitle;
+        boolean useFullWidthCenter = fluffyConfig.centerTitle;
 
         int textLeft;
         if (backButtonImageView != null && backButtonImageView.getVisibility() != GONE) {
@@ -1386,6 +1393,9 @@ public class ActionBar extends FrameLayout {
             menu.layout(menuLeft, additionalTop, menuLeft + menu.getMeasuredWidth(), additionalTop + menu.getMeasuredHeight());
         }
 
+        int width = right - left;
+        int textRight = width - (menu != null ? menu.getMeasuredWidth() : 0) - dp(16) - titleRightMargin;
+
         for (int i = 0; i < 2; i++) {
             if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
                 int textTop;
@@ -1398,21 +1408,77 @@ public class ActionBar extends FrameLayout {
                         textTop = (getCurrentActionBarHeight() - titleTextView[i].getTextHeight()) / 2;
                     }
                 }
-                titleTextView[i].layout(textLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), textLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
+                int titleLeft = textLeft;
+                if (shouldCenterTitle) {
+                    int centeredLeft = (width - titleTextView[i].getMeasuredWidth()) / 2;
+                    if (useFullWidthCenter) {
+                        int maxLeft = width - titleTextView[i].getMeasuredWidth();
+                        titleLeft = Math.max(0, Math.min(centeredLeft, maxLeft));
+                    } else {
+                        int maxLeft = textRight - titleTextView[i].getMeasuredWidth();
+                        if (maxLeft < textLeft) {
+                            maxLeft = textLeft;
+                        }
+                        titleLeft = Math.max(textLeft, Math.min(centeredLeft, maxLeft));
+                    }
+                }
+                titleTextView[i].layout(titleLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), titleLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
             }
         }
         if (titleOverlayContainer != null) {
             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - titleOverlayContainer.getMeasuredHeight()) / 2 - dp(2);
-            titleOverlayContainer.layout(textLeft, additionalTop + textTop, textLeft + titleOverlayContainer.getMeasuredWidth(), additionalTop + textTop + titleOverlayContainer.getMeasuredHeight());
+            int overlayLeft = textLeft;
+            if (shouldCenterTitle) {
+                int centeredLeft = (width - titleOverlayContainer.getMeasuredWidth()) / 2;
+                if (useFullWidthCenter) {
+                    int maxLeft = width - titleOverlayContainer.getMeasuredWidth();
+                    overlayLeft = Math.max(0, Math.min(centeredLeft, maxLeft));
+                } else {
+                    int maxLeft = textRight - titleOverlayContainer.getMeasuredWidth();
+                    if (maxLeft < textLeft) {
+                        maxLeft = textLeft;
+                    }
+                    overlayLeft = Math.max(textLeft, Math.min(centeredLeft, maxLeft));
+                }
+            }
+            titleOverlayContainer.layout(overlayLeft, additionalTop + textTop, overlayLeft + titleOverlayContainer.getMeasuredWidth(), additionalTop + textTop + titleOverlayContainer.getMeasuredHeight());
         }
         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - subtitleTextView.getTextHeight()) / 2 - dp(2);
-            subtitleTextView.layout(textLeft, additionalTop + textTop, textLeft + subtitleTextView.getMeasuredWidth(), additionalTop + textTop + subtitleTextView.getTextHeight());
+            int subtitleLeft = textLeft;
+            if (shouldCenterTitle) {
+                int centeredLeft = (width - subtitleTextView.getMeasuredWidth()) / 2;
+                if (useFullWidthCenter) {
+                    int maxLeft = width - subtitleTextView.getMeasuredWidth();
+                    subtitleLeft = Math.max(0, Math.min(centeredLeft, maxLeft));
+                } else {
+                    int maxLeft = textRight - subtitleTextView.getMeasuredWidth();
+                    if (maxLeft < textLeft) {
+                        maxLeft = textLeft;
+                    }
+                    subtitleLeft = Math.max(textLeft, Math.min(centeredLeft, maxLeft));
+                }
+            }
+            subtitleTextView.layout(subtitleLeft, additionalTop + textTop, subtitleLeft + subtitleTextView.getMeasuredWidth(), additionalTop + textTop + subtitleTextView.getTextHeight());
         }
 
         if (additionalSubtitleTextView != null && additionalSubtitleTextView.getVisibility() != GONE) {
             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - additionalSubtitleTextView.getTextHeight()) / 2 - dp(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 1 : 1);
-            additionalSubtitleTextView.layout(textLeft, additionalTop + textTop, textLeft + additionalSubtitleTextView.getMeasuredWidth(), additionalTop + textTop + additionalSubtitleTextView.getTextHeight());
+            int additionalLeft = textLeft;
+            if (shouldCenterTitle) {
+                int centeredLeft = (width - additionalSubtitleTextView.getMeasuredWidth()) / 2;
+                if (useFullWidthCenter) {
+                    int maxLeft = width - additionalSubtitleTextView.getMeasuredWidth();
+                    additionalLeft = Math.max(0, Math.min(centeredLeft, maxLeft));
+                } else {
+                    int maxLeft = textRight - additionalSubtitleTextView.getMeasuredWidth();
+                    if (maxLeft < textLeft) {
+                        maxLeft = textLeft;
+                    }
+                    additionalLeft = Math.max(textLeft, Math.min(centeredLeft, maxLeft));
+                }
+            }
+            additionalSubtitleTextView.layout(additionalLeft, additionalTop + textTop, additionalLeft + additionalSubtitleTextView.getMeasuredWidth(), additionalTop + textTop + additionalSubtitleTextView.getTextHeight());
         }
 
         if (avatarSearchImageView != null) {
@@ -1433,7 +1499,7 @@ public class ActionBar extends FrameLayout {
 
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
 
-            int width = child.getMeasuredWidth();
+            int childWidth = child.getMeasuredWidth();
             int height = child.getMeasuredHeight();
             int childLeft;
             int childTop;
@@ -1448,10 +1514,10 @@ public class ActionBar extends FrameLayout {
 
             switch (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
                 case Gravity.CENTER_HORIZONTAL:
-                    childLeft = (right - left - width) / 2 + lp.leftMargin - lp.rightMargin;
+                    childLeft = (right - left - childWidth) / 2 + lp.leftMargin - lp.rightMargin;
                     break;
                 case Gravity.RIGHT:
-                    childLeft = right - width - lp.rightMargin;
+                    childLeft = right - childWidth - lp.rightMargin;
                     break;
                 case Gravity.LEFT:
                 default:
@@ -1468,7 +1534,7 @@ public class ActionBar extends FrameLayout {
                 default:
                     childTop = lp.topMargin;
             }
-            child.layout(childLeft, childTop, childLeft + width, childTop + height);
+            child.layout(childLeft, childTop, childLeft + childWidth, childTop + height);
         }
     }
 
