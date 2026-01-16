@@ -1355,6 +1355,7 @@ public class appearanceActivitySettings extends BaseFragment {
                             fluffyConfig.setTitleType(4);
                             fluffyConfig.setСustomTitle(customTitle);
                             onCustomTitleEntered(customTitle);
+                            getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
                             if (chatListPreviewCell != null) {
                                 chatListPreviewCell.updateTitle(true);
                             }

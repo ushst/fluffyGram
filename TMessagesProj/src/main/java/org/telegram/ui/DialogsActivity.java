@@ -170,6 +170,7 @@ import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.HintDialogCell;
 import org.telegram.ui.Cells.LoadingCell;
 import org.telegram.ui.Cells.ProfileSearchCell;
+import org.telegram.ui.Cells.RadioColorCell;
 import org.telegram.ui.Cells.RequestPeerRequirementsCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
@@ -205,6 +206,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StealthModeAlert;
 import org.telegram.ui.bots.BotWebViewSheet;
+import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.ChatActivityEnterView;
@@ -262,6 +264,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
@@ -3099,10 +3102,193 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    private void updateMainTitleFromFluffy() {
+        if (actionBar == null || onlySelect || initialDialogsType != DIALOGS_TYPE_DEFAULT || folderId != 0 || !TextUtils.isEmpty(searchString)) {
+            return;
+        }
+        if (statusDrawable == null) {
+            statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
+            statusDrawable.center = true;
+        }
+        applyFluffyMainTitle();
+    }
+
+    private void applyFluffyMainTitle() {
+        String title = fluffyConfig.getTitleHeader();
+        if (TextUtils.isEmpty(title)) {
+            title = " ";
+        }
+        actionBar.setTitleColor(getThemedColor(Theme.key_telegram_color_dialogsLogo));
+        if (fluffyConfig.titleType == 2) {
+            if (logoDrawable == null) {
+                logoDrawable = getContext().getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
+                logoDrawable.setBounds(dp(4), dp(2), dp(4) + logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
+            }
+            logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
+            SpannableStringBuilder ssb = new SpannableStringBuilder(title);
+            ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            actionBar.setTitle(ssb, statusDrawable);
+            return;
+        }
+        actionBar.setTitle(title, statusDrawable);
+    }
+
+    private void showTitleTypeMenu() {
+        if (getParentActivity() == null || actionBar == null) {
+            return;
+        }
+        if (titleTypePopupWindow != null) {
+            titleTypePopupWindow.dismiss();
+            titleTypePopupWindow = null;
+        }
+        ActionBarPopupWindow.ActionBarPopupWindowLayout layout =
+                new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert2, getResourceProvider(), 0);
+        ActionBarMenuSubItem item = new ActionBarMenuSubItem(getParentActivity(), true, false);
+        item.setTextAndIcon(getString(R.string.TitleSelecter), R.drawable.menu_tag_rename);
+        layout.addView(item);
+        item.setOnClickListener(v -> {
+            if (titleTypePopupWindow != null) {
+                titleTypePopupWindow.dismiss();
+                titleTypePopupWindow = null;
+            }
+            showTitleSelectorDialog();
+        });
+        titleTypePopupWindow = new ActionBarPopupWindow(layout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT);
+        titleTypePopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
+        int[] location = new int[2];
+        actionBar.getLocationInWindow(location);
+        int x = location[0] + dp(16);
+        int y = location[1] + actionBar.getMeasuredHeight();
+        titleTypePopupWindow.showAtLocation(actionBar, Gravity.LEFT | Gravity.TOP, x, y);
+        titleTypePopupWindow.dimBehind();
+    }
+
+    private void showTitleSelectorDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AtomicReference<Dialog> dialogRef = new AtomicReference<>();
+        Context context = getParentActivity();
+
+        LinearLayout rootLayout = new LinearLayout(context);
+        rootLayout.setOrientation(LinearLayout.VERTICAL);
+        int paddingHorizontal = dp(24);
+        int paddingBottom = dp(16);
+        rootLayout.setPadding(paddingHorizontal, 0, paddingHorizontal, paddingBottom);
+
+        CharSequence[] items = new CharSequence[]{
+                fluffyConfig.getUsername(),
+                "fluffy",
+                "telegram",
+                "Disable",
+                "Custom"
+        };
+
+        List<RadioColorCell> radioCells = new ArrayList<>();
+        EditText customEditText = new EditText(context);
+        customEditText.setHint("Custom title");
+        customEditText.setText(fluffyConfig.customTitle != null ? fluffyConfig.customTitle : "");
+        LinearLayout.LayoutParams editTextParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        editTextParams.topMargin = dp(8);
+        customEditText.setLayoutParams(editTextParams);
+        FluffyDialogUtils.styleTextInput(customEditText, resourceProvider);
+
+        for (int i = 0; i < items.length; ++i) {
+            final int index = i;
+            RadioColorCell cell = new RadioColorCell(getParentActivity());
+            cell.setPadding(dp(4), 0, dp(4), 0);
+            cell.setCheckColor(
+                    Theme.getColor(Theme.key_radioBackground),
+                    Theme.getColor(Theme.key_dialogRadioBackgroundChecked)
+            );
+            cell.setTextAndValue(items[index], index == fluffyConfig.titleType);
+            cell.setBackground(Theme.createSelectorDrawable(
+                    Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            LinearLayout.LayoutParams cellParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            cellParams.bottomMargin = dp(2);
+            cell.setLayoutParams(cellParams);
+            rootLayout.addView(cell);
+            radioCells.add(cell);
+
+            cell.setOnClickListener(v -> {
+                for (int j = 0; j < radioCells.size(); j++) {
+                    radioCells.get(j).setChecked(j == index, true);
+                }
+                if (index == 4) {
+                    customEditText.setVisibility(View.VISIBLE);
+                    customEditText.requestFocus();
+                    if (fluffyConfig.customTitle != null) {
+                        customEditText.setText(fluffyConfig.customTitle);
+                        customEditText.setSelection(fluffyConfig.customTitle.length());
+                    } else {
+                        customEditText.setText("");
+                    }
+                } else {
+                    customEditText.setVisibility(View.GONE);
+                    applyTitleType(index, null);
+                    Dialog dialog = dialogRef.get();
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                }
+            });
+        }
+
+        rootLayout.addView(customEditText);
+        if (fluffyConfig.titleType == 4) {
+            customEditText.setVisibility(View.VISIBLE);
+            if (fluffyConfig.customTitle != null) {
+                customEditText.setText(fluffyConfig.customTitle);
+                customEditText.setSelection(fluffyConfig.customTitle.length());
+            }
+        } else {
+            customEditText.setVisibility(View.GONE);
+        }
+
+        AlertDialog dialog = FluffyDialogUtils.themedBuilder(getParentActivity())
+                .setTitle(getString(R.string.TitleSelecter))
+                .setView(FluffyDialogUtils.wrapWithStandardPadding(rootLayout))
+                .setNegativeButton(getString("Cancel", R.string.Cancel), null)
+                .setPositiveButton(getString("OK", R.string.OK), (d, id) -> {
+                    if (radioCells.get(4).isChecked()) {
+                        String customTitle = customEditText.getText().toString().trim();
+                        if (!customTitle.isEmpty()) {
+                            applyTitleType(4, customTitle);
+                        }
+                    }
+                })
+                .create();
+        FluffyDialogUtils.applyWindowStyling(dialog);
+        dialogRef.set(dialog);
+        showDialog(dialog);
+    }
+
+    private void applyTitleType(int index, @Nullable String customTitle) {
+        if (index == 4) {
+            if (customTitle == null || customTitle.isEmpty()) {
+                return;
+            }
+            fluffyConfig.setTitleType(4);
+            fluffyConfig.setСustomTitle(customTitle);
+        } else {
+            fluffyConfig.setTitleType(index);
+        }
+        updateMainTitleFromFluffy();
+        getNotificationCenter().postNotificationName(NotificationCenter.currentUserPremiumStatusChanged);
+    }
+
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
         getNotificationCenter().removeObserver(this, NotificationCenter.fluffy_floatingButtonSettingsChanged);
+        if (titleTypePopupWindow != null) {
+            titleTypePopupWindow.dismiss();
+            titleTypePopupWindow = null;
+        }
 
         if (searchString == null) {
             getNotificationCenter().removeObserver(this, NotificationCenter.dialogsNeedReload);
@@ -3572,13 +3758,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else {
                 statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
                 statusDrawable.center = true;
-                logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
-                logoDrawable.setBounds(dp(4), dp(2), dp(4) + logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
-                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(fluffyConfig.getTitleHeader());
-                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                actionBar.setTitle(ssb, statusDrawable);
-
+                applyFluffyMainTitle();
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
             if (folderId == 0) {
@@ -3599,6 +3779,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else {
                 scrollToTop(true, true);
             }
+        });
+        actionBar.setOnLongClickListener(v -> {
+            if (actionBar.isSearchFieldVisible()
+                    || onlySelect
+                    || initialDialogsType != DIALOGS_TYPE_DEFAULT
+                    || folderId != 0
+                    || !TextUtils.isEmpty(searchString)) {
+                return false;
+            }
+            showTitleTypeMenu();
+            return true;
         });
 
         if (
@@ -10838,6 +11029,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             updateStatus((TLRPC.User) args[0], true);
         } else if (id == NotificationCenter.currentUserPremiumStatusChanged) {
             updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
+            updateMainTitleFromFluffy();
             updateStoriesPosting();
         } else if (id == NotificationCenter.onDatabaseReset) {
             dialogsLoaded[currentAccount] = false;
@@ -11646,6 +11838,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private ActionBarPopupWindow sendPopupWindow;
+    private ActionBarPopupWindow titleTypePopupWindow;
 
     private boolean onSendLongClick(View view) {
         final Activity parentActivity = getParentActivity();
