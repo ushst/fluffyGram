@@ -7219,6 +7219,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 viewPages[a].dialogsAdapter.notifyDataSetChanged();
             }
         }
+        if (viewPages != null && viewPages[0] != null && viewPages[0].listView != null) {
+            if (waitingForScrollFinished && viewPages[0].listView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+                waitingForScrollFinished = false;
+                disableActionBarScrolling = false;
+                if (updatePullAfterScroll) {
+                    viewPages[0].listView.updatePullState();
+                    updatePullAfterScroll = false;
+                }
+                viewPages[0].dialogsAdapter.notifyDataSetChanged();
+            }
+        }
+        if (rightSlidingDialogContainer != null && !rightSlidingDialogContainer.hasFragment() && rightFragmentTransitionInProgress) {
+            rightFragmentTransitionInProgress = false;
+            setDialogsListFrozen(false);
+        }
         if (commentView != null) {
             commentView.onResume();
         }
