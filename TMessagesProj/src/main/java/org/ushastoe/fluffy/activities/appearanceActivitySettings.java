@@ -102,6 +102,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class appearanceActivitySettings extends BaseFragment {
+    private static final int CARD_CORNER_RADIUS_DP = 22;
+    private static final int CARD_VERTICAL_PADDING_DP = 0;
+    private static final int CARD_HORIZONTAL_INSET_DP = 2;
+
     private ListAdapter listAdapter;
     private RecyclerListView listView;
     private LinearLayoutManager layoutManager;
@@ -439,6 +443,31 @@ public class appearanceActivitySettings extends BaseFragment {
         }
     }
 
+    private boolean isCardRow(int position) {
+        if (position < 0 || position >= rows.size()) {
+            return false;
+        }
+        return isCardRowType(rows.get(position).type);
+    }
+
+    private boolean isCardRowType(RowType type) {
+        switch (type) {
+            case TEXT_CELL:
+            case TEXT_CHECK:
+            case TEXT_INFO_PRIVACY:
+            case NOTIFICATIONS_CHECK:
+            case CHAT_LIST_PREVIEW:
+            case DOUBLE_TAP_CELL:
+            case QUICK_SWITCHER:
+            case STICKER_SIZE_PREVIEW:
+            case STICKER_SIZE_SEEKBAR:
+            case STICKER_RADIUS_SEEKBAR:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     private void showMenuItemConfigurator(Context context) {
         if (getParentActivity() == null) {
             return;
@@ -670,6 +699,8 @@ public class appearanceActivitySettings extends BaseFragment {
                 return getThemedColor(Theme.key_listSelector);
             }
         };
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         int padding = AndroidUtilities.dp(12);
@@ -1931,6 +1962,7 @@ public class appearanceActivitySettings extends BaseFragment {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             Row row = rows.get(position);
+            applyCardRowStyling(holder.itemView, position);
 
             switch (row.type) {
                 case HERO_CARD:
@@ -2302,6 +2334,51 @@ public class appearanceActivitySettings extends BaseFragment {
         private void applyCellBackground(View view) {
             view.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
         }
+
+        private void applyCardRowStyling(View view, int position) {
+            RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) view.getLayoutParams();
+            if (params != null) {
+                int horizontalInset = isCardRow(position) ? AndroidUtilities.dp(CARD_HORIZONTAL_INSET_DP) : 0;
+                if (params.leftMargin != horizontalInset || params.rightMargin != horizontalInset) {
+                    params.leftMargin = horizontalInset;
+                    params.rightMargin = horizontalInset;
+                    view.setLayoutParams(params);
+                }
+            }
+
+            if (!isCardRow(position)) {
+                view.setBackground(null);
+                return;
+            }
+
+            RowType type = rows.get(position).type;
+            boolean clickable = type == RowType.TEXT_CELL
+                    || type == RowType.TEXT_CHECK
+                    || type == RowType.NOTIFICATIONS_CHECK
+                    || type == RowType.QUICK_SWITCHER;
+            if (!clickable) {
+                view.setBackground(null);
+                return;
+            }
+
+            boolean top = !isCardRow(position - 1);
+            boolean bottom = !isCardRow(position + 1);
+            int radius = AndroidUtilities.dp(CARD_CORNER_RADIUS_DP);
+            int topLeft = top ? radius : 0;
+            int topRight = top ? radius : 0;
+            int bottomLeft = bottom ? radius : 0;
+            int bottomRight = bottom ? radius : 0;
+            int selectorColor = Theme.getColor(Theme.key_listSelector);
+            view.setBackground(
+                    Theme.createSimpleSelectorRoundRectDrawable(
+                            topLeft,
+                            topRight,
+                            bottomRight,
+                            bottomLeft,
+                            0,
+                            selectorColor,
+                            selectorColor));
+        }
     }
 
     private static class AppearanceHeroCardView extends FrameLayout {
@@ -2345,9 +2422,9 @@ public class appearanceActivitySettings extends BaseFragment {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
         private final Path path = new Path();
-        private final float radius = AndroidUtilities.dp(22);
-        private final float verticalPadding = AndroidUtilities.dp(4);
-        private final float horizontalInset = AndroidUtilities.dp(2);
+        private final float radius = AndroidUtilities.dp(CARD_CORNER_RADIUS_DP);
+        private final float verticalPadding = AndroidUtilities.dp(CARD_VERTICAL_PADDING_DP);
+        private final float horizontalInset = 0f;
         private final float[] radii = new float[8];
 
         CardBackgroundDecoration() {
@@ -2384,28 +2461,6 @@ public class appearanceActivitySettings extends BaseFragment {
             radii[2] = radii[3] = topRadius;
             radii[4] = radii[5] = bottomRadius;
             radii[6] = radii[7] = bottomRadius;
-        }
-
-        private boolean isCardRow(int position) {
-            if (position < 0 || position >= rows.size()) {
-                return false;
-            }
-            RowType type = rows.get(position).type;
-            switch (type) {
-                case TEXT_CELL:
-                case TEXT_CHECK:
-                case TEXT_INFO_PRIVACY:
-                case NOTIFICATIONS_CHECK:
-                case CHAT_LIST_PREVIEW:
-                case DOUBLE_TAP_CELL:
-                case QUICK_SWITCHER:
-                case STICKER_SIZE_PREVIEW:
-                case STICKER_SIZE_SEEKBAR:
-                case STICKER_RADIUS_SEEKBAR:
-                    return true;
-                default:
-                    return false;
-            }
         }
     }
 
