@@ -47,6 +47,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.quickreplies.FluffyQuickRepliesManager;
 import org.ushastoe.fluffy.helpers.WhisperHelper;
@@ -345,9 +346,11 @@ public class generalActivitySettings extends BaseFragment {
                 return getThemedColor(Theme.key_listSelector);
             }
         };
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
-        int padding = AndroidUtilities.dp(12);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
         listView.setPadding(padding, padding, padding, padding);
         listView.setClipToPadding(false);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -870,20 +873,20 @@ public class generalActivitySettings extends BaseFragment {
                 root.setOrientation(LinearLayout.VERTICAL);
                 RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
                 params.bottomMargin = AndroidUtilities.dp(14);
+                int sideInset = FluffySettingsScaffold.getCardHorizontalInset();
+                params.leftMargin = sideInset;
+                params.rightMargin = sideInset;
                 root.setLayoutParams(params);
                 root.setPadding(0, 0, 0, 0);
 
                 titleView = new TextView(context);
-                titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                titleView.setTypeface(AndroidUtilities.bold());
-                titleView.setLetterSpacing(0.02f);
-                titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader));
+                FluffySettingsScaffold.styleSectionTitle(titleView);
                 titleView.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), AndroidUtilities.dp(6));
                 root.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
                 FrameLayout card = new FrameLayout(context);
-                card.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(22), Theme.getColor(Theme.key_windowBackgroundWhite)));
-                card.setPadding(AndroidUtilities.dp(2), AndroidUtilities.dp(4), AndroidUtilities.dp(2), AndroidUtilities.dp(4));
+                card.setBackground(FluffySettingsScaffold.createCardBackground());
+                card.setPadding(0, 0, 0, 0);
                 root.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
                 contentLayout = new LinearLayout(context);
@@ -901,7 +904,11 @@ public class generalActivitySettings extends BaseFragment {
                 }
                 for (int i = 0; i < row.children.size(); i++) {
                     Row child = row.children.get(i);
-                    View childView = createChildView(child, shouldDrawDivider(row.children, i));
+                    View childView = createChildView(
+                            child,
+                            shouldDrawDivider(row.children, i),
+                            isTopInteractiveRow(row.children, i),
+                            isBottomInteractiveRow(row.children, i));
                     if (childView != null) {
                         contentLayout.addView(childView);
                     }
@@ -919,18 +926,18 @@ public class generalActivitySettings extends BaseFragment {
                 return false;
             }
 
-            private View createChildView(Row child, boolean needDivider) {
+            private View createChildView(Row child, boolean needDivider, boolean isTop, boolean isBottom) {
                 switch (child.type) {
                     case TEXT_CELL: {
                         TextCell cell = new TextCell(mContext);
-                        applyInteractiveBackground(cell);
+                        applyInteractiveBackground(cell, isTop, isBottom);
                         bindTextCell(cell, child, needDivider);
                         cell.setOnClickListener(v -> handleItemClick(child, cell, mContext));
                         return cell;
                     }
                     case TEXT_CHECK: {
                         TextCell cell = new TextCell(mContext, 0, false, true, null);
-                        applyInteractiveBackground(cell);
+                        applyInteractiveBackground(cell, isTop, isBottom);
                         bindCheckCell(cell, child, needDivider);
                         cell.setOnClickListener(v -> handleItemClick(child, cell, mContext));
                         return cell;
@@ -1020,8 +1027,47 @@ public class generalActivitySettings extends BaseFragment {
                 cell.setTextAndCheckAndIcon(getString(child.textResId), checked, child.iconResId, needDivider);
             }
 
-            private void applyInteractiveBackground(View view) {
-                view.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+            private boolean isInteractiveRow(Row row) {
+                return row.type == RowType.TEXT_CELL || row.type == RowType.TEXT_CHECK;
+            }
+
+            private boolean isTopInteractiveRow(List<Row> children, int index) {
+                if (!isInteractiveRow(children.get(index))) {
+                    return false;
+                }
+                for (int i = index - 1; i >= 0; i--) {
+                    if (isInteractiveRow(children.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            private boolean isBottomInteractiveRow(List<Row> children, int index) {
+                if (!isInteractiveRow(children.get(index))) {
+                    return false;
+                }
+                for (int i = index + 1; i < children.size(); i++) {
+                    if (isInteractiveRow(children.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            private void applyInteractiveBackground(View view, boolean top, boolean bottom) {
+                int radius = FluffySettingsScaffold.getCardRadius();
+                int topRadius = top ? radius : 0;
+                int bottomRadius = bottom ? radius : 0;
+                int selectorColor = Theme.getColor(Theme.key_listSelector);
+                view.setBackground(Theme.createSimpleSelectorRoundRectDrawable(
+                        topRadius,
+                        topRadius,
+                        bottomRadius,
+                        bottomRadius,
+                        0,
+                        selectorColor,
+                        selectorColor));
             }
         }
 
@@ -1034,11 +1080,7 @@ public class generalActivitySettings extends BaseFragment {
                 RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
                 params.bottomMargin = AndroidUtilities.dp(16);
                 textView.setLayoutParams(params);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-                textView.setLineSpacing(AndroidUtilities.dp(2), 1.05f);
-                textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
-                textView.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), Theme.getColor(Theme.key_windowBackgroundWhite)));
-                textView.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(14), AndroidUtilities.dp(18), AndroidUtilities.dp(14));
+                FluffySettingsScaffold.styleInfoBlock(textView);
             }
 
             void bind(Row row) {

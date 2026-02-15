@@ -18,6 +18,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.LayoutHelper;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.fluffyConfig;
 
 public class ghostModeActivitySettings extends BaseFragment {
@@ -41,16 +42,17 @@ public class ghostModeActivitySettings extends BaseFragment {
 
     LinearLayout content = new LinearLayout(context);
     content.setOrientation(LinearLayout.VERTICAL);
-    content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(24));
+    content.setPadding(FluffySettingsScaffold.getListOuterPadding(), FluffySettingsScaffold.getListOuterPadding(), FluffySettingsScaffold.getListOuterPadding(), AndroidUtilities.dp(24));
     scrollView.addView(content, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
 
     content.addView(createHeroCard(context),
         LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 0, 0, 0, 12));
 
+    int sideInset = FluffySettingsScaffold.getCardHorizontalInset();
     FrameLayout togglesCard = new FrameLayout(context);
-    togglesCard.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(22), Theme.getColor(Theme.key_windowBackgroundWhite)));
-    togglesCard.setPadding(AndroidUtilities.dp(2), AndroidUtilities.dp(4), AndroidUtilities.dp(2), AndroidUtilities.dp(4));
-    content.addView(togglesCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 0, 0, 0, 16));
+    togglesCard.setBackground(FluffySettingsScaffold.createCardBackground());
+    togglesCard.setPadding(0, 0, 0, 0);
+    content.addView(togglesCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, sideInset, 0, sideInset, 16));
 
     LinearLayout togglesLayout = new LinearLayout(context);
     togglesLayout.setOrientation(LinearLayout.VERTICAL);
@@ -59,19 +61,19 @@ public class ghostModeActivitySettings extends BaseFragment {
     TextCheckCell storyViewCell =
         buildToggleCell(context, "GhostModeDisableStoryView", R.string.GhostModeDisableStoryView,
             () -> fluffyConfig.disableStoryView, fluffyConfig::toggleDisableStoryView,
-            Theme.getColor(Theme.key_windowBackgroundWhiteBlueIcon), R.drawable.msg_stories_stealth, true);
+            Theme.getColor(Theme.key_windowBackgroundWhiteBlueIcon), R.drawable.msg_stories_stealth, true, true, false);
     togglesLayout.addView(storyViewCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
     TextCheckCell typingCell =
         buildToggleCell(context, "GhostModeDisableTyping", R.string.GhostModeDisableTyping,
             () -> fluffyConfig.disableTypingIndicator, fluffyConfig::toggleDisableTypingIndicator,
-            Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), R.drawable.msg_edit, true);
+            Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), R.drawable.msg_edit, true, false, false);
     togglesLayout.addView(typingCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
     TextCheckCell emojiCell =
         buildToggleCell(context, "GhostModeDisableEmoji", R.string.GhostModeDisableEmoji,
             () -> fluffyConfig.disableEmojiIndicator, fluffyConfig::toggleDisableEmojiIndicator,
-            Theme.getColor(Theme.key_windowBackgroundWhiteGreenText), R.drawable.msg_reactions, false);
+            Theme.getColor(Theme.key_windowBackgroundWhiteGreenText), R.drawable.msg_reactions, false, false, true);
     togglesLayout.addView(emojiCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
     content.addView(createInfoBlock(context),
@@ -83,7 +85,7 @@ public class ghostModeActivitySettings extends BaseFragment {
   private View createHeroCard(Context context) {
     FrameLayout card = new FrameLayout(context);
     card.setBackground(
-        Theme.createRoundRectDrawable(AndroidUtilities.dp(22), Theme.getColor(Theme.key_windowBackgroundWhite)));
+        FluffySettingsScaffold.createCardBackground());
     card.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(18), AndroidUtilities.dp(20), AndroidUtilities.dp(18));
 
     ImageView icon = new ImageView(context);
@@ -115,20 +117,24 @@ public class ghostModeActivitySettings extends BaseFragment {
   private TextView createInfoBlock(Context context) {
     TextView info = new TextView(context);
     info.setText(LocaleController.getString("GhostModeInfo", R.string.GhostModeInfo));
-    info.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
-    info.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-    info.setLineSpacing(AndroidUtilities.dp(2), 1.05f);
-    info.setBackground(
-        Theme.createRoundRectDrawable(AndroidUtilities.dp(18), Theme.getColor(Theme.key_windowBackgroundWhite)));
-    info.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(14), AndroidUtilities.dp(18), AndroidUtilities.dp(14));
+    FluffySettingsScaffold.styleInfoBlock(info);
     return info;
   }
 
   private TextCheckCell buildToggleCell(Context context, String textKey, int textResId, BooleanSupplier stateSupplier,
       Runnable toggleAction, int iconColor, int iconRes, boolean needDivider) {
+    return buildToggleCell(context, textKey, textResId, stateSupplier, toggleAction, iconColor, iconRes, needDivider, false, false);
+  }
+
+  private TextCheckCell buildToggleCell(Context context, String textKey, int textResId, BooleanSupplier stateSupplier,
+      Runnable toggleAction, int iconColor, int iconRes, boolean needDivider, boolean top, boolean bottom) {
     TextCheckCell cell = new TextCheckCell(context);
     cell.setTextAndCheck(LocaleController.getString(textKey, textResId), stateSupplier.getAsBoolean(), needDivider);
-    cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
+    int radius = FluffySettingsScaffold.getCardRadius();
+    int topRadius = top ? radius : 0;
+    int bottomRadius = bottom ? radius : 0;
+    int selectorColor = Theme.getColor(Theme.key_listSelector);
+    cell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(topRadius, topRadius, bottomRadius, bottomRadius, 0, selectorColor, selectorColor));
     cell.setColorfullIcon(iconColor, iconRes);
     cell.setOnClickListener(v -> {
       toggleAction.run();
