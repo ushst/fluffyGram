@@ -14,14 +14,14 @@ import java.util.function.BooleanSupplier;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.LayoutHelper;
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.fluffyConfig;
 
-public class ghostModeActivitySettings extends BaseFragment {
+public class ghostModeActivitySettings extends BaseFluffySettingsActivity {
 
   @Override
   public boolean onFragmentCreate() {
@@ -34,24 +34,17 @@ public class ghostModeActivitySettings extends BaseFragment {
     actionBar.setBackButtonImage(R.drawable.ic_ab_back);
     actionBar.setTitle(LocaleController.getString("GhostMode", R.string.GhostMode));
 
-    ScrollView scrollView = new ScrollView(context);
-    scrollView.setFillViewport(true);
-    scrollView.setVerticalScrollBarEnabled(false);
-    scrollView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+    ScrollView scrollView = createSettingsScrollView(context);
     fragmentView = scrollView;
 
-    LinearLayout content = new LinearLayout(context);
-    content.setOrientation(LinearLayout.VERTICAL);
-    content.setPadding(FluffySettingsScaffold.getListOuterPadding(), FluffySettingsScaffold.getListOuterPadding(), FluffySettingsScaffold.getListOuterPadding(), AndroidUtilities.dp(24));
-    scrollView.addView(content, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
+    LinearLayout content = createSettingsContent(context, scrollView);
 
     content.addView(createHeroCard(context),
         LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 0, 0, 0, 12));
 
-    int sideInset = FluffySettingsScaffold.getCardHorizontalInset();
+    int sideInset = getSettingsSideInset();
     FrameLayout togglesCard = new FrameLayout(context);
-    togglesCard.setBackground(FluffySettingsScaffold.createCardBackground());
-    togglesCard.setPadding(0, 0, 0, 0);
+    FluffySettingsScaffold.styleCardContainer(togglesCard);
     content.addView(togglesCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, sideInset, 0, sideInset, 16));
 
     LinearLayout togglesLayout = new LinearLayout(context);
@@ -84,8 +77,7 @@ public class ghostModeActivitySettings extends BaseFragment {
 
   private View createHeroCard(Context context) {
     FrameLayout card = new FrameLayout(context);
-    card.setBackground(
-        FluffySettingsScaffold.createCardBackground());
+    card.setBackground(FluffySettingsScaffold.createCardBackground());
     card.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(18), AndroidUtilities.dp(20), AndroidUtilities.dp(18));
 
     ImageView icon = new ImageView(context);

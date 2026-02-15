@@ -20,20 +20,20 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
-import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.CacheControlActivity;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.messenger.UserConfig;
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.ushastoe.fluffy.activities.elements.headerSettingsCell;
 import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
 import org.ushastoe.fluffy.activities.secretSettingsActivity;
 
-public class mainActivitySettings extends BaseFragment {
+public class mainActivitySettings extends BaseFluffySettingsActivity {
   private LinearLayout primaryMenuContainer;
 
   private int secretTapsCount;
@@ -67,21 +67,15 @@ public class mainActivitySettings extends BaseFragment {
       }
     });
 
-    ScrollView scrollView = new ScrollView(context);
-    scrollView.setFillViewport(true);
-    scrollView.setVerticalScrollBarEnabled(false);
-    scrollView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+    ScrollView scrollView = createSettingsScrollView(context);
     fragmentView = scrollView;
 
-    LinearLayout content = new LinearLayout(context);
-    content.setOrientation(LinearLayout.VERTICAL);
-    content.setPadding(FluffySettingsScaffold.getListOuterPadding(), FluffySettingsScaffold.getListOuterPadding(), FluffySettingsScaffold.getListOuterPadding(), AndroidUtilities.dp(24));
-    scrollView.addView(content, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
+    LinearLayout content = createSettingsContent(context, scrollView);
 
     content.addView(createHeroCard(context), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 20));
 
     content.addView(createSectionTitle(context, l10n("Categories", R.string.Categories)), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 6));
-    int sideInset = FluffySettingsScaffold.getCardHorizontalInset();
+    int sideInset = getSettingsSideInset();
     FrameLayout primaryCard = createCardContainer(context);
     primaryMenuContainer = new LinearLayout(context);
     primaryMenuContainer.setOrientation(LinearLayout.VERTICAL);
@@ -219,16 +213,12 @@ public class mainActivitySettings extends BaseFragment {
   }
 
   private TextView createSectionTitle(Context context, CharSequence text) {
-    TextView title = new TextView(context);
-    title.setText(text);
-    FluffySettingsScaffold.styleSectionTitle(title);
-    return title;
+    return createSettingsSectionTitle(context, text);
   }
 
   private FrameLayout createCardContainer(Context context) {
     FrameLayout card = new FrameLayout(context);
-    card.setBackground(FluffySettingsScaffold.createCardBackground());
-    card.setPadding(0, 0, 0, 0);
+    FluffySettingsScaffold.styleCardContainer(card);
     return card;
   }
 

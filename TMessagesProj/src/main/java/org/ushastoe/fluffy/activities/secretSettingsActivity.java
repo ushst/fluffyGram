@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.HeaderCell;
@@ -27,8 +26,10 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.messenger.UserConfig;
 import org.ushastoe.fluffy.helpers.SecretSettingsHelper;
 import org.ushastoe.fluffy.activities.ghostModeActivitySettings;
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
-public class secretSettingsActivity extends BaseFragment {
+public class secretSettingsActivity extends BaseFluffySettingsActivity {
 
   private RecyclerListView listView;
   private ListAdapter listAdapter;
@@ -92,7 +93,13 @@ public class secretSettingsActivity extends BaseFragment {
 
     listAdapter = new ListAdapter(context);
     listView = new RecyclerListView(context);
+    listView.setSelectorType(9);
+    listView.setSelectorDrawableColor(0);
     listView.setLayoutManager(new LinearLayoutManager(context));
+    int padding = FluffySettingsScaffold.getListOuterPadding();
+    listView.setPadding(padding, padding, padding, padding);
+    listView.setClipToPadding(false);
+    listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRow));
     listView.setAdapter(listAdapter);
     listView.setVerticalScrollBarEnabled(false);
     listView.setOnItemClickListener((view, position) -> {
@@ -120,6 +127,14 @@ public class secretSettingsActivity extends BaseFragment {
     return true;
   }
 
+  private boolean isCardRow(int position) {
+    if (position < 0 || position >= rows.size()) {
+      return false;
+    }
+    RowType type = rows.get(position).type;
+    return type == RowType.TEXT_INFO || type == RowType.TEXT_CELL;
+  }
+
   private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
     private final Context context;
@@ -143,6 +158,10 @@ public class secretSettingsActivity extends BaseFragment {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
       Row row = rows.get(position);
+      boolean isCardRow = isCardRow(position);
+      boolean top = isCardRow && !isCardRow(position - 1);
+      boolean bottom = isCardRow && !isCardRow(position + 1);
+      FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, row.type == RowType.TEXT_CELL);
       switch (row.type) {
       case HEADER:
         HeaderCell headerCell = (HeaderCell)holder.itemView;
@@ -157,7 +176,7 @@ public class secretSettingsActivity extends BaseFragment {
       case TEXT_CELL:
         TextCell textCell = (TextCell)holder.itemView;
         int icon = row.id == RowIdentifier.SECRET_DISABLE ? R.drawable.msg_delete : R.drawable.msg_secret;
-        textCell.setTextAndIcon(getString(row.textResId), icon, true);
+        textCell.setTextAndIcon(getString(row.textResId), icon, position < rows.size() - 1 && rows.get(position + 1).type == RowType.TEXT_CELL);
         break;
       }
     }

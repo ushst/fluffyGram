@@ -35,7 +35,6 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
-import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.CacheControlActivity;
@@ -46,6 +45,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.fluffyConfig;
@@ -66,7 +66,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import android.content.SharedPreferences;
 
-public class generalActivitySettings extends BaseFragment {
+public class generalActivitySettings extends BaseFluffySettingsActivity {
     private ListAdapter listAdapter;
     private RecyclerListView listView;
     private LinearLayoutManager layoutManager;
@@ -871,12 +871,7 @@ public class generalActivitySettings extends BaseFragment {
                 super(new LinearLayout(context));
                 LinearLayout root = (LinearLayout) itemView;
                 root.setOrientation(LinearLayout.VERTICAL);
-                RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
-                params.bottomMargin = AndroidUtilities.dp(14);
-                int sideInset = FluffySettingsScaffold.getCardHorizontalInset();
-                params.leftMargin = sideInset;
-                params.rightMargin = sideInset;
-                root.setLayoutParams(params);
+                root.setLayoutParams(FluffySettingsScaffold.createCardSectionLayoutParams(14));
                 root.setPadding(0, 0, 0, 0);
 
                 titleView = new TextView(context);
@@ -885,8 +880,7 @@ public class generalActivitySettings extends BaseFragment {
                 root.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
                 FrameLayout card = new FrameLayout(context);
-                card.setBackground(FluffySettingsScaffold.createCardBackground());
-                card.setPadding(0, 0, 0, 0);
+                FluffySettingsScaffold.styleCardContainer(card);
                 root.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
                 contentLayout = new LinearLayout(context);
