@@ -33,6 +33,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
@@ -290,8 +291,7 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
 
         firstNameField = new EditTextCell(context, getString(R.string.FirstName), false, false, -1, resourcesProvider);
         firstNameField.editText.setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        firstNameField.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-        firstNameField.setDivider(true);
+        BaseFluffySettingsActivity.styleInputCell(firstNameField, true, false, true);
         firstNameField.editText.setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_NEXT) {
                 lastNameField.editText.requestFocus();
@@ -311,7 +311,7 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
 
         lastNameField = new EditTextCell(context, getString(R.string.LastName), false, false, -1, resourcesProvider);
         lastNameField.editText.setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        lastNameField.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        BaseFluffySettingsActivity.styleInputCell(lastNameField, false, true, false);
         lastNameField.editText.setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_DONE) {
                 doneButton.performClick();
@@ -328,7 +328,7 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         noteField = new EditTextCell(context, getString(R.string.AddNotes), true, true, getMessagesController().config.contactNoteLengthLimit.get(), resourcesProvider);
         noteField.editText.setLinkTextColor(getThemedColor(Theme.key_chat_messageLinkIn));
         noteField.editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        noteField.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        BaseFluffySettingsActivity.styleInputCell(noteField, true, true, false);
         noteField.editText.setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_DONE) {
                 doneButton.performClick();

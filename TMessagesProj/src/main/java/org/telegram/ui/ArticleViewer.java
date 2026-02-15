@@ -595,6 +595,8 @@ public class ArticleViewer implements NotificationCenter.NotificationCenterDeleg
         private int startFontSize = 12;
         private int endFontSize = 30;
         private int lastWidth;
+        private final int sliderTopDp = 7;
+        private final int sliderHeightDp = 38;
 
         private TextPaint textPaint;
 
@@ -639,13 +641,16 @@ public class ArticleViewer implements NotificationCenter.NotificationCenterDeleg
                     return endFontSize - startFontSize;
                 }
             });
-            addView(sizeBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.LEFT | Gravity.TOP, 5, 5, 39, 0));
+            addView(sizeBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, sliderHeightDp, Gravity.LEFT | Gravity.TOP, 5, sliderTopDp, 39, 0));
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             textPaint.setColor(getThemedColor(Theme.key_windowBackgroundWhiteValueText));
-            canvas.drawText("" + SharedConfig.ivFontSize, getMeasuredWidth() - dp(39), dp(28), textPaint);
+            Paint.FontMetrics fm = textPaint.getFontMetrics();
+            float centerY = dp(sliderTopDp) + dp(sliderHeightDp) / 2f;
+            float baseline = centerY - (fm.ascent + fm.descent) / 2f;
+            canvas.drawText("" + SharedConfig.ivFontSize, getMeasuredWidth() - dp(39), baseline, textPaint);
         }
 
         @Override

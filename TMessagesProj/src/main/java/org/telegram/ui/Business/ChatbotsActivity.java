@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
@@ -158,7 +159,7 @@ public class ChatbotsActivity extends BaseFragment {
         });
         editTextContainer = new FrameLayout(context);
         editTextContainer.addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 21, 15, 21, 15));
-        editTextContainer.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        BaseFluffySettingsActivity.styleInputContainer(editTextContainer, true, true);
         editTextDivider = new View(context);
         editTextDivider.setBackgroundColor(getThemedColor(Theme.key_divider));
         editTextContainer.addView(editTextDivider, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1f / AndroidUtilities.density, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, (LocaleController.isRTL ? 0 : 21), 0, (LocaleController.isRTL ? 21 : 0), 0));
@@ -381,6 +382,7 @@ public class ChatbotsActivity extends BaseFragment {
                 needDivider = true;
             }
             editTextDivider.setVisibility(needDivider ? View.VISIBLE : View.GONE);
+            BaseFluffySettingsActivity.styleInputContainer(editTextContainer, true, !needDivider);
             adapter.whiteSectionEnd();
         }
         items.add(UItem.asShadow(getString(R.string.BusinessBotLinkInfo)));

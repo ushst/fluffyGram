@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
@@ -191,8 +192,7 @@ public class BusinessIntroActivity extends UniversalFragment implements Notifica
         };
         titleEdit.autofocused = true;
         titleEdit.setShowLimitOnFocus(true);
-        titleEdit.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-        titleEdit.setDivider(true);
+        BaseFluffySettingsActivity.styleInputCell(titleEdit, true, false, true);
         titleEdit.hideKeyboardOnEnter();
         messageEdit = new EditTextCell(context, getString(R.string.BusinessIntroMessageHint), true, false, getMessagesController().introDescriptionLengthLimit, resourceProvider) {
             @Override
@@ -209,8 +209,7 @@ public class BusinessIntroActivity extends UniversalFragment implements Notifica
             }
         };
         messageEdit.setShowLimitOnFocus(true);
-        messageEdit.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-        messageEdit.setDivider(true);
+        BaseFluffySettingsActivity.styleInputCell(messageEdit, false, true, false);
         messageEdit.hideKeyboardOnEnter();
 
         greetingsView.setPreview("", "");

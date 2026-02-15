@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BillingController;
 import org.telegram.messenger.ChatObject;
@@ -432,7 +433,7 @@ public class LinkEditActivity extends BaseFragment {
                 };
                 subEditPriceCell.editText.setInputType(InputType.TYPE_CLASS_NUMBER);
                 subEditPriceCell.editText.setRawInputType(InputType.TYPE_CLASS_NUMBER);
-                subEditPriceCell.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+                BaseFluffySettingsActivity.styleInputCell(subEditPriceCell, true, true, false);
                 subEditPriceCell.hideKeyboardOnEnter();
                 subEditPriceCell.addView(subPriceView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.RIGHT, 0, 0, 19, 0));
 

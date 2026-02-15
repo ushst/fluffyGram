@@ -22,7 +22,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Keep;
+import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BotWebViewVibrationEffect;
@@ -111,8 +114,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
                 checkDone(true);
             }
         };
-        firstNameEdit.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-        firstNameEdit.setDivider(true);
+        BaseFluffySettingsActivity.styleInputCell(firstNameEdit, true, false, true);
         firstNameEdit.hideKeyboardOnEnter();
         lastNameEdit = new EditTextCell(context, getString(R.string.EditProfileLastName), false, false, -1, resourceProvider) {
             @Override
@@ -121,7 +123,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
                 checkDone(true);
             }
         };
-        lastNameEdit.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        BaseFluffySettingsActivity.styleInputCell(lastNameEdit, false, true, false);
         lastNameEdit.hideKeyboardOnEnter();
         bioEdit = new EditTextCell(context, getString(R.string.EditProfileBioHint), true, false, getMessagesController().getAboutLimit(), resourceProvider) {
             @Override
@@ -130,7 +132,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
                 checkDone(true);
             }
         };
-        bioEdit.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        BaseFluffySettingsActivity.styleInputCell(bioEdit, true, true, false);
         bioEdit.setShowLimitWhenEmpty(true);
 
         bioInfo = AndroidUtilities.replaceSingleTag(getString(R.string.EditProfileBioInfo), () -> {
@@ -139,6 +141,13 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
 
         super.createView(context);
         this.listView = super.listView;
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.adapter.setApplyBackground(false);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(position -> isCardRow(listView.adapter.getItem(position))));
 
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
@@ -213,6 +222,44 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
     @Keep
     public int logoutRow;
 
+    private static final int SECTION_SPACE_DP = 10;
+
+    private void addSectionSpace(ArrayList<UItem> items) {
+        UItem spacer = UItem.asSpace(dp(SECTION_SPACE_DP));
+        spacer.transparent = true;
+        items.add(spacer);
+    }
+
+    private static boolean isCardRow(UItem item) {
+        return item != null && (
+                item.instanceOf(InfoCell.Factory.class) ||
+                item.instanceOf(SettingsActivity.AccountCell.Factory.class)
+        );
+    }
+
+    private static int resolveAdapterPosition(UniversalAdapter adapter, UItem item) {
+        if (adapter == null || item == null) {
+            return RecyclerView.NO_POSITION;
+        }
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            if (adapter.getItem(i) == item) {
+                return i;
+            }
+        }
+        return RecyclerView.NO_POSITION;
+    }
+
+    private static void applyCardRowStyle(View view, UItem item, boolean clickable, UniversalAdapter adapter) {
+        int position = resolveAdapterPosition(adapter, item);
+        boolean top = true;
+        boolean bottom = true;
+        if (position != RecyclerView.NO_POSITION) {
+            top = !isCardRow(adapter.getItem(position - 1));
+            bottom = !isCardRow(adapter.getItem(position + 1));
+        }
+        FluffySettingsScaffold.applyCardRowStyle(view, true, top, bottom, clickable);
+    }
+
     @Override
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         addAccountRow = -1;
@@ -261,19 +308,19 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
         items.add(UItem.asCustom(firstNameEdit));
         lastNameRow = items.size();
         items.add(UItem.asCustom(lastNameEdit));
-        items.add(UItem.asShadow(-1, null));
+        addSectionSpace(items);
         items.add(UItem.asHeader(getString(R.string.EditProfileBio)));
         bioRow = items.size();
         items.add(UItem.asCustom(bioEdit));
         items.add(UItem.asShadow(bioInfo));
 //        items.add(UItem.asHeader(getString(R.string.EditProfileChannel)));
 //        items.add(UItem.asButton(BUTTON_CHANNEL, getString(R.string.EditProfileChannelTitle), channel == null ? getString(R.string.EditProfileChannelAdd) : channel.title));
-        items.add(UItem.asShadow(-2, null));
+        addSectionSpace(items);
         channelRow = items.size();
         if (channel == null) {
             items.add(InfoCell.Factory.of(BUTTON_CHANNEL, R.drawable.msg_channel_create, "Add Personal Channel", null, 0).accent());
         } else {
-            items.add(UItem.asButton(BUTTON_CHANNEL, getString(R.string.EditProfileChannelTitle), channel.title));
+            items.add(InfoCell.Factory.of(BUTTON_CHANNEL, R.drawable.msg_channel_create, getString(R.string.EditProfileChannelTitle), channel.title, 0));
         }
 //        items.add(UItem.asHeader(getString(R.string.EditProfileBirthday)));
 //        items.add(UItem.asButton(BUTTON_BIRTHDAY, getString(R.string.EditProfileBirthdayText), birthday == null ? getString(R.string.EditProfileBirthdayAdd) : birthdayString(birthday)));
@@ -281,12 +328,12 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
 //            items.add(UItem.asButton(BUTTON_REMOVE_BIRTHDAY, getString(R.string.EditProfileBirthdayRemove)).red());
 //        }
         if (hadLocation) {
-            items.add(UItem.asButton(BUTTON_HOURS, R.drawable.menu_premium_clock, getString(R.string.EditProfileHours)));
+            items.add(InfoCell.Factory.of(BUTTON_HOURS, R.drawable.menu_premium_clock, getString(R.string.EditProfileHours), null, 0));
         }
         if (hadLocation) {
-            items.add(UItem.asButton(BUTTON_LOCATION, R.drawable.msg_map, getString(R.string.EditProfileLocation)));
+            items.add(InfoCell.Factory.of(BUTTON_LOCATION, R.drawable.msg_map, getString(R.string.EditProfileLocation), null, 0));
         }
-        items.add(UItem.asShadow(-3, null));
+        addSectionSpace(items);
         final boolean hasAddAccount = UserConfig.getActivatedAccountsCount() < UserConfig.MAX_ACCOUNT_COUNT;
         if (hasAddAccount) {
             addAccountRow = items.size();
@@ -314,8 +361,8 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
             }
         }
         logoutRow = items.size();
-        items.add(UItem.asButton(BUTTON_LOGOUT, R.drawable.msg_leave, getString(R.string.LogOut)).red());
-        items.add(UItem.asShadow(-4, null));
+        items.add(InfoCell.Factory.of(BUTTON_LOGOUT, R.drawable.msg_leave, getString(R.string.LogOut), null, 0).red());
+        addSectionSpace(items);
     }
 
     public static String birthdayString(TL_account.TL_birthday birthday) {
@@ -792,6 +839,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
             @Override
             public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
                 ((InfoCell) view).set(item.iconResId, item.text, item.subtext, item.accent, item.intValue);
+                UserInfoActivity.applyCardRowStyle(view, item, true, adapter);
             }
 
             public static UItem of(int id, int icon, CharSequence title, CharSequence subtitle, int icon2) {

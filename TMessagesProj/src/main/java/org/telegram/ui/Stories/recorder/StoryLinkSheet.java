@@ -25,6 +25,7 @@ import androidx.collection.LongSparseArray;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
@@ -77,6 +78,7 @@ public class StoryLinkSheet extends BottomSheetWithRecyclerListView implements N
         headerPaddingBottom = dp(-15);
 
         urlEditText = new EditTextCell(context, getString(R.string.StoryLinkURLPlaceholder), true, false, -1, resourcesProvider);
+        BaseFluffySettingsActivity.styleInputCell(urlEditText, true, true, false);
         urlEditText.whenHitEnter(this::processDone);
 
         String def = "https://";
@@ -160,6 +162,7 @@ public class StoryLinkSheet extends BottomSheetWithRecyclerListView implements N
         });
 
         nameEditText = new EditTextCell(context, getString(R.string.StoryLinkNamePlaceholder), true, false, -1, resourcesProvider);
+        BaseFluffySettingsActivity.styleInputCell(nameEditText, true, true, false);
         nameEditText.whenHitEnter(this::processDone);
 
         buttonContainer = new FrameLayout(context);

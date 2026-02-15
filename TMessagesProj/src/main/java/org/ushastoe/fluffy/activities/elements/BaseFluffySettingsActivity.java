@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy.activities.elements;
 
 import android.content.Context;
+import android.view.View;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -10,6 +11,8 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.EditTextCell;
+import org.telegram.ui.Cells.PollEditTextCell;
 import org.telegram.ui.Components.LayoutHelper;
 
 public abstract class BaseFluffySettingsActivity extends BaseFragment {
@@ -56,5 +59,54 @@ public abstract class BaseFluffySettingsActivity extends BaseFragment {
 
     protected int dp(int value) {
         return AndroidUtilities.dp(value);
+    }
+
+    public static void styleInputCell(EditTextCell cell, boolean topRounded, boolean bottomRounded, boolean divider) {
+        int radius = FluffySettingsScaffold.getCardRadius();
+        int top = topRounded ? radius : 0;
+        int bottom = bottomRounded ? radius : 0;
+        int background = Theme.getColor(Theme.key_windowBackgroundWhite);
+        cell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(
+                top,
+                top,
+                bottom,
+                bottom,
+                background,
+                background,
+                background
+        ));
+        cell.setDivider(divider);
+    }
+
+    public static void styleInputContainer(View container, boolean topRounded, boolean bottomRounded) {
+        int radius = FluffySettingsScaffold.getCardRadius();
+        int top = topRounded ? radius : 0;
+        int bottom = bottomRounded ? radius : 0;
+        int background = Theme.getColor(Theme.key_windowBackgroundWhite);
+        container.setBackground(Theme.createSimpleSelectorRoundRectDrawable(
+                top,
+                top,
+                bottom,
+                bottom,
+                background,
+                background,
+                background
+        ));
+    }
+
+    public static void stylePollInputCell(PollEditTextCell cell, boolean topRounded, boolean bottomRounded) {
+        int radius = FluffySettingsScaffold.getCardRadius();
+        int top = topRounded ? radius : 0;
+        int bottom = bottomRounded ? radius : 0;
+        int background = Theme.getColor(Theme.key_windowBackgroundWhite);
+        cell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(
+                top,
+                top,
+                bottom,
+                bottom,
+                background,
+                background,
+                background
+        ));
     }
 }

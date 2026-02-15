@@ -24,6 +24,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.DocumentObject;
@@ -181,7 +182,7 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
         });
         editTextContainer = new FrameLayout(context);
         editTextContainer.addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 21, 15, 21, 15));
-        editTextContainer.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        BaseFluffySettingsActivity.styleInputContainer(editTextContainer, true, true);
         if (editText != null) {
             ignoreEditText = true;
             editText.setText(address);

@@ -86,6 +86,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
+
 public class PollCreateActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate {
 
     private ActionBarMenuItem doneItem;
@@ -1747,7 +1749,7 @@ public class PollCreateActivity extends BaseFragment implements NotificationCent
                         }
                     };
                     cell.createErrorTextView();
-                    cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    BaseFluffySettingsActivity.stylePollInputCell(cell, true, true);
                     cell.addTextWatcher(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -1817,7 +1819,7 @@ public class PollCreateActivity extends BaseFragment implements NotificationCent
                         }
                     };
                     cell.createErrorTextView();
-                    cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    BaseFluffySettingsActivity.stylePollInputCell(cell, true, true);
                     cell.addTextWatcher(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -1959,7 +1961,7 @@ public class PollCreateActivity extends BaseFragment implements NotificationCent
                             return true;
                         }
                     };
-                    cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    BaseFluffySettingsActivity.stylePollInputCell(cell, true, true);
                     cell.addTextWatcher(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {

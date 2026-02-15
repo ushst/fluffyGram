@@ -20,6 +20,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.BaseFluffySettingsActivity;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -592,6 +593,7 @@ public class ReportBottomSheet extends BottomSheet {
                             }
                         };
                         editTextCell.setShowLimitWhenNear(100);
+                        BaseFluffySettingsActivity.styleInputCell(editTextCell, true, true, false);
                     }
                     editTextCell.editText.setHint(LocaleController.getString(commentOption.optional ? R.string.Report2CommentOptional : R.string.Report2Comment));
                     UItem item = UItem.asCustom(editTextCell);
