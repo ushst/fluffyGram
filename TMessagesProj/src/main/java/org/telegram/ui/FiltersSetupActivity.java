@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
@@ -648,12 +649,6 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                 }
                 return super.onTouchEvent(e);
             }
-
-            @Override
-            protected void dispatchDraw(Canvas canvas) {
-                drawSectionBackground(canvas, filtersSectionStart, filtersSectionEnd, Theme.getColor(Theme.key_windowBackgroundWhite));
-                super.dispatchDraw(canvas);
-            }
         };
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setDurations(350);
@@ -664,6 +659,12 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         ((DefaultItemAnimator) listView.getItemAnimator()).setDelayAnimations(false);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         itemTouchHelper = new ItemTouchHelper(new TouchHelperCallback());
         itemTouchHelper.attachToRecyclerView(listView);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -775,6 +776,31 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
 
     private int shiftDp = -4;
 
+    private boolean isCardRowPosition(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        return isCardRowType(items.get(position).viewType);
+    }
+
+    private boolean isCardRowType(int viewType) {
+        return viewType == VIEW_TYPE_FILTER
+                || viewType == VIEW_TYPE_BUTTON
+                || viewType == VIEW_TYPE_CHECK
+                || viewType == VIEW_TYPE_FILTER_SUGGESTION;
+    }
+
+    private boolean isRowClickable(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        int type = items.get(position).viewType;
+        return type != VIEW_TYPE_SHADOW
+                && type != VIEW_TYPE_HEADER
+                && type != VIEW_TYPE_FILTER_SUGGESTION
+                && type != VIEW_TYPE_HINT;
+    }
+
     private static class ItemInner extends AdapterWithDiffUtils.Item {
         public ItemInner(int viewType) {
             super(viewType, false);
@@ -867,8 +893,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            int type = holder.getItemViewType();
-            return type != VIEW_TYPE_SHADOW && type != VIEW_TYPE_HEADER && type != VIEW_TYPE_FILTER_SUGGESTION && type != VIEW_TYPE_HINT;
+            return isRowClickable(holder.getAdapterPosition());
         }
 
         @Override
@@ -882,7 +907,6 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             switch (viewType) {
                 case VIEW_TYPE_HEADER:
                     view = new HeaderCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_HINT:
                     view = new HintInnerCell(mContext, R.raw.filters, AndroidUtilities.replaceTags(LocaleController.formatString("CreateNewFilterInfo", R.string.CreateNewFilterInfo)));
@@ -890,7 +914,6 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     break;
                 case VIEW_TYPE_FILTER:
                     FilterCell filterCell = new FilterCell(mContext);
-                    filterCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     filterCell.setOnReorderButtonTouchListener((v, event) -> {
                         if (event.getAction() == MotionEvent.ACTION_DOWN) {
                             itemTouchHelper.startDrag(listView.getChildViewHolder(filterCell));
@@ -961,16 +984,13 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     break;
                 case VIEW_TYPE_BUTTON:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_CHECK:
                     view = new TextCheckCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_FILTER_SUGGESTION:
                 default:
                     SuggestedFilterCell suggestedFilterCell = new SuggestedFilterCell(mContext);
-                    suggestedFilterCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     suggestedFilterCell.setAddOnClickListener(v -> {
                         TLRPC.TL_dialogFilterSuggested suggested = suggestedFilterCell.getSuggestedFilter();
                         MessagesController.DialogFilter filter = new MessagesController.DialogFilter();
@@ -1089,6 +1109,11 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                     break;
                 }
             }
+            int viewType = holder.getItemViewType();
+            boolean isCardRow = isCardRowType(viewType);
+            boolean top = isCardRow && !isCardRowPosition(position - 1);
+            boolean bottom = isCardRow && !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowClickable(position));
         }
 
         @Override

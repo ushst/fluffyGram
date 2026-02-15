@@ -30,6 +30,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
 import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
 import org.ushastoe.fluffy.activities.elements.FluffyQuickReplyCell;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.fluffyConfig;
 import org.ushastoe.fluffy.quickreplies.FluffyQuickRepliesManager;
 import org.ushastoe.fluffy.quickreplies.FluffyQuickReply;
@@ -91,10 +92,14 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
         });
 
         listView = new RecyclerListView(context, resourceProvider);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
         listView.setLayoutManager(new LinearLayoutManager(context));
         listView.setVerticalScrollBarEnabled(false);
-        listView.setPadding(0, 0, 0, dp(16));
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, dp(16));
         listView.setClipToPadding(false);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRow));
         adapter = new ListAdapter(context);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((view, position) -> {
@@ -292,16 +297,23 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
             } else if (position == infoRow) {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 cell.setText(LocaleController.getString(R.string.FG_CustomQuickRepliesInfo));
-                cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                boolean top = isCardTop(position);
+                boolean bottom = isCardBottom(position);
+                FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow(position), top, bottom, false);
             } else if (position == addRow) {
                 TextCell cell = (TextCell) holder.itemView;
                 cell.setTextAndIcon(LocaleController.getString(R.string.FG_QuickReplyAddButton), R.drawable.msg_add, false);
-                cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                boolean top = isCardTop(position);
+                boolean bottom = isCardBottom(position);
+                FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow(position), top, bottom, true);
             } else if (position >= repliesStartRow && position < repliesEndRow) {
                 FluffyQuickReplyCell cell = (FluffyQuickReplyCell) holder.itemView;
                 int index = position - repliesStartRow;
                 boolean divider = index != replies.size() - 1;
                 cell.set(replies.get(index), replies.get(index).prefix, null, divider);
+                boolean top = isCardTop(position);
+                boolean bottom = isCardBottom(position);
+                FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow(position), top, bottom, true);
             } else if (position == shadowRow) {
                 holder.itemView.setBackground(Theme.getThemedDrawable(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
             }
@@ -340,5 +352,17 @@ public class FluffyQuickRepliesActivity extends BaseFragment {
                 return 4;
             }
         }
+    }
+
+    private boolean isCardRow(int position) {
+        return position == infoRow || position == addRow || (position >= repliesStartRow && position < repliesEndRow);
+    }
+
+    private boolean isCardTop(int position) {
+        return isCardRow(position) && !isCardRow(position - 1);
+    }
+
+    private boolean isCardBottom(int position) {
+        return isCardRow(position) && !isCardRow(position + 1);
     }
 }

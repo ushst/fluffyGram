@@ -73,6 +73,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.TextStyleSpan;
 import org.telegram.ui.bots.BotBiometry;
 import org.telegram.ui.bots.BotBiometrySettings;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
 import java.util.ArrayList;
 
@@ -301,6 +302,12 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 return false;
             }
         });
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, 0, padding, 0);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutAnimation(null);
         listView.setItemAnimator(null);
@@ -663,6 +670,15 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         return fragmentView;
     }
 
+    private boolean isCardRowPosition(int position) {
+        return position == passportRow || position == lastSeenRow || position == phoneNumberRow ||
+            position == deleteAccountRow || position == webSessionsRow || position == groupsRow || position == paymentsClearRow ||
+            position == secretMapRow || position == contactsDeleteRow || position == botsBiometryRow ||
+            position == secretWebpageRow || position == contactsSyncRow || position == contactsSuggestRow || position == newChatsRow ||
+            position == autoDeleteMesages || position == sessionsRow || position == emailLoginRow || position == passwordRow ||
+            position == passkeysRow || position == passcodeRow || position == blockedRow;
+    }
+
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.privacyRulesUpdated) {
@@ -1014,6 +1030,10 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
+            return isRowClickable(position);
+        }
+
+        private boolean isRowClickable(int position) {
             return position == passcodeRow || position == passwordRow || position == passkeysRow || position == blockedRow || position == sessionsRow || position == secretWebpageRow || position == webSessionsRow ||
                     position == groupsRow && !getContactsController().getLoadingPrivacyInfo(ContactsController.PRIVACY_RULES_TYPE_INVITE) ||
                     position == lastSeenRow && !getContactsController().getLoadingPrivacyInfo(ContactsController.PRIVACY_RULES_TYPE_LASTSEEN) ||
@@ -1045,26 +1065,22 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
             switch (viewType) {
                 case 0:
                     view = new TextSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 1:
                     view = new TextInfoPrivacyCell(mContext);
                     break;
                 case 2:
                     view = new HeaderCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 4:
                     view = new ShadowSectionCell(mContext);
                     break;
                 case 5:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 3:
                 default:
                     view = new TextCheckCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
             }
             return new RecyclerListView.Holder(view);
@@ -1384,6 +1400,10 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     textCell2.setDrawLoading(showLoading, loadingLen, animated);
                     break;
             }
+            boolean isCardRow = isCardRowPosition(position);
+            boolean top = !isCardRowPosition(position - 1);
+            boolean bottom = !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowClickable(position));
         }
 
         @Override

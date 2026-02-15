@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BotWebViewVibrationEffect;
 import org.telegram.messenger.LocaleController;
@@ -70,6 +71,12 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
         });
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutAnimation(null);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         listView.setAdapter(adapter = new ListAdapter());
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setDurations(350);
@@ -159,6 +166,14 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
     private final static int VIEW_TYPE_CHECK = 1;
     private final static int VIEW_TYPE_SHADOW = 2;
 
+    private boolean isCardRowPosition(int position) {
+        return position >= 0 && position < items.size() && items.get(position).viewType == VIEW_TYPE_CHECK;
+    }
+
+    private boolean isRowClickable(int position) {
+        return position >= 0 && position < items.size() && items.get(position).viewType == VIEW_TYPE_CHECK;
+    }
+
     private static class ItemInner extends AdapterWithDiffUtils.Item {
         public CharSequence text;
         public int id;
@@ -183,10 +198,8 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(getContext());
-                view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(getContext());
-                view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(getContext());
             }
@@ -233,6 +246,10 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
                 }
                 cell.setTextAndCheck(item.text, checked, divider);
             }
+            boolean isCardRow = isCardRowPosition(position);
+            boolean top = isCardRow && !isCardRowPosition(position - 1);
+            boolean bottom = isCardRow && !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowClickable(position));
         }
 
         @Override
@@ -242,7 +259,7 @@ public class ArchiveSettingsActivity extends BaseFragment implements Notificatio
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() != VIEW_TYPE_SHADOW && holder.getItemViewType() != VIEW_TYPE_HEADER;
+            return isRowClickable(holder.getAdapterPosition());
         }
 
         @Override

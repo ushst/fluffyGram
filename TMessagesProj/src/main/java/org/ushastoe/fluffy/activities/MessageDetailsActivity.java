@@ -44,6 +44,7 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
 public class MessageDetailsActivity extends BaseFragment {
   private final MessageObject messageObject;
@@ -287,8 +288,14 @@ public class MessageDetailsActivity extends BaseFragment {
         return getThemedColor(Theme.key_listSelector);
       }
     };
+    listView.setSelectorType(9);
+    listView.setSelectorDrawableColor(0);
 
     listView.setVerticalScrollBarEnabled(false);
+    int padding = FluffySettingsScaffold.getListOuterPadding();
+    listView.setPadding(padding, padding, padding, padding);
+    listView.setClipToPadding(false);
+    listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRow));
     listView.setLayoutManager(
         layoutManager = new LinearLayoutManager(
             context, LinearLayoutManager.VERTICAL, false));
@@ -354,6 +361,9 @@ public class MessageDetailsActivity extends BaseFragment {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+      boolean top = position == 0;
+      boolean bottom = position == rowDataList.size() - 1;
+      FluffySettingsScaffold.applyCardRowStyle(holder.itemView, true, top, bottom, true);
       TextDetailSettingsCell settingsCell =
           (TextDetailSettingsCell)holder.itemView;
       settingsCell.setMultilineDetail(true);
@@ -376,13 +386,9 @@ public class MessageDetailsActivity extends BaseFragment {
         break;
       case 1:
         view = new TextDetailSettingsCell(mContext);
-        view.setBackgroundColor(
-            Theme.getColor(Theme.key_windowBackgroundWhite));
         break;
       default:
         view = new TextCell(mContext);
-        view.setBackgroundColor(
-            Theme.getColor(Theme.key_windowBackgroundWhite));
         break;
       }
       view.setLayoutParams(new RecyclerView.LayoutParams(
@@ -395,6 +401,10 @@ public class MessageDetailsActivity extends BaseFragment {
     public int getItemViewType(int position) {
       return 1;
     }
+  }
+
+  private boolean isCardRow(int position) {
+    return position >= 0 && position < rowDataList.size();
   }
 
   @Override

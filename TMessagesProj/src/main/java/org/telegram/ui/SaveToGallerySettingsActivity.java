@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
@@ -155,6 +156,12 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
         defaultItemAnimator.setSupportsChangeAnimations(false);
         recyclerListView.setItemAnimator(defaultItemAnimator);
         recyclerListView.setLayoutManager(new LinearLayoutManager(context));
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        recyclerListView.setPadding(padding, padding, padding, padding);
+        recyclerListView.setClipToPadding(false);
+        recyclerListView.setSelectorType(9);
+        recyclerListView.setSelectorDrawableColor(0);
+        recyclerListView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         recyclerListView.setAdapter(adapter = new Adapter());
         recyclerListView.setOnItemClickListener((view, position, x, y) -> {
             if (position == savePhotosRow) {
@@ -349,6 +356,33 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
         }
     }
 
+    private boolean isCardRowPosition(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        return isCardRowViewType(items.get(position).viewType);
+    }
+
+    private boolean isCardRowViewType(int viewType) {
+        return viewType == VIEW_TYPE_USER_INFO
+                || viewType == VIEW_TYPE_CHAT
+                || viewType == VIEW_TYPE_ADD_EXCEPTION
+                || viewType == VIEW_TYPE_DELETE_ALL
+                || viewType == VIEW_TYPE_TOGGLE
+                || viewType == VIEW_TYPE_CHOOSER;
+    }
+
+    private boolean isRowClickable(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        int viewType = items.get(position).viewType;
+        return viewType == VIEW_TYPE_ADD_EXCEPTION
+                || viewType == VIEW_TYPE_CHAT
+                || viewType == VIEW_TYPE_DELETE_ALL
+                || viewType == VIEW_TYPE_TOGGLE;
+    }
+
     private class Adapter extends AdapterWithDiffUtils {
         @NonNull
         @Override
@@ -365,18 +399,15 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     }
                     userCell2.setData(object, null, null, 0);
                     view = userCell2;
-                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_CHAT:
                     view = new UserCell(parent.getContext(), 4, 0, false, false);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_ADD_EXCEPTION:
                     TextCell textCell = new TextCell(parent.getContext());
                     textCell.setTextAndIcon(LocaleController.getString(R.string.NotificationsAddAnException), R.drawable.msg_contact_add, true);
                     textCell.setColors(Theme.key_windowBackgroundWhiteBlueIcon, Theme.key_windowBackgroundWhiteBlueButton);
                     view = textCell;
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_DIVIDER_LAST:
                     view = new ShadowSectionCell(parent.getContext());
@@ -390,17 +421,14 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     textCell.setText(LocaleController.getString(R.string.NotificationsDeleteAllException), false);
                     textCell.setColors(-1, Theme.key_text_RedRegular);
                     view = textCell;
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_HEADER:
                     HeaderCell headerCell = new HeaderCell(parent.getContext());
                     view = headerCell;
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_TOGGLE:
                     TextCheckCell textCheckCell = new TextCheckCell(parent.getContext());
                     view = textCheckCell;
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_DIVIDER_INFO:
                     TextInfoPrivacyCell textInfoPrivacyCell = new TextInfoPrivacyCell(parent.getContext());
@@ -501,7 +529,6 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     slideChooseView.delegate.onSeekBarDrag(false, slideChooseView.getProgress());
 
                     view = linearLayout;
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -565,6 +592,11 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                 cell.setSelfAsSavedMessages(true);
                 cell.setData(object, title, exception.createDescription(currentAccount), 0, !(position != items.size() - 1 && items.get(position + 1).viewType != VIEW_TYPE_CHAT));
             }
+            int viewType = items.get(position).viewType;
+            boolean isCardRow = isCardRowViewType(viewType);
+            boolean top = isCardRow && !isCardRowPosition(position - 1);
+            boolean bottom = isCardRow && !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowClickable(position));
         }
 
         @Override
@@ -579,8 +611,7 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_ADD_EXCEPTION || holder.getItemViewType() == VIEW_TYPE_CHAT
-                    || holder.getItemViewType() == VIEW_TYPE_DELETE_ALL || holder.getItemViewType() == VIEW_TYPE_TOGGLE;
+            return isRowClickable(holder.getAdapterPosition());
         }
     }
 

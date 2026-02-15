@@ -7219,21 +7219,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 viewPages[a].dialogsAdapter.notifyDataSetChanged();
             }
         }
-        if (viewPages != null && viewPages[0] != null && viewPages[0].listView != null) {
-            if (waitingForScrollFinished && viewPages[0].listView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
-                waitingForScrollFinished = false;
-                disableActionBarScrolling = false;
-                if (updatePullAfterScroll) {
-                    viewPages[0].listView.updatePullState();
-                    updatePullAfterScroll = false;
-                }
-                viewPages[0].dialogsAdapter.notifyDataSetChanged();
-            }
-        }
-        if (rightSlidingDialogContainer != null && !rightSlidingDialogContainer.hasFragment() && rightFragmentTransitionInProgress) {
-            rightFragmentTransitionInProgress = false;
-            setDialogsListFrozen(false);
-        }
+        resetInterruptedDialogsUiState();
         if (commentView != null) {
             commentView.onResume();
         }
@@ -7572,6 +7558,69 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             storyHint.show();
         }
         AndroidUtilities.runOnUIThread(this::createSearchViewPager, 200);
+    }
+
+    private void resetInterruptedDialogsUiState() {
+        if (viewPages == null || viewPages[0] == null || viewPages[0].listView == null) {
+            return;
+        }
+
+        if (startedTracking || maybeStartTracking || additionalOffset != 0f) {
+            startedTracking = false;
+            maybeStartTracking = false;
+            additionalOffset = 0f;
+            if (viewPages[0] != null) {
+                viewPages[0].setTranslationX(0f);
+            }
+            if (viewPages[1] != null) {
+                viewPages[1].setTranslationX(animatingForward ? viewPages[0].getMeasuredWidth() : -viewPages[0].getMeasuredWidth());
+                viewPages[1].setVisibility(View.GONE);
+            }
+            if (actionBar != null) {
+                actionBar.setEnabled(true);
+            }
+            if (filterTabsView != null) {
+                filterTabsView.setEnabled(true);
+                filterTabsView.selectTabWithId(viewPages[0].selectedType, 1f);
+            }
+            showScrollbars(true);
+        }
+
+        if (tabsAnimationInProgress) {
+            if (tabsAnimation != null) {
+                tabsAnimation.removeAllListeners();
+                tabsAnimation.cancel();
+                tabsAnimation = null;
+            }
+            tabsAnimationInProgress = false;
+            startedTracking = false;
+            maybeStartTracking = false;
+            showScrollbars(true);
+            viewPages[0].setTranslationX(0f);
+            viewPages[1].setTranslationX(animatingForward ? viewPages[0].getMeasuredWidth() : -viewPages[0].getMeasuredWidth());
+            viewPages[1].setVisibility(View.GONE);
+            if (actionBar != null) {
+                actionBar.setEnabled(true);
+            }
+            if (filterTabsView != null) {
+                filterTabsView.setEnabled(true);
+            }
+        }
+
+        if (waitingForScrollFinished && viewPages[0].listView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+            waitingForScrollFinished = false;
+            disableActionBarScrolling = false;
+            if (updatePullAfterScroll) {
+                viewPages[0].listView.updatePullState();
+                updatePullAfterScroll = false;
+            }
+            viewPages[0].dialogsAdapter.notifyDataSetChanged();
+        }
+
+        if (rightSlidingDialogContainer != null && !rightSlidingDialogContainer.hasFragment() && rightFragmentTransitionInProgress) {
+            rightFragmentTransitionInProgress = false;
+            setDialogsListFrozen(false);
+        }
     }
 
     private void showArchiveHelp() {

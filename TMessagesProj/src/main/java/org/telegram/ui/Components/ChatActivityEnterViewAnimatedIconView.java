@@ -35,6 +35,7 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
     };
 
     private final Paint overlayTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint overlayBadgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private String overlayText;
 
     public ChatActivityEnterViewAnimatedIconView(Context context) {
@@ -44,10 +45,12 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
     public ChatActivityEnterViewAnimatedIconView(Context context, int sizeDp) {
         super(context);
         this.sizeDp = sizeDp;
-        overlayTextPaint.setTextSize(AndroidUtilities.dp(12));
+        overlayTextPaint.setTextSize(AndroidUtilities.dp(7));
         overlayTextPaint.setTextAlign(Paint.Align.CENTER);
         overlayTextPaint.setTypeface(AndroidUtilities.bold());
-        overlayTextPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelIcons));
+        overlayTextPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelVoicePressed));
+        overlayBadgePaint.setStyle(Paint.Style.FILL);
+        overlayBadgePaint.setColor(Theme.getColor(Theme.key_chat_messagePanelVoiceBackground));
     }
 
     public void setOverlayText(String text) {
@@ -163,9 +166,14 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (!TextUtils.isEmpty(overlayText)) {
-            float x = getWidth() / 2f;
-            float y = getHeight() / 2f - (overlayTextPaint.ascent() + overlayTextPaint.descent()) / 2f;
-            canvas.drawText(overlayText, x, y, overlayTextPaint);
+            overlayBadgePaint.setColor(Theme.getColor(Theme.key_chat_messagePanelVoiceBackground));
+            overlayTextPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelVoicePressed));
+            float x = getWidth() - AndroidUtilities.dp(6);
+            float y = AndroidUtilities.dp(8);
+            float r = AndroidUtilities.dp(5);
+            canvas.drawCircle(x, y, r, overlayBadgePaint);
+            float textY = y - (overlayTextPaint.ascent() + overlayTextPaint.descent()) / 2f;
+            canvas.drawText(overlayText, x, textY, overlayTextPaint);
         }
     }
 }

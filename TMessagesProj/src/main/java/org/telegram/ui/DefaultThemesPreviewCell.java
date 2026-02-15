@@ -37,6 +37,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ThemeSmallPreviewView;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
 import java.util.ArrayList;
 
@@ -449,15 +450,34 @@ public class DefaultThemesPreviewCell extends LinearLayout {
 
     public void updateColors() {
         if (currentType == ThemeActivity.THEME_TYPE_BASIC || currentType == TYPE_CUSTOM_LIST) {
+            int radius = FluffySettingsScaffold.getCardRadius();
+            int selector = Theme.getColor(Theme.key_listSelector);
+            int background = Theme.getColor(Theme.key_windowBackgroundWhite);
             if (darkThemeDrawable != null) {
                 darkThemeDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4), PorterDuff.Mode.SRC_IN));
             }
             if (dayNightCell != null) {
-                Theme.setSelectorDrawableColor(dayNightCell.getBackground(), Theme.getColor(Theme.key_listSelector), true);
+                dayNightCell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(
+                        radius,
+                        radius,
+                        0,
+                        0,
+                        background,
+                        selector,
+                        selector
+                ));
                 dayNightCell.setColors(-1, Theme.key_windowBackgroundWhiteBlueText4);
             }
             if (browseThemesCell != null) {
-                browseThemesCell.setBackground(Theme.createSelectorWithBackgroundDrawable(Theme.getColor(Theme.key_windowBackgroundWhite), Theme.getColor(Theme.key_listSelector)));
+                browseThemesCell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(
+                        0,
+                        0,
+                        radius,
+                        radius,
+                        background,
+                        selector,
+                        selector
+                ));
                 browseThemesCell.setColors(Theme.key_windowBackgroundWhiteBlueText4, Theme.key_windowBackgroundWhiteBlueText4);
             }
         }

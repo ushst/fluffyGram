@@ -34,6 +34,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.DocumentObject;
@@ -217,6 +218,12 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         listView.setVerticalScrollBarEnabled(false);
         listView.setEmptyView(emptyView);
         listView.setAnimateEmptyView(true, RecyclerListView.EMPTY_VIEW_ANIMATION_TYPE_ALPHA);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter);
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
@@ -733,6 +740,28 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
     private final int VIEW_TYPE_SCANQR = 5;
     private final int VIEW_TYPE_SETTINGS = 6;
 
+    private boolean isCardRowPosition(int position) {
+        if (position < 0 || listAdapter == null || position >= rowCount) {
+            return false;
+        }
+        return isCardRowType(listAdapter.getItemViewType(position));
+    }
+
+    private boolean isCardRowType(int viewType) {
+        return viewType == VIEW_TYPE_TEXT
+                || viewType == VIEW_TYPE_SESSION
+                || viewType == VIEW_TYPE_SCANQR
+                || viewType == VIEW_TYPE_SETTINGS;
+    }
+
+    private boolean isRowClickable(int position) {
+        return position == terminateAllSessionsRow
+                || position >= otherSessionsStartRow && position < otherSessionsEndRow
+                || position >= passwordSessionsStartRow && position < passwordSessionsEndRow
+                || position == currentSessionRow
+                || position == ttlRow;
+    }
+
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
         private Context mContext;
@@ -745,7 +774,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == terminateAllSessionsRow || position >= otherSessionsStartRow && position < otherSessionsEndRow || position >= passwordSessionsStartRow && position < passwordSessionsEndRow || position == currentSessionRow || position == ttlRow;
+            return isRowClickable(position);
         }
 
         @Override
@@ -759,26 +788,22 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             switch (viewType) {
                 case VIEW_TYPE_TEXT:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_INFO:
                     view = new TextInfoPrivacyCell(mContext);
                     break;
                 case VIEW_TYPE_HEADER:
                     view = new HeaderCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_SCANQR:
                     view = new ScanQRCodeView(mContext);
                     break;
                 case VIEW_TYPE_SETTINGS:
                     view = new TextSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_SESSION:
                 default:
                     view = new SessionCell(mContext, currentType);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
             }
             return new RecyclerListView.Holder(view);
@@ -883,6 +908,11 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                     }
                     break;
             }
+            int viewType = holder.getItemViewType();
+            boolean isCardRow = isCardRowType(viewType);
+            boolean top = isCardRow && !isCardRowPosition(position - 1);
+            boolean bottom = isCardRow && !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowClickable(position));
         }
 
         @Override

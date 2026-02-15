@@ -393,6 +393,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         private SeekBarView sizeBar;
         private int startRadius = 0;
         private int endRadius = 17;
+        private final int rowHeightDp = 50;
         private final int sliderHeightDp = 38;
 
         private TextPaint textPaint;
@@ -443,7 +444,10 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), heightMeasureSpec);
+            super.onMeasure(
+                    MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(dp(rowHeightDp), MeasureSpec.EXACTLY)
+            );
             sizeBar.setProgress((SharedConfig.bubbleRadius - startRadius) / (float) (endRadius - startRadius));
         }
 

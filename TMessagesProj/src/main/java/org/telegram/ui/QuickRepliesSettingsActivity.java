@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -89,10 +90,20 @@ public class QuickRepliesSettingsActivity extends BaseFragment {
 		listView = new RecyclerListView(context);
 		listView.setVerticalScrollBarEnabled(false);
 		listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+		int padding = FluffySettingsScaffold.getListOuterPadding();
+		listView.setPadding(padding, padding, padding, padding);
+		listView.setClipToPadding(false);
+		listView.setSelectorType(9);
+		listView.setSelectorDrawableColor(0);
+		listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
 		frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
 		listView.setAdapter(listAdapter);
 
 		return fragmentView;
+	}
+
+	private boolean isCardRowPosition(int position) {
+		return position >= reply1Row && position <= reply4Row;
 	}
 
 	@Override
@@ -175,6 +186,10 @@ public class QuickRepliesSettingsActivity extends BaseFragment {
 					cell.setTextAndCheck(LocaleController.getString(R.string.AllowCustomQuickReply), getParentActivity().getSharedPreferences("mainconfig", Context.MODE_PRIVATE).getBoolean("quick_reply_allow_custom", true), false);
 				}
 			}
+			boolean isCardRow = isCardRowPosition(position);
+			boolean top = isCardRow && !isCardRowPosition(position - 1);
+			boolean bottom = isCardRow && !isCardRowPosition(position + 1);
+			FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isEnabled(holder));
 		}
 
 		@Override
@@ -192,20 +207,17 @@ public class QuickRepliesSettingsActivity extends BaseFragment {
 					break;
 				case 1:
 					view = new TextSettingsCell(mContext);
-					view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 					break;
 				case 9:
 				case 10:
 				case 11:
 				case 12:
 					view = new EditTextSettingsCell(mContext);
-					view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 					textCells[viewType - 9] = (EditTextSettingsCell) view;
 					break;
 				case 4:
 				default:
 					view = new TextCheckCell(mContext);
-					view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 					break;
 			}
 			view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));

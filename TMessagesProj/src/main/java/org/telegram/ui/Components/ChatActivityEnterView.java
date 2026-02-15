@@ -5873,7 +5873,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         if (hasRecordVideo && isInVideoMode()) {
-            audioVideoSendButton.setOverlayText(videoMessageFrontCamera ? "f" : "b");
+            audioVideoSendButton.setOverlayText(videoMessageFrontCamera ? "F" : "B");
         } else {
             audioVideoSendButton.setOverlayText(null);
         }

@@ -21,6 +21,7 @@ import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.BulletinHelper;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.fluffyConfig;
 
 public class StickerBlacklistActivity extends BaseFragment {
@@ -49,6 +50,8 @@ public class StickerBlacklistActivity extends BaseFragment {
         Theme.getColor(Theme.key_windowBackgroundGray));
 
     listView = new RecyclerListView(context);
+    listView.setSelectorType(9);
+    listView.setSelectorDrawableColor(0);
     final int spanCount = calculateSpanCount();
     GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
     layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -65,7 +68,7 @@ public class StickerBlacklistActivity extends BaseFragment {
     });
     listView.setLayoutManager(layoutManager);
     listView.setVerticalScrollBarEnabled(false);
-    int padding = AndroidUtilities.dp(8);
+    int padding = FluffySettingsScaffold.getListOuterPadding();
     listView.setPadding(padding, padding, padding, padding);
     listView.setClipToPadding(false);
     listView.setItemAnimator(null);
@@ -130,7 +133,9 @@ public class StickerBlacklistActivity extends BaseFragment {
                                                       int viewType) {
       if (viewType == VIEW_TYPE_STICKER) {
         StickerCell cell = new StickerCell(context, resourcesProvider);
-        cell.setBackground(Theme.getSelectorDrawable(false, resourcesProvider));
+        int radius = FluffySettingsScaffold.getCardRadius();
+        int selectorColor = Theme.getColor(Theme.key_listSelector, resourcesProvider);
+        cell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(radius, 0, selectorColor, selectorColor));
         RecyclerView.LayoutParams params =
             new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                           AndroidUtilities.dp(96));
@@ -139,8 +144,9 @@ public class StickerBlacklistActivity extends BaseFragment {
         return new RecyclerListView.Holder(cell);
       } else {
         TextCell cell = new TextCell(context);
-        cell.setBackgroundColor(
-            Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
+        int radius = FluffySettingsScaffold.getCardRadius();
+        int selectorColor = Theme.getColor(Theme.key_listSelector, resourcesProvider);
+        cell.setBackground(Theme.createSimpleSelectorRoundRectDrawable(radius, 0, selectorColor, selectorColor));
         return new RecyclerListView.Holder(cell);
       }
     }

@@ -40,6 +40,7 @@ import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.ProfileActivity;
 import org.ushastoe.fluffy.activities.elements.FluffyDialogUtils;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.storage.UserStatusStorage;
 
 import org.telegram.tgnet.TLRPC;
@@ -114,8 +115,14 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         fragmentView = frameLayout;
 
         listView = new RecyclerListView(context);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRow));
         listAdapter = new ListAdapter(context);
         listView.setAdapter(listAdapter);
         listView.setOnItemClickListener((view, position) -> {
@@ -482,6 +489,9 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            boolean top = position == 0;
+            boolean bottom = position == items.size() - 1;
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, true, top, bottom, true);
             LogEntryCell cell = (LogEntryCell) holder.itemView;
             UserStatusStorage.LogEntry entry = items.get(position);
             cell.setTextAndValue(buildTitle(entry), buildValue(entry), position != items.size() - 1);
@@ -492,6 +502,10 @@ public class UserStatusLogActivity extends BaseFragment implements NotificationC
         public int getItemViewType(int position) {
             return 0;
         }
+    }
+
+    private boolean isCardRow(int position) {
+        return position >= 0 && position < items.size();
     }
 
     @Override

@@ -56,6 +56,7 @@ import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.ui.Components.voip.VoIPHelper;
 
 import java.io.File;
@@ -294,6 +295,12 @@ public class DataSettingsActivity extends BaseFragment {
         };
         listView.setVerticalScrollBarEnabled(false);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setAdapter(listAdapter);
         listView.setOnItemClickListener((view, position, x, y) -> {
@@ -603,6 +610,14 @@ public class DataSettingsActivity extends BaseFragment {
         return fragmentView;
     }
 
+    private boolean isCardRowPosition(int position) {
+        if (position < 0 || position >= rowCount || listAdapter == null) {
+            return false;
+        }
+        int viewType = listAdapter.getItemViewType(position);
+        return viewType == 1 || viewType == 3 || viewType == 5 || viewType == 6;
+    }
+
     private void setStorageDirectory(String storageDir) {
         SharedConfig.storageCacheDir = storageDir;
         SharedConfig.saveConfig();
@@ -861,6 +876,10 @@ public class DataSettingsActivity extends BaseFragment {
                     break;
                 }
             }
+            boolean isCardRow = isCardRowPosition(position);
+            boolean top = !isCardRowPosition(position - 1);
+            boolean bottom = !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowEnabled(position));
         }
 
         @Override
@@ -905,15 +924,12 @@ public class DataSettingsActivity extends BaseFragment {
                     break;
                 case 1:
                     view = new TextSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 2:
                     view = new HeaderCell(mContext, 22);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 3:
                     view = new TextCheckCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 4:
                     view = new TextInfoPrivacyCell(mContext);
@@ -921,12 +937,10 @@ public class DataSettingsActivity extends BaseFragment {
                     break;
                 case 5:
                     view = new NotificationsCheckCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 6:
                 default:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));

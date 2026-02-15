@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 //import com.google.mlkit.common.model.RemoteModelManager;
 //import com.google.mlkit.nl.translate.TranslateRemoteModel;
 
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
@@ -188,23 +189,16 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
         emptyView.setShowAtCenter(true);
         frameLayout.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        listView = new RecyclerListView(context) {
-            @Override
-            protected void dispatchDraw(Canvas canvas) {
-                if (getAdapter() == listAdapter && getItemAnimator() != null && getItemAnimator().isRunning()) {
-                    int backgroundColor = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
-                    drawItemBackground(canvas, 0, translateSettingsBackgroundHeight, backgroundColor);
-//                    drawItemBackground(canvas, 1, Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
-                    if (settingsFromPosition != -1 && settingsToPosition != -1) {
-                        drawSectionBackground(canvas, settingsFromPosition, settingsToPosition, backgroundColor);
-                    }
-                }
-                super.dispatchDraw(canvas);
-            }
-        };
+        listView = new RecyclerListView(context);
         listView.setEmptyView(emptyView);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         listView.setAdapter(listAdapter);
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator() {
             @Override
@@ -591,6 +585,21 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
     private int infoPosition1;
     private int languagesStartsPosition;
 
+    private boolean isCardRowPosition(int position) {
+        if (position < 0 || listView == null || listView.getAdapter() == null || position >= listView.getAdapter().getItemCount()) {
+            return false;
+        }
+        int viewType = listView.getAdapter().getItemViewType(position);
+        return isCardRowType(viewType);
+    }
+
+    private boolean isCardRowType(int viewType) {
+        return viewType == VIEW_TYPE_LANGUAGE
+                || viewType == VIEW_TYPE_SWITCH
+                || viewType == VIEW_TYPE_SETTINGS
+                || viewType == VIEW_TYPE_SETTINGS_2;
+    }
+
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
 
         private Context mContext;
@@ -648,23 +657,19 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
             switch (viewType) {
                 case VIEW_TYPE_LANGUAGE: {
                     view = new TextRadioCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 }
                 case VIEW_TYPE_SWITCH:
                     TextCheckCell switchCell = new TextCheckCell(mContext);
-                    switchCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     view = switchCell;
                     break;
                 case VIEW_TYPE_SETTINGS:
                 case VIEW_TYPE_SETTINGS_2:
                     TextSettingsCell settingsCell = new TextSettingsCell(mContext);
-                    settingsCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     view = settingsCell;
                     break;
                 case VIEW_TYPE_HEADER:
                     HeaderCell header = new HeaderCell(mContext);
-                    header.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     view = header;
                     break;
                 case VIEW_TYPE_INFO:
@@ -821,6 +826,11 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
                     break;
                 }
             }
+            int viewType = holder.getItemViewType();
+            boolean isCardRow = isCardRowType(viewType);
+            boolean top = isCardRow && !isCardRowPosition(position - 1);
+            boolean bottom = isCardRow && !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isEnabled(holder));
         }
 
         @Override

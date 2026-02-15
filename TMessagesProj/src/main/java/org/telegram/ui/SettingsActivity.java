@@ -129,6 +129,7 @@ import org.telegram.ui.bots.BotBiometry;
 import org.telegram.ui.bots.BotDownloads;
 import org.telegram.ui.bots.BotLocation;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 import org.ushastoe.fluffy.activities.mainActivitySettings;
 
 import java.io.File;
@@ -177,6 +178,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private View navigationBar;
 
     private int versionViewPressCount = 0;
+    private static final int SECTION_SPACE_DP = 12;
 
     public SettingsActivity() {
         this(null);
@@ -330,8 +332,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         search.loadFaqWebPage();
 
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
-        listView.setPadding(0, AndroidUtilities.statusBarHeight, 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight);
+        int horizontalPadding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(horizontalPadding, AndroidUtilities.statusBarHeight, horizontalPadding, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight);
         listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.adapter.setApplyBackground(false);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(position -> isCardRow(listView.adapter.getItem(position))));
         listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -627,7 +634,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     getMessagesController().removeSuggestion(0, "PREMIUM_GRACE");
                 }
             ));
-            items.add(UItem.asShadow(null));
+            addSectionSpace(items);
         } else if (suggestions.contains("VALIDATE_PHONE_NUMBER") && getUserConfig().getCurrentUser() != null) {
             items.add(SuggestionCell.Factory.of(
                 formatString(R.string.CheckPhoneNumber, PhoneFormat.getInstance().format("+" + getUserConfig().getCurrentUser().phone)),
@@ -641,7 +648,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     getMessagesController().removeSuggestion(0, "VALIDATE_PHONE_NUMBER");
                 }
             ));
-            items.add(UItem.asShadow(null));
+            addSectionSpace(items);
         } else if (suggestions.contains("VALIDATE_PASSWORD")) {
             items.add(SuggestionCell.Factory.of(
                 getString(R.string.YourPasswordHeader),
@@ -653,18 +660,18 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     getMessagesController().removeSuggestion(0, "VALIDATE_PASSWORD");
                 }
             ));
-            items.add(UItem.asShadow(null));
+            addSectionSpace(items);
         }
 
         items.add(SettingCell.Factory.of(24, 0xFF1CA5ED, 0xFF1387E1, R.drawable.settings_features, getString(R.string.fluffySettings)));
-        items.add(UItem.asShadow(null));
+        addSectionSpace(items);
 
         if (accountNumbers.size() > 0) {
             items.add(UItem.asHeader(getString(R.string.SettingsAccounts)));
             for (int i = 0; i < accountNumbers.size(); ++i) {
                 items.add(AccountCell.Factory.of(i, accountNumbers.get(i)));
             }
-            items.add(UItem.asShadow(null));
+            addSectionSpace(items);
         }
 
         items.add(SettingCell.Factory.of(1, 0xFF1CA5ED, 0xFF1488E1, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
@@ -677,7 +684,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(9, 0xFFF28B31, 0xFFE26314, R.drawable.settings_power, getString(R.string.SettingsPowerSaving), getString(R.string.SettingsPowerSavingInfo)));
         items.add(SettingCell.Factory.of(10, 0xFFC46EF4, 0xFF9F55DF, R.drawable.settings_language, getString(R.string.SettingsLanguage), LocaleController.getCurrentLanguageName()));
 
-        items.add(UItem.asShadow(null));
+        addSectionSpace(items);
 
         if (!getMessagesController().premiumFeaturesBlocked()) {
             items.add(SettingCell.Factory.of(11, 0xFFB659FF, 0xFF617CFF, R.drawable.settings_premium, getString(R.string.TelegramPremium)));
@@ -701,7 +708,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             items.add(SettingCell.Factory.of(16, 0xFFF38B31, 0xFFE26314, R.drawable.settings_gift, getString(R.string.SendAGift)));
         }
         if (items.get(items.size() - 1).viewType != UniversalAdapter.VIEW_TYPE_SHADOW)
-            items.add(UItem.asShadow(null));
+            addSectionSpace(items);
 
         items.add(UItem.asHeader(getString(R.string.SettingsHelp)));
         items.add(SettingCell.Factory.of(17, 0xFFF09F1B, 0xFFE18A11, R.drawable.settings_ask, getString(R.string.AskAQuestion)));
@@ -710,7 +717,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(19, 0xFF55CA47, 0xFF27B434, R.drawable.settings_policy, getString(R.string.PrivacyPolicy)));
 
         if (BuildVars.LOGS_ENABLED || BuildVars.DEBUG_PRIVATE_VERSION) {
-            items.add(UItem.asShadow(null));
+            addSectionSpace(items);
             items.add(UItem.asHeader(getString(R.string.SettingsDebug)));
             items.add(SettingCell.Factory.of(20, 0xFF55CA47, 0xFF27B434, 0, getString(R.string.DebugSendLogs)));
             items.add(SettingCell.Factory.of(21, 0xFF55CA47, 0xFF27B434, 0, getString(R.string.DebugSendLastLogs)));
@@ -864,11 +871,49 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private int navigationBarHeight;
     private int additionNavigationBarHeight;
 
+    private void addSectionSpace(ArrayList<UItem> items) {
+        UItem spacer = UItem.asSpace(dp(SECTION_SPACE_DP));
+        spacer.transparent = true;
+        items.add(spacer);
+    }
+
+    private static boolean isCardRow(UItem item) {
+        return item != null && (
+            item.instanceOf(SettingCell.Factory.class) ||
+            item.instanceOf(AccountCell.Factory.class) ||
+            item.instanceOf(SuggestionCell.Factory.class)
+        );
+    }
+
+    private static int resolveAdapterPosition(UniversalAdapter adapter, UItem item) {
+        if (adapter == null || item == null) {
+            return RecyclerView.NO_POSITION;
+        }
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            if (adapter.getItem(i) == item) {
+                return i;
+            }
+        }
+        return RecyclerView.NO_POSITION;
+    }
+
+    private static void applyCardRowStyle(View view, UItem item, boolean clickable, UniversalAdapter adapter) {
+        int position = resolveAdapterPosition(adapter, item);
+        boolean top = true;
+        boolean bottom = true;
+        if (position != RecyclerView.NO_POSITION) {
+            top = !isCardRow(adapter.getItem(position - 1));
+            bottom = !isCardRow(adapter.getItem(position + 1));
+        }
+        FluffySettingsScaffold.applyCardRowStyle(view, true, top, bottom, clickable);
+    }
+
     @NonNull
     private WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
         final int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
         navigationBarHeight = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
-        listView.setPadding(0, statusBarHeight, 0, navigationBarHeight + additionNavigationBarHeight);
+        int horizontalPadding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(horizontalPadding, statusBarHeight, horizontalPadding, navigationBarHeight + additionNavigationBarHeight);
         return WindowInsetsCompat.CONSUMED;
     }
 
@@ -1006,6 +1051,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             @Override
             public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
                 ((AccountCell) view).set(item.intValue);
+                applyCardRowStyle(view, item, true, adapter);
             }
 
             public static UItem of(int id, int account) {
@@ -1176,6 +1222,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     item.subtext,
                     item.textValue
                 );
+                applyCardRowStyle(view, item, true, adapter);
             }
 
             public static UItem of(int id, int iconColorTop, int iconColorBottom, int icon, CharSequence title) {
@@ -1262,6 +1309,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     item.textValue, item.clickCallback,
                     item.animatedText, item.clickCallback2
                 );
+                applyCardRowStyle(view, item, false, adapter);
             }
 
             public static UItem of(
@@ -1944,3 +1992,4 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         return isSwipeBackEnabled(ev);
     }
 }
+

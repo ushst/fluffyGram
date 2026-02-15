@@ -25,7 +25,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.media.Ringtone;
@@ -95,6 +94,7 @@ import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.ListView.AdapterWithDiffUtils;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -426,22 +426,15 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
         emptyView.showTextView();
         frameLayout.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        listView = new RecyclerListView(context) {
-            @Override
-            protected void dispatchDraw(Canvas canvas) {
-                if (currentType != -1) {
-                    if (exceptionsStart >= 0) {
-                        drawSectionBackground(canvas, exceptionsStart, exceptionsEnd, getThemedColor(Theme.key_windowBackgroundWhite));
-                    }
-                    if (currentType != TYPE_REACTIONS_MESSAGES && currentType != TYPE_REACTIONS_STORIES) {
-                        drawSectionBackground(canvas, settingsStart, settingsEnd, getThemedColor(Theme.key_windowBackgroundWhite));
-                    }
-                }
-                super.dispatchDraw(canvas);
-            }
-        };
+        listView = new RecyclerListView(context);
 //        listView.setTranslateSelector(true);
         listView.setEmptyView(emptyView);
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -1039,6 +1032,18 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
         });
 
         return fragmentView;
+    }
+
+    private boolean isCardRowPosition(int position) {
+        if (listView != null && listView.getAdapter() == searchAdapter) {
+            return position >= 0 && position < searchAdapter.getItemCount() && searchAdapter.getItemViewType(position) == 0;
+        }
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        int viewType = items.get(position).viewType;
+        return viewType == VIEW_TYPE_CHECK || viewType == VIEW_TYPE_USER || viewType == VIEW_TYPE_COLOR ||
+            viewType == VIEW_TYPE_SETTING || viewType == VIEW_TYPE_CHECK2 || viewType == VIEW_TYPE_BUTTON || viewType == VIEW_TYPE_EXPAND;
     }
 
     private void checkRowsEnabled() {
@@ -1836,7 +1841,6 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
             switch (viewType) {
                 case 0: {
                     view = new UserCell(mContext, 4, 0, false, true);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 }
                 case 1:
@@ -1851,6 +1855,7 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            final int adapterPosition = holder.getAdapterPosition();
             switch (holder.getItemViewType()) {
                 case 0: {
                     UserCell cell = (UserCell) holder.itemView;
@@ -1872,6 +1877,10 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                     break;
                 }
             }
+            boolean isCardRow = holder.getItemViewType() == 0;
+            boolean top = !isCardRowPosition(adapterPosition - 1);
+            boolean bottom = !isCardRowPosition(adapterPosition + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isEnabled(holder));
         }
 
         @Override
@@ -2010,39 +2019,31 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
             switch (viewType) {
                 case VIEW_TYPE_HEADER:
                     view = new HeaderCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_CHECK:
                     view = new TextCheckCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_USER:
                     view = new UserCell(mContext, 6, 0, false);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_COLOR:
                     view = new TextColorCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_SHADOW:
                     view = new TextInfoPrivacyCell(mContext);
                     break;
                 case VIEW_TYPE_SETTING:
                     view = new TextSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_CHECK2:
                     view = new NotificationsCheckCell(mContext, 21, 64, true, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_BUTTON:
                 default:
                     view = new TextCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_EXPAND:
                     view = new ExpandView(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
             }
             return new RecyclerListView.Holder(view);
@@ -2122,6 +2123,10 @@ public class NotificationsCustomSettingsActivity extends BaseFragment implements
                     break;
                 }
             }
+            boolean isCardRow = isCardRowPosition(position);
+            boolean top = !isCardRowPosition(position - 1);
+            boolean bottom = !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isEnabled(holder));
         }
 
         @Override

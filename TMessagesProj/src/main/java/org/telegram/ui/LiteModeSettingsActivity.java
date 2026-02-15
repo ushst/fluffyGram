@@ -67,6 +67,7 @@ import org.telegram.ui.Components.SeekBarAccessibilityDelegate;
 import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.Components.Switch;
 import org.telegram.ui.Components.ThanosEffect;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
 import java.util.ArrayList;
 
@@ -101,6 +102,12 @@ public class LiteModeSettingsActivity extends BaseFragment {
 
         listView = new RecyclerListView(context);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context));
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         listView.setAdapter(adapter = new Adapter());
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setDurations(350);
@@ -151,6 +158,14 @@ public class LiteModeSettingsActivity extends BaseFragment {
         updateItems();
 
         return fragmentView;
+    }
+
+    private boolean isCardRowPosition(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        int viewType = items.get(position).viewType;
+        return viewType == VIEW_TYPE_SLIDER || viewType == VIEW_TYPE_SWITCH || viewType == VIEW_TYPE_CHECKBOX || viewType == VIEW_TYPE_SWITCH2;
     }
 
     @Override
@@ -342,11 +357,9 @@ public class LiteModeSettingsActivity extends BaseFragment {
             View view = null;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(context);
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_SLIDER) {
                 PowerSaverSlider powerSaverSlider = new PowerSaverSlider(context);
                 view = powerSaverSlider;
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_INFO) {
                 view = new TextInfoPrivacyCell(context) {
                     @Override
@@ -368,7 +381,6 @@ public class LiteModeSettingsActivity extends BaseFragment {
                 view = new SwitchCell(context);
             } else if (viewType == VIEW_TYPE_SWITCH2) {
                 view = new TextCell(context, 23, false, true, null);
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             }
             return new RecyclerListView.Holder(view);
         }
@@ -420,6 +432,10 @@ public class LiteModeSettingsActivity extends BaseFragment {
                     textCell.setTextAndCheck(item.text, animations, false);
                 }
             }
+            boolean isCardRow = isCardRowPosition(position);
+            boolean top = !isCardRowPosition(position - 1);
+            boolean bottom = !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isEnabled(holder));
         }
 
         @Override
@@ -457,7 +473,6 @@ public class LiteModeSettingsActivity extends BaseFragment {
             super(context);
 
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
-            setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 
             imageView = new ImageView(context);
             imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.MULTIPLY));

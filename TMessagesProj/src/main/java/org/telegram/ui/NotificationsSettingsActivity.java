@@ -65,6 +65,7 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.activities.elements.FluffySettingsScaffold;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -494,6 +495,12 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 return false;
             }
         });
+        int padding = FluffySettingsScaffold.getListOuterPadding();
+        listView.setPadding(padding, padding, padding, padding);
+        listView.setClipToPadding(false);
+        listView.setSelectorType(9);
+        listView.setSelectorDrawableColor(0);
+        listView.addItemDecoration(FluffySettingsScaffold.createCardDecoration(this::isCardRowPosition));
         listView.setVerticalScrollBarEnabled(false);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(adapter = new ListAdapter(context));
@@ -808,6 +815,17 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         return fragmentView;
     }
 
+    private boolean isCardRowPosition(int position) {
+        return position == inappSoundRow || position == inappVibrateRow || position == inappPreviewRow ||
+            position == inappPriorityRow || position == contactJoinedRow || position == pinnedMessageRow ||
+            position == androidAutoAlertRow || position == notificationsServiceRow || position == notificationsServiceConnectionRow ||
+            position == badgeNumberShowRow || position == badgeNumberMutedRow || position == badgeNumberMessagesRow ||
+            position == inchatSoundRow || position == callsVibrateRow || position == accountsAllRow ||
+            position == resetNotificationsRow || position == privateRow || position == groupRow ||
+            position == storiesRow || position == reactionsRow || position == channelsRow ||
+            position == callsRingtoneRow || position == repeatRow;
+    }
+
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
@@ -926,6 +944,10 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
+            return isRowClickable(position);
+        }
+
+        private boolean isRowClickable(int position) {
             return !(position == notificationsSectionRow || position == notificationsSection2Row || position == inappSectionRow ||
                     position == eventsSectionRow || position == otherSectionRow || position == resetSectionRow ||
                     position == badgeNumberSection || position == otherSection2Row || position == resetSection2Row ||
@@ -945,26 +967,21 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
             switch (viewType) {
                 case 0:
                     view = new HeaderCell(mContext, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 1:
                     view = new TextCheckCell(mContext, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 2:
                     view = new TextDetailSettingsCell(mContext);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 3:
                     view = new NotificationsCheckCell(mContext, 21, 64, true, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 4:
                     view = new ShadowSectionCell(mContext, resourceProvider);
                     break;
                 case 5:
                     view = new TextSettingsCell(mContext, resourceProvider);
-                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case 6:
                 default:
@@ -1195,6 +1212,10 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     break;
                 }
             }
+            boolean isCardRow = isCardRowPosition(position);
+            boolean top = !isCardRowPosition(position - 1);
+            boolean bottom = !isCardRowPosition(position + 1);
+            FluffySettingsScaffold.applyCardRowStyle(holder.itemView, isCardRow, top, bottom, isRowClickable(position));
         }
 
         @Override
