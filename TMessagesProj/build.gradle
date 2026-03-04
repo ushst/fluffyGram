@@ -1,6 +1,7 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 repositories {
     mavenCentral()
@@ -72,6 +73,16 @@ dependencies {
 }
 
 def isWindows = String.valueOf(DefaultNativePlatform.currentOperatingSystem.toFamilyName() == OperatingSystemFamily.WINDOWS)
+def devLocalPropsFile = rootProject.file('fluffyGram_dev/devlocal.properties')
+def devLocalProps = new Properties()
+if (devLocalPropsFile.exists()) {
+    devLocalProps.load(new FileInputStream(devLocalPropsFile))
+}
+def getDevLocalProp = { String key, String fallback ->
+    def value = devLocalProps.getProperty(key)
+    return value != null && value.trim().length() > 0 ? value.trim() : fallback
+}
+def localGoogleServices = rootProject.file('fluffyGram_dev/google-services.json')
 android {
     compileSdkVersion 35
     buildToolsVersion '35.0.0'
@@ -98,6 +109,10 @@ android {
         coreLibraryDesugaringEnabled true
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
 
     defaultConfig {
         minSdkVersion 21
@@ -106,6 +121,9 @@ android {
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
         multiDexEnabled true
+
+        buildConfigField "int", "TELEGRAM_APP_ID", getDevLocalProp("TELEGRAM_APP_ID", "4")
+        buildConfigField "String", "TELEGRAM_APP_HASH", "\"" + getDevLocalProp("TELEGRAM_APP_HASH", "014b35b6184100b085b0d0572f9b5103") + "\""
 
         externalNativeBuild {
             cmake {
@@ -223,6 +241,14 @@ def getProps(String propName) {
         return "";
     }
 }
+
+task syncLocalGoogleServices(type: Copy) {
+    from localGoogleServices
+    into projectDir
+    rename { "google-services.json" }
+    onlyIf { localGoogleServices.exists() }
+}
+
 apply plugin: 'com.google.gms.google-services'
 
 task checkVisibility {
@@ -235,14 +261,7 @@ task checkVisibility {
             throw new GradleException("Building public version of private code!")
         }
     }
-    doLast {
-        if (project.gradle.startParameter.taskNames.find { it.contains("HA_public") }) {
-            def privateBuild = file("${projectDir}_AppHockeyApp/afat/HA_private/Telegram-Beta.apk")
-            if (privateBuild.exists()) {
-                privateBuild.delete()
-            }
-        }
-    }
 }
 
 preBuild.dependsOn checkVisibility
+preBuild.dependsOn syncLocalGoogleServices
