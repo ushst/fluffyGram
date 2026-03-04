@@ -195,6 +195,7 @@ import org.telegram.ui.Components.spoilers.SpoilersTextView;
 import org.telegram.ui.Stars.ExplainStarsSheet;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.bots.BotWebViewSheet;
+import org.ushastoe.fluffy.hooks.LoginSmsWarningHook;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -2047,6 +2048,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             subtitleView.setGravity(Gravity.CENTER);
             subtitleView.setLineSpacing(dp(2), 1.0f);
             addView(subtitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 8, 32, 0));
+            LoginSmsWarningHook.addSmsOnlyOfficialWarning(this, context);
 
             countryButton = new TextViewSwitcher(context);
             countryButton.setFactory(() -> {

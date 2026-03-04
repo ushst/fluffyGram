@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
+</resources>
