@@ -85,6 +85,7 @@ import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.SelectAnimatedEmojiDialog;
 import org.telegram.ui.Stars.StarsReactionsSheet;
 import org.telegram.ui.Stories.recorder.HintView2;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -1077,15 +1078,18 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
             fillRecentReactionsList(visibleReactions);
         } else if (hitLimit) {
             allReactionsAvailable = false;
-            if (reactionsChat != null && reactionsChat.paid_reactions_available) {
+            if (reactionsChat != null && reactionsChat.paid_reactions_available && AppearanceSettingsHook.shouldShowChannelPostStarsUi(messageObject)) {
                 hasStar = true;
                 visibleReactions.add(ReactionsLayoutInBubble.VisibleReaction.asStar());
             }
             for (TLRPC.ReactionCount result : messageObject.messageOwner.reactions.results) {
+                if (!AppearanceSettingsHook.shouldShowReaction(messageObject, result.reaction)) {
+                    continue;
+                }
                 visibleReactions.add(ReactionsLayoutInBubble.VisibleReaction.fromTL(result.reaction));
             }
         } else if (reactionsChat != null) {
-            if (reactionsChat != null && reactionsChat.paid_reactions_available) {
+            if (reactionsChat != null && reactionsChat.paid_reactions_available && AppearanceSettingsHook.shouldShowChannelPostStarsUi(messageObject)) {
                 hasStar = true;
                 visibleReactions.add(ReactionsLayoutInBubble.VisibleReaction.asStar());
             }
@@ -1127,7 +1131,8 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
 
         if (message != null && message.messageOwner.reactions != null && message.messageOwner.reactions.results != null) {
             for (int i = 0; i < message.messageOwner.reactions.results.size(); i++) {
-                if (message.messageOwner.reactions.results.get(i).chosen) {
+                if (message.messageOwner.reactions.results.get(i).chosen
+                        && AppearanceSettingsHook.shouldShowReaction(message, message.messageOwner.reactions.results.get(i).reaction)) {
                     selectedReactions.add(ReactionsLayoutInBubble.VisibleReaction.fromTL(message.messageOwner.reactions.results.get(i).reaction));
                 }
             }
@@ -1165,7 +1170,8 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
             MessageObject message = messages.get(a);
             if (message != null && message.messageOwner.reactions != null && message.messageOwner.reactions.results != null) {
                 for (int i = 0; i < message.messageOwner.reactions.results.size(); i++) {
-                    if (message.messageOwner.reactions.results.get(i).chosen) {
+                    if (message.messageOwner.reactions.results.get(i).chosen
+                            && AppearanceSettingsHook.shouldShowReaction(message, message.messageOwner.reactions.results.get(i).reaction)) {
                         selectedReactions.add(ReactionsLayoutInBubble.VisibleReaction.fromTL(message.messageOwner.reactions.results.get(i).reaction));
                     }
                 }
@@ -1208,7 +1214,8 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
             messageReactions.clear();
             if (message != null && message.messageOwner.reactions != null && message.messageOwner.reactions.results != null) {
                 for (int i = 0; i < message.messageOwner.reactions.results.size(); i++) {
-                    if (message.messageOwner.reactions.results.get(i).chosen) {
+                    if (message.messageOwner.reactions.results.get(i).chosen
+                            && AppearanceSettingsHook.shouldShowReaction(message, message.messageOwner.reactions.results.get(i).reaction)) {
                         ReactionsLayoutInBubble.VisibleReaction reaction = ReactionsLayoutInBubble.VisibleReaction.fromTL(message.messageOwner.reactions.results.get(i).reaction);
                         if (firstMessage || arr.indexOfKey(reaction.hash) >= 0) {
                             messageReactions.add(reaction.hash);

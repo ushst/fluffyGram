@@ -16,31 +16,23 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.ShadowSectionCell;
+import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
-import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
-import org.ushastoe.fluffy.ui.elements.HeaderSettingsCell;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 
 import java.util.ArrayList;
 
-public class FluffySettingsActivity extends BaseFragment {
+public class FluffyAppearanceActivity extends BaseFragment {
 
     private static final int VIEW_TYPE_HEADER = 0;
-    private static final int VIEW_TYPE_TEXT = 1;
+    private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_INFO = 2;
-    private static final int VIEW_TYPE_ABOUT_HEADER = 3;
-    private static final int VIEW_TYPE_SHADOW = 4;
 
-    private static final int ROW_ABOUT = 0;
-    private static final int ROW_ABOUT_SHADOW = 1;
-    private static final int ROW_APPEARANCE_SECTION = 2;
-    private static final int ROW_APPEARANCE = 3;
-    private static final int ROW_APPEARANCE_INFO = 4;
-    private static final int ROW_DEBUG_SECTION = 5;
-    private static final int ROW_DEBUG = 6;
-    private static final int ROW_DEBUG_INFO = 7;
+    private static final int ROW_APPEARANCE_HEADER = 0;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 1;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER_INFO = 2;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -74,10 +66,12 @@ public class FluffySettingsActivity extends BaseFragment {
                 return;
             }
             ItemInner item = items.get(position);
-            if (item.id == ROW_APPEARANCE) {
-                presentFragment(new FluffyAppearanceActivity());
-            } else if (item.id == ROW_DEBUG) {
-                presentFragment(new FluffyDebugActivity());
+            if (item.id == ROW_HIDE_CHANNEL_POST_STARS_OFFER) {
+                boolean hidden = !AppearanceSettingsHook.isChannelPostStarsOfferHidden();
+                AppearanceSettingsHook.setChannelPostStarsOfferHidden(hidden);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(hidden);
+                }
             }
         });
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -88,16 +82,21 @@ public class FluffySettingsActivity extends BaseFragment {
         return fragmentView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateItems();
+    }
+
     private void updateItems() {
         items.clear();
-        items.add(new ItemInner(VIEW_TYPE_ABOUT_HEADER, ROW_ABOUT, null, null));
-        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_ABOUT_SHADOW, null, null));
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_SECTION, LocaleController.getString(R.string.FluffyAppearanceSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APPEARANCE, LocaleController.getString(R.string.FluffyAppearance), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_APPEARANCE_INFO, LocaleController.getString(R.string.FluffyAppearanceInfo), null));
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_HEADER,
+                LocaleController.getString(R.string.FluffyAppearanceSection), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_CHANNEL_POST_STARS_OFFER,
+                LocaleController.getString(R.string.FluffyHideChannelPostStarsOffer),
+                AppearanceSettingsHook.isChannelPostStarsOfferHidden()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_HIDE_CHANNEL_POST_STARS_OFFER_INFO,
+                LocaleController.getString(R.string.FluffyHideChannelPostStarsOfferInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -107,13 +106,13 @@ public class FluffySettingsActivity extends BaseFragment {
         final int viewType;
         final int id;
         final CharSequence text;
-        final CharSequence value;
+        final boolean checked;
 
-        ItemInner(int viewType, int id, CharSequence text, CharSequence value) {
+        ItemInner(int viewType, int id, CharSequence text, boolean checked) {
             this.viewType = viewType;
             this.id = id;
             this.text = text;
-            this.value = value;
+            this.checked = checked;
         }
     }
 
@@ -125,7 +124,7 @@ public class FluffySettingsActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_TEXT;
+            return holder.getItemViewType() == VIEW_TYPE_CHECK;
         }
 
         @Override
@@ -139,12 +138,8 @@ public class FluffySettingsActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
-            } else if (viewType == VIEW_TYPE_ABOUT_HEADER) {
-                view = new HeaderSettingsCell(parent.getContext());
-            } else if (viewType == VIEW_TYPE_SHADOW) {
-                view = new ShadowSectionCell(parent.getContext(), 12);
-            } else if (viewType == VIEW_TYPE_TEXT) {
-                view = new TextSettingsCell(parent.getContext());
+            } else if (viewType == VIEW_TYPE_CHECK) {
+                view = new TextCheckCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
@@ -157,12 +152,8 @@ public class FluffySettingsActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
-            } else if (holder.getItemViewType() == VIEW_TYPE_ABOUT_HEADER) {
-                // Static decorative header, no binding required.
-            } else if (holder.getItemViewType() == VIEW_TYPE_SHADOW) {
-                // Static section separator, no binding required.
-            } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
-                ((TextSettingsCell) holder.itemView).setText(item.text, false);
+            } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
+                ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.checked, false);
             } else {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 if (TextUtils.isEmpty(item.text)) {

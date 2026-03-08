@@ -203,6 +203,7 @@ import org.telegram.ui.Components.URLSpanBrowser;
 import org.telegram.ui.Components.URLSpanMono;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.telegram.ui.Components.VideoForwardDrawable;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
 import org.telegram.ui.Components.spoilers.SpoilerEffect2;
@@ -10781,7 +10782,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
             if (this.starsPrice != starsPrice) {
                 this.starsPrice = starsPrice;
-                if (starsPrice > 0 && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0)) {
+                if (starsPrice > 0
+                        && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0)
+                        && AppearanceSettingsHook.shouldShowChannelPostStarsUi(currentMessageObject)) {
                     final CharSequence text;
                     if (currentMessageObject.isOutOwner()) {
                         if (starsPriceMessagesCount > 1) {
@@ -10869,7 +10872,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
             suggestionOffer = null;
             suggestionOfferTopPadding = 0;
-            if (currentMessageObject != null && currentMessageObject.messageOwner != null && currentMessageObject.messageOwner.suggested_post != null && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0)) {
+            if (currentMessageObject != null
+                    && currentMessageObject.messageOwner != null
+                    && currentMessageObject.messageOwner.suggested_post != null
+                    && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0)
+                    && AppearanceSettingsHook.shouldShowChannelPostStarsOffer()) {
                 suggestionOffer = new SuggestionOffer(currentAccount, this, resourcesProvider);
                 suggestionOffer.update(currentMessageObject);
                 suggestionOfferTopPadding = suggestionOffer.getHeight() + dp(8);
@@ -17442,7 +17449,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             currentTimeString = TextUtils.concat("💎", StarsIntroActivity.formatTON(currentMessageObject.getStakedDiceAmount()), "  ", currentTimeString);
             currentTimeString = StarsIntroActivity.replaceDiamond(currentTimeString, 0.55f, null, 0, dp(-.33f), 1.05f);
         }
-        final long starsPrice = currentMessageObject.getDialogId() < 0 ? getStarsPrice() : 0;
+        final long starsPrice = currentMessageObject.getDialogId() < 0
+                && AppearanceSettingsHook.shouldShowChannelPostStarsUi(currentMessageObject)
+                ? getStarsPrice() : 0;
         if (starsPrice > 0) {
             currentTimeString = TextUtils.concat("⭐️", AndroidUtilities.formatWholeNumber((int) starsPrice, 0), "  ", currentTimeString);
             currentTimeString = StarsIntroActivity.replaceStars(currentTimeString, 0.8f, null, 0, dp(-.33f), 0.94f);

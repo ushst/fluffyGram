@@ -285,6 +285,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stars.StarsReactionsSheet;
 import org.telegram.ui.Stars.MessageSuggestionOfferSheet;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.StoriesUtilities;
@@ -29898,10 +29899,19 @@ public class ChatActivity extends BaseFragment implements
                     int count = 0;
                     if (primaryMessage.messageOwner.reactions != null) {
                         for (TLRPC.ReactionCount r : primaryMessage.messageOwner.reactions.results) {
+                            if (!AppearanceSettingsHook.shouldShowReaction(primaryMessage, r.reaction)) {
+                                continue;
+                            }
                             count += r.count;
                         }
                     }
-                    boolean hasHeader = count > 10 && primaryMessage.messageOwner.reactions.results.size() > 1;
+                    int visibleCountersCount = 0;
+                    for (TLRPC.ReactionCount reactionCount : primaryMessage.messageOwner.reactions.results) {
+                        if (AppearanceSettingsHook.shouldShowReaction(primaryMessage, reactionCount.reaction)) {
+                            visibleCountersCount++;
+                        }
+                    }
+                    boolean hasHeader = count > 10 && visibleCountersCount > 1;
                     ReactedUsersListView.ContainerLinerLayout linearLayout = new ReactedUsersListView.ContainerLinerLayout(contentView.getContext());
                     linearLayout.hasHeader = hasHeader;
                     linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -29916,7 +29926,12 @@ public class ChatActivity extends BaseFragment implements
                     int[] foregroundIndex = new int[1];
                     ReactedUsersListView reactedUsersListView = null;
                     if (hasHeader) {
-                        List<TLRPC.ReactionCount> counters = primaryMessage.messageOwner.reactions.results;
+                        List<TLRPC.ReactionCount> counters = new ArrayList<>();
+                        for (TLRPC.ReactionCount reactionCount : primaryMessage.messageOwner.reactions.results) {
+                            if (AppearanceSettingsHook.shouldShowReaction(primaryMessage, reactionCount.reaction)) {
+                                counters.add(reactionCount);
+                            }
+                        }
                         LinearLayout tabsView = new LinearLayout(contentView.getContext());
                         tabsView.setOrientation(LinearLayout.HORIZONTAL);
                         ViewPager pager = new ViewPager(contentView.getContext());

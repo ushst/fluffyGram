@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
-    <string name="info_fork">custom Telegram messenger with tweaks</string>
+    <string name="info_fork">custom fluffyGram messenger with tweaks</string>
     <string name="FluffySettingsSection">Fluffy</string>
     <string name="FluffySettings">Fluffy Settings</string>
     <string name="FluffySettingsInfo">Custom features and experiments</string>
+    <string name="FluffyAppearanceSection">Appearance</string>
+    <string name="FluffyAppearance">Appearance</string>
+    <string name="FluffyAppearanceInfo">Visual preferences and message bubble tweaks for Fluffy.</string>
+    <string name="FluffyHideChannelPostStarsOffer">Hide paid reactions</string>
+    <string name="FluffyHideChannelPostStarsOfferInfo">Removes the paid star reaction button from message bubbles, reaction rows and related reaction pickers.</string>
+    <string name="FluffyDeveloperSettingsSection">Developer Settings</string>
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>
     <string name="FluffyDebugInfo">Tools and internal options for debugging Fluffy patches.</string>

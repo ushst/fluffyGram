@@ -60,6 +60,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Stars.StarsReactionsSheet;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -190,6 +191,7 @@ public class ReactionsLayoutInBubble {
                 boolean includeEmptyStarButton = false;
                 boolean includeEmptyLikeButton = forceLikeDislikeReactions;
                 boolean includeEmptyDislikeButton = forceLikeDislikeReactions;
+                final boolean showStarReaction = AppearanceSettingsHook.shouldShowChannelPostStarsUi(messageObject);
 
                 final TLRPC.ChatFull chatInfo = MessagesController.getInstance(currentAccount).getChatFull(-messageObject.getDialogId());
                 if (!isSmall && !messageObject.messageOwner.reactions.results.isEmpty() && chatInfo != null && chatInfo.paid_reactions_available) {
@@ -197,7 +199,10 @@ public class ReactionsLayoutInBubble {
                     for (int i = 0; i < messageObject.messageOwner.reactions.results.size(); i++) {
                         TLRPC.ReactionCount reactionCount = messageObject.messageOwner.reactions.results.get(i);
                         if (reactionCount.reaction instanceof TLRPC.TL_reactionPaid) {
-                            hasPaidReaction = true;
+                            if (showStarReaction) {
+                                hasPaidReaction = true;
+                            }
+                            continue;
                         }
                         if (reactionCount.reaction instanceof TLRPC.TL_reactionEmoji) {
                             String emoji = ((TLRPC.TL_reactionEmoji) reactionCount.reaction).emoticon;
@@ -209,7 +214,7 @@ public class ReactionsLayoutInBubble {
                             }
                         }
                     }
-                    if (!hasPaidReaction) {
+                    if (showStarReaction && !hasPaidReaction) {
                         includeEmptyStarButton = true;
                     }
                 }
@@ -238,6 +243,9 @@ public class ReactionsLayoutInBubble {
                         reactionCount.count = 0;
                     } else {
                         reactionCount = messageObject.messageOwner.reactions.results.get(i);
+                    }
+                    if (!AppearanceSettingsHook.shouldShowReaction(messageObject, reactionCount.reaction)) {
+                        continue;
                     }
                     ReactionButton old = null;
                     for (int j = 0; j < oldButtons.size(); ++j) {
