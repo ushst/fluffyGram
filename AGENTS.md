@@ -5,7 +5,7 @@ All custom changes in Telegram core code must be implemented as patches.
 
 ## Rule
 1. In original Telegram files (`org.telegram...`), add only minimal hook calls (bridge methods).
-2. Write patch files in Kotlin by default.
+2. Write patch files in Java by default.
 3. Keep full custom logic in separate files under:
 `TMessagesProj/src/main/java/org/ushastoe/fluffy/...`
 4. Do not place business logic directly into Telegram core classes.
@@ -34,10 +34,12 @@ private void applyFluffyPatch() {
 }
 ```
 
-```kotlin
+```java
 // in org.ushastoe.fluffy.patches
-object FluffyFeaturePatch {
-    fun apply(target: Any?) {
+public final class FluffyFeaturePatch {
+    private FluffyFeaturePatch() {}
+
+    public static void apply(Object target) {
         // custom logic
     }
 }
