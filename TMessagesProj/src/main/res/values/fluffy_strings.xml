@@ -1,4 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="SmsOnlyOfficialWarning">Note: SMS verification is limited to ONLY official mobile apps</string>
+    <string name="info_fork">custom Telegram messenger with tweaks</string>
+    <string name="FluffySettingsSection">Fluffy</string>
+    <string name="FluffySettings">Fluffy Settings</string>
+    <string name="FluffySettingsInfo">Custom features and experiments</string>
+    <string name="FluffyDebugSection">Debug</string>
+    <string name="FluffyDebug">Debug</string>
+    <string name="FluffyDebugInfo">Tools and internal options for debugging Fluffy patches.</string>
+    <string name="FluffySaveLog">Save Log</string>
+    <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
+    <string name="FluffyLocalLogsTitle">Local Logs</string>
+    <string name="FluffyLocalLogsUnavailable">This account is not fully authorized yet, so a local log cannot be created.</string>
+    <string name="FluffyLocalLogsConsentMessage">Fluffy can save local debug logs on this device to help diagnose crashes and account-specific issues.\n\nStored format: one local file per session or manual save, including the account id and creation date in the file name.\n\nIf the app crashes, the crash is written into the current session log and the next launch creates a new log file.\n\nPress OK to enable local log saving for this account. Cancel keeps local log saving disabled.</string>
+    <string name="FluffyLocalLogsSaved">Local log saved to:</string>
+    <string name="FluffyLocalLogsSaveFailed">Failed to save the local log file.</string>
+    <string name="FluffyGoogleCloudSection">Google Cloud</string>
+    <string name="FluffyGoogleCloudStatus">Connection status</string>
+    <string name="FluffyGoogleCloudServices">Google Play Services</string>
+    <string name="FluffyGoogleCloudPushType">Push type</string>
+    <string name="FluffyGoogleCloudToken">FCM token</string>
+    <string name="FluffyGoogleCloudState">State</string>
+    <string name="FluffyGoogleCloudTokenMissing">not received</string>
+    <string name="FluffyGoogleCloudStateEmpty">empty</string>
+    <string name="FluffyStatusConnected">Connected</string>
+    <string name="FluffyStatusConnecting">Connecting...</string>
+    <string name="FluffyStatusWaiting">Waiting</string>
+    <string name="FluffyStatusError">Error</string>
+    <string name="FluffyStatusInactive">Inactive</string>
+    <string name="FluffyStatusAvailable">Available</string>
+    <string name="FluffyStatusUnavailable">Unavailable</string>
 </resources>

@@ -223,6 +223,7 @@ import org.telegram.ui.TON.TONIntroActivity;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
 import java.io.BufferedReader;
@@ -1195,6 +1196,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             showTosActivity(account, UserConfig.getInstance(account).unacceptedTermsOfService);
         }
         updateCurrentConnectionState(currentAccount);
+        FluffyLocalLogHook.onSelectedAccountChanged(this, account);
 
         switchingAccount = false;
     }
@@ -6767,6 +6769,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         ApplicationLoader.mainInterfacePaused = false;
         MessagesController.getInstance(currentAccount).sortDialogs(null);
         showLanguageAlert(false);
+        FluffyLocalLogHook.onLaunchActivityResumed(this);
         Utilities.stageQueue.postRunnable(() -> {
             ApplicationLoader.mainInterfacePausedStageQueue = false;
             ApplicationLoader.mainInterfacePausedStageQueueTime = System.currentTimeMillis();

@@ -44,6 +44,7 @@ import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
+import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 
 import java.io.File;
 import java.util.Locale;
@@ -288,6 +289,7 @@ public class ApplicationLoader extends Application {
         }
 
         super.onCreate();
+        FluffyLocalLogHook.onApplicationCreated(this);
 
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("app start time = " + (startTime = SystemClock.elapsedRealtime()));
