@@ -15,7 +15,6 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
@@ -43,7 +42,7 @@ public class HeaderSettingsCell extends FrameLayout {
         titleTextView = new TextView(context);
         titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
-        titleTextView.setText(LocaleController.getString(ApplicationLoader.isBetaBuild() ? R.string.AppNameBeta : R.string.AppName));
+        titleTextView.setText(LocaleController.getString(R.string.AppName));
         titleTextView.setLines(1);
         titleTextView.setMaxLines(1);
         titleTextView.setSingleLine(true);
