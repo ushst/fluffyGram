@@ -18,6 +18,7 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -29,15 +30,14 @@ public class FluffyDebugActivity extends BaseFragment {
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
+    private static final int VIEW_TYPE_INFO = 2;
 
     private static final int ROW_DEBUG_HEADER = 0;
     private static final int ROW_SAVE_LOG = 1;
-    private static final int ROW_GOOGLE_CLOUD_HEADER = 2;
-    private static final int ROW_GOOGLE_CLOUD_STATUS = 3;
-    private static final int ROW_GOOGLE_CLOUD_SERVICES = 4;
-    private static final int ROW_GOOGLE_CLOUD_PUSH_TYPE = 5;
-    private static final int ROW_GOOGLE_CLOUD_TOKEN = 6;
-    private static final int ROW_GOOGLE_CLOUD_STATE = 7;
+    private static final int ROW_SAVE_LOG_INFO = 2;
+    private static final int ROW_GOOGLE_CLOUD_HEADER = 3;
+    private static final int ROW_GOOGLE_CLOUD_STATUS = 4;
+    private static final int ROW_GOOGLE_CLOUD_INFO = 5;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -47,7 +47,7 @@ public class FluffyDebugActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.FluffyDebug));
+        actionBar.setTitle(LocaleController.getString(R.string.AppName));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -95,18 +95,14 @@ public class FluffyDebugActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyDebugSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
+                LocaleController.getString(R.string.FluffySaveLogInfo), null));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GOOGLE_CLOUD_HEADER,
                 LocaleController.getString(R.string.FluffyGoogleCloudSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GOOGLE_CLOUD_STATUS,
                 LocaleController.getString(R.string.FluffyGoogleCloudStatus), getGoogleCloudStatusValue()));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GOOGLE_CLOUD_SERVICES,
-                LocaleController.getString(R.string.FluffyGoogleCloudServices), getGoogleCloudServicesValue()));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GOOGLE_CLOUD_PUSH_TYPE,
-                LocaleController.getString(R.string.FluffyGoogleCloudPushType), getGoogleCloudPushTypeValue()));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GOOGLE_CLOUD_TOKEN,
-                LocaleController.getString(R.string.FluffyGoogleCloudToken), getGoogleCloudTokenValue()));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GOOGLE_CLOUD_STATE,
-                LocaleController.getString(R.string.FluffyGoogleCloudState), getGoogleCloudStateValue()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_GOOGLE_CLOUD_INFO,
+                getGoogleCloudStatusDetails(), null));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -132,33 +128,36 @@ public class FluffyDebugActivity extends BaseFragment {
         return LocaleController.getString(R.string.FluffyStatusWaiting);
     }
 
-    private String getGoogleCloudServicesValue() {
+    private CharSequence getGoogleCloudStatusDetails() {
         boolean hasServices = PushListenerController.GooglePushListenerServiceProvider.INSTANCE.hasServices();
-        return hasServices
-                ? LocaleController.getString(R.string.FluffyStatusAvailable)
-                : LocaleController.getString(R.string.FluffyStatusUnavailable);
-    }
-
-    private String getGoogleCloudPushTypeValue() {
+        String pushType;
         if (SharedConfig.pushType == PushListenerController.PUSH_TYPE_FIREBASE) {
-            return "Firebase";
+            pushType = "Firebase";
+        } else if (SharedConfig.pushType == PushListenerController.PUSH_TYPE_HUAWEI) {
+            pushType = "Huawei";
+        } else {
+            pushType = String.valueOf(SharedConfig.pushType);
         }
-        if (SharedConfig.pushType == PushListenerController.PUSH_TYPE_HUAWEI) {
-            return "Huawei";
-        }
-        return String.valueOf(SharedConfig.pushType);
-    }
 
-    private String getGoogleCloudTokenValue() {
-        return TextUtils.isEmpty(SharedConfig.pushString)
+        String token = TextUtils.isEmpty(SharedConfig.pushString)
                 ? LocaleController.getString(R.string.FluffyGoogleCloudTokenMissing)
                 : maskToken(SharedConfig.pushString);
-    }
-
-    private String getGoogleCloudStateValue() {
-        return TextUtils.isEmpty(SharedConfig.pushStringStatus)
+        String state = TextUtils.isEmpty(SharedConfig.pushStringStatus)
                 ? LocaleController.getString(R.string.FluffyGoogleCloudStateEmpty)
                 : SharedConfig.pushStringStatus;
+
+        return String.format(
+                java.util.Locale.US,
+                "%s: %s\n%s: %s\n%s: %s\n%s: %s",
+                LocaleController.getString(R.string.FluffyGoogleCloudServices),
+                hasServices ? LocaleController.getString(R.string.FluffyStatusAvailable) : LocaleController.getString(R.string.FluffyStatusUnavailable),
+                LocaleController.getString(R.string.FluffyGoogleCloudPushType),
+                pushType,
+                LocaleController.getString(R.string.FluffyGoogleCloudToken),
+                token,
+                LocaleController.getString(R.string.FluffyGoogleCloudState),
+                state
+        );
     }
 
     private String maskToken(String token) {
@@ -190,8 +189,7 @@ public class FluffyDebugActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            int position = holder.getAdapterPosition();
-            return position != RecyclerView.NO_POSITION && items.get(position).id == ROW_SAVE_LOG;
+            return holder.getItemViewType() == VIEW_TYPE_TEXT;
         }
 
         @Override
@@ -205,9 +203,11 @@ public class FluffyDebugActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
-            } else {
+            } else if (viewType == VIEW_TYPE_TEXT) {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else {
+                view = new TextInfoPrivacyCell(parent.getContext());
             }
             return new RecyclerListView.Holder(view);
         }
@@ -217,13 +217,12 @@ public class FluffyDebugActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
+            } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, item.value, false);
             } else {
-                TextSettingsCell cell = (TextSettingsCell) holder.itemView;
-                if (TextUtils.isEmpty(item.value)) {
-                    cell.setText(item.text, false);
-                } else {
-                    cell.setTextAndValue(item.text, item.value, false);
-                }
+                TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+                cell.setFixedSize(0);
+                cell.setText(item.text);
             }
         }
     }
