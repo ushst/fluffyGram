@@ -13,14 +13,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
+import org.ushastoe.fluffy.patches.AppearanceSettingsPatch;
 
 import java.util.ArrayList;
 
@@ -29,10 +32,13 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_INFO = 2;
+    private static final int VIEW_TYPE_TEXT = 3;
 
     private static final int ROW_APPEARANCE_HEADER = 0;
     private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 1;
     private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER_INFO = 2;
+    private static final int ROW_DIALOGS_TITLE_MODE = 3;
+    private static final int ROW_DIALOGS_TITLE_MODE_INFO = 4;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -72,6 +78,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(hidden);
                 }
+            } else if (item.id == ROW_DIALOGS_TITLE_MODE) {
+                showDialogsTitleModeDialog();
             }
         });
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -97,9 +105,43 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 AppearanceSettingsHook.isChannelPostStarsOfferHidden()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_HIDE_CHANNEL_POST_STARS_OFFER_INFO,
                 LocaleController.getString(R.string.FluffyHideChannelPostStarsOfferInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DIALOGS_TITLE_MODE,
+                LocaleController.getString(R.string.FluffyCenterDialogsTitle),
+                false));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DIALOGS_TITLE_MODE_INFO,
+                LocaleController.getString(R.string.FluffyCenterDialogsTitleInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private void showDialogsTitleModeDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] items = new CharSequence[] {
+                LocaleController.getString(R.string.FluffyDialogsTitleModeDefault),
+                LocaleController.getString(R.string.FluffyDialogsTitleModeCentered),
+                LocaleController.getString(R.string.FluffyDialogsTitleModeCenteredIgnoreActions)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyCenterDialogsTitle));
+        builder.setItems(items, (dialog, which) -> {
+            AppearanceSettingsHook.setDialogsTitleMode(which);
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence getDialogsTitleModeValue() {
+        int mode = AppearanceSettingsHook.getDialogsTitleMode();
+        if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_CENTERED) {
+            return LocaleController.getString(R.string.FluffyDialogsTitleModeCentered);
+        }
+        if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_CENTERED_IGNORE_ACTIONS) {
+            return LocaleController.getString(R.string.FluffyDialogsTitleModeCenteredIgnoreActions);
+        }
+        return LocaleController.getString(R.string.FluffyDialogsTitleModeDefault);
     }
 
     private static class ItemInner {
@@ -124,7 +166,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_CHECK;
+            int type = holder.getItemViewType();
+            return type == VIEW_TYPE_CHECK || type == VIEW_TYPE_TEXT;
         }
 
         @Override
@@ -141,6 +184,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_TEXT) {
+                view = new TextSettingsCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
             }
@@ -154,6 +200,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.checked, false);
+            } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, getDialogsTitleModeValue(), false);
             } else {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 if (TextUtils.isEmpty(item.text)) {

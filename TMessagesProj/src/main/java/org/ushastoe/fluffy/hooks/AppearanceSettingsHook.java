@@ -5,6 +5,11 @@ import org.telegram.tgnet.TLRPC;
 import org.ushastoe.fluffy.patches.AppearanceSettingsPatch;
 
 public final class AppearanceSettingsHook {
+
+    public interface Listener {
+        void onAppearanceSettingsChanged();
+    }
+
     private AppearanceSettingsHook() {
     }
 
@@ -26,5 +31,20 @@ public final class AppearanceSettingsHook {
 
     public static boolean shouldShowReaction(MessageObject messageObject, TLRPC.Reaction reaction) {
         return AppearanceSettingsPatch.shouldShowReaction(messageObject, reaction);
+    }
+
+    public static int getDialogsTitleMode() {
+        return AppearanceSettingsPatch.getDialogsTitleMode();
+    }
+
+    public static void setDialogsTitleMode(int mode) {
+        AppearanceSettingsPatch.setDialogsTitleMode(mode);
+    }
+
+    public static void addListener(Listener listener) {
+        if (listener == null) {
+            return;
+        }
+        AppearanceSettingsPatch.addListener(listener::onAppearanceSettingsChanged);
     }
 }

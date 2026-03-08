@@ -10,6 +10,11 @@
     <string name="FluffyAppearanceInfo">Visual preferences and message bubble tweaks for Fluffy.</string>
     <string name="FluffyHideChannelPostStarsOffer">Hide paid reactions</string>
     <string name="FluffyHideChannelPostStarsOfferInfo">Removes the paid star reaction button from message bubbles, reaction rows and related reaction pickers.</string>
+    <string name="FluffyCenterDialogsTitle">Main tabs title alignment</string>
+    <string name="FluffyCenterDialogsTitleInfo">Choose how titles are aligned on the main Chats, Contacts and Settings tabs.</string>
+    <string name="FluffyDialogsTitleModeDefault">Default</string>
+    <string name="FluffyDialogsTitleModeCentered">Centered</string>
+    <string name="FluffyDialogsTitleModeCenteredIgnoreActions">Centered without search/more</string>
     <string name="FluffyDeveloperSettingsSection">Developer Settings</string>
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>

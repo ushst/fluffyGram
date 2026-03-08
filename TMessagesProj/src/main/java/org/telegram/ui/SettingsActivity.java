@@ -130,6 +130,7 @@ import org.telegram.ui.bots.BotBiometry;
 import org.telegram.ui.bots.BotDownloads;
 import org.telegram.ui.bots.BotLocation;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.SettingsFluffyHook;
 
 import java.io.File;
@@ -284,6 +285,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setUseContainerForTitles();
+        if (hasMainTabs) {
+            DialogsCenteredTitleHook.attach(actionBar);
+        }
         actionBar.setTitle(getString(R.string.Settings));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override

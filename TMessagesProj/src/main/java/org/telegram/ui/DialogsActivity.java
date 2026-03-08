@@ -255,6 +255,7 @@ import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.UserListPoller;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
 
 import java.io.File;
@@ -3116,6 +3117,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         };
         actionBar.setAllowOverlayTitle(true);
         actionBar.setUseContainerForTitles();
+        DialogsCenteredTitleHook.attach(actionBar);
         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSelector), false);
         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), true);
         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarDefaultIcon), false);

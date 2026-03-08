@@ -63,6 +63,8 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.StoryViewer;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
+import org.ushastoe.fluffy.hooks.SettingsBranchTitleHook;
 
 import java.util.ArrayList;
 
@@ -396,6 +398,8 @@ public abstract class BaseFragment {
         if (inPreviewMode || inBubbleMode) {
             actionBar.setOccupyStatusBar(false);
         }
+        DialogsCenteredTitleHook.attach(actionBar);
+        SettingsBranchTitleHook.attachIfNeeded(this, actionBar);
         return actionBar;
     }
 
@@ -500,7 +504,9 @@ public abstract class BaseFragment {
     public void onResume() {
         isPaused = false;
         if (actionBar != null) {
+            SettingsBranchTitleHook.attachIfNeeded(this, actionBar);
             actionBar.onResume();
+            DialogsCenteredTitleHook.onTitleChanged(actionBar);
         }
         if (getLastStoryViewer() != null) {
             getLastStoryViewer().onResume();
@@ -711,6 +717,10 @@ public abstract class BaseFragment {
 
     public void onBecomeFullyVisible() {
         isFullyVisible = true;
+        if (actionBar != null) {
+            SettingsBranchTitleHook.attachIfNeeded(this, actionBar);
+            DialogsCenteredTitleHook.onTitleChanged(actionBar);
+        }
         AccessibilityManager mgr = (AccessibilityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACCESSIBILITY_SERVICE);
         if (mgr.isEnabled()) {
             ActionBar actionBar = getActionBar();

@@ -122,6 +122,7 @@ import org.telegram.ui.Components.URLSpanMono;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.Components.URLSpanUserMention;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.telegram.ui.Stories.recorder.HintView2;
 
 import java.util.ArrayList;
@@ -655,7 +656,7 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
                 particlesView.setAlpha(1f - totalProgress);
 
                 particlesView.setTranslationY(-(particlesView.getMeasuredHeight() - backgroundView.imageView.getMeasuredWidth()) / 2f + backgroundView.getY() + backgroundView.imageFrameLayout.getY());
-                float toX = dp(72) - backgroundView.titleView.getLeft();
+                float toX = DialogsCenteredTitleHook.getCollapsedTitleLeft(actionBar, backgroundView.titleView, dp(72)) - backgroundView.titleView.getLeft();
                 float f = totalProgress > 0.3f ? (totalProgress - 0.3f) / 0.7f : 0f;
                 backgroundView.titleView.setTranslationX(toX * (1f - CubicBezierInterpolator.EASE_OUT_QUINT.getInterpolation(1 - f)));
 
@@ -870,6 +871,7 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
         fragmentView = contentView;
         actionBar.setBackground(null);
         actionBar.setCastShadows(false);
+        actionBar.setUseContainerForTitles();
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override

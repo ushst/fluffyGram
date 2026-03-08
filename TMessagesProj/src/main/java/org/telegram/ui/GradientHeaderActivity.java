@@ -45,6 +45,7 @@ import org.telegram.ui.Components.Premium.StarParticlesView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SimpleThemeDescription;
 import org.telegram.ui.Components.UniversalAdapter;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.telegram.ui.Stories.recorder.HintView2;
 
 import java.util.ArrayList;
@@ -222,6 +223,8 @@ public abstract class GradientHeaderActivity extends BaseFragment {
         fragmentView = contentView;
         actionBar.setBackground(null);
         actionBar.setCastShadows(false);
+        actionBar.setUseContainerForTitles();
+        DialogsCenteredTitleHook.attach(actionBar);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
@@ -392,7 +395,7 @@ public abstract class GradientHeaderActivity extends BaseFragment {
             backgroundView.subtitleView.setAlpha(alpha);
             particlesView.setAlpha(1f - totalProgress);
             particlesView.setTranslationY(backgroundView.getY() + backgroundView.aboveTitleLayout.getY() - AndroidUtilities.dp(30));
-            float toX = AndroidUtilities.dp(72) - backgroundView.titleView.getLeft();
+            float toX = DialogsCenteredTitleHook.getCollapsedTitleLeft(actionBar, backgroundView.titleView, AndroidUtilities.dp(72)) - backgroundView.titleView.getLeft();
             float f = totalProgress > 0.3f ? (totalProgress - 0.3f) / 0.7f : 0f;
             backgroundView.titleView.setTranslationX(toX * (1f - CubicBezierInterpolator.EASE_OUT_QUINT.getInterpolation(1 - f)));
 

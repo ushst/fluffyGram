@@ -110,6 +110,7 @@ import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.Components.inset.WindowAnimatedInsetsProvider;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 
 import java.util.ArrayList;
 
@@ -990,6 +991,9 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     public ActionBar createActionBar(Context context) {
         ActionBar actionBar = super.createActionBar(context);
         actionBar.setUseContainerForTitles();
+        if (hasMainTabs) {
+            DialogsCenteredTitleHook.attach(actionBar);
+        }
         actionBar.getTitlesContainer().setTranslationX(dp(4));
         actionBar.setAddToContainer(false);
         actionBar.createAdditionalSubTitleOverlayContainer();

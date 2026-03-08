@@ -66,6 +66,7 @@ import org.telegram.ui.Components.SectionsScrollView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.SnowflakesEffect;
 import org.telegram.ui.Stars.StarsIntroActivity;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 
 import java.util.ArrayList;
 
@@ -179,6 +180,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
                 titleActionRunnable.run();
             }
         });
+        DialogsCenteredTitleHook.attach(this);
     }
 
     public INavigationLayout.BackButtonState getBackButtonState() {
@@ -479,6 +481,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
             titleTextView[0].setRightDrawableOnClick(rightDrawableOnClickListener);
         }
         fromBottom = false;
+        DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
     public void setRightDrawableOnClick(OnClickListener onClickListener) {
@@ -1496,6 +1499,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
     public void onResume() {
         resumed = true;
         updateAttachState();
+        DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
     protected void onPause() {
@@ -1625,6 +1629,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
             }).start();
         }
         titleActionRunnable = action != null ? action : lastRunnable;
+        DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
     public boolean isSearchFieldVisible() {
@@ -1805,6 +1810,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
             }
         }).start();
         requestLayout();
+        DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
     @Override
@@ -1830,6 +1836,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
         if (lastRightDrawable instanceof AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) {
             ((AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) lastRightDrawable).setParentView(titleTextView[0]);
         }
+        DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
     @Override

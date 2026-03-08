@@ -55,6 +55,7 @@ import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.ThemePreviewActivity;
 import org.telegram.ui.bots.AffiliateProgramFragment;
+import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -614,6 +615,8 @@ public class PremiumFeatureBottomSheet extends BottomSheet implements Notificati
         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), false);
         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), false);
         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), true);
+        actionBar.setUseContainerForTitles();
+        DialogsCenteredTitleHook.attach(actionBar);
 
         actionBar.setCastShadows(true);
         actionBar.setExtraHeight(dp(2));
