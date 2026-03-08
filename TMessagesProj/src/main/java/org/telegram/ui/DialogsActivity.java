@@ -255,6 +255,7 @@ import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.UserListPoller;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6668,7 +6669,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             getMessagesController().selectDialogFilter(filter, viewPages[a].dialogsType == 8 ? 1 : 0);
         }
         viewPages[1].isLocked = filter.locked;
-
+        DialogFilterSelectionHook.onSelectedFilterChanged(this, filter);
         viewPages[a].dialogsAdapter.setDialogsType(viewPages[a].dialogsType);
         viewPages[a].layoutManager.scrollToPositionWithOffset(viewPages[a].dialogsType == DIALOGS_TYPE_DEFAULT && hasHiddenArchive() && viewPages[a].archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN ? 1 : 0, (int) scrollYOffset);
         checkListLoad(viewPages[a]);
@@ -6725,6 +6726,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         final MessagesController.DialogFilter filter = filters.get(a);
                         filterTabsView.addTab(a, filter.localId, filter.name, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
                     }
+                }
+                int restoredSelectedType = DialogFilterSelectionHook.resolveSelectedType(this, viewPages[0].selectedType, filters);
+                if (restoredSelectedType >= 0 && restoredSelectedType < filters.size() && restoredSelectedType != viewPages[0].selectedType) {
+                    id = restoredSelectedType;
+                    stableId = filterTabsView.getStableId(restoredSelectedType);
+                    selectWithStableId = true;
+                    updateCurrentTab = true;
+                    viewPages[0].selectedType = restoredSelectedType;
                 }
                 if (stableId >= 0) {
                     if (selectWithStableId) {
