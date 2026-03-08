@@ -1,7 +1,6 @@
 package org.ushastoe.fluffy.ui;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -19,7 +18,6 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
@@ -31,14 +29,11 @@ public class FluffyAppearanceActivity extends BaseFragment {
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
-    private static final int VIEW_TYPE_INFO = 2;
-    private static final int VIEW_TYPE_TEXT = 3;
+    private static final int VIEW_TYPE_TEXT = 2;
 
     private static final int ROW_APPEARANCE_HEADER = 0;
     private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 1;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER_INFO = 2;
-    private static final int ROW_DIALOGS_TITLE_MODE = 3;
-    private static final int ROW_DIALOGS_TITLE_MODE_INFO = 4;
+    private static final int ROW_DIALOGS_TITLE_MODE = 2;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -48,7 +43,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.AppName));
+        actionBar.setTitle(LocaleController.getString(R.string.FluffyAppearance));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -103,13 +98,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_CHANNEL_POST_STARS_OFFER,
                 LocaleController.getString(R.string.FluffyHideChannelPostStarsOffer),
                 AppearanceSettingsHook.isChannelPostStarsOfferHidden()));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_HIDE_CHANNEL_POST_STARS_OFFER_INFO,
-                LocaleController.getString(R.string.FluffyHideChannelPostStarsOfferInfo), false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DIALOGS_TITLE_MODE,
                 LocaleController.getString(R.string.FluffyCenterDialogsTitle),
                 false));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DIALOGS_TITLE_MODE_INFO,
-                LocaleController.getString(R.string.FluffyCenterDialogsTitleInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -188,7 +179,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
-                view = new TextInfoPrivacyCell(parent.getContext());
+                view = new TextSettingsCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             }
             return new RecyclerListView.Holder(view);
         }
@@ -200,17 +192,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.checked, false);
-            } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, getDialogsTitleModeValue(), false);
             } else {
-                TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
-                if (TextUtils.isEmpty(item.text)) {
-                    cell.setFixedSize(12);
-                    cell.setText(null);
-                } else {
-                    cell.setFixedSize(0);
-                    cell.setText(item.text);
-                }
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, getDialogsTitleModeValue(), false);
             }
         }
     }
