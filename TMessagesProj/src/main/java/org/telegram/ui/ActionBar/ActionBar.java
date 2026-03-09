@@ -66,6 +66,7 @@ import org.telegram.ui.Components.SectionsScrollView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.SnowflakesEffect;
 import org.telegram.ui.Stars.StarsIntroActivity;
+import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 
 import java.util.ArrayList;
@@ -481,6 +482,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
             titleTextView[0].setRightDrawableOnClick(rightDrawableOnClickListener);
         }
         fromBottom = false;
+        DialogsAppTitleHook.onActionBarTitleUpdated(this);
         DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
@@ -1499,12 +1501,14 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
     public void onResume() {
         resumed = true;
         updateAttachState();
+        DialogsAppTitleHook.onActionBarResume(this);
         DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
     protected void onPause() {
         resumed = false;
         updateAttachState();
+        DialogsAppTitleHook.onActionBarPause(this);
         if (menu != null) {
             menu.hideAllPopupMenus();
         }
@@ -1836,6 +1840,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
         if (lastRightDrawable instanceof AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) {
             ((AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) lastRightDrawable).setParentView(titleTextView[0]);
         }
+        DialogsAppTitleHook.onActionBarAttached(this);
         DialogsCenteredTitleHook.onTitleChanged(this);
     }
 
@@ -1858,6 +1863,7 @@ public class ActionBar extends FrameLayout implements Theme.Colorable {
         if (lastRightDrawable instanceof AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) {
             ((AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) lastRightDrawable).setParentView(null);
         }
+        DialogsAppTitleHook.onActionBarDetached(this);
     }
 
     private void updateAttachState() {

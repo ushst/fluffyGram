@@ -85,6 +85,7 @@ import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 
 import java.util.ArrayList;
@@ -174,6 +175,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
     private ActionBar actionBar;
     private StoriesUtilities.EnsureStoryFileLoadedObject globalCancelable;
     private float menuItemsOffset;
+    private boolean showStatusWithTitle;
 
     public DialogStoriesCell(@NonNull Context context, BaseFragment fragment, int currentAccount, int type) {
         super(context);
@@ -338,6 +340,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         emojiStatusView = new ImageView(context);
         emojiStatusView.setScaleType(ImageView.ScaleType.CENTER);
         emojiStatusView.setImageDrawable(statusDrawable);
+        statusDrawable.setParentView(emojiStatusView);
         addView(emojiStatusView, LayoutHelper.createFrame(40, 40));
 
         subtitleOverlayContainer = new ActionBarAnimatedSubtitleOverlayContainer(context, null, ellipsizeSpanAnimator) {
@@ -623,6 +626,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             currentTitle = menuItemsOffset < dp(50) ? null :
                 LocaleController.formatPluralString("Stories", totalCount);
         }
+        showStatusWithTitle = !hasOverlayText && DialogsAppTitleHook.shouldShowDialogsStoryStatusWithTitle(currentTitle);
+        currentTitle = DialogsAppTitleHook.getDialogsStoryTitle(currentTitle, currentAccount);
 
         if (!hasOverlayText) {
             titleView.setText(currentTitle, animated && !LocaleController.isRTL);
@@ -925,21 +930,30 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                 titleLeft = logoLeft - dp(1);
                 titleView.getDrawable().setRightPadding(0);
             } else {
-                titleLeft = DialogsCenteredTitleHook.getCollapsedContentLeft(actionBar, titleView.width(), lastViewRight);
+                float titleContentWidth = titleView.width();
+                if (showStatusWithTitle) {
+                    titleContentWidth += emojiStatusView.getMeasuredWidth() - dpf2(3.33f);
+                }
+                titleLeft = DialogsCenteredTitleHook.getCollapsedContentLeft(actionBar, titleContentWidth, lastViewRight);
                 titleView.getDrawable().setRightPadding(DialogsCenteredTitleHook.getCollapsedContentRightPadding(
                         actionBar,
                         titleLeft,
-                        titleView.getMeasuredWidth(),
+                        titleContentWidth,
                         lastViewRight - dp(12) + actionBar.menu.getVisibleItemsMeasuredWidthWithAlpha() * progress
-                ));
+                ) + (showStatusWithTitle ? emojiStatusView.getMeasuredWidth() - dpf2(3.33f) : 0));
             }
             titleView.setTranslationX(titleLeft);
 
             telegramLogoView.setTranslationX(titleView.getTranslationX() + dp(1));
             telegramLogoView.setTranslationY(bottomY + dp(14 + FAKE_TOP_PADDING + 4.333f) + translationOffset /*titleView.getTranslationY() + dpf2(37.33f)*/);
 
-            emojiStatusView.setTranslationX(titleView.getTranslationX() - dpf2(3.33f) + telegramLogoView.getMeasuredWidth());
-            emojiStatusView.setTranslationY(bottomY + dp(14 - 11 + FAKE_TOP_PADDING + 4.333f) + translationOffset);
+            if (useLogoLayout) {
+                emojiStatusView.setTranslationX(titleView.getTranslationX() - dpf2(3.33f) + telegramLogoView.getMeasuredWidth());
+                emojiStatusView.setTranslationY(bottomY + dp(14 - 11 + FAKE_TOP_PADDING + 4.333f) + translationOffset);
+            } else if (showStatusWithTitle) {
+                emojiStatusView.setTranslationX(titleView.getTranslationX() + titleView.width() - dpf2(3.33f));
+                emojiStatusView.setTranslationY(titleView.getTranslationY() + (titleView.getMeasuredHeight() - emojiStatusView.getMeasuredHeight()) / 2f - dp(1));
+            }
 
             subtitleOverlayContainer.setTranslationX(titleView.getTranslationX());
             subtitleOverlayContainer.setTranslationY(bottomY + dp(15 + FAKE_TOP_PADDING + 4.333f + 8));
@@ -1274,7 +1288,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             titleView.setText(currentTitle, !LocaleController.isRTL);
         }
 
-        animatorHasTitleText.setValue(hasOverlayText, true);
+        animatorHasTitleText.setValue(hasOverlayText || !TextUtils.isEmpty(currentTitle), true);
         if (hasEllipsizedText) {
             ellipsizeSpanAnimator.addView(titleView);
         } else {
@@ -1328,6 +1342,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
 
     public void setActionBar(ActionBar actionBar) {
         this.actionBar = actionBar;
+        DialogsAppTitleHook.refreshDialogsStoryStatus(this, currentAccount);
     }
 
     public float overscrollProgress() {
@@ -2189,8 +2204,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             telegramLogoView.setVisibility(logoAlpha > 0 ? VISIBLE : GONE);
         }
         if (emojiStatusView != null) {
-            emojiStatusView.setAlpha(logoAlpha);
-            emojiStatusView.setVisibility(logoAlpha > 0 ? VISIBLE : GONE);
+            float emojiAlpha = (showStatusWithTitle ? titleVisibility : logoVisibility) * progress;
+            emojiStatusView.setAlpha(emojiAlpha);
+            emojiStatusView.setVisibility(emojiAlpha > 0 ? VISIBLE : GONE);
         }
         if (subtitleOverlayContainer != null) {
             subtitleOverlayContainer.setAlpha(progress);

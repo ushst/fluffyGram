@@ -255,6 +255,7 @@ import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.UserListPoller;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
 
@@ -3442,12 +3443,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else {
                 statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
                 statusDrawable.center = true;
-                logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
-                logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
-                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
-                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                actionBar.setTitle(ssb, statusDrawable);
+                DialogsAppTitleHook.applyDialogsActionBarTitle(actionBar, currentAccount, statusDrawable);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
             if (folderId == 0) {
@@ -6893,6 +6889,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             commentView.onResume();
         }
         if (!onlySelect && folderId == 0) {
+            Runnable refreshDialogsActionBar = () -> {
+                DialogsAppTitleHook.applyDialogsActionBarTitle(actionBar, currentAccount, statusDrawable);
+                updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
+                DialogsCenteredTitleHook.onTitleChanged(actionBar);
+            };
+            refreshDialogsActionBar.run();
+            actionBar.post(refreshDialogsActionBar);
+            actionBar.postDelayed(refreshDialogsActionBar, 64);
+            DialogsAppTitleHook.refreshDialogsActionBarTitleLayout(actionBar);
             getMediaDataController().checkStickers(MediaDataController.TYPE_EMOJI);
         }
         if (searchViewPager != null) {
@@ -10280,6 +10285,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         }
                     }
                 }
+            }
+            if (!onlySelect && folderId == 0) {
+                DialogsAppTitleHook.onDialogsEmojiLoaded(actionBar);
             }
             if (filterTabsView != null) {
                 filterTabsView.getTabsContainer().invalidateViews();

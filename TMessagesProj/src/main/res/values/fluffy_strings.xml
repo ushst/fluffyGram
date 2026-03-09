@@ -33,6 +33,15 @@
     <string name="FluffyDialogsTitleModeDefault">Default</string>
     <string name="FluffyDialogsTitleModeCentered">Centered</string>
     <string name="FluffyDialogsTitleModeCenteredIgnoreActions">Centered without search/more</string>
+    <string name="FluffyDialogsAppTitle">Main tabs title</string>
+    <string name="FluffyDialogsAppTitleOptionFluffyGram">fluffyGram</string>
+    <string name="FluffyDialogsAppTitleOptionFluffy">fluffy</string>
+    <string name="FluffyDialogsAppTitleOptionTelegram">Telegram</string>
+    <string name="FluffyDialogsAppTitleOptionUsername">Username</string>
+    <string name="FluffyDialogsAppTitleOptionFirstName">First name</string>
+    <string name="FluffyDialogsAppTitleOptionCustom">Custom</string>
+    <string name="FluffyDialogsAppTitleCustomText">Enter a custom title for the main tabs. Leave it empty to use fluffyGram.</string>
+    <string name="FluffyDialogsAppTitleCustomHint">Custom title</string>
     <string name="FluffyDeveloperSettingsSection">Developer Settings</string>
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>

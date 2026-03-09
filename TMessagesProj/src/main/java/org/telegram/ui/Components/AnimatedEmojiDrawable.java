@@ -47,6 +47,7 @@ import org.telegram.tgnet.Vector;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.SelectAnimatedEmojiDialog;
 import org.telegram.ui.Stars.StarsReactionsSheet;
+import org.ushastoe.fluffy.hooks.AnimatedEmojiStatusHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -562,6 +563,7 @@ public class AnimatedEmojiDrawable extends Drawable {
                         preloading = false;
                         AndroidUtilities.runOnUIThread(AnimatedEmojiDrawable.this::updateAttachState);
                     }
+                    AnimatedEmojiStatusHook.onAnimatedEmojiImageReady(AnimatedEmojiDrawable.this, cacheType, attached, AnimatedEmojiDrawable.this.getDocumentId());
                     return r;
                 }
             };
@@ -902,6 +904,7 @@ public class AnimatedEmojiDrawable extends Drawable {
             } else {
                 imageReceiver.onDetachedFromWindow();
             }
+            AnimatedEmojiStatusHook.onAnimatedEmojiAttachStateChanged(this, cacheType, attached, getDocumentId());
             if (LOG_MEMORY_LEAK) {
                 if (attachedDrawable == null) {
                     attachedDrawable = new ArrayList<>();
@@ -1129,6 +1132,7 @@ public class AnimatedEmojiDrawable extends Drawable {
             changeProgress.setParent(parentView);
             particlesAlpha.setParent(parentView);
             this.parentView = parentView;
+            AnimatedEmojiStatusHook.onSwapDrawableParentChanged(drawables[0], drawables[1], parentView);
         }
 
         public void play() {
@@ -1330,6 +1334,7 @@ public class AnimatedEmojiDrawable extends Drawable {
             lastColor = null;
             colorFilter = null;
             colorFilterLastColor = 0;
+            AnimatedEmojiStatusHook.onSwapDrawableParentChanged(drawables[0], drawables[1], parentView);
             play();
             invalidate();
             return true;
@@ -1387,6 +1392,7 @@ public class AnimatedEmojiDrawable extends Drawable {
             lastColor = null;
             colorFilter = null;
             colorFilterLastColor = 0;
+            AnimatedEmojiStatusHook.onSwapDrawableParentChanged(drawables[0], drawables[1], parentView);
             play();
             invalidate();
         }
@@ -1419,6 +1425,7 @@ public class AnimatedEmojiDrawable extends Drawable {
             lastColor = null;
             colorFilter = null;
             colorFilterLastColor = 0;
+            AnimatedEmojiStatusHook.onSwapDrawableParentChanged(drawables[0], drawables[1], parentView);
             play();
             invalidate();
         }

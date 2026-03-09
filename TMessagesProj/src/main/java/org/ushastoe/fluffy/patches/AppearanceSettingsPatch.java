@@ -13,10 +13,18 @@ public final class AppearanceSettingsPatch {
     private static final String PREFS_NAME = "fluffy_appearance_settings";
     private static final String KEY_HIDE_CHANNEL_POST_STARS_OFFER = "hide_channel_post_stars_offer";
     private static final String KEY_DIALOGS_TITLE_MODE = "dialogs_title_mode";
+    private static final String KEY_DIALOGS_APP_TITLE_MODE = "dialogs_app_title_mode";
+    private static final String KEY_DIALOGS_APP_TITLE_CUSTOM = "dialogs_app_title_custom";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
     public static final int DIALOGS_TITLE_MODE_CENTERED_IGNORE_ACTIONS = 2;
+    public static final int DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM = 0;
+    public static final int DIALOGS_APP_TITLE_MODE_FLUFFY = 1;
+    public static final int DIALOGS_APP_TITLE_MODE_TELEGRAM = 2;
+    public static final int DIALOGS_APP_TITLE_MODE_USERNAME = 3;
+    public static final int DIALOGS_APP_TITLE_MODE_FIRST_NAME = 4;
+    public static final int DIALOGS_APP_TITLE_MODE_CUSTOM = 5;
     private static final CopyOnWriteArrayList<Listener> listeners = new CopyOnWriteArrayList<>();
 
     public interface Listener {
@@ -74,6 +82,45 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static int getDialogsAppTitleMode() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
+        }
+        int mode = preferences.getInt(KEY_DIALOGS_APP_TITLE_MODE, DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM);
+        if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_CUSTOM) {
+            return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
+        }
+        return mode;
+    }
+
+    public static void setDialogsAppTitleMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_DIALOGS_APP_TITLE_MODE, clampDialogsAppTitleMode(mode)).apply();
+        notifyListeners();
+    }
+
+    public static String getDialogsAppTitleCustom() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return "";
+        }
+        String value = preferences.getString(KEY_DIALOGS_APP_TITLE_CUSTOM, "");
+        return value != null ? value : "";
+    }
+
+    public static void setDialogsAppTitleCustom(String value) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putString(KEY_DIALOGS_APP_TITLE_CUSTOM, value != null ? value.trim() : "").apply();
+        notifyListeners();
+    }
+
     public static void addListener(Listener listener) {
         if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener);
@@ -90,6 +137,13 @@ public final class AppearanceSettingsPatch {
         for (Listener listener : listeners) {
             listener.onAppearanceSettingsChanged();
         }
+    }
+
+    private static int clampDialogsAppTitleMode(int mode) {
+        if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_CUSTOM) {
+            return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
+        }
+        return mode;
     }
 
     private static SharedPreferences getPreferences() {

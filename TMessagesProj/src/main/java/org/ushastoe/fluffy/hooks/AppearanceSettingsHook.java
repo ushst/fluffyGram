@@ -41,6 +41,22 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setDialogsTitleMode(mode);
     }
 
+    public static int getDialogsAppTitleMode() {
+        return AppearanceSettingsPatch.getDialogsAppTitleMode();
+    }
+
+    public static void setDialogsAppTitleMode(int mode) {
+        AppearanceSettingsPatch.setDialogsAppTitleMode(mode);
+    }
+
+    public static String getDialogsAppTitleCustom() {
+        return AppearanceSettingsPatch.getDialogsAppTitleCustom();
+    }
+
+    public static void setDialogsAppTitleCustom(String value) {
+        AppearanceSettingsPatch.setDialogsAppTitleCustom(value);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;
