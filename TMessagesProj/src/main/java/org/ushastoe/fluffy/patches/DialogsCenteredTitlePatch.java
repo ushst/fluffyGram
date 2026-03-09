@@ -5,6 +5,7 @@ import android.view.Gravity;
 
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.SimpleTextView;
+import org.telegram.ui.Components.ChatAvatarContainer;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 
 import java.lang.ref.WeakReference;
@@ -70,7 +71,7 @@ public final class DialogsCenteredTitlePatch {
             return defaultLeft;
         }
 
-        int[] bounds = calculateBounds(actionBar, mode);
+        int[] bounds = calculateBounds(actionBar, mode, null);
         int leftBound = bounds[0];
         int rightBound = bounds[1];
         if (rightBound <= leftBound) {
@@ -80,13 +81,69 @@ public final class DialogsCenteredTitlePatch {
         return leftBound + Math.max(0, (availableWidth - titleView.getMeasuredWidth()) / 2f);
     }
 
+    public static float getCollapsedTitleRightPadding(ActionBar actionBar, View titleView, float defaultRightPadding) {
+        if (actionBar == null || titleView == null) {
+            return defaultRightPadding;
+        }
+        int mode = AppearanceSettingsHook.getDialogsTitleMode();
+        if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_DEFAULT || actionBar.getMeasuredWidth() <= 0 || titleView.getMeasuredWidth() <= 0) {
+            return defaultRightPadding;
+        }
+
+        int[] bounds = calculateBounds(actionBar, mode, null);
+        int leftBound = bounds[0];
+        int rightBound = bounds[1];
+        if (rightBound <= leftBound) {
+            return defaultRightPadding;
+        }
+        return Math.max(0, actionBar.getMeasuredWidth() - rightBound);
+    }
+
+    public static float getCollapsedContentLeft(ActionBar actionBar, float contentWidth, float defaultLeft) {
+        if (actionBar == null || contentWidth <= 0) {
+            return defaultLeft;
+        }
+        int mode = AppearanceSettingsHook.getDialogsTitleMode();
+        if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_DEFAULT || actionBar.getMeasuredWidth() <= 0) {
+            return defaultLeft;
+        }
+
+        int[] bounds = calculateBounds(actionBar, mode, null);
+        int leftBound = bounds[0];
+        int rightBound = bounds[1];
+        if (rightBound <= leftBound) {
+            return defaultLeft;
+        }
+        float availableWidth = rightBound - leftBound;
+        return leftBound + Math.max(0, (availableWidth - contentWidth) / 2f);
+    }
+
+    public static float getCollapsedContentRightPadding(ActionBar actionBar, float contentLeft, float containerWidth, float defaultRightPadding) {
+        if (actionBar == null || containerWidth <= 0) {
+            return defaultRightPadding;
+        }
+        int mode = AppearanceSettingsHook.getDialogsTitleMode();
+        if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_DEFAULT || actionBar.getMeasuredWidth() <= 0) {
+            return defaultRightPadding;
+        }
+
+        int[] bounds = calculateBounds(actionBar, mode, null);
+        int rightBound = bounds[1];
+        if (rightBound <= bounds[0]) {
+            return defaultRightPadding;
+        }
+        return Math.max(0, contentLeft + containerWidth - rightBound);
+    }
+
     private static void centerTitleViews(ActionBar actionBar) {
+        View customTitleView = findCustomTitleView(actionBar);
         int mode = AppearanceSettingsHook.getDialogsTitleMode();
         if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_DEFAULT) {
             applyGravity(actionBar.getTitleTextView(), false);
             applyGravity(actionBar.getTitleTextView2(), false);
             resetTitleView(actionBar.getTitleTextView());
             resetTitleView(actionBar.getTitleTextView2());
+            resetTitleView(customTitleView);
             return;
         }
 
@@ -97,7 +154,7 @@ public final class DialogsCenteredTitlePatch {
             return;
         }
 
-        int[] bounds = calculateBounds(actionBar, mode);
+        int[] bounds = calculateBounds(actionBar, mode, customTitleView);
         int leftBound = bounds[0];
         int rightBound = bounds[1];
 
@@ -107,16 +164,17 @@ public final class DialogsCenteredTitlePatch {
 
         centerTitleView(actionBar.getTitleTextView(), leftBound, rightBound);
         centerTitleView(actionBar.getTitleTextView2(), leftBound, rightBound);
+        centerCustomTitleView(customTitleView, leftBound, rightBound);
     }
 
-    private static int[] calculateBounds(ActionBar actionBar, int mode) {
+    private static int[] calculateBounds(ActionBar actionBar, int mode, View excludedView) {
         int leftBound = 0;
         int rightBound = actionBar.getMeasuredWidth();
         float centerX = actionBar.getMeasuredWidth() / 2.0f;
 
         for (int i = 0; i < actionBar.getChildCount(); i++) {
             View child = actionBar.getChildAt(i);
-            if (!shouldAffectBounds(actionBar, child, mode)) {
+            if (!shouldAffectBounds(actionBar, child, mode, excludedView)) {
                 continue;
             }
 
@@ -130,13 +188,14 @@ public final class DialogsCenteredTitlePatch {
         return new int[] {leftBound, rightBound};
     }
 
-    private static boolean shouldAffectBounds(ActionBar actionBar, View child, int mode) {
+    private static boolean shouldAffectBounds(ActionBar actionBar, View child, int mode, View excludedView) {
         if (child == null || child.getVisibility() != View.VISIBLE || child.getMeasuredWidth() <= 0 || child.getAlpha() <= 0f) {
             return false;
         }
         if (child == actionBar.getTitleTextView()
                 || child == actionBar.getTitleTextView2()
-                || child == actionBar.getTitlesContainer()) {
+                || child == actionBar.getTitlesContainer()
+                || child == excludedView) {
             return false;
         }
         if (mode != AppearanceSettingsPatch.DIALOGS_TITLE_MODE_CENTERED_IGNORE_ACTIONS) {
@@ -150,13 +209,25 @@ public final class DialogsCenteredTitlePatch {
             return;
         }
 
-        View parent = titleView.getParent() instanceof View ? (View) titleView.getParent() : null;
+        centerView(titleView, leftBound, rightBound);
+    }
+
+    private static void centerCustomTitleView(View customTitleView, int leftBound, int rightBound) {
+        if (customTitleView == null || customTitleView.getVisibility() != View.VISIBLE || customTitleView.getMeasuredWidth() <= 0) {
+            return;
+        }
+
+        centerView(customTitleView, leftBound, rightBound);
+    }
+
+    private static void centerView(View view, int leftBound, int rightBound) {
+        View parent = view.getParent() instanceof View ? (View) view.getParent() : null;
         int parentLeft = parent != null ? parent.getLeft() : 0;
         int availableWidth = rightBound - leftBound;
-        int desiredLeft = leftBound + Math.max(0, (availableWidth - titleView.getMeasuredWidth()) / 2);
-        float translationX = desiredLeft - parentLeft - titleView.getLeft();
-        if (translationX != titleView.getTranslationX()) {
-            titleView.setTranslationX(translationX);
+        int desiredLeft = leftBound + Math.max(0, (availableWidth - view.getMeasuredWidth()) / 2);
+        float translationX = desiredLeft - parentLeft - view.getLeft();
+        if (translationX != view.getTranslationX()) {
+            view.setTranslationX(translationX);
         }
     }
 
@@ -211,9 +282,7 @@ public final class DialogsCenteredTitlePatch {
     }
 
     private static void resetTitleView(SimpleTextView titleView) {
-        if (titleView != null && titleView.getTranslationX() != 0f) {
-            titleView.setTranslationX(0f);
-        }
+        resetTitleView((View) titleView);
     }
 
     private static void invalidateTitleView(SimpleTextView titleView) {
@@ -221,6 +290,22 @@ public final class DialogsCenteredTitlePatch {
             titleView.requestLayout();
             titleView.invalidate();
         }
+    }
+
+    private static void resetTitleView(View titleView) {
+        if (titleView != null && titleView.getTranslationX() != 0f) {
+            titleView.setTranslationX(0f);
+        }
+    }
+
+    private static View findCustomTitleView(ActionBar actionBar) {
+        for (int i = 0; i < actionBar.getChildCount(); i++) {
+            View child = actionBar.getChildAt(i);
+            if (child instanceof ChatAvatarContainer) {
+                return child;
+            }
+        }
+        return null;
     }
 
     private static void applyGravity(SimpleTextView titleView, boolean centered) {
