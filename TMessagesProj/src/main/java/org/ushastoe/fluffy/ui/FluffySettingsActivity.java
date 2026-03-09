@@ -38,9 +38,12 @@ public class FluffySettingsActivity extends BaseFragment {
     private static final int ROW_APPEARANCE_SECTION = 2;
     private static final int ROW_APPEARANCE = 3;
     private static final int ROW_APPEARANCE_INFO = 4;
-    private static final int ROW_DEBUG_SECTION = 5;
-    private static final int ROW_DEBUG = 6;
-    private static final int ROW_DEBUG_INFO = 7;
+    private static final int ROW_TABS_SECTION = 5;
+    private static final int ROW_TABS = 6;
+    private static final int ROW_TABS_INFO = 7;
+    private static final int ROW_DEBUG_SECTION = 8;
+    private static final int ROW_DEBUG = 9;
+    private static final int ROW_DEBUG_INFO = 10;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -76,6 +79,8 @@ public class FluffySettingsActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (item.id == ROW_APPEARANCE) {
                 presentFragment(new FluffyAppearanceActivity());
+            } else if (item.id == ROW_TABS) {
+                presentFragment(new FluffyTabsActivity());
             } else if (item.id == ROW_DEBUG) {
                 presentFragment(new FluffyDebugActivity());
             }
@@ -95,6 +100,9 @@ public class FluffySettingsActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_SECTION, LocaleController.getString(R.string.FluffyAppearanceSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APPEARANCE, LocaleController.getString(R.string.FluffyAppearance), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_APPEARANCE_INFO, LocaleController.getString(R.string.FluffyAppearanceInfo), null));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_TABS_SECTION, LocaleController.getString(R.string.FluffyTabsSection), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_TABS, LocaleController.getString(R.string.FluffyTabs), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_TABS_INFO, LocaleController.getString(R.string.FluffyTabsInfo), null));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null));

@@ -131,11 +131,19 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
 
     private boolean hasGestureSelectedOverride;
     private float gestureSelectedOverride;
+    private boolean counterBelowIcon;
 
     public void setGestureSelectedOverride(float gestureSelectedOverride, boolean allow) {
         this.gestureSelectedOverride = gestureSelectedOverride;
         this.hasGestureSelectedOverride = allow;
         invalidate();
+    }
+
+    public void setCounterBelowIcon(boolean value) {
+        if (counterBelowIcon != value) {
+            counterBelowIcon = value;
+            invalidate();
+        }
     }
 
     @Override
@@ -168,7 +176,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
 
             final float gap = dpf2(1.33f);
             final float cx = viewWidth / 2f + dpf2(11);
-            final float cy = dpf2(10);
+            final float cy = counterBelowIcon ? dpf2(21.5f) : dpf2(10);
             final float height = dpf2(16);
             final float width = Math.max(height, counter.getCurrentWidth() + dp(8));
             final float rOuter = dpf2(9.333f);
