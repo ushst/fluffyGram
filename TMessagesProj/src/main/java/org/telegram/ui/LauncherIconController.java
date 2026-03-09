@@ -6,10 +6,11 @@ import android.content.pm.PackageManager;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.R;
+import org.ushastoe.fluffy.hooks.AppIconHook;
 
 public class LauncherIconController {
     public static void tryFixLauncherIconIfNeeded() {
-        for (LauncherIcon icon : LauncherIcon.values()) {
+        for (LauncherIcon icon : AppIconHook.getLauncherIcons()) {
             if (isEnabled(icon)) {
                 return;
             }
@@ -27,14 +28,15 @@ public class LauncherIconController {
     public static void setIcon(LauncherIcon icon) {
         Context ctx = ApplicationLoader.applicationContext;
         PackageManager pm = ctx.getPackageManager();
-        for (LauncherIcon i : LauncherIcon.values()) {
+        for (LauncherIcon i : AppIconHook.getLauncherIcons()) {
             pm.setComponentEnabledSetting(i.getComponentName(ctx), i == icon ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED :
                     PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
         }
     }
 
     public enum LauncherIcon {
-        DEFAULT("DefaultIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconDefault),
+        DEFAULT("DefaultIcon", R.drawable.fluffy_launcher_group43_background, R.drawable.fluffy_launcher_group43_foreground, R.string.AppIconDefault),
+        CLASSIC("ClassicIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconClassic),
         VINTAGE("VintageIcon", R.drawable.icon_6_background_sa, R.mipmap.icon_6_foreground_sa, R.string.AppIconVintage),
         AQUA("AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua),
         PREMIUM("PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium, true),

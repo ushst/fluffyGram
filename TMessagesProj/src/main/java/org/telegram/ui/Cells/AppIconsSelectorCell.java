@@ -43,9 +43,9 @@ import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.LauncherIconController;
 import org.telegram.ui.PremiumPreviewFragment;
+import org.ushastoe.fluffy.hooks.AppIconHook;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AppIconsSelectorCell extends RecyclerListView implements NotificationCenter.NotificationCenterDelegate {
@@ -79,7 +79,6 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
                 LauncherIconController.LauncherIcon icon = availableIcons.get(position);
                 holderView.bind(icon);
                 holderView.iconView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(ICONS_ROUND_RADIUS), Color.TRANSPARENT, Theme.getColor(Theme.key_listSelector), Color.BLACK));
-                holderView.iconView.setForeground(icon.foreground);
             }
 
             @Override
@@ -150,7 +149,9 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
     @SuppressLint("NotifyDataSetChanged")
     private void updateIconsVisibility() {
         availableIcons.clear();
-        availableIcons.addAll(Arrays.asList(LauncherIconController.LauncherIcon.values()));
+        for (LauncherIconController.LauncherIcon icon : AppIconHook.getLauncherIcons()) {
+            availableIcons.add(icon);
+        }
         if (MessagesController.getInstance(currentAccount).premiumFeaturesBlocked()) {
             for (int i = 0; i < availableIcons.size(); i++) {
                 if (availableIcons.get(i).premium) {
@@ -272,7 +273,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
         }
 
         private void bind(LauncherIconController.LauncherIcon icon) {
-            iconView.setImageResource(icon.background);
+            AppIconHook.bindPreviewIcon(iconView, icon, 42);
 
             MarginLayoutParams params = (MarginLayoutParams) titleView.getLayoutParams();
             if (icon.premium && !UserConfig.hasPremiumOnAccounts()) {
@@ -297,13 +298,18 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
         private Path path = new Path();
         private int outerPadding = AndroidUtilities.dp(5);
         private int backgroundOuterPadding = AndroidUtilities.dp(42);
+        private int foregroundInset;
 
         public AdaptiveIconImageView(Context context) {
             super(context);
         }
 
         public void setForeground(int res) {
-            foreground = ContextCompat.getDrawable(getContext(), res);
+            setForeground(res != 0 ? ContextCompat.getDrawable(getContext(), res) : null);
+        }
+
+        public void setForeground(Drawable drawable) {
+            foreground = drawable;
             invalidate();
         }
 
@@ -325,6 +331,11 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
             this.backgroundOuterPadding = backgroundOuterPadding;
         }
 
+        public void setForegroundInset(int foregroundInset) {
+            this.foregroundInset = foregroundInset;
+            invalidate();
+        }
+
         @Override
         public void draw(Canvas canvas) {
             canvas.save();
@@ -334,7 +345,12 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
             canvas.restore();
 
             if (foreground != null) {
-                foreground.setBounds(-outerPadding, -outerPadding, getWidth() + outerPadding, getHeight() + outerPadding);
+                foreground.setBounds(
+                        foregroundInset - outerPadding,
+                        foregroundInset - outerPadding,
+                        getWidth() - foregroundInset + outerPadding,
+                        getHeight() - foregroundInset + outerPadding
+                );
                 foreground.draw(canvas);
             }
         }

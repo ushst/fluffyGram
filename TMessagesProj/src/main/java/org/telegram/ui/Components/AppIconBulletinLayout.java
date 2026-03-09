@@ -8,7 +8,6 @@ import android.view.Gravity;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -16,6 +15,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.AppIconsSelectorCell;
 import org.telegram.ui.LauncherIconController;
+import org.ushastoe.fluffy.hooks.AppIconHook;
 
 @SuppressLint("ViewConstructor")
 public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
@@ -34,10 +34,8 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
         textView.setTypeface(Typeface.SANS_SERIF);
         addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 16, 0));
 
-        imageView.setImageDrawable(ContextCompat.getDrawable(context, icon.background));
+        AppIconHook.bindPreviewIcon(imageView, icon, 24);
         imageView.setOuterPadding(AndroidUtilities.dp(8));
-        imageView.setBackgroundOuterPadding(AndroidUtilities.dp(24));
-        imageView.setForeground(icon.foreground);
         textView.setText(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.AppIconChangedTo, LocaleController.getString(icon.title))));
     }
 }
