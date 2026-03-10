@@ -57,6 +57,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setDialogsAppTitleCustom(value);
     }
 
+    public static boolean useFluffyNotificationIcon() {
+        return AppearanceSettingsPatch.useFluffyNotificationIcon();
+    }
+
+    public static void setUseFluffyNotificationIcon(boolean enabled) {
+        AppearanceSettingsPatch.setUseFluffyNotificationIcon(enabled);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;

@@ -15,6 +15,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_DIALOGS_TITLE_MODE = "dialogs_title_mode";
     private static final String KEY_DIALOGS_APP_TITLE_MODE = "dialogs_app_title_mode";
     private static final String KEY_DIALOGS_APP_TITLE_CUSTOM = "dialogs_app_title_custom";
+    private static final String KEY_FLUFFY_NOTIFICATION_ICON = "fluffy_notification_icon";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
@@ -118,6 +119,20 @@ public final class AppearanceSettingsPatch {
             return;
         }
         preferences.edit().putString(KEY_DIALOGS_APP_TITLE_CUSTOM, value != null ? value.trim() : "").apply();
+        notifyListeners();
+    }
+
+    public static boolean useFluffyNotificationIcon() {
+        SharedPreferences preferences = getPreferences();
+        return preferences == null || preferences.getBoolean(KEY_FLUFFY_NOTIFICATION_ICON, true);
+    }
+
+    public static void setUseFluffyNotificationIcon(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_FLUFFY_NOTIFICATION_ICON, enabled).apply();
         notifyListeners();
     }
 

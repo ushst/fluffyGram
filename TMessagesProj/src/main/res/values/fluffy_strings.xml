@@ -42,6 +42,7 @@
     <string name="FluffyDialogsAppTitleOptionCustom">Custom</string>
     <string name="FluffyDialogsAppTitleCustomText">Enter a custom title for the main tabs. Leave it empty to use fluffyGram.</string>
     <string name="FluffyDialogsAppTitleCustomHint">Custom title</string>
+    <string name="FluffyNotificationIcon">Fluffy notification icon</string>
     <string name="FluffyDeveloperSettingsSection">Developer Settings</string>
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>

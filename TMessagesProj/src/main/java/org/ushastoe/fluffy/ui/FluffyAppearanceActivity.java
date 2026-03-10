@@ -44,6 +44,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 1;
     private static final int ROW_DIALOGS_TITLE_MODE = 2;
     private static final int ROW_DIALOGS_APP_TITLE = 3;
+    private static final int ROW_NOTIFICATION_ICON = 4;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -83,6 +84,12 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(hidden);
                 }
+            } else if (item.id == ROW_NOTIFICATION_ICON) {
+                boolean enabled = !AppearanceSettingsHook.useFluffyNotificationIcon();
+                AppearanceSettingsHook.setUseFluffyNotificationIcon(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             } else if (item.id == ROW_DIALOGS_TITLE_MODE) {
                 showDialogsTitleModeDialog();
             } else if (item.id == ROW_DIALOGS_APP_TITLE) {
@@ -116,6 +123,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DIALOGS_APP_TITLE,
                 LocaleController.getString(R.string.FluffyDialogsAppTitle),
                 false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_NOTIFICATION_ICON,
+                LocaleController.getString(R.string.FluffyNotificationIcon),
+                AppearanceSettingsHook.useFluffyNotificationIcon()));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
