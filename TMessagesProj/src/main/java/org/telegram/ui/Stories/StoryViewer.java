@@ -91,6 +91,7 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Stories.LiveStoryPipOverlay;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.recorder.LivePlayerView;
+import org.ushastoe.fluffy.hooks.LocalAnonStoryViewHook;
 
 import java.util.ArrayList;
 
@@ -2665,6 +2666,7 @@ public class StoryViewer implements NotificationCenter.NotificationCenterDelegat
     public void close(boolean backAnimation) {
         AndroidUtilities.hideKeyboard(windowView);
         isClosed = true;
+        LocalAnonStoryViewHook.onStoryViewerClosed(currentAccount);
         invalidateOutRect = true;
         updatePlayingMode();
         startCloseAnimation(backAnimation);

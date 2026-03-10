@@ -8,6 +8,9 @@
     <string name="FluffyAppearanceSection">Appearance</string>
     <string name="FluffyAppearance">Appearance</string>
     <string name="FluffyAppearanceInfo">Visual preferences and message bubble tweaks for Fluffy.</string>
+    <string name="FluffyPremiumSection">Premium</string>
+    <string name="FluffyPremium">Premium</string>
+    <string name="FluffyPremiumInfo">Extra premium-like behavior that stays isolated in Fluffy patches.</string>
     <string name="FluffyTabsSection">Navigation</string>
     <string name="FluffyTabs">Tabs</string>
     <string name="FluffyTabsInfo">Customize the bottom tabs on the main screen.</string>
@@ -43,6 +46,9 @@
     <string name="FluffyDialogsAppTitleCustomText">Enter a custom title for the main tabs. Leave it empty to use fluffyGram.</string>
     <string name="FluffyDialogsAppTitleCustomHint">Custom title</string>
     <string name="FluffyNotificationIcon">Fluffy notification icon</string>
+    <string name="FluffyStoryViewAnonLocal">View Anon (local)</string>
+    <string name="FluffyStoryViewAnonLocalInfo">Adds a long-press story action that opens the viewer without sending story view requests from this device. It is local-only and can desync with server-side read state.</string>
+    <string name="FluffyViewAnonLocal">View Anon (local)</string>
     <string name="FluffyDeveloperSettingsSection">Developer Settings</string>
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>

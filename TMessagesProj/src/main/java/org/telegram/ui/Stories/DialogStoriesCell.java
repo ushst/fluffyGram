@@ -87,6 +87,7 @@ import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
+import org.ushastoe.fluffy.hooks.LocalAnonStoryViewHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -529,6 +530,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             StoryViewer storyViewer = fragment.getOrCreateStoryViewer();
             storyViewer.doOnAnimationReady(() -> storiesController.setLoading(startFromDialogId, false));
             boolean finalOnlySelfStories = onlySelfStories;
+            LocalAnonStoryViewHook.onStoryViewerOpen(currentAccount, cell.dialogId);
             storyViewer.open(getContext(), null, peerIds, position, null, null, StoriesListPlaceProvider.of(recyclerListView).with(forward -> {
                 if (finalOnlySelfStories) {
                     return;

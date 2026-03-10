@@ -258,6 +258,7 @@ import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
+import org.ushastoe.fluffy.hooks.LocalAnonStoryViewHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -5208,6 +5209,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                 MediaDataController.getInstance(currentAccount).removePeer(dialogId);
                                 getMessagesController().getStoriesController().toggleHidden(dialogId, true, false, true);
                             });
+                    LocalAnonStoryViewHook.addDialogStoryOption(filterOptions, dialogStoriesCell, view, currentAccount, dialogId, isUnread, isLive);
                 }
                 filterOptions.setGravity(Gravity.LEFT)
                         .translate(dp(-8), dp(-10))

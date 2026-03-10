@@ -72,6 +72,7 @@ import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.telegram.ui.Stories.recorder.StoryPrivacyBottomSheet;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.telegram.ui.Stories.recorder.StoryUploadingService;
+import org.ushastoe.fluffy.hooks.LocalAnonStoryViewHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1300,7 +1301,9 @@ public class StoriesController {
             TL_stories.TL_stories_readStories req = new TL_stories.TL_stories_readStories();
             req.peer = MessagesController.getInstance(currentAccount).getInputPeer(dialogId);
             req.max_id = storyItem.id;
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, null);
+            if (LocalAnonStoryViewHook.shouldSendReadStoriesRequest(currentAccount)) {
+                ConnectionsManager.getInstance(currentAccount).sendRequest(req, null);
+            }
             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesReadUpdated);
             return true;
         }
@@ -3637,7 +3640,9 @@ public class StoriesController {
             TL_stories.TL_stories_incrementStoryViews req = new TL_stories.TL_stories_incrementStoryViews();
             req.peer = MessagesController.getInstance(currentAccount).getInputPeer(dialogId);
             req.id.add(storyId);
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {});
+            if (LocalAnonStoryViewHook.shouldSendIncrementStoryViewsRequest(currentAccount)) {
+                ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {});
+            }
             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesReadUpdated);
             return true;
         }
