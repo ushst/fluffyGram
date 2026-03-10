@@ -41,6 +41,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.Premium.PremiumLockIconView;
 import org.telegram.ui.Components.Reactions.HwEmojis;
 import org.telegram.ui.SelectAnimatedEmojiDialog;
+import org.ushastoe.fluffy.hooks.EmojiTabsSelectionHook;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -574,7 +575,7 @@ public class EmojiTabsStrip extends ScrollableHorizontalScrollView {
                     }
                 }
                 currentPackButton.id = newPack.forGroup ? (long) "forGroup".hashCode() : null;
-                currentPackButton.updateSelect(selected == i, false);
+                currentPackButton.updateSelect(EmojiTabsSelectionHook.isAnimatedPackSelected(selected, packsIndexStart, i), false);
                 if (currentType == SelectAnimatedEmojiDialog.TYPE_AVATAR_CONSTRUCTOR) {
                     currentPackButton.setLock(!isPremium && !free ? true : null, false);
                 } else if (currentType == SelectAnimatedEmojiDialog.TYPE_CHAT_REACTIONS || currentType == SelectAnimatedEmojiDialog.TYPE_SET_REPLY_ICON || currentType == SelectAnimatedEmojiDialog.TYPE_SET_REPLY_ICON_BOTTOM) {

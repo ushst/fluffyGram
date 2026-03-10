@@ -130,6 +130,7 @@ import org.telegram.ui.Components.StickerCategoriesListView;
 import org.telegram.ui.Components.Text;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsReactionsSheet;
+import org.ushastoe.fluffy.hooks.EmojiTabsSelectionHook;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -675,13 +676,14 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
 //                        index--;
                     }
                     int position = 0;
-                    int f = 1 + (isGiftsVisible() ? 1 : 0);
-                    if (isGiftsVisible() && index == 1) {
+                    int giftsIndex = EmojiTabsSelectionHook.getGiftsRawTabIndex(toggleEmojiStickersTab != null, recentTab != null);
+                    int packSectionIndex = EmojiTabsSelectionHook.getPackSectionIndexFromRawTabIndex(index, toggleEmojiStickersTab != null, recentTab != null, giftsTab != null);
+                    if (isGiftsVisible() && index == giftsIndex) {
                         position = giftsSectionRow;
                     } else if (type == TYPE_AVATAR_CONSTRUCTOR && index == 0) {
                         position = 0;
-                    } else if (index > 0 && sectionToPosition.indexOfKey(index - f) >= 0) {
-                        position = sectionToPosition.get(index - f);
+                    } else if (packSectionIndex >= 0 && sectionToPosition.indexOfKey(packSectionIndex) >= 0) {
+                        position = EmojiTabsSelectionHook.getPackScrollPosition(sectionToPosition.get(packSectionIndex));
                     }
                     scrollToPosition(position, AndroidUtilities.dp(-2 + (type == TYPE_CHAT_REACTIONS ? 7 : 0)));
                     SelectAnimatedEmojiDialog.this.emojiTabs.select(index);
@@ -748,7 +750,7 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                 super.onScrolled(dx, dy);
                 checkScroll();
                 if (!smoothScrolling) {
-                    updateTabsPosition(layoutManager.findFirstCompletelyVisibleItemPosition());
+                    updateTabsPosition(EmojiTabsSelectionHook.resolveVisiblePosition(type, layoutManager.findFirstVisibleItemPosition(), layoutManager.findFirstCompletelyVisibleItemPosition()));
                 }
                 updateSearchBox();
                 AndroidUtilities.updateViewVisibilityAnimated(emojiTabsShadow, emojiGridView.computeVerticalScrollOffset() != 0 || type == TYPE_EMOJI_STATUS || type == TYPE_EMOJI_STATUS_TOP || type == TYPE_EMOJI_STATUS_CHANNEL_TOP || type == TYPE_REACTIONS || type == TYPE_TAGS || type == TYPE_CHAT_REACTIONS, 1f, true);
@@ -1275,8 +1277,8 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
                         continue;
                     }
                     final int count = pack.expanded ? pack.documents.size() : Math.min(maxlen, pack.documents.size());
-                    if (position > startPosition && position <= startPosition + 1 + count) {
-                        emojiTabs.select((emojiTabs.recentTab != null ? 1 : 0) + (emojiTabs.isGiftsVisible() ? 1 : 0) + index);
+                    if (EmojiTabsSelectionHook.isPositionInsidePack(position, startPosition, count)) {
+                        emojiTabs.select(EmojiTabsSelectionHook.getRawTabIndexForSection(index, emojiTabs.toggleEmojiStickersTab != null, emojiTabs.recentTab != null, emojiTabs.giftsTab != null));
                         return;
                     }
                 }
