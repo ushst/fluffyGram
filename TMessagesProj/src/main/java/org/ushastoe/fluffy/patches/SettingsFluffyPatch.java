@@ -27,7 +27,7 @@ public final class SettingsFluffyPatch {
                 FLUFFY_SETTINGS_ITEM_ID,
                 0xFF2BB5A8,
                 0xFF168F84,
-                R.drawable.msg_settings_premium,
+                R.drawable.fluffy_settings_icon,
                 LocaleController.getString(R.string.FluffySettings)
         ));
         items.add(UItem.asShadow(null));
