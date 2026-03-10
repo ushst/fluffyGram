@@ -113,11 +113,20 @@
     >
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
 
+        <activity
+            android:name="org.ushastoe.fluffy.ui.FluffyDefaultLaunchActivity"
+            android:theme="@style/Theme.TMessages.Start.Fluffy"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode|smallestScreenSize|screenLayout"
+            android:supportsPictureInPicture="true"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true" />
+
         <activity-alias
              android:enabled="true"
              android:name="org.telegram.messenger.DefaultIcon"
-             android:targetActivity="org.telegram.ui.LaunchActivity"
-             android:theme="@style/Theme.TMessages.Start.Fluffy"
+             android:targetActivity="org.ushastoe.fluffy.ui.FluffyDefaultLaunchActivity"
              android:exported="true">
 
             <intent-filter>
