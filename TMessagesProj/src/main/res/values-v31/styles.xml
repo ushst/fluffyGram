@@ -33,6 +33,10 @@
         <item name="android:windowSplashScreenBackground">?android:windowBackground</item>
     </style>
 
+    <style name="Theme.TMessages.Start.Fluffy" parent="Theme.TMessages.Start">
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/fluffy_splash_320</item>
+    </style>
+
     <style name="Theme.TMessages" parent="Theme.AppCompat.Light">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>

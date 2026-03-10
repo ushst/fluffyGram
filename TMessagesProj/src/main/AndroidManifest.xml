@@ -114,10 +114,11 @@
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
 
         <activity-alias
-            android:enabled="true"
-            android:name="org.telegram.messenger.DefaultIcon"
-            android:targetActivity="org.telegram.ui.LaunchActivity"
-            android:exported="true">
+             android:enabled="true"
+             android:name="org.telegram.messenger.DefaultIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+             android:theme="@style/Theme.TMessages.Start.Fluffy"
+             android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

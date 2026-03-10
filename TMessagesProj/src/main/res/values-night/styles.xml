@@ -27,6 +27,10 @@
         <item name="android:windowSplashScreenBackground">#1f2732</item>
     </style>
 
+    <style name="Theme.TMessages.Start.Fluffy" parent="Theme.TMessages.Start">
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/fluffy_splash_320</item>
+    </style>
+
     <style name="ActionBar.Transparent.TMessages.Start" parent="android:style/Widget.Material.Light.ActionBar">
         <item name="android:background">#ff232d3a</item>
         <item name="android:textColor">#ffffff</item>
