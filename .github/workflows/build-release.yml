@@ -69,10 +69,10 @@ jobs:
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ runner.os }}-ccache-release
+          key: ${{ runner.os }}-ccache
           restore-keys: |
             ${{ runner.os }}-ccache-
-
+          create-symlink: true
       - name: Cache CMake intermediates
         id: cache-cmake
         uses: actions/cache@v4
