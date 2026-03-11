@@ -105,6 +105,7 @@ import org.telegram.ui.Components.voip.CellFlickerDrawable;
 import org.telegram.ui.Stories.recorder.DualCameraView;
 import org.telegram.ui.Stories.recorder.FlashViews;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.hooks.RoundVideoCameraHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -731,9 +732,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         cameraReady = false;
         selectedCamera = null;
         if (!fromPaused) {
-            if (!useCamera2) {
-                isFrontface = true;
-            }
+            isFrontface = RoundVideoCameraHook.resolveInitialFrontCamera(false, isFrontface);
             updateFlash();
             recordedTime = 0;
             progress = 0;
@@ -1135,6 +1134,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             }
         }
         isFrontface = !isFrontface;
+        RoundVideoCameraHook.onRoundVideoCameraSwitched(isFrontface);
         updateFlash();
         if (useCamera2) {
             if (bothCameras) {

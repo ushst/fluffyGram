@@ -46,6 +46,12 @@
     <string name="FluffyDialogsAppTitleCustomText">Enter a custom title for the main tabs. Leave it empty to use fluffyGram.</string>
     <string name="FluffyDialogsAppTitleCustomHint">Custom title</string>
     <string name="FluffyNotificationIcon">Fluffy notification icon</string>
+    <string name="FluffyRoundVideoCameraFeature">Round camera cycle</string>
+    <string name="FluffyRoundVideoCamera">Round video camera</string>
+    <string name="FluffyRoundVideoCameraFront">Front</string>
+    <string name="FluffyRoundVideoCameraBack">Back</string>
+    <string name="FluffyRoundVideoCameraUseFront">Use Front camera</string>
+    <string name="FluffyRoundVideoCameraUseBack">Use Back camera</string>
     <string name="FluffyStoryViewAnonLocal">View Anon (local)</string>
     <string name="FluffyStoryViewAnonLocalInfo">Adds a long-press story action that opens the viewer without sending story view requests from this device. It is local-only and can desync with server-side read state.</string>
     <string name="FluffyViewAnonLocal">View Anon (local)</string>

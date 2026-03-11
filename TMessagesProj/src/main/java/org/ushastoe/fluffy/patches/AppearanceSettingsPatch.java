@@ -16,6 +16,9 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_DIALOGS_APP_TITLE_MODE = "dialogs_app_title_mode";
     private static final String KEY_DIALOGS_APP_TITLE_CUSTOM = "dialogs_app_title_custom";
     private static final String KEY_FLUFFY_NOTIFICATION_ICON = "fluffy_notification_icon";
+    private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
+    private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
+    private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
@@ -26,6 +29,8 @@ public final class AppearanceSettingsPatch {
     public static final int DIALOGS_APP_TITLE_MODE_USERNAME = 3;
     public static final int DIALOGS_APP_TITLE_MODE_FIRST_NAME = 4;
     public static final int DIALOGS_APP_TITLE_MODE_CUSTOM = 5;
+    public static final int ROUND_VIDEO_CAMERA_FRONT = 0;
+    public static final int ROUND_VIDEO_CAMERA_BACK = 1;
     private static final CopyOnWriteArrayList<Listener> listeners = new CopyOnWriteArrayList<>();
 
     public interface Listener {
@@ -136,6 +141,70 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static boolean isRoundVideoCameraFeatureEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED, false);
+    }
+
+    public static void setRoundVideoCameraFeatureEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED, enabled).apply();
+        notifyListeners();
+    }
+
+    public static int getRoundVideoCameraMode() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return ROUND_VIDEO_CAMERA_FRONT;
+        }
+        int mode = preferences.getInt(KEY_ROUND_VIDEO_CAMERA_MODE, ROUND_VIDEO_CAMERA_FRONT);
+        if (mode < ROUND_VIDEO_CAMERA_FRONT || mode > ROUND_VIDEO_CAMERA_BACK) {
+            return ROUND_VIDEO_CAMERA_FRONT;
+        }
+        return mode;
+    }
+
+    public static void setRoundVideoCameraMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_ROUND_VIDEO_CAMERA_MODE, clampRoundVideoCameraMode(mode)).apply();
+        notifyListeners();
+    }
+
+    public static boolean useFrontRoundVideoCamera() {
+        return getRoundVideoCameraMode() == ROUND_VIDEO_CAMERA_FRONT;
+    }
+
+    public static int getDefaultRoundVideoCameraMode() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return ROUND_VIDEO_CAMERA_FRONT;
+        }
+        int mode = preferences.getInt(KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE, ROUND_VIDEO_CAMERA_FRONT);
+        if (mode < ROUND_VIDEO_CAMERA_FRONT || mode > ROUND_VIDEO_CAMERA_BACK) {
+            return ROUND_VIDEO_CAMERA_FRONT;
+        }
+        return mode;
+    }
+
+    public static void setDefaultRoundVideoCameraMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE, clampRoundVideoCameraMode(mode)).apply();
+        notifyListeners();
+    }
+
+    public static boolean useFrontRoundVideoCameraByDefault() {
+        return getDefaultRoundVideoCameraMode() == ROUND_VIDEO_CAMERA_FRONT;
+    }
+
     public static void addListener(Listener listener) {
         if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener);
@@ -157,6 +226,13 @@ public final class AppearanceSettingsPatch {
     private static int clampDialogsAppTitleMode(int mode) {
         if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_CUSTOM) {
             return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
+        }
+        return mode;
+    }
+
+    private static int clampRoundVideoCameraMode(int mode) {
+        if (mode < ROUND_VIDEO_CAMERA_FRONT || mode > ROUND_VIDEO_CAMERA_BACK) {
+            return ROUND_VIDEO_CAMERA_FRONT;
         }
         return mode;
     }

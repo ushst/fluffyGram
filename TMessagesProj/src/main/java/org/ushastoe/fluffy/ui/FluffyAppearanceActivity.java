@@ -45,6 +45,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_DIALOGS_TITLE_MODE = 2;
     private static final int ROW_DIALOGS_APP_TITLE = 3;
     private static final int ROW_NOTIFICATION_ICON = 4;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 5;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 6;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -90,6 +92,15 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_ROUND_VIDEO_CAMERA_FEATURE) {
+                boolean enabled = !AppearanceSettingsHook.isRoundVideoCameraFeatureEnabled();
+                AppearanceSettingsHook.setRoundVideoCameraFeatureEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                updateItems();
+            } else if (item.id == ROW_ROUND_VIDEO_CAMERA) {
+                showRoundVideoCameraDialog();
             } else if (item.id == ROW_DIALOGS_TITLE_MODE) {
                 showDialogsTitleModeDialog();
             } else if (item.id == ROW_DIALOGS_APP_TITLE) {
@@ -126,6 +137,14 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_NOTIFICATION_ICON,
                 LocaleController.getString(R.string.FluffyNotificationIcon),
                 AppearanceSettingsHook.useFluffyNotificationIcon()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_ROUND_VIDEO_CAMERA_FEATURE,
+                LocaleController.getString(R.string.FluffyRoundVideoCameraFeature),
+                AppearanceSettingsHook.isRoundVideoCameraFeatureEnabled()));
+        if (AppearanceSettingsHook.isRoundVideoCameraFeatureEnabled()) {
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_ROUND_VIDEO_CAMERA,
+                    LocaleController.getString(R.string.FluffyRoundVideoCamera),
+                    false));
+        }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -247,6 +266,29 @@ public class FluffyAppearanceActivity extends BaseFragment {
         return DialogsAppTitleHook.getDialogsAppTitle(UserConfig.selectedAccount);
     }
 
+    private void showRoundVideoCameraDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] items = new CharSequence[] {
+                LocaleController.getString(R.string.FluffyRoundVideoCameraFront),
+                LocaleController.getString(R.string.FluffyRoundVideoCameraBack)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyRoundVideoCamera));
+        builder.setItems(items, (dialog, which) -> {
+            AppearanceSettingsHook.setDefaultRoundVideoCameraMode(which);
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence getRoundVideoCameraValue() {
+        return AppearanceSettingsHook.getDefaultRoundVideoCameraMode() == AppearanceSettingsPatch.ROUND_VIDEO_CAMERA_BACK
+                ? LocaleController.getString(R.string.FluffyRoundVideoCameraBack)
+                : LocaleController.getString(R.string.FluffyRoundVideoCameraFront);
+    }
+
     private static class ItemInner {
         final int viewType;
         final int id;
@@ -310,6 +352,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     value = getDialogsTitleModeValue();
                 } else if (item.id == ROW_DIALOGS_APP_TITLE) {
                     value = getDialogsAppTitleValue();
+                } else if (item.id == ROW_ROUND_VIDEO_CAMERA) {
+                    value = getRoundVideoCameraValue();
                 } else {
                     value = "";
                 }

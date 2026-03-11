@@ -199,6 +199,7 @@ import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.ChatActivityBotWebViewButton;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.hooks.RoundVideoCameraHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -3257,8 +3258,10 @@ public class ChatActivityEnterView extends FrameLayout implements
                     Drawable d = getCurrentState() == State.VIDEO ? cameraOutline : micOutline;
                     d.setBounds(tmpRectF);
                     d.draw(canvas);
+                    RoundVideoCameraHook.drawVideoCameraBadge(canvas, getCurrentState() == State.VIDEO, getMeasuredWidth(), getMeasuredHeight());
                 } else {
                     super.draw(canvas);
+                    RoundVideoCameraHook.drawVideoCameraBadge(canvas, getCurrentState() == State.VIDEO, getMeasuredWidth(), getMeasuredHeight());
                 }
             }
         };
@@ -5807,9 +5810,11 @@ public class ChatActivityEnterView extends FrameLayout implements
             preferences.edit().putBoolean(isChannel ? "currentModeVideoChannel" : "currentModeVideo", visible).apply();
         }
         audioVideoSendButton.setState(isInVideoMode() ? ChatActivityEnterViewAnimatedIconView.State.VIDEO : ChatActivityEnterViewAnimatedIconView.State.VOICE, animated);
-        audioVideoSendButton.setContentDescription(getString(isInVideoMode() ? R.string.AccDescrVideoMessage : R.string.AccDescrVoiceMessage));
-        audioVideoButtonContainer.setContentDescription(getString(isInVideoMode() ? R.string.AccDescrVideoMessage : R.string.AccDescrVoiceMessage));
+        CharSequence contentDescription = RoundVideoCameraHook.getRecordButtonContentDescription(getContext(), isInVideoMode());
+        audioVideoSendButton.setContentDescription(contentDescription);
+        audioVideoButtonContainer.setContentDescription(contentDescription);
         audioVideoSendButton.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+        audioVideoSendButton.invalidate();
     }
 
     public boolean isRecordingAudioVideo() {
@@ -6411,6 +6416,15 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     public boolean hasRecordVideo() {
         return hasRecordVideo;
+    }
+
+    public void invalidateRoundVideoCameraButton() {
+        if (audioVideoButtonContainer != null) {
+            audioVideoButtonContainer.invalidate();
+        }
+        if (audioVideoSendButton != null) {
+            audioVideoSendButton.invalidate();
+        }
     }
 
     public MessageObject getReplyingMessageObject() {

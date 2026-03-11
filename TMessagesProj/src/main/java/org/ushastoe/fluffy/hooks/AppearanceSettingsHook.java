@@ -65,6 +65,38 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setUseFluffyNotificationIcon(enabled);
     }
 
+    public static boolean isRoundVideoCameraFeatureEnabled() {
+        return AppearanceSettingsPatch.isRoundVideoCameraFeatureEnabled();
+    }
+
+    public static void setRoundVideoCameraFeatureEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setRoundVideoCameraFeatureEnabled(enabled);
+    }
+
+    public static int getRoundVideoCameraMode() {
+        return AppearanceSettingsPatch.getRoundVideoCameraMode();
+    }
+
+    public static void setRoundVideoCameraMode(int mode) {
+        AppearanceSettingsPatch.setRoundVideoCameraMode(mode);
+    }
+
+    public static boolean useFrontRoundVideoCamera() {
+        return AppearanceSettingsPatch.useFrontRoundVideoCamera();
+    }
+
+    public static int getDefaultRoundVideoCameraMode() {
+        return AppearanceSettingsPatch.getDefaultRoundVideoCameraMode();
+    }
+
+    public static void setDefaultRoundVideoCameraMode(int mode) {
+        AppearanceSettingsPatch.setDefaultRoundVideoCameraMode(mode);
+    }
+
+    public static boolean useFrontRoundVideoCameraByDefault() {
+        return AppearanceSettingsPatch.useFrontRoundVideoCameraByDefault();
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;
