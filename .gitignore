@@ -4,7 +4,6 @@ build/
 obj/
 *.iml
 local.properties
-fluffyGram_dev/
 TMessagesProj/config/release.keystore
 TMessagesProj/google-services.json
 TMessagesProj_App/google-services.json

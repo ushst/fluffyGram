@@ -32,6 +32,14 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 100
 
+      - name: Checkout private submodule
+        if: ${{ secrets.GH_PAT != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "git@github.com:"
+          git submodule update --init --depth 1 fluffyGram_dev
+
       - name: Fetch tags for release notes
         run: git fetch --force --tags origin
 
@@ -94,9 +102,26 @@ jobs:
           TELEGRAM_APP_HASH=${{ secrets.TELEGRAM_APP_HASH }}
           EOF
 
-          cat > fluffyGram_dev/google-services.json <<'EOF'
-          ${{ secrets.GOOGLE_SERVICES_JSON }}
-          EOF
+          if [ -f "fluffyGram_dev/google-services.json" ]; then
+            echo "Using google-services.json from fluffyGram_dev submodule"
+          elif [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > fluffyGram_dev/google-services.json
+          elif [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON }}" > fluffyGram_dev/google-services.json
+          else
+            echo "Missing GOOGLE_SERVICES_JSON or GOOGLE_SERVICES_JSON_BASE64 secret" >&2
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("fluffyGram_dev/google-services.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          if not isinstance(data, dict):
+              raise SystemExit("google-services.json root is not an object")
+          print("Validated google-services.json")
+          PY
 
       - name: Resolve version metadata
         id: meta
