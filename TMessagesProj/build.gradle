@@ -60,10 +60,10 @@ dependencies {
 //    implementation 'com.google.mlkit:translate:17.0.3'
 
     constraints {
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.20") {
             because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
         }
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.20") {
             because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
         }
     }
@@ -83,6 +83,8 @@ def getDevLocalProp = { String key, String fallback ->
     return value != null && value.trim().length() > 0 ? value.trim() : fallback
 }
 def localGoogleServices = rootProject.file('fluffyGram_dev/google-services.json')
+def fluffyPatchVersion = Math.max(0, Integer.parseInt((project.findProperty("FLUFFY_PATCH_VERSION") ?: "0").toString()))
+def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffyPatchVersion : APP_VERSION_NAME
 android {
     compileSdkVersion 35
     buildToolsVersion '35.0.0'
@@ -149,7 +151,7 @@ android {
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
             ndk.debugSymbolLevel = 'FULL'
-            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
+            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
             buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PRIVATE_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
@@ -165,7 +167,7 @@ android {
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
             ndk.debugSymbolLevel = 'FULL'
-            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
+            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"" + getProps("APP_CENTER_HASH_PRIVATE") + "\""
             buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PRIVATE_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
@@ -181,7 +183,7 @@ android {
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
             ndk.debugSymbolLevel = 'FULL'
-            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
+            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"" + getProps("APP_CENTER_HASH_PUBLIC") + "\""
             buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PUBLIC_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
@@ -197,7 +199,7 @@ android {
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
             ndk.debugSymbolLevel = 'FULL'
-            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
+            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"" + getProps("APP_CENTER_HASH_HARDCORE") + "\""
             buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_HARDCORE_URL") + "\""
             buildConfigField "boolean", "DEBUG_VERSION", "true"
@@ -213,7 +215,7 @@ android {
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
             ndk.debugSymbolLevel = 'FULL'
-            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
+            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
             buildConfigField "String", "BETA_URL", "\"\""
             buildConfigField "boolean", "DEBUG_VERSION", "false"
@@ -230,7 +232,7 @@ android {
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
             ndk.debugSymbolLevel = 'FULL'
-            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + APP_VERSION_NAME + "\""
+            buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
             buildConfigField "String", "BETA_URL", "\"\""
             buildConfigField "boolean", "DEBUG_VERSION", "false"
@@ -256,11 +258,19 @@ def getProps(String propName) {
     }
 }
 
-task syncLocalGoogleServices(type: Copy) {
-    from localGoogleServices
-    into projectDir
-    rename { "google-services.json" }
-    onlyIf { localGoogleServices.exists() }
+task syncLocalGoogleServices {
+    def destinationFile = file("$projectDir/google-services.json")
+    outputs.file(destinationFile)
+    doLast {
+        if (!localGoogleServices.exists()) {
+            return
+        }
+        copy {
+            from localGoogleServices
+            into projectDir
+            rename { "google-services.json" }
+        }
+    }
 }
 
 apply plugin: 'com.google.gms.google-services'
@@ -279,3 +289,11 @@ task checkVisibility {
 
 preBuild.dependsOn checkVisibility
 preBuild.dependsOn syncLocalGoogleServices
+tasks.matching { it.name.startsWith("process") && it.name.endsWith("GoogleServices") }.configureEach {
+    dependsOn syncLocalGoogleServices
+}
+["processReleaseGoogleServices", "processStandaloneGoogleServices", "processDebugGoogleServices"].each { taskName ->
+    tasks.matching { it.name == taskName }.configureEach {
+        dependsOn syncLocalGoogleServices
+    }
+}
