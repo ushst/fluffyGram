@@ -11,6 +11,10 @@ on:
         required: false
         default: true
         type: boolean
+      changelog:
+        description: Optional changelog text for update.json and release notes
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -151,7 +155,9 @@ jobs:
           tag_name = f"fluffy-v{version_name}"
           release_tag = os.environ["GITHUB_REF_NAME"] if os.environ.get("GITHUB_REF_TYPE") == "tag" else tag_name
           release_name = f"fluffyGram {version_name} ({base_code})"
-          apk_name = f"fluffyGram-{version_name}-release.apk"
+          apk_name = f"fluffyGram-{version_name}.apk"
+          page_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/{release_tag}"
+          apk_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{apk_name}"
 
           print(f"version_name={version_name}")
           print(f"version_code={base_code}")
@@ -159,6 +165,8 @@ jobs:
           print(f"release_tag={release_tag}")
           print(f"release_name={release_name}")
           print(f"apk_name={apk_name}")
+          print(f"page_url={page_url}")
+          print(f"apk_url={apk_url}")
           PY
 
       - name: Make Gradle executable
@@ -188,18 +196,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CURRENT_TAG="${{ steps.meta.outputs.release_tag }}"
-          PREV_TAG="$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1 || true)"
+          mkdir -p artifacts
 
-          if [ -n "$PREV_TAG" ]; then
-            BODY="$(printf '## Changes since %s\n\n' "$PREV_TAG"; git log "$PREV_TAG"..HEAD --pretty='- %s (%h)')"
+          if [ -n "${{ github.event.inputs.changelog }}" ]; then
+            BODY="${{ github.event.inputs.changelog }}"
           else
-            BODY="$(printf '## Changes in this build\n\n'; git log -20 --pretty='- %s (%h)')"
+            CURRENT_TAG="${{ steps.meta.outputs.release_tag }}"
+            PREV_TAG="$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1 || true)"
+
+            if [ -n "$PREV_TAG" ]; then
+              BODY="$(printf '## Changes since %s\n\n' "$PREV_TAG"; git log "$PREV_TAG"..HEAD --pretty='- %s (%h)')"
+            else
+              BODY="$(printf '## Changes in this build\n\n'; git log -20 --pretty='- %s (%h)')"
+            fi
           fi
 
           if [ -z "$BODY" ]; then
             BODY="## Changes in this build"
           fi
+
+          printf '%s\n' "$BODY" > artifacts/changelog.txt
 
           {
             echo 'body<<EOF'
@@ -207,11 +223,32 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
+      - name: Generate update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
+          python scripts/generate_update_manifest.py \
+            --gradle-properties gradle.properties \
+            --apk-url "${{ steps.meta.outputs.apk_url }}" \
+            --page-url "${{ steps.meta.outputs.page_url }}" \
+            --sha256 "$SHA256" \
+            --file-name "${{ steps.meta.outputs.apk_name }}" \
+            --changelog-file artifacts/changelog.txt \
+            --output artifacts/update.json
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.apk_name }}
           path: artifacts/${{ steps.meta.outputs.apk_name }}
+          retention-days: 30
+
+      - name: Upload update manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-json-${{ steps.meta.outputs.version_name }}
+          path: artifacts/update.json
           retention-days: 30
 
       - name: Publish GitHub release
@@ -221,6 +258,8 @@ jobs:
           tag_name: ${{ steps.meta.outputs.release_tag }}
           name: ${{ steps.meta.outputs.release_name }}
           body: ${{ steps.notes.outputs.body }}
-          files: artifacts/${{ steps.meta.outputs.apk_name }}
+          files: |
+            artifacts/${{ steps.meta.outputs.apk_name }}
+            artifacts/update.json
           generate_release_notes: false
           overwrite_files: true
