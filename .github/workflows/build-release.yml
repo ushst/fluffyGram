@@ -1,0 +1,192 @@
+name: Build Release APK
+
+on:
+  push:
+    tags:
+      - 'fluffy-v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: Create GitHub Release
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    env:
+      JAVA_VERSION: '21'
+      ANDROID_PLATFORM: '35'
+      ANDROID_BUILD_TOOLS: '35.0.0'
+      ANDROID_NDK_VERSION: '21.4.7075529'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Cache NDK
+        id: cache-ndk
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
+          key: ndk-${{ runner.os }}-${{ env.ANDROID_NDK_VERSION }}
+
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-ccache-release
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Cache CMake intermediates
+        id: cache-cmake
+        uses: actions/cache@v4
+        with:
+          path: |
+            TMessagesProj/.cxx
+            TMessagesProj_App/.cxx
+          key: ${{ runner.os }}-cmake-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('TMessagesProj/jni/**/*.cpp', 'TMessagesProj/jni/**/*.c', 'TMessagesProj/jni/**/*.h', 'TMessagesProj/jni/**/CMakeLists.txt', 'TMessagesProj_App/build.gradle', 'TMessagesProj/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-${{ env.ANDROID_NDK_VERSION }}-
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            platforms;android-${{ env.ANDROID_PLATFORM }}
+            build-tools;${{ env.ANDROID_BUILD_TOOLS }}
+            ndk;${{ env.ANDROID_NDK_VERSION }}
+
+      - name: Prepare signing and local config
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p fluffyGram_dev
+
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fluffyGram_dev/ushastoe-release.keystore
+
+          cat > fluffyGram_dev/devlocal.properties <<EOF
+          storeFile=../fluffyGram_dev/ushastoe-release.keystore
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          MAPS_V2_API=${{ secrets.MAPS_V2_API }}
+          TELEGRAM_APP_ID=${{ secrets.TELEGRAM_APP_ID }}
+          TELEGRAM_APP_HASH=${{ secrets.TELEGRAM_APP_HASH }}
+          EOF
+
+          cat > fluffyGram_dev/google-services.json <<'EOF'
+          ${{ secrets.GOOGLE_SERVICES_JSON }}
+          EOF
+
+      - name: Resolve version metadata
+        id: meta
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          from pathlib import Path
+
+          props = {}
+          for line in Path("gradle.properties").read_text(encoding="utf-8").splitlines():
+              stripped = line.strip()
+              if not stripped or stripped.startswith("#") or "=" not in stripped:
+                  continue
+              key, value = stripped.split("=", 1)
+              props[key.strip()] = value.strip().replace("\\:", ":")
+
+          base_name = props["APP_VERSION_NAME"]
+          base_code = int(props["APP_VERSION_CODE"])
+          patch = int(props.get("FLUFFY_PATCH_VERSION", "0"))
+          version_name = f"{base_name}.{patch}" if patch > 0 else base_name
+          tag_name = f"fluffy-v{version_name}"
+          release_tag = os.environ["GITHUB_REF_NAME"] if os.environ.get("GITHUB_REF_TYPE") == "tag" else tag_name
+          release_name = f"fluffyGram {version_name} ({base_code})"
+          apk_name = f"fluffyGram-{version_name}-release.apk"
+
+          print(f"version_name={version_name}")
+          print(f"version_code={base_code}")
+          print(f"tag_name={tag_name}")
+          print(f"release_tag={release_tag}")
+          print(f"release_name={release_name}")
+          print(f"apk_name={apk_name}")
+          PY
+
+      - name: Make Gradle executable
+        run: chmod +x gradlew
+
+      - name: Build release APK
+        run: ./gradlew :TMessagesProj:assembleRelease :TMessagesProj_App:assembleAfatRelease
+        env:
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
+          NDK_CCACHE: ccache
+
+      - name: Collect APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
+          if [ -z "$APK_PATH" ]; then
+            echo "Release APK not found" >&2
+            exit 1
+          fi
+          cp "$APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
+          ls -lah artifacts
+
+      - name: Prepare release notes
+        id: notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_TAG="${{ steps.meta.outputs.release_tag }}"
+          PREV_TAG="$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1 || true)"
+
+          if [ -n "$PREV_TAG" ]; then
+            BODY="$(printf '## Changes since %s\n\n' "$PREV_TAG"; git log "$PREV_TAG"..HEAD --pretty='- %s (%h)')"
+          else
+            BODY="$(printf '## Changes in this build\n\n'; git log -20 --pretty='- %s (%h)')"
+          fi
+
+          if [ -z "$BODY" ]; then
+            BODY="## Changes in this build"
+          fi
+
+          {
+            echo 'body<<EOF'
+            printf '%s\n' "$BODY"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.apk_name }}
+          path: artifacts/${{ steps.meta.outputs.apk_name }}
+          retention-days: 30
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.create_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.release_tag }}
+          name: ${{ steps.meta.outputs.release_name }}
+          body: ${{ steps.notes.outputs.body }}
+          files: artifacts/${{ steps.meta.outputs.apk_name }}
+          generate_release_notes: false
+          overwrite_files: true
