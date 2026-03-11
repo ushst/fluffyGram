@@ -34,6 +34,11 @@ def releaseStorePassword = getDevLocalProp("storePassword", RELEASE_STORE_PASSWO
 def releaseKeyAlias = getDevLocalProp("keyAlias", RELEASE_KEY_ALIAS)
 def releaseKeyPassword = getDevLocalProp("keyPassword", RELEASE_KEY_PASSWORD)
 def localGoogleServices = rootProject.file('fluffyGram_dev/google-services.json')
+def fluffyPatchVersion = Math.max(0, Integer.parseInt((project.findProperty("FLUFFY_PATCH_VERSION") ?: "0").toString()))
+def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffyPatchVersion : APP_VERSION_NAME
+def fluffyVersionCode = Integer.parseInt(APP_VERSION_CODE) * 1000 + fluffyPatchVersion
+def fluffyUpdateManifestUrl = (project.findProperty("FLUFFY_UPDATE_MANIFEST_URL") ?: "").toString()
+def fluffyUpdatePageUrl = (project.findProperty("FLUFFY_UPDATE_PAGE_URL") ?: "").toString()
 
 android {
     compileSdkVersion 35
@@ -169,7 +174,7 @@ android {
         }
     }
 
-    defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
+    defaultConfig.versionCode = fluffyVersionCode
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
@@ -188,10 +193,12 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 35
-        versionName APP_VERSION_NAME
+        versionName fluffyVersionName
         ndkVersion "21.4.7075529"
 
         multiDexEnabled true
+        buildConfigField "String", "FLUFFY_UPDATE_MANIFEST_URL", "\"" + fluffyUpdateManifestUrl + "\""
+        buildConfigField "String", "FLUFFY_UPDATE_PAGE_URL", "\"" + fluffyUpdatePageUrl + "\""
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
@@ -213,13 +220,27 @@ android {
     }
 }
 
-task syncLocalGoogleServices(type: Copy) {
-    from localGoogleServices
-    into projectDir
-    rename { "google-services.json" }
-    onlyIf { localGoogleServices.exists() }
+task syncLocalGoogleServices {
+    def destinationFile = file("$projectDir/google-services.json")
+    outputs.file(destinationFile)
+    doLast {
+        if (!localGoogleServices.exists()) {
+            return
+        }
+        copy {
+            from localGoogleServices
+            into projectDir
+            rename { "google-services.json" }
+        }
+    }
 }
 
 preBuild.dependsOn syncLocalGoogleServices
+tasks.matching { it.name.startsWith("process") && it.name.endsWith("GoogleServices") }.configureEach {
+    dependsOn syncLocalGoogleServices
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("JniLibFolders") }.configureEach {
+    dependsOn(":TMessagesProj:syncLocalGoogleServices")
+}
 
 apply plugin: 'com.google.gms.google-services'
