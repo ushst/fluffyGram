@@ -242,5 +242,8 @@ tasks.matching { it.name.startsWith("process") && it.name.endsWith("GoogleServic
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("JniLibFolders") }.configureEach {
     dependsOn(":TMessagesProj:syncLocalGoogleServices")
 }
+tasks.matching { it.name.startsWith("collect") && it.name.endsWith("Dependencies") }.configureEach {
+    dependsOn(":TMessagesProj:syncLocalGoogleServices")
+}
 
 apply plugin: 'com.google.gms.google-services'
