@@ -63,7 +63,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
 
     @Override
     public boolean isCustomUpdate() {
-        return (isStandalone() || isBeta()) && customUpdateManager.isEnabled();
+        return customUpdateManager.shouldUseCustomUpdate(isStandalone(), isBeta(), BuildConfig.DEBUG);
     }
 
     @Override

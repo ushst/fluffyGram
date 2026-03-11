@@ -226,6 +226,7 @@ import org.telegram.ui.TON.TONIntroActivity;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.hooks.CustomUpdateHook;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
@@ -5866,7 +5867,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     private boolean firstAppUpdateCheck = true;
     public void checkAppUpdate(boolean force, Browser.Progress progress) {
-        if (!ApplicationLoader.isStandaloneBuild() && !ApplicationLoader.isBetaBuild()) {
+        if (!ApplicationLoader.isStandaloneBuild() && !ApplicationLoader.isBetaBuild() && !CustomUpdateHook.shouldAllowLaunchActivityCheck()) {
             return;
         }
         if (!force && !BuildVars.CHECK_UPDATES) {

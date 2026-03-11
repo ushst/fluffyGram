@@ -80,6 +80,14 @@ public final class FluffyCustomUpdateManager {
         return !TextUtils.isEmpty(BuildConfig.FLUFFY_UPDATE_MANIFEST_URL);
     }
 
+    public boolean shouldUseCustomUpdate(boolean isStandalone, boolean isBeta, boolean isDebugBuild) {
+        if (!isEnabled()) {
+            return false;
+        }
+        // Keep updates enabled for the public release channel, while preserving beta/standalone support.
+        return !isDebugBuild || isStandalone || isBeta;
+    }
+
     public void checkUpdate(boolean force, Runnable whenDone) {
         if (!isEnabled()) {
             AndroidUtilities.runOnUIThread(whenDone);
