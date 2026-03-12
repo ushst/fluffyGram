@@ -85,6 +85,15 @@ def getDevLocalProp = { String key, String fallback ->
 def localGoogleServices = rootProject.file('fluffyGram_dev/google-services.json')
 def fluffyPatchVersion = Math.max(0, Integer.parseInt((project.findProperty("FLUFFY_PATCH_VERSION") ?: "0").toString()))
 def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffyPatchVersion : APP_VERSION_NAME
+def nativeCcache = (System.getenv("NDK_CCACHE") ?: "").trim()
+def nativeCmakeArguments = ['-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21']
+if (!nativeCcache.isEmpty()) {
+    nativeCmakeArguments += [
+        "-DANDROID_CCACHE=${nativeCcache}",
+        "-DCMAKE_C_COMPILER_LAUNCHER=${nativeCcache}",
+        "-DCMAKE_CXX_COMPILER_LAUNCHER=${nativeCcache}"
+    ]
+}
 android {
     compileSdkVersion 35
     buildToolsVersion '35.0.0'
@@ -138,7 +147,7 @@ android {
         externalNativeBuild {
             cmake {
                 version '3.10.2'
-                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21' //, '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+                arguments(*nativeCmakeArguments) //, '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
             }
         }
     }
