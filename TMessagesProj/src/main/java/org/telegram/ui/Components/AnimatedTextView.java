@@ -41,6 +41,7 @@ import org.checkerframework.checker.units.qual.A;
 import org.checkerframework.checker.units.qual.C;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1155,6 +1156,7 @@ public class AnimatedTextView extends View {
                 toSetMoveDown = false;
             }
         });
+        AppFontHook.applyToAnimatedTextView(this);
     }
 
     public void setMaxWidth(int width) {

@@ -46,6 +46,7 @@ import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.EmptyStubSpan;
 import org.telegram.ui.Components.StaticLayoutEx;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,6 +147,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
         super(context);
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
+        AppFontHook.applyToSimpleTextView(this);
     }
 
     public void setTextColor(int color) {

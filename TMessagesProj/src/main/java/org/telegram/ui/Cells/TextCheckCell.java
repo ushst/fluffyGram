@@ -39,6 +39,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.Switch;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -128,6 +129,8 @@ public class TextCheckCell extends FrameLayout {
         setClipChildren(false);
 
         isRTL = LocaleController.isRTL;
+
+        AppFontHook.applyToTextCheckCell(textView, valueTextView);
     }
 
     @Override

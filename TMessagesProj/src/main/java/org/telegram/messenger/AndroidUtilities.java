@@ -178,6 +178,7 @@ import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.PeerStoriesView;
 import org.telegram.ui.Stories.StoryMediaAreasView;
@@ -256,6 +257,10 @@ public class AndroidUtilities {
     public static ThreadLocal<byte[]> bufferLocal = new ThreadLocal<>();
 
     public static Typeface bold() {
+        Typeface overrideTypeface = AppFontHook.getBoldTypefaceOverride();
+        if (overrideTypeface != null) {
+            return overrideTypeface;
+        }
         if (mediumTypeface == null) {
             if (SharedConfig.useSystemBoldFont && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 mediumTypeface = Typeface.create(null, 500, false);
@@ -2392,6 +2397,10 @@ public class AndroidUtilities {
     }
 
     public static Typeface getTypeface(String assetPath) {
+        Typeface overrideTypeface = AppFontHook.getTypefaceOverride(assetPath);
+        if (overrideTypeface != null) {
+            return overrideTypeface;
+        }
         synchronized (typefaceCache) {
             if (!typefaceCache.containsKey(assetPath)) {
                 try {

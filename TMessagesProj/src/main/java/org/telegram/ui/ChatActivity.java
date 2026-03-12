@@ -286,6 +286,7 @@ import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stars.StarsReactionsSheet;
 import org.telegram.ui.Stars.MessageSuggestionOfferSheet;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
+import org.ushastoe.fluffy.hooks.MessageDoubleTapActionHook;
 import org.ushastoe.fluffy.hooks.RoundVideoCameraMenuHook;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
@@ -1800,6 +1801,10 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public boolean hasDoubleTap(View view, int position) {
+            Boolean fluffyOverride = MessageDoubleTapActionHook.hasDoubleTapOverride(ChatActivity.this, view, position);
+            if (fluffyOverride != null) {
+                return fluffyOverride;
+            }
             if (chatMode == MODE_QUICK_REPLIES) return false;
             String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
             TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
@@ -1826,6 +1831,9 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public void onDoubleTap(View view, int position, float x, float y) {
+            if (MessageDoubleTapActionHook.onDoubleTap(ChatActivity.this, view, position, x, y)) {
+                return;
+            }
             if (getParentActivity() == null || isSecretChat() || isInScheduleMode() || isInPreviewMode() || chatMode == MODE_QUICK_REPLIES) {
                 return;
             }
@@ -16284,6 +16292,21 @@ public class ChatActivity extends BaseFragment implements
 
     public void scrollToMessageId(int id, int fromMessageId, boolean select, int loadIndex, boolean forceScroll, int forcePinnedMessageId) {
         scrollToMessageId(id, fromMessageId, select, loadIndex, forceScroll, forcePinnedMessageId, null, null);
+    }
+
+    public void fluffyStartEditingMessageObject(MessageObject messageObject) {
+        startEditingMessageObject(messageObject);
+    }
+
+    public boolean fluffyPerformDoubleTapAction(MessageObject messageObject, int option) {
+        if (messageObject == null || getParentActivity() == null) {
+            return false;
+        }
+        selectedObject = messageObject;
+        selectedObjectGroup = null;
+        selectedObjectToEditCaption = null;
+        processSelectedOption(option);
+        return true;
     }
 
     public void scrollToMessageId(int id, int fromMessageId, boolean select, int loadIndex, boolean forceScroll, int forcePinnedMessageId, Integer taskId, Runnable inCaseLoading) {
@@ -31837,6 +31860,7 @@ public class ChatActivity extends BaseFragment implements
 
         updatePinnedMessageView(true);
         updateVisibleRows();
+        MessageDoubleTapActionHook.onStartEditingMessageObject(this, messageObject, chatListView, blurredViewBottomOffset, chatActivityEnterView);
 
         if (!asSuggestion && !messageObject.scheduled && !messageObject.isQuickReply()) {
             TLRPC.TL_messages_getMessageEditData req = new TLRPC.TL_messages_getMessageEditData();

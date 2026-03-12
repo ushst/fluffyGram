@@ -65,6 +65,54 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setUseFluffyNotificationIcon(enabled);
     }
 
+    public static String getAppFontKey() {
+        return AppearanceSettingsPatch.getAppFontKey();
+    }
+
+    public static void setAppFontKey(String value) {
+        AppearanceSettingsPatch.setAppFontKey(value);
+    }
+
+    public static int getDoubleTapInAction() {
+        return AppearanceSettingsPatch.getDoubleTapInAction();
+    }
+
+    public static void setDoubleTapInAction(int action) {
+        AppearanceSettingsPatch.setDoubleTapInAction(action);
+    }
+
+    public static int getDoubleTapOutAction() {
+        return AppearanceSettingsPatch.getDoubleTapOutAction();
+    }
+
+    public static void setDoubleTapOutAction(int action) {
+        AppearanceSettingsPatch.setDoubleTapOutAction(action);
+    }
+
+    public static boolean isTimeWithSecondsEnabled() {
+        return AppearanceSettingsPatch.isTimeWithSecondsEnabled();
+    }
+
+    public static void setTimeWithSecondsEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setTimeWithSecondsEnabled(enabled);
+    }
+
+    public static boolean isRoundedNumbersDisabled() {
+        return AppearanceSettingsPatch.isRoundedNumbersDisabled();
+    }
+
+    public static void setRoundedNumbersDisabled(boolean disabled) {
+        AppearanceSettingsPatch.setRoundedNumbersDisabled(disabled);
+    }
+
+    public static boolean isThousandsSeparatorEnabled() {
+        return AppearanceSettingsPatch.isThousandsSeparatorEnabled();
+    }
+
+    public static void setThousandsSeparatorEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setThousandsSeparatorEnabled(enabled);
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         return AppearanceSettingsPatch.isRoundVideoCameraFeatureEnabled();
     }

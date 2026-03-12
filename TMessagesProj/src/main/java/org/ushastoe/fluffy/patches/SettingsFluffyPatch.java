@@ -19,18 +19,30 @@ public final class SettingsFluffyPatch {
         if (items == null) {
             return;
         }
-        if (!items.isEmpty() && items.get(items.size() - 1).viewType != UniversalAdapter.VIEW_TYPE_SHADOW) {
-            items.add(UItem.asShadow(null));
+        int insertIndex = findInsertIndex(items);
+        ArrayList<UItem> fluffyItems = new ArrayList<>();
+        if (insertIndex > 0 && items.get(insertIndex - 1).viewType != UniversalAdapter.VIEW_TYPE_SHADOW) {
+            fluffyItems.add(UItem.asShadow(null));
         }
-        items.add(UItem.asHeader(LocaleController.getString(R.string.FluffySettingsSection)));
-        items.add(SettingsActivity.SettingCell.Factory.of(
+        fluffyItems.add(UItem.asHeader(LocaleController.getString(R.string.FluffySettingsSection)));
+        fluffyItems.add(SettingsActivity.SettingCell.Factory.of(
                 FLUFFY_SETTINGS_ITEM_ID,
                 0xFF2BB5A8,
                 0xFF168F84,
                 R.drawable.fluffy_settings_icon,
                 LocaleController.getString(R.string.FluffySettings)
         ));
-        items.add(UItem.asShadow(null));
+        fluffyItems.add(UItem.asShadow(null));
+        items.addAll(insertIndex, fluffyItems);
+    }
+
+    private static int findInsertIndex(ArrayList<UItem> items) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).id == 1) {
+                return i;
+            }
+        }
+        return items.size();
     }
 
     public static boolean onSettingsItemClicked(SettingsActivity target, UItem item) {

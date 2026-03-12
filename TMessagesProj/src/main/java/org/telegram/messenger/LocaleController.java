@@ -41,6 +41,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.RestrictedLanguagesSelectActivity;
+import org.ushastoe.fluffy.hooks.LocaleFormattingHook;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.BufferedWriter;
@@ -73,6 +74,10 @@ public class LocaleController {
 
     private volatile FastDateFormat formatterDay;
     public FastDateFormat getFormatterDay() {
+        FastDateFormat overrideFormatter = LocaleFormattingHook.getDayFormatterOverride(this);
+        if (overrideFormatter != null) {
+            return overrideFormatter;
+        }
         if (formatterDay == null) {
             synchronized (this) {
                 if (formatterDay == null) {
@@ -2888,6 +2893,10 @@ public class LocaleController {
     }
 
     public static String formatShortNumber(int number, int[] rounded) {
+        String overrideValue = LocaleFormattingHook.formatShortNumberOverride(number, rounded);
+        if (overrideValue != null) {
+            return overrideValue;
+        }
         StringBuilder K = new StringBuilder();
         int lastDec = 0;
         int KCount = 0;

@@ -1,6 +1,9 @@
 package org.ushastoe.fluffy.ui;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -16,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -23,14 +27,18 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
+import org.ushastoe.fluffy.patches.AppFontPatch;
 import org.ushastoe.fluffy.patches.AppearanceSettingsPatch;
+import org.ushastoe.fluffy.ui.components.DoubleTapEditPreviewCell;
 
 import java.util.ArrayList;
 
@@ -39,14 +47,32 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_TEXT = 2;
+    private static final int VIEW_TYPE_DOUBLE_TAP_PREVIEW = 3;
+    private static final int VIEW_TYPE_SHADOW = 4;
 
-    private static final int ROW_APPEARANCE_HEADER = 0;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 1;
-    private static final int ROW_DIALOGS_TITLE_MODE = 2;
-    private static final int ROW_DIALOGS_APP_TITLE = 3;
-    private static final int ROW_NOTIFICATION_ICON = 4;
-    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 5;
-    private static final int ROW_ROUND_VIDEO_CAMERA = 6;
+    private static final int ROW_TITLES_HEADER = 0;
+    private static final int ROW_DIALOGS_TITLE_MODE = 1;
+    private static final int ROW_DIALOGS_APP_TITLE = 2;
+    private static final int ROW_APP_FONT = 3;
+    private static final int ROW_IMPORT_FONT = 4;
+    private static final int ROW_DOUBLE_TAP_SECTION = 5;
+    private static final int ROW_DOUBLE_TAP_HEADER = 6;
+    private static final int ROW_DOUBLE_TAP_EDIT_PREVIEW = 7;
+    private static final int ROW_FORMATTING_SECTION = 8;
+    private static final int ROW_FORMATTING_HEADER = 9;
+    private static final int ROW_TIME_WITH_SECONDS = 10;
+    private static final int ROW_DISABLE_ROUNDED_NUMBERS = 11;
+    private static final int ROW_THOUSANDS_SEPARATOR = 12;
+    private static final int ROW_CHAT_UI_SECTION = 13;
+    private static final int ROW_CHAT_UI_HEADER = 14;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 15;
+    private static final int ROW_NOTIFICATION_ICON = 16;
+    private static final int ROW_RECORDER_SECTION = 17;
+    private static final int ROW_RECORDER_HEADER = 18;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 19;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 20;
+
+    private static final int REQUEST_CODE_PICK_FONT = 4201;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -92,6 +118,27 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_TIME_WITH_SECONDS) {
+                boolean enabled = !AppearanceSettingsHook.isTimeWithSecondsEnabled();
+                AppearanceSettingsHook.setTimeWithSecondsEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                onFormattingChanged();
+            } else if (item.id == ROW_DISABLE_ROUNDED_NUMBERS) {
+                boolean enabled = !AppearanceSettingsHook.isRoundedNumbersDisabled();
+                AppearanceSettingsHook.setRoundedNumbersDisabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                onFormattingChanged();
+            } else if (item.id == ROW_THOUSANDS_SEPARATOR) {
+                boolean enabled = !AppearanceSettingsHook.isThousandsSeparatorEnabled();
+                AppearanceSettingsHook.setThousandsSeparatorEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                onFormattingChanged();
             } else if (item.id == ROW_ROUND_VIDEO_CAMERA_FEATURE) {
                 boolean enabled = !AppearanceSettingsHook.isRoundVideoCameraFeatureEnabled();
                 AppearanceSettingsHook.setRoundVideoCameraFeatureEnabled(enabled);
@@ -101,6 +148,10 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 updateItems();
             } else if (item.id == ROW_ROUND_VIDEO_CAMERA) {
                 showRoundVideoCameraDialog();
+            } else if (item.id == ROW_APP_FONT) {
+                showAppFontDialog();
+            } else if (item.id == ROW_IMPORT_FONT) {
+                startFontImport();
             } else if (item.id == ROW_DIALOGS_TITLE_MODE) {
                 showDialogsTitleModeDialog();
             } else if (item.id == ROW_DIALOGS_APP_TITLE) {
@@ -123,20 +174,52 @@ public class FluffyAppearanceActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_HEADER,
-                LocaleController.getString(R.string.FluffyAppearanceSection), false));
-        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_CHANNEL_POST_STARS_OFFER,
-                LocaleController.getString(R.string.FluffyHideChannelPostStarsOffer),
-                AppearanceSettingsHook.isChannelPostStarsOfferHidden()));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_TITLES_HEADER,
+                LocaleController.getString(R.string.FluffyAppearanceTitlesSection), false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DIALOGS_TITLE_MODE,
                 LocaleController.getString(R.string.FluffyCenterDialogsTitle),
                 false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DIALOGS_APP_TITLE,
                 LocaleController.getString(R.string.FluffyDialogsAppTitle),
                 false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APP_FONT,
+                LocaleController.getString(R.string.FluffyAppFont),
+                false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_IMPORT_FONT,
+                LocaleController.getString(R.string.FluffyImportFont),
+                false));
+
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_DOUBLE_TAP_SECTION, "", false));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DOUBLE_TAP_HEADER,
+                LocaleController.getString(R.string.FluffyDoubleTapSection), false));
+        items.add(new ItemInner(VIEW_TYPE_DOUBLE_TAP_PREVIEW, ROW_DOUBLE_TAP_EDIT_PREVIEW, "", false));
+
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_FORMATTING_SECTION, "", false));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_FORMATTING_HEADER,
+                LocaleController.getString(R.string.FluffyAppearanceFormattingSection), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_TIME_WITH_SECONDS,
+                LocaleController.getString(R.string.FluffyTimeWithSeconds),
+                AppearanceSettingsHook.isTimeWithSecondsEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_DISABLE_ROUNDED_NUMBERS,
+                LocaleController.getString(R.string.FluffyDisableRoundedNumbers),
+                AppearanceSettingsHook.isRoundedNumbersDisabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_THOUSANDS_SEPARATOR,
+                LocaleController.getString(R.string.FluffyThousandsSeparator),
+                AppearanceSettingsHook.isThousandsSeparatorEnabled()));
+
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_CHAT_UI_SECTION, "", false));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_CHAT_UI_HEADER,
+                LocaleController.getString(R.string.FluffyAppearanceChatSection), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_CHANNEL_POST_STARS_OFFER,
+                LocaleController.getString(R.string.FluffyHideChannelPostStarsOffer),
+                AppearanceSettingsHook.isChannelPostStarsOfferHidden()));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_NOTIFICATION_ICON,
                 LocaleController.getString(R.string.FluffyNotificationIcon),
                 AppearanceSettingsHook.useFluffyNotificationIcon()));
+
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_RECORDER_SECTION, "", false));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_RECORDER_HEADER,
+                LocaleController.getString(R.string.FluffyAppearanceRecorderSection), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_ROUND_VIDEO_CAMERA_FEATURE,
                 LocaleController.getString(R.string.FluffyRoundVideoCameraFeature),
                 AppearanceSettingsHook.isRoundVideoCameraFeatureEnabled()));
@@ -266,6 +349,62 @@ public class FluffyAppearanceActivity extends BaseFragment {
         return DialogsAppTitleHook.getDialogsAppTitle(UserConfig.selectedAccount);
     }
 
+    private void showDoubleTapActionDialog(boolean outgoing) {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        final int[] actions = new int[] {
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_NONE,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_REACTION,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_REPLY,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_COPY,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_FORWARD,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_EDIT,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_SAVE,
+                AppearanceSettingsPatch.DOUBLE_TAP_ACTION_DELETE
+        };
+        CharSequence[] items = new CharSequence[actions.length];
+        int currentAction = outgoing ? AppearanceSettingsHook.getDoubleTapOutAction() : AppearanceSettingsHook.getDoubleTapInAction();
+        for (int i = 0; i < actions.length; i++) {
+            CharSequence title = getDoubleTapActionLabel(actions[i]);
+            items[i] = actions[i] == currentAction ? "\u2713 " + title : title;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, getResourceProvider());
+        builder.setTitle(LocaleController.getString(outgoing ? R.string.FluffyDoubleTapOutgoing : R.string.FluffyDoubleTapIncoming));
+        builder.setItems(items, (dialog, which) -> {
+            int action = actions[which];
+            if (outgoing) {
+                AppearanceSettingsHook.setDoubleTapOutAction(action);
+            } else {
+                AppearanceSettingsHook.setDoubleTapInAction(action);
+            }
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence getDoubleTapActionLabel(int action) {
+        switch (action) {
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_NONE:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionNone);
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_REPLY:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionReply);
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_COPY:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionCopy);
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_FORWARD:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionForward);
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_EDIT:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionEdit);
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_SAVE:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionSave);
+            case AppearanceSettingsPatch.DOUBLE_TAP_ACTION_DELETE:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionDelete);
+            default:
+                return LocaleController.getString(R.string.FluffyDoubleTapActionReaction);
+        }
+    }
+
     private void showRoundVideoCameraDialog() {
         if (getParentActivity() == null) {
             return;
@@ -287,6 +426,83 @@ public class FluffyAppearanceActivity extends BaseFragment {
         return AppearanceSettingsHook.getDefaultRoundVideoCameraMode() == AppearanceSettingsPatch.ROUND_VIDEO_CAMERA_BACK
                 ? LocaleController.getString(R.string.FluffyRoundVideoCameraBack)
                 : LocaleController.getString(R.string.FluffyRoundVideoCameraFront);
+    }
+
+    private void showAppFontDialog() {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        ArrayList<String> availableFonts = AppFontPatch.getAvailableFonts();
+        CharSequence[] dialogItems = new CharSequence[availableFonts.size() + 1];
+        dialogItems[0] = LocaleController.getString(R.string.FluffyAppFontDefault);
+        for (int i = 0; i < availableFonts.size(); i++) {
+            dialogItems[i + 1] = AppFontPatch.getFontDisplayName(availableFonts.get(i));
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyAppFont));
+        builder.setItems(dialogItems, (dialog, which) -> {
+            if (which == 0) {
+                AppearanceSettingsHook.setAppFontKey("");
+            } else {
+                AppearanceSettingsHook.setAppFontKey(availableFonts.get(which - 1));
+            }
+            onFontChanged();
+        });
+        showDialog(builder.create());
+    }
+
+    private void startFontImport() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {
+                "font/ttf",
+                "font/otf",
+                "application/x-font-ttf",
+                "application/x-font-opentype",
+                "application/font-sfnt"
+        });
+        startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.FluffyImportFont)), REQUEST_CODE_PICK_FONT);
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode != REQUEST_CODE_PICK_FONT) {
+            return;
+        }
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            return;
+        }
+        Uri uri = data.getData();
+        if (uri == null) {
+            BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyImportFontFailed)).show();
+            return;
+        }
+        try {
+            String importedFontKey = AppFontPatch.importFont(getParentActivity(), uri);
+            AppearanceSettingsHook.setAppFontKey(importedFontKey);
+            BulletinFactory.of(this).createSuccessBulletin(LocaleController.formatString("FluffyImportFontSuccess", R.string.FluffyImportFontSuccess, AppFontPatch.getFontDisplayName(importedFontKey))).show();
+            onFontChanged();
+        } catch (Exception e) {
+            BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyImportFontFailed)).show();
+        }
+    }
+
+    private void onFontChanged() {
+        updateItems();
+        if (getParentLayout() != null) {
+            getParentLayout().rebuildAllFragmentViews(true, true);
+        }
+    }
+
+    private void onFormattingChanged() {
+        LocaleController.getInstance().recreateFormatters();
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+        updateItems();
+        if (getParentLayout() != null) {
+            getParentLayout().rebuildAllFragmentViews(true, true);
+        }
     }
 
     private static class ItemInner {
@@ -326,12 +542,16 @@ public class FluffyAppearanceActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
+            } else if (viewType == VIEW_TYPE_SHADOW) {
+                view = new ShadowSectionCell(parent.getContext());
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_TEXT) {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_DOUBLE_TAP_PREVIEW) {
+                view = new DoubleTapEditPreviewCell(parent.getContext());
             } else {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -344,14 +564,30 @@ public class FluffyAppearanceActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
+            } else if (holder.getItemViewType() == VIEW_TYPE_SHADOW) {
+                holder.itemView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
             } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.checked, false);
+            } else if (holder.getItemViewType() == VIEW_TYPE_DOUBLE_TAP_PREVIEW) {
+                DoubleTapEditPreviewCell cell = (DoubleTapEditPreviewCell) holder.itemView;
+                cell.syncTheme();
+                cell.setActions(
+                        AppearanceSettingsHook.getDoubleTapInAction(),
+                        AppearanceSettingsHook.getDoubleTapOutAction(),
+                        false,
+                        false
+                );
+                cell.setOnBubbleClickListener(FluffyAppearanceActivity.this::showDoubleTapActionDialog);
             } else {
                 CharSequence value;
                 if (item.id == ROW_DIALOGS_TITLE_MODE) {
                     value = getDialogsTitleModeValue();
                 } else if (item.id == ROW_DIALOGS_APP_TITLE) {
                     value = getDialogsAppTitleValue();
+                } else if (item.id == ROW_APP_FONT) {
+                    value = AppFontPatch.getSelectedFontDisplayName();
+                } else if (item.id == ROW_IMPORT_FONT) {
+                    value = "";
                 } else if (item.id == ROW_ROUND_VIDEO_CAMERA) {
                     value = getRoundVideoCameraValue();
                 } else {
