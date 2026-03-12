@@ -53,8 +53,15 @@ public class FluffyUpdateLayout extends IUpdateLayout {
         if (!ApplicationLoader.applicationLoaderInstance.isCustomUpdate()) {
             return;
         }
+        if (ApplicationLoader.applicationLoaderInstance.getDownloadedUpdateFile() != null) {
+            updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, true);
+            updateLayoutIcon.setProgress(1.0f, true);
+            setUpdateText(LocaleController.getString(R.string.FluffyUpdateDownloadedInstall), true);
+            return;
+        }
         if (ApplicationLoader.applicationLoaderInstance.isDownloadingUpdate()) {
             float progress = ApplicationLoader.applicationLoaderInstance.getDownloadingUpdateProgress();
+            updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, true);
             updateLayoutIcon.setProgress(progress, true);
             setUpdateText(LocaleController.formatString(R.string.AppUpdateDownloading, (int) (progress * 100)), true);
         }
@@ -112,7 +119,8 @@ public class FluffyUpdateLayout extends IUpdateLayout {
             createUpdateUI(currentAccount);
             if (ApplicationLoader.applicationLoaderInstance.getDownloadedUpdateFile() != null) {
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_UPDATE, true, animated);
-                setUpdateText(LocaleController.getString(R.string.AppUpdateNow), animated);
+                updateLayoutIcon.setProgress(1.0f, false);
+                setUpdateText(LocaleController.getString(R.string.FluffyUpdateDownloadedInstall), animated);
             } else if (ApplicationLoader.applicationLoaderInstance.isDownloadingUpdate()) {
                 float progress = ApplicationLoader.applicationLoaderInstance.getDownloadingUpdateProgress();
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_CANCEL, true, animated);
@@ -120,6 +128,7 @@ public class FluffyUpdateLayout extends IUpdateLayout {
                 setUpdateText(LocaleController.formatString(R.string.AppUpdateDownloading, (int) (progress * 100)), animated);
             } else {
                 updateLayoutIcon.setIcon(MediaActionDrawable.ICON_DOWNLOAD, true, animated);
+                updateLayoutIcon.setProgress(0.0f, false);
                 setUpdateText(LocaleController.getString(R.string.AppUpdate), animated);
             }
 

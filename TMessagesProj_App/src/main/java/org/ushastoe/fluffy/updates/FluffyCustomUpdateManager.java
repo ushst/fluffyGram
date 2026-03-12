@@ -70,6 +70,7 @@ public final class FluffyCustomUpdateManager {
     private HttpURLConnection activeConnection;
     private WeakReference<Activity> installActivityRef;
     private WeakReference<AlertDialog> currentDialogRef;
+    private long lastProgressDispatchUptime;
 
     public void init(Context context) {
         preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -147,7 +148,7 @@ public final class FluffyCustomUpdateManager {
         builder.setTitle(appName);
         builder.setMessage(message.toString());
         if (readyToInstall) {
-            builder.setPositiveButton(LocaleController.getString(R.string.AppUpdateNow), (dialog, which) -> installDownloadedUpdate(activity));
+            builder.setPositiveButton(LocaleController.getString(R.string.FluffyUpdateDownloadedInstall), (dialog, which) -> installDownloadedUpdate(activity));
         } else if (!TextUtils.isEmpty(localApkUrl)) {
             builder.setPositiveButton(LocaleController.getString(R.string.AppUpdateDownloadNow), (dialog, which) -> {
                 installActivityRef = new WeakReference<>(activity);
@@ -186,6 +187,7 @@ public final class FluffyCustomUpdateManager {
             cancelDownload = false;
             downloadedBytes = 0;
             totalBytes = 0;
+            lastProgressDispatchUptime = 0L;
             snapshot = new DownloadSnapshot(update.version, update.versionCode, apkUrl, sha256, buildFileName(fileName, update.version));
         }
         postGlobalNotification(NotificationCenter.appUpdateLoading);
@@ -392,6 +394,7 @@ public final class FluffyCustomUpdateManager {
                 activeConnection = connection;
                 totalBytes = Math.max(0, connection.getContentLengthLong());
             }
+            postGlobalNotification(NotificationCenter.appUpdateLoading);
             try (InputStream input = new BufferedInputStream(connection.getInputStream());
                  FileOutputStream output = new FileOutputStream(tempFile)) {
                 byte[] buffer = new byte[32 * 1024];
@@ -409,6 +412,7 @@ public final class FluffyCustomUpdateManager {
                     synchronized (lock) {
                         downloadedBytes = total;
                     }
+                    maybeDispatchDownloadProgress();
                 }
                 output.getFD().sync();
             }
@@ -421,6 +425,8 @@ public final class FluffyCustomUpdateManager {
             }
             synchronized (lock) {
                 downloadedFile = targetFile;
+                downloadedBytes = targetFile.length();
+                totalBytes = Math.max(totalBytes, downloadedBytes);
                 persistState();
             }
             success = true;
@@ -446,17 +452,21 @@ public final class FluffyCustomUpdateManager {
                 }
             }
             postGlobalNotifications(NotificationCenter.appUpdateAvailable, NotificationCenter.appUpdateLoading);
-            if (success) {
-                AndroidUtilities.runOnUIThread(() -> {
-                    Activity activity = getInstallActivity();
-                    if (activity != null) {
-                        installDownloadedUpdate(activity);
-                    }
-                });
-            } else {
+            if (!success) {
                 AndroidUtilities.runOnUIThread(() -> Toast.makeText(ApplicationLoader.applicationContext, LocaleController.getString(R.string.FluffyUpdateDownloadFailed), Toast.LENGTH_SHORT).show());
             }
         }
+    }
+
+    private void maybeDispatchDownloadProgress() {
+        long now = android.os.SystemClock.uptimeMillis();
+        synchronized (lock) {
+            if (now - lastProgressDispatchUptime < 150L) {
+                return;
+            }
+            lastProgressDispatchUptime = now;
+        }
+        postGlobalNotification(NotificationCenter.appUpdateLoading);
     }
 
     private boolean shouldAbortDownload() {

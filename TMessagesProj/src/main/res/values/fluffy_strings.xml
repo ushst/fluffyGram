@@ -55,6 +55,7 @@
     <string name="FluffyThousandsSeparator">Separate thousands</string>
     <string name="FluffyNotificationIcon">Fluffy notification icon</string>
     <string name="FluffyUpdateReadyToInstall">The update has been downloaded and is ready to install.</string>
+    <string name="FluffyUpdateDownloadedInstall">Downloaded. Install?</string>
     <string name="FluffyUpdateDownloadStarted">Downloading update...</string>
     <string name="FluffyUpdateDownloadFailed">Failed to download the update.</string>
     <string name="FluffyUpdateCheckFailed">Failed to check for updates.</string>
