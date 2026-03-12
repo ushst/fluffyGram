@@ -2,6 +2,8 @@ name: Build Release APK
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'fluffy-v*'
   workflow_dispatch:
