@@ -1,5 +1,6 @@
 package org.ushastoe.fluffy.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
@@ -10,9 +11,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BetaUpdate;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.PushListenerController;
 import org.telegram.messenger.R;
+import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -34,10 +39,11 @@ public class FluffyDebugActivity extends BaseFragment {
 
     private static final int ROW_DEBUG_HEADER = 0;
     private static final int ROW_SAVE_LOG = 1;
-    private static final int ROW_SAVE_LOG_INFO = 2;
-    private static final int ROW_GOOGLE_CLOUD_HEADER = 3;
-    private static final int ROW_GOOGLE_CLOUD_STATUS = 4;
-    private static final int ROW_GOOGLE_CLOUD_INFO = 5;
+    private static final int ROW_CHECK_UPDATES = 2;
+    private static final int ROW_SAVE_LOG_INFO = 3;
+    private static final int ROW_GOOGLE_CLOUD_HEADER = 4;
+    private static final int ROW_GOOGLE_CLOUD_STATUS = 5;
+    private static final int ROW_GOOGLE_CLOUD_INFO = 6;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -73,6 +79,8 @@ public class FluffyDebugActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (item.id == ROW_SAVE_LOG) {
                 FluffyLocalLogHook.onSaveLogClicked(this);
+            } else if (item.id == ROW_CHECK_UPDATES) {
+                checkForUpdates();
             }
         });
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -93,6 +101,8 @@ public class FluffyDebugActivity extends BaseFragment {
         items.clear();
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_HEADER,
                 LocaleController.getString(R.string.FluffyDebugSection), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CHECK_UPDATES,
+                LocaleController.getString(R.string.FluffyCheckUpdates), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
@@ -158,6 +168,30 @@ public class FluffyDebugActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyGoogleCloudState),
                 state
         );
+    }
+
+    private void checkForUpdates() {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        BulletinFactory.of(this)
+                .createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.FluffyCheckingUpdates))
+                .show();
+        ApplicationLoader.applicationLoaderInstance.checkUpdate(true, () -> AndroidUtilities.runOnUIThread(() -> {
+            Activity currentActivity = getParentActivity();
+            if (currentActivity == null) {
+                return;
+            }
+            BetaUpdate update = ApplicationLoader.applicationLoaderInstance.getUpdate();
+            if (update != null) {
+                ApplicationLoader.applicationLoaderInstance.showCustomUpdateAppPopup(currentActivity, update, currentAccount);
+            } else {
+                BulletinFactory.of(this)
+                        .createSuccessBulletin(LocaleController.getString(R.string.FluffyNoUpdatesFound))
+                        .show();
+            }
+        }));
     }
 
     private String maskToken(String token) {

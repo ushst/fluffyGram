@@ -90,6 +90,9 @@
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>
     <string name="FluffyDebugInfo">Tools and internal options for debugging Fluffy patches.</string>
+    <string name="FluffyCheckUpdates">Check for updates</string>
+    <string name="FluffyCheckingUpdates">Checking for updates...</string>
+    <string name="FluffyNoUpdatesFound">No updates found.</string>
     <string name="FluffySaveLog">Save Log</string>
     <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
     <string name="FluffyLocalLogsTitle">Local Logs</string>
