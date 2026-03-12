@@ -6,6 +6,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.graphics.Canvas;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,10 @@ public class FluffyUpdateLayout extends IUpdateLayout {
 
     @Override
     public void updateFileProgress(Object[] args) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            AndroidUtilities.runOnUIThread(() -> updateFileProgress(args));
+            return;
+        }
         if (updateTextView == null || updateLayoutIcon == null) {
             return;
         }
@@ -94,6 +99,10 @@ public class FluffyUpdateLayout extends IUpdateLayout {
 
     @Override
     public void updateAppUpdateViews(int currentAccount, boolean animated) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            AndroidUtilities.runOnUIThread(() -> updateAppUpdateViews(currentAccount, animated));
+            return;
+        }
         if (sideMenuContainer == null) {
             return;
         }

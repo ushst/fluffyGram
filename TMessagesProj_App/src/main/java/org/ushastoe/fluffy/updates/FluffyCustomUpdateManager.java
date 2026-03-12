@@ -188,7 +188,7 @@ public final class FluffyCustomUpdateManager {
             totalBytes = 0;
             snapshot = new DownloadSnapshot(update.version, update.versionCode, apkUrl, sha256, buildFileName(fileName, update.version));
         }
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateLoading);
+        postGlobalNotification(NotificationCenter.appUpdateLoading);
         Thread thread = new Thread(() -> performDownload(snapshot), "fluffy-update-download");
         synchronized (lock) {
             downloadThread = thread;
@@ -320,7 +320,7 @@ public final class FluffyCustomUpdateManager {
             }
             persistState();
         }
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
+        postGlobalNotification(NotificationCenter.appUpdateAvailable);
     }
 
     private void clearStoredUpdate(boolean deleteDownloadedFile) {
@@ -336,7 +336,7 @@ public final class FluffyCustomUpdateManager {
             downloadedFile = null;
             persistState();
         }
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
+        postGlobalNotification(NotificationCenter.appUpdateAvailable);
     }
 
     private void persistState() {
@@ -445,8 +445,7 @@ public final class FluffyCustomUpdateManager {
                     totalBytes = 0;
                 }
             }
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateLoading);
+            postGlobalNotifications(NotificationCenter.appUpdateAvailable, NotificationCenter.appUpdateLoading);
             if (success) {
                 AndroidUtilities.runOnUIThread(() -> {
                     Activity activity = getInstallActivity();
@@ -605,6 +604,18 @@ public final class FluffyCustomUpdateManager {
         if (!TextUtils.isEmpty(url)) {
             Browser.openUrl(context, url);
         }
+    }
+
+    private void postGlobalNotification(int id) {
+        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(id));
+    }
+
+    private void postGlobalNotifications(int... ids) {
+        AndroidUtilities.runOnUIThread(() -> {
+            for (int id : ids) {
+                NotificationCenter.getGlobalInstance().postNotificationName(id);
+            }
+        });
     }
 
     private void dismissCurrentDialog() {
