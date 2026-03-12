@@ -39,6 +39,8 @@ def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffy
 def fluffyVersionCode = Integer.parseInt(APP_VERSION_CODE) * 1000 + fluffyPatchVersion
 def fluffyUpdateManifestUrl = (project.findProperty("FLUFFY_UPDATE_MANIFEST_URL") ?: "").toString()
 def fluffyUpdatePageUrl = (project.findProperty("FLUFFY_UPDATE_PAGE_URL") ?: "").toString()
+def fluffyBetaUpdateManifestUrl = (project.findProperty("FLUFFY_BETA_UPDATE_MANIFEST_URL") ?: fluffyUpdateManifestUrl).toString()
+def fluffyBetaUpdatePageUrl = (project.findProperty("FLUFFY_BETA_UPDATE_PAGE_URL") ?: fluffyUpdatePageUrl).toString()
 
 android {
     compileSdkVersion 35
@@ -199,6 +201,8 @@ android {
         multiDexEnabled true
         buildConfigField "String", "FLUFFY_UPDATE_MANIFEST_URL", "\"" + fluffyUpdateManifestUrl + "\""
         buildConfigField "String", "FLUFFY_UPDATE_PAGE_URL", "\"" + fluffyUpdatePageUrl + "\""
+        buildConfigField "String", "FLUFFY_BETA_UPDATE_MANIFEST_URL", "\"" + fluffyBetaUpdateManifestUrl + "\""
+        buildConfigField "String", "FLUFFY_BETA_UPDATE_PAGE_URL", "\"" + fluffyBetaUpdatePageUrl + "\""
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 

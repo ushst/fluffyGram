@@ -2,9 +2,12 @@ package org.telegram.messenger;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.ViewGroup;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Components.AlertsCreator;
+import org.telegram.ui.IUpdateLayout;
+import org.ushastoe.fluffy.hooks.CustomUpdateUiHook;
 import org.ushastoe.fluffy.updates.FluffyCustomUpdateManager;
 import org.telegram.messenger.regular.BuildConfig;
 import org.telegram.tgnet.TLRPC;
@@ -58,7 +61,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
 
     @Override
     public boolean showCustomUpdateAppPopup(Context context, BetaUpdate update, int account) {
-        return customUpdateManager.showUpdateDialog(context, update, account);
+        return CustomUpdateUiHook.showCustomUpdateAppPopup(context, update, account);
     }
 
     @Override
@@ -99,5 +102,10 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
     @Override
     public java.io.File getDownloadedUpdateFile() {
         return customUpdateManager.getDownloadedUpdateFile();
+    }
+
+    @Override
+    public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenuContainer) {
+        return CustomUpdateUiHook.takeUpdateLayout(activity, sideMenuContainer, isCustomUpdate());
     }
 }

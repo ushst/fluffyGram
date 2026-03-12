@@ -5877,7 +5877,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             final BetaUpdate prevUpdate = ApplicationLoader.applicationLoaderInstance.getUpdate();
             final boolean first = firstAppUpdateCheck;
             firstAppUpdateCheck = false;
-            ApplicationLoader.applicationLoaderInstance.checkUpdate(force, () -> {
+            ApplicationLoader.applicationLoaderInstance.checkUpdate(force || first, () -> {
                 final BetaUpdate pendingUpdate = ApplicationLoader.applicationLoaderInstance.getUpdate();
                 if (progress != null) {
                     progress.end();

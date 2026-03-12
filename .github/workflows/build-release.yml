@@ -156,8 +156,13 @@ jobs:
           release_tag = os.environ["GITHUB_REF_NAME"] if os.environ.get("GITHUB_REF_TYPE") == "tag" else tag_name
           release_name = f"fluffyGram {version_name} ({base_code})"
           apk_name = f"fluffyGram-{version_name}.apk"
+          debug_apk_name = f"fluffyGram-{version_name}-debug.apk"
+          update_manifest_name = "update.json"
+          beta_update_manifest_name = "update-beta.json"
           page_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/{release_tag}"
           apk_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{apk_name}"
+          debug_apk_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{debug_apk_name}"
+          beta_update_manifest_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{beta_update_manifest_name}"
 
           print(f"version_name={version_name}")
           print(f"version_code={base_code}")
@@ -165,30 +170,41 @@ jobs:
           print(f"release_tag={release_tag}")
           print(f"release_name={release_name}")
           print(f"apk_name={apk_name}")
+          print(f"debug_apk_name={debug_apk_name}")
+          print(f"update_manifest_name={update_manifest_name}")
+          print(f"beta_update_manifest_name={beta_update_manifest_name}")
           print(f"page_url={page_url}")
           print(f"apk_url={apk_url}")
+          print(f"debug_apk_url={debug_apk_url}")
+          print(f"beta_update_manifest_url={beta_update_manifest_url}")
           PY
 
       - name: Make Gradle executable
         run: chmod +x gradlew
 
-      - name: Build release APK
-        run: ./gradlew :TMessagesProj:assembleRelease :TMessagesProj_App:assembleAfatRelease
+      - name: Build release and debug APKs
+        run: ./gradlew :TMessagesProj:assembleRelease :TMessagesProj:assembleDebug :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:assembleAfatDebug
         env:
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
           NDK_CCACHE: ccache
 
-      - name: Collect APK
+      - name: Collect APKs
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
-          if [ -z "$APK_PATH" ]; then
+          RELEASE_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
+          DEBUG_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/debug/app.apk' | head -n 1)"
+          if [ -z "$RELEASE_APK_PATH" ]; then
             echo "Release APK not found" >&2
             exit 1
           fi
-          cp "$APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
+          if [ -z "$DEBUG_APK_PATH" ]; then
+            echo "Debug APK not found" >&2
+            exit 1
+          fi
+          cp "$RELEASE_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
+          cp "$DEBUG_APK_PATH" "artifacts/${{ steps.meta.outputs.debug_apk_name }}"
           ls -lah artifacts
 
       - name: Prepare release notes
@@ -223,19 +239,28 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
-      - name: Generate update manifest
+      - name: Generate update manifests
         shell: bash
         run: |
           set -euo pipefail
-          SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
+          RELEASE_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
+          DEBUG_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.debug_apk_name }}" | cut -d ' ' -f 1)"
           python scripts/generate_update_manifest.py \
             --gradle-properties gradle.properties \
             --apk-url "${{ steps.meta.outputs.apk_url }}" \
             --page-url "${{ steps.meta.outputs.page_url }}" \
-            --sha256 "$SHA256" \
+            --sha256 "$RELEASE_SHA256" \
             --file-name "${{ steps.meta.outputs.apk_name }}" \
             --changelog-file artifacts/changelog.txt \
-            --output artifacts/update.json
+            --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
+          python scripts/generate_update_manifest.py \
+            --gradle-properties gradle.properties \
+            --apk-url "${{ steps.meta.outputs.debug_apk_url }}" \
+            --page-url "${{ steps.meta.outputs.page_url }}" \
+            --sha256 "$DEBUG_SHA256" \
+            --file-name "${{ steps.meta.outputs.debug_apk_name }}" \
+            --changelog-file artifacts/changelog.txt \
+            --output "artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -244,11 +269,25 @@ jobs:
           path: artifacts/${{ steps.meta.outputs.apk_name }}
           retention-days: 30
 
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.debug_apk_name }}
+          path: artifacts/${{ steps.meta.outputs.debug_apk_name }}
+          retention-days: 30
+
       - name: Upload update manifest artifact
         uses: actions/upload-artifact@v4
         with:
           name: update-json-${{ steps.meta.outputs.version_name }}
-          path: artifacts/update.json
+          path: artifacts/${{ steps.meta.outputs.update_manifest_name }}
+          retention-days: 30
+
+      - name: Upload beta update manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-beta-json-${{ steps.meta.outputs.version_name }}
+          path: artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}
           retention-days: 30
 
       - name: Publish GitHub release
@@ -260,6 +299,8 @@ jobs:
           body: ${{ steps.notes.outputs.body }}
           files: |
             artifacts/${{ steps.meta.outputs.apk_name }}
-            artifacts/update.json
+            artifacts/${{ steps.meta.outputs.debug_apk_name }}
+            artifacts/${{ steps.meta.outputs.update_manifest_name }}
+            artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}
           generate_release_notes: false
           overwrite_files: true

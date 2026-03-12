@@ -77,7 +77,7 @@ public final class FluffyCustomUpdateManager {
     }
 
     public boolean isEnabled() {
-        return !TextUtils.isEmpty(BuildConfig.FLUFFY_UPDATE_MANIFEST_URL);
+        return !TextUtils.isEmpty(getManifestUrl());
     }
 
     public boolean shouldUseCustomUpdate(boolean isStandalone, boolean isBeta, boolean isDebugBuild) {
@@ -103,7 +103,7 @@ public final class FluffyCustomUpdateManager {
             ParsedUpdate parsed = null;
             boolean failed = false;
             try {
-                parsed = parseManifest(fetchUrl(BuildConfig.FLUFFY_UPDATE_MANIFEST_URL));
+                parsed = parseManifest(fetchUrl(getManifestUrl()));
             } catch (Throwable t) {
                 failed = true;
                 FileLog.e(t);
@@ -526,7 +526,7 @@ public final class FluffyCustomUpdateManager {
         }
 
         if (TextUtils.isEmpty(parsedPageUrl)) {
-            parsedPageUrl = BuildConfig.FLUFFY_UPDATE_PAGE_URL;
+            parsedPageUrl = getDefaultPageUrl();
         }
         if (TextUtils.isEmpty(parsedFileName) && !TextUtils.isEmpty(parsedApkUrl)) {
             parsedFileName = Uri.parse(parsedApkUrl).getLastPathSegment();
@@ -586,7 +586,19 @@ public final class FluffyCustomUpdateManager {
     }
 
     private String getResolvedPageUrl() {
-        return TextUtils.isEmpty(pageUrl) ? BuildConfig.FLUFFY_UPDATE_PAGE_URL : pageUrl;
+        return TextUtils.isEmpty(pageUrl) ? getDefaultPageUrl() : pageUrl;
+    }
+
+    private String getManifestUrl() {
+        return isBetaChannel() ? BuildConfig.FLUFFY_BETA_UPDATE_MANIFEST_URL : BuildConfig.FLUFFY_UPDATE_MANIFEST_URL;
+    }
+
+    private String getDefaultPageUrl() {
+        return isBetaChannel() ? BuildConfig.FLUFFY_BETA_UPDATE_PAGE_URL : BuildConfig.FLUFFY_UPDATE_PAGE_URL;
+    }
+
+    private boolean isBetaChannel() {
+        return BuildConfig.APPLICATION_ID.endsWith(".beta");
     }
 
     private void openReleasePage(Context context, String url) {
