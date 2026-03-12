@@ -170,6 +170,7 @@ public final class AppearanceSettingsPatch {
             return;
         }
         preferences.edit().putString(KEY_APP_FONT, value != null ? value.trim() : "").apply();
+        AppFontPatch.onFontChanged();
         notifyListeners();
     }
 

@@ -41,12 +41,9 @@ public class FluffySettingsActivity extends BaseFragment {
     private static final int ROW_PREMIUM_SECTION = 5;
     private static final int ROW_PREMIUM = 6;
     private static final int ROW_PREMIUM_INFO = 7;
-    private static final int ROW_TABS_SECTION = 8;
-    private static final int ROW_TABS = 9;
-    private static final int ROW_TABS_INFO = 10;
-    private static final int ROW_DEBUG_SECTION = 11;
-    private static final int ROW_DEBUG = 12;
-    private static final int ROW_DEBUG_INFO = 13;
+    private static final int ROW_DEBUG_SECTION = 8;
+    private static final int ROW_DEBUG = 9;
+    private static final int ROW_DEBUG_INFO = 10;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -84,8 +81,6 @@ public class FluffySettingsActivity extends BaseFragment {
                 presentFragment(new FluffyAppearanceActivity());
             } else if (item.id == ROW_PREMIUM) {
                 presentFragment(new FluffyPremiumActivity());
-            } else if (item.id == ROW_TABS) {
-                presentFragment(new FluffyTabsActivity());
             } else if (item.id == ROW_DEBUG) {
                 presentFragment(new FluffyDebugActivity());
             }
@@ -108,9 +103,6 @@ public class FluffySettingsActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_PREMIUM_SECTION, LocaleController.getString(R.string.FluffyPremiumSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_PREMIUM, LocaleController.getString(R.string.FluffyPremium), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_PREMIUM_INFO, LocaleController.getString(R.string.FluffyPremiumInfo), null));
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_TABS_SECTION, LocaleController.getString(R.string.FluffyTabsSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_TABS, LocaleController.getString(R.string.FluffyTabs), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_TABS_INFO, LocaleController.getString(R.string.FluffyTabsInfo), null));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null));

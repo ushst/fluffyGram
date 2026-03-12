@@ -65,12 +65,13 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_THOUSANDS_SEPARATOR = 12;
     private static final int ROW_CHAT_UI_SECTION = 13;
     private static final int ROW_CHAT_UI_HEADER = 14;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 15;
-    private static final int ROW_NOTIFICATION_ICON = 16;
-    private static final int ROW_RECORDER_SECTION = 17;
-    private static final int ROW_RECORDER_HEADER = 18;
-    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 19;
-    private static final int ROW_ROUND_VIDEO_CAMERA = 20;
+    private static final int ROW_TABS = 15;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 16;
+    private static final int ROW_NOTIFICATION_ICON = 17;
+    private static final int ROW_RECORDER_SECTION = 18;
+    private static final int ROW_RECORDER_HEADER = 19;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 20;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 21;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -152,6 +153,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 showAppFontDialog();
             } else if (item.id == ROW_IMPORT_FONT) {
                 startFontImport();
+            } else if (item.id == ROW_TABS) {
+                presentFragment(new FluffyTabsActivity());
             } else if (item.id == ROW_DIALOGS_TITLE_MODE) {
                 showDialogsTitleModeDialog();
             } else if (item.id == ROW_DIALOGS_APP_TITLE) {
@@ -210,6 +213,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_CHAT_UI_SECTION, "", false));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_CHAT_UI_HEADER,
                 LocaleController.getString(R.string.FluffyAppearanceChatSection), false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_TABS,
+                LocaleController.getString(R.string.FluffyTabs),
+                false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_CHANNEL_POST_STARS_OFFER,
                 LocaleController.getString(R.string.FluffyHideChannelPostStarsOffer),
                 AppearanceSettingsHook.isChannelPostStarsOfferHidden()));
@@ -453,15 +459,19 @@ public class FluffyAppearanceActivity extends BaseFragment {
     }
 
     private void startFontImport() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {
+                "font/*",
                 "font/ttf",
                 "font/otf",
                 "application/x-font-ttf",
                 "application/x-font-opentype",
-                "application/font-sfnt"
+                "application/font-sfnt",
+                "application/octet-stream"
         });
         startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.FluffyImportFont)), REQUEST_CODE_PICK_FONT);
     }
@@ -503,6 +513,18 @@ public class FluffyAppearanceActivity extends BaseFragment {
         if (getParentLayout() != null) {
             getParentLayout().rebuildAllFragmentViews(true, true);
         }
+    }
+
+    private CharSequence getShortSelectedFontDisplayName() {
+        CharSequence value = AppFontPatch.getSelectedFontDisplayName();
+        if (value == null) {
+            return "";
+        }
+        String text = value.toString();
+        if (text.length() <= 6) {
+            return text;
+        }
+        return text.substring(0, 6);
     }
 
     private static class ItemInner {
@@ -585,7 +607,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 } else if (item.id == ROW_DIALOGS_APP_TITLE) {
                     value = getDialogsAppTitleValue();
                 } else if (item.id == ROW_APP_FONT) {
-                    value = AppFontPatch.getSelectedFontDisplayName();
+                    value = getShortSelectedFontDisplayName();
                 } else if (item.id == ROW_IMPORT_FONT) {
                     value = "";
                 } else if (item.id == ROW_ROUND_VIDEO_CAMERA) {

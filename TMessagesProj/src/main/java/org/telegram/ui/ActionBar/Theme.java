@@ -118,6 +118,7 @@ import org.telegram.ui.Components.PathAnimator;
 import org.telegram.ui.Components.PlayingGameDrawable;
 import org.telegram.ui.Components.Premium.PremiumGradient;
 import org.telegram.ui.Components.RLottieDrawable;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.telegram.ui.Components.RecordStatusDrawable;
 import org.telegram.ui.Components.RoundStatusDrawable;
 import org.telegram.ui.Components.ScamDrawable;
@@ -8488,6 +8489,12 @@ public class Theme {
         dialogs_tagTextPaint.setTextSize(dp(10));
         dialogs_searchNamePaint.setTextSize(dp(16));
         dialogs_searchNameEncryptedPaint.setTextSize(dp(16));
+        AppFontHook.applyToDialogMessagePaints(
+                dialogs_messagePaint,
+                dialogs_messagePrintingPaint
+        );
+        AppFontHook.applyToRegularPaints(dialogs_timePaint);
+        AppFontHook.applyToBoldPaints(dialogs_timePaintBold, dialogs_timePaintBoldAccent);
     }
 
     public static void applyDialogsTheme() {
@@ -8606,6 +8613,19 @@ public class Theme {
             chat_msgTextPaintThreeEmoji.setTextSize(dp(20 + 10));
             chat_msgTextPaint.setTextSize(dp(SharedConfig.fontSize));
             chat_msgGameTextPaint.setTextSize(dp(14));
+            AppFontHook.applyToCommonMessagePaints(
+                    chat_msgTextPaint,
+                    chat_msgGameTextPaint,
+                    chat_timePaint,
+                    chat_audioTimePaint,
+                    chat_replyTextPaint,
+                    chat_quoteTextPaint
+            );
+            AppFontHook.applyToBoldPaints(
+                    chat_namePaint,
+                    chat_replyNamePaint,
+                    chat_topicTextPaint
+            );
             chat_msgBotButtonPaint.setTextSize(dp(15));
             float smallerDp = (2 * SharedConfig.fontSize + 10) / 3f; // 6f + SharedConfig.fontSize / 2f;
             chat_namePaint.setTextSize(dp(smallerDp));
@@ -8973,6 +8993,21 @@ public class Theme {
             chat_adminPaint.setTextSize(dp(smallerDp - 1));
             float timeDp = 2 * (SharedConfig.fontSize - 16) / 3f + 12;
             chat_timePaint.setTextSize(dp(12));
+            AppFontHook.applyToRegularPaints(
+                    chat_timePaint,
+                    chat_audioTimePaint,
+                    chat_audioPerformerPaint,
+                    chat_forwardNamePaint,
+                    chat_adminPaint
+            );
+            AppFontHook.applyToBoldPaints(
+                    chat_namePaint,
+                    chat_replyNamePaint,
+                    chat_topicTextPaint,
+                    chat_audioTitlePaint,
+                    chat_botButtonPaint,
+                    chat_contactNamePaint
+            );
             chat_gamePaint.setTextSize(dp(13));
             chat_shipmentPaint.setTextSize(dp(13));
             chat_instantViewPaint.setTextSize(dp(13));

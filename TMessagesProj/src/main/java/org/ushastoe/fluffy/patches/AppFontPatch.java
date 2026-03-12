@@ -7,11 +7,13 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
+import android.text.TextPaint;
 import android.widget.TextView;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedTextView;
 
@@ -19,6 +21,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -35,11 +38,18 @@ public final class AppFontPatch {
     private static Typeface cachedItalicTypeface;
     private static Typeface cachedBoldTypeface;
     private static Typeface cachedBoldItalicTypeface;
+    private static boolean originalDefaultsCaptured;
+    private static Typeface originalDefaultTypeface;
+    private static Typeface originalDefaultBoldTypeface;
+    private static Typeface originalSansSerifTypeface;
+    private static Typeface originalSerifTypeface;
+    private static boolean defaultsPatched;
 
     private AppFontPatch() {
     }
 
     public static Typeface getTypefaceOverride(String assetPath) {
+        ensureGlobalTypefaceOverride();
         if (!shouldOverrideAsset(assetPath)) {
             return null;
         }
@@ -47,6 +57,7 @@ public final class AppFontPatch {
     }
 
     public static Typeface getBoldTypefaceOverride() {
+        ensureGlobalTypefaceOverride();
         return getSelectedTypeface(Typeface.BOLD);
     }
 
@@ -82,6 +93,39 @@ public final class AppFontPatch {
             return;
         }
         textView.setTypeface(regularTypeface);
+    }
+
+    public static void applyToCommonMessagePaints(TextPaint... textPaints) {
+        Typeface regularTypeface = getSelectedTypeface(Typeface.NORMAL);
+        for (TextPaint textPaint : textPaints) {
+            if (textPaint == null) {
+                continue;
+            }
+            textPaint.setTypeface(regularTypeface);
+        }
+    }
+
+    public static void applyToDialogMessagePaints(TextPaint[]... textPaintGroups) {
+        Typeface regularTypeface = getSelectedTypeface(Typeface.NORMAL);
+        for (TextPaint[] textPaintGroup : textPaintGroups) {
+            if (textPaintGroup == null) {
+                continue;
+            }
+            for (TextPaint textPaint : textPaintGroup) {
+                if (textPaint == null) {
+                    continue;
+                }
+                textPaint.setTypeface(regularTypeface);
+            }
+        }
+    }
+
+    public static void applyToRegularPaints(TextPaint... textPaints) {
+        applyTypefaceToPaints(getSelectedTypeface(Typeface.NORMAL), textPaints);
+    }
+
+    public static void applyToBoldPaints(TextPaint... textPaints) {
+        applyTypefaceToPaints(getSelectedTypeface(Typeface.BOLD), textPaints);
     }
 
     public static ArrayList<String> getAvailableFonts() {
@@ -141,6 +185,7 @@ public final class AppFontPatch {
     }
 
     public static CharSequence getSelectedFontDisplayName() {
+        ensureGlobalTypefaceOverride();
         String selectedFont = AppearanceSettingsPatch.getAppFontKey();
         if (TextUtils.isEmpty(selectedFont)) {
             return LocaleController.getString(R.string.FluffyAppFontDefault);
@@ -158,6 +203,20 @@ public final class AppFontPatch {
         }
         int extensionIndex = fileName.lastIndexOf('.');
         return extensionIndex > 0 ? fileName.substring(0, extensionIndex) : fileName;
+    }
+
+    public static void onFontChanged() {
+        synchronized (TYPEFACE_LOCK) {
+            cachedFontKey = null;
+            cachedBaseTypeface = null;
+            cachedItalicTypeface = null;
+            cachedBoldTypeface = null;
+            cachedBoldItalicTypeface = null;
+        }
+        ensureGlobalTypefaceOverride();
+        if (ApplicationLoader.applicationContext != null) {
+            Theme.reloadAllResources(ApplicationLoader.applicationContext);
+        }
     }
 
     private static Typeface getSelectedTypeface(int style) {
@@ -197,6 +256,89 @@ public final class AppFontPatch {
                 default:
                     return cachedBaseTypeface;
             }
+        }
+    }
+
+    private static void applyTypefaceToPaints(Typeface typeface, TextPaint... textPaints) {
+        if (typeface == null || textPaints == null) {
+            return;
+        }
+        for (TextPaint textPaint : textPaints) {
+            if (textPaint == null) {
+                continue;
+            }
+            textPaint.setTypeface(typeface);
+        }
+    }
+
+    private static void ensureGlobalTypefaceOverride() {
+        synchronized (TYPEFACE_LOCK) {
+            captureOriginalDefaults();
+            Typeface regular = getSelectedTypeface(Typeface.NORMAL);
+            Typeface bold = getSelectedTypeface(Typeface.BOLD);
+            Typeface sans = regular != null ? regular : originalSansSerifTypeface;
+            Typeface serif = regular != null ? regular : originalSerifTypeface;
+
+            if (regular == null || bold == null) {
+                if (!defaultsPatched) {
+                    return;
+                }
+                restoreTypefaceDefaults();
+                defaultsPatched = false;
+                return;
+            }
+
+            setTypefaceField("DEFAULT", regular);
+            setTypefaceField("DEFAULT_BOLD", bold);
+            setTypefaceField("SANS_SERIF", sans);
+            setTypefaceField("SERIF", serif);
+            setTypefaceDefaultsArray(regular, bold);
+            defaultsPatched = true;
+        }
+    }
+
+    private static void captureOriginalDefaults() {
+        if (originalDefaultsCaptured) {
+            return;
+        }
+        originalDefaultTypeface = Typeface.DEFAULT;
+        originalDefaultBoldTypeface = Typeface.DEFAULT_BOLD;
+        originalSansSerifTypeface = Typeface.SANS_SERIF;
+        originalSerifTypeface = Typeface.SERIF;
+        originalDefaultsCaptured = true;
+    }
+
+    private static void restoreTypefaceDefaults() {
+        setTypefaceField("DEFAULT", originalDefaultTypeface);
+        setTypefaceField("DEFAULT_BOLD", originalDefaultBoldTypeface);
+        setTypefaceField("SANS_SERIF", originalSansSerifTypeface);
+        setTypefaceField("SERIF", originalSerifTypeface);
+        setTypefaceDefaultsArray(originalDefaultTypeface, originalDefaultBoldTypeface);
+    }
+
+    private static void setTypefaceField(String fieldName, Typeface typeface) {
+        try {
+            Field field = Typeface.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(null, typeface);
+        } catch (Throwable ignore) {
+        }
+    }
+
+    private static void setTypefaceDefaultsArray(Typeface regular, Typeface bold) {
+        try {
+            Field defaultsField = Typeface.class.getDeclaredField("sDefaults");
+            defaultsField.setAccessible(true);
+            Typeface[] defaults = (Typeface[]) defaultsField.get(null);
+            if (defaults == null || defaults.length < 4) {
+                return;
+            }
+            defaults[0] = regular;
+            defaults[1] = bold;
+            defaults[2] = Typeface.create(regular, Typeface.ITALIC);
+            defaults[3] = Typeface.create(regular, Typeface.BOLD_ITALIC);
+            defaultsField.set(null, defaults);
+        } catch (Throwable ignore) {
         }
     }
 

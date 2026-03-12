@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy.ui;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.TypedValue;
@@ -21,6 +22,7 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -30,20 +32,27 @@ import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.DialogsActivity;
 import org.ushastoe.fluffy.hooks.MainTabsConfigHook;
 import org.ushastoe.fluffy.patches.MainTabsConfigPatch;
+import org.ushastoe.fluffy.ui.components.FluffyTabsNavbarPreviewView;
+import org.ushastoe.fluffy.ui.components.FluffyTabsPreviewCell;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
 import java.util.ArrayList;
 
 public class FluffyTabsActivity extends BaseFragment {
 
+    private static final int PREVIEW_BOTTOM_MARGIN_DP = 6;
+
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
     private static final int VIEW_TYPE_ADD = 2;
+    private static final int VIEW_TYPE_PREVIEW = 3;
 
     private static final int ROW_VISIBLE_HEADER = 0;
     private static final int ROW_HIDDEN_HEADER = 1;
@@ -57,6 +66,7 @@ public class FluffyTabsActivity extends BaseFragment {
     private final ArrayList<ItemInner> items = new ArrayList<>();
     private RecyclerListView listView;
     private ListAdapter adapter;
+    private FluffyTabsNavbarPreviewView navbarPreviewView;
 
     @Override
     public View createView(Context context) {
@@ -80,6 +90,8 @@ public class FluffyTabsActivity extends BaseFragment {
         actionBar.setAdaptiveBackground(listView);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
+        listView.setPadding(0, 0, 0, AndroidUtilities.dp(DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS + 12 + PREVIEW_BOTTOM_MARGIN_DP));
+        listView.setClipToPadding(false);
         listView.setAdapter(adapter = new ListAdapter());
         listView.setOnItemClickListener((view, position) -> {
             if (position < 0 || position >= items.size()) {
@@ -108,6 +120,17 @@ public class FluffyTabsActivity extends BaseFragment {
             }
         });
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+        navbarPreviewView = new FluffyTabsNavbarPreviewView(context, currentAccount, getResourceProvider());
+        frameLayout.addView(navbarPreviewView, LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT,
+                DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS + 12,
+                Gravity.BOTTOM,
+                0,
+                0,
+                0,
+                PREVIEW_BOTTOM_MARGIN_DP
+        ));
 
         updateItems();
 
@@ -168,6 +191,9 @@ public class FluffyTabsActivity extends BaseFragment {
 
         if (adapter != null) {
             adapter.notifyDataSetChanged();
+        }
+        if (navbarPreviewView != null) {
+            navbarPreviewView.updatePreview();
         }
     }
 
@@ -391,6 +417,87 @@ public class FluffyTabsActivity extends BaseFragment {
         return String.valueOf(dialogId);
     }
 
+    private ArrayList<FluffyTabsPreviewCell.PreviewItem> buildPreviewItems() {
+        ArrayList<FluffyTabsPreviewCell.PreviewItem> previewItems = new ArrayList<>();
+        int[] visibleTypes = MainTabsConfigHook.getVisibleTabTypes();
+        for (int i = 0; i < visibleTypes.length; i++) {
+            int type = visibleTypes[i];
+            boolean selected = i == 0;
+            if (type == MainTabsConfigPatch.TAB_PROFILE) {
+                previewItems.add(FluffyTabsPreviewCell.PreviewItem.withAvatar(
+                        getBaseTypeTitle(type),
+                        createProfileAvatarDrawable(),
+                        selected
+                ));
+            } else {
+                previewItems.add(FluffyTabsPreviewCell.PreviewItem.withIcon(
+                        getBaseTypeTitle(type),
+                        getBaseTypeIcon(type),
+                        selected
+                ));
+            }
+        }
+
+        long[] quickDialogs = MainTabsConfigHook.getQuickDialogIds();
+        for (long dialogId : quickDialogs) {
+            previewItems.add(FluffyTabsPreviewCell.PreviewItem.withAvatar(
+                    getQuickDialogDisplayTitle(dialogId),
+                    createDialogAvatarDrawable(dialogId),
+                    false
+            ));
+        }
+        return previewItems;
+    }
+
+    private int getBaseTypeIcon(int type) {
+        switch (type) {
+            case MainTabsConfigPatch.TAB_CONTACTS:
+                return R.drawable.msg_contacts;
+            case MainTabsConfigPatch.TAB_SETTINGS:
+                return R.drawable.msg_settings;
+            case MainTabsConfigPatch.TAB_CHATS:
+            default:
+                return R.drawable.msg_message;
+        }
+    }
+
+    private Drawable createProfileAvatarDrawable() {
+        AvatarDrawable avatarDrawable = new AvatarDrawable();
+        TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
+        if (user != null) {
+            avatarDrawable.setInfo(currentAccount, user);
+        } else {
+            avatarDrawable.setInfo(0, LocaleController.getString(R.string.MainTabsProfile), null);
+        }
+        return avatarDrawable;
+    }
+
+    private Drawable createDialogAvatarDrawable(long dialogId) {
+        AvatarDrawable avatarDrawable = new AvatarDrawable();
+        if (DialogObject.isUserDialog(dialogId)) {
+            TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialogId);
+            if (user == null) {
+                user = MessagesStorage.getInstance(currentAccount).getUserSync(dialogId);
+            }
+            if (user != null) {
+                avatarDrawable.setInfo(currentAccount, user);
+                return avatarDrawable;
+            }
+        } else if (DialogObject.isChatDialog(dialogId)) {
+            long chatId = -dialogId;
+            TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(chatId);
+            if (chat == null) {
+                chat = MessagesStorage.getInstance(currentAccount).getChatSync(chatId);
+            }
+            if (chat != null) {
+                avatarDrawable.setInfo(currentAccount, chat);
+                return avatarDrawable;
+            }
+        }
+        avatarDrawable.setInfo(dialogId, getQuickDialogDisplayTitle(dialogId).toString(), null);
+        return avatarDrawable;
+    }
+
     private static int indexOf(long[] values, long value) {
         for (int i = 0; i < values.length; i++) {
             if (values[i] == value) {
@@ -455,6 +562,8 @@ public class FluffyTabsActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
+            } else if (viewType == VIEW_TYPE_PREVIEW) {
+                view = new FluffyTabsPreviewCell(parent.getContext());
             } else if (viewType == VIEW_TYPE_ADD) {
                 view = new TextCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -470,6 +579,8 @@ public class FluffyTabsActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
+            } else if (holder.getItemViewType() == VIEW_TYPE_PREVIEW) {
+                ((FluffyTabsPreviewCell) holder.itemView).setItems(buildPreviewItems());
             } else if (holder.getItemViewType() == VIEW_TYPE_ADD) {
                 ((TextCell) holder.itemView).setTextAndIcon(item.text, R.drawable.msg_add, false);
             } else {

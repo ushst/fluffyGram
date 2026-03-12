@@ -86,6 +86,20 @@ public class DoubleTapEditPreviewCell extends FrameLayout {
         invalidate();
     }
 
+    private int getActionIconColor(int index) {
+        if (index == 1) {
+            return Theme.getColor(Theme.key_chat_messageTextOut);
+        }
+        Theme.ThemeInfo themeInfo = Theme.getCurrentTheme();
+        if (themeInfo != null) {
+            Theme.ThemeAccent accent = themeInfo.getAccent(false);
+            if (accent != null && accent.accentColor != 0) {
+                return accent.accentColor;
+            }
+        }
+        return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText);
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(
@@ -169,7 +183,7 @@ public class DoubleTapEditPreviewCell extends FrameLayout {
         int extra = AndroidUtilities.dp(4 - 4 * iconProgress[index]);
         icon.setBounds((int) centerX - halfSize - extra, (int) centerY - halfSize - extra, (int) centerX + halfSize + extra, (int) centerY + halfSize + extra);
         icon.setColorFilter(new PorterDuffColorFilter(
-                ColorUtils.blendARGB(0x00000000, Theme.getColor(Theme.key_chats_menuItemIcon), iconProgress[index]),
+                ColorUtils.blendARGB(0x00000000, getActionIconColor(index), iconProgress[index]),
                 PorterDuff.Mode.MULTIPLY
         ));
         icon.draw(canvas);

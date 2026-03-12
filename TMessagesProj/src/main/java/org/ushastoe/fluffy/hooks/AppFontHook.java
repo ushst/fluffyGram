@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy.hooks;
 
 import android.graphics.Typeface;
+import android.text.TextPaint;
 import android.widget.TextView;
 
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -26,6 +27,22 @@ public final class AppFontHook {
 
     public static void applyToAnimatedTextView(AnimatedTextView textView) {
         AppFontPatch.applyToAnimatedTextView(textView);
+    }
+
+    public static void applyToCommonMessagePaints(TextPaint... textPaints) {
+        AppFontPatch.applyToCommonMessagePaints(textPaints);
+    }
+
+    public static void applyToDialogMessagePaints(TextPaint[]... textPaintGroups) {
+        AppFontPatch.applyToDialogMessagePaints(textPaintGroups);
+    }
+
+    public static void applyToRegularPaints(TextPaint... textPaints) {
+        AppFontPatch.applyToRegularPaints(textPaints);
+    }
+
+    public static void applyToBoldPaints(TextPaint... textPaints) {
+        AppFontPatch.applyToBoldPaints(textPaints);
     }
 
     public static void applyToTextCheckCell(TextView textView, TextView valueTextView) {
