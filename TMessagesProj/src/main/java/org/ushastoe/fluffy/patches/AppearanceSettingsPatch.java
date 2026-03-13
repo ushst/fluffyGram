@@ -22,6 +22,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_TIME_WITH_SECONDS = "time_with_seconds";
     private static final String KEY_DISABLE_ROUNDED_NUMBERS = "disable_rounded_numbers";
     private static final String KEY_THOUSANDS_SEPARATOR = "thousands_separator";
+    private static final String KEY_CENTER_CHAT_HEADER = "center_chat_header";
     private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
@@ -247,6 +248,20 @@ public final class AppearanceSettingsPatch {
             return;
         }
         preferences.edit().putBoolean(KEY_THOUSANDS_SEPARATOR, enabled).apply();
+        notifyListeners();
+    }
+
+    public static boolean isCenterChatHeaderEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_CENTER_CHAT_HEADER, false);
+    }
+
+    public static void setCenterChatHeaderEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_CENTER_CHAT_HEADER, enabled).apply();
         notifyListeners();
     }
 

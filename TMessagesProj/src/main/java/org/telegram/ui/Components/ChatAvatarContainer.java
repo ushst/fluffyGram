@@ -65,6 +65,7 @@ import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.ProfileActivity2;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.TopicsFragment;
+import org.ushastoe.fluffy.hooks.ChatHeaderCenteringHook;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -357,6 +358,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
         emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(24));
         botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(17));
+        ChatHeaderCenteringHook.applyMode(this);
     }
 
     public ButtonBounce bounce = new ButtonBounce(this);
@@ -639,6 +641,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (ChatHeaderCenteringHook.onMeasure(this, widthMeasureSpec, heightMeasureSpec)) {
+            return;
+        }
         int width = MeasureSpec.getSize(widthMeasureSpec) + titleTextView.getPaddingRight();
         int availableWidth = width - dp((avatarImageView.getVisibility() == VISIBLE ? 54 : 0) + 16);
         avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(42), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(42), MeasureSpec.EXACTLY));
@@ -687,6 +692,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         titleTextLargerCopyView.setRightDrawableOutside(titleTextView.getRightDrawableOutside());
         titleTextLargerCopyView.setLeftDrawable(titleTextView.getLeftDrawable());
         titleTextLargerCopyView.setText(titleTextView.getText());
+        ChatHeaderCenteringHook.applyFadeCopyMode(this, titleTextLargerCopyView, null);
         titleTextLargerCopyView.animate().alpha(0).setDuration(350).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).withEndAction(() -> {
             SimpleTextView titleTextLargerCopyView2 = this.titleTextLargerCopyView.get();
             if (titleTextLargerCopyView2 != null) {
@@ -711,6 +717,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         } else if (animatedSubtitleTextView != null) {
             subtitleTextLargerCopyView.setText(animatedSubtitleTextView.getText());
         }
+        ChatHeaderCenteringHook.applyFadeCopyMode(this, null, subtitleTextLargerCopyView);
         subtitleTextLargerCopyView.animate().alpha(0).setDuration(350).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).withEndAction(() -> {
             SimpleTextView subtitleTextLargerCopyView2 = this.subtitleTextLargerCopyView.get();
             if (subtitleTextLargerCopyView2 != null) {
@@ -728,6 +735,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        if (ChatHeaderCenteringHook.onLayout(this, changed, left, top, right, bottom)) {
+            return;
+        }
         int actionBarHeight = ActionBar.getCurrentActionBarHeight();
         int viewTop = (actionBarHeight - dp(42)) / 2 + (Build.VERSION.SDK_INT >= 21 && occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
         avatarImageView.layout(leftPadding, viewTop + 1, leftPadding + dp(42), viewTop + 1 + dp(42));
@@ -926,6 +936,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             titleTextView.setRightDrawable(null);
             rightDrawableContentDescription = null;
         }
+        ChatHeaderCenteringHook.onTitleChanged(this);
     }
 
     private Drawable emojiStatusDefaultDrawable;

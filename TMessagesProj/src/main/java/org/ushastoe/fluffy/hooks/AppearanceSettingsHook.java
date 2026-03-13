@@ -113,6 +113,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setThousandsSeparatorEnabled(enabled);
     }
 
+    public static boolean isCenterChatHeaderEnabled() {
+        return AppearanceSettingsPatch.isCenterChatHeaderEnabled();
+    }
+
+    public static void setCenterChatHeaderEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setCenterChatHeaderEnabled(enabled);
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         return AppearanceSettingsPatch.isRoundVideoCameraFeatureEnabled();
     }

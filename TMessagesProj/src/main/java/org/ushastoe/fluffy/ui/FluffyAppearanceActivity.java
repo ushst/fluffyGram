@@ -66,12 +66,13 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_CHAT_UI_SECTION = 13;
     private static final int ROW_CHAT_UI_HEADER = 14;
     private static final int ROW_TABS = 15;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 16;
-    private static final int ROW_NOTIFICATION_ICON = 17;
-    private static final int ROW_RECORDER_SECTION = 18;
-    private static final int ROW_RECORDER_HEADER = 19;
-    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 20;
-    private static final int ROW_ROUND_VIDEO_CAMERA = 21;
+    private static final int ROW_CENTER_CHAT_HEADER = 16;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 17;
+    private static final int ROW_NOTIFICATION_ICON = 18;
+    private static final int ROW_RECORDER_SECTION = 19;
+    private static final int ROW_RECORDER_HEADER = 20;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 21;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 22;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -140,6 +141,12 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
                 onFormattingChanged();
+            } else if (item.id == ROW_CENTER_CHAT_HEADER) {
+                boolean enabled = !AppearanceSettingsHook.isCenterChatHeaderEnabled();
+                AppearanceSettingsHook.setCenterChatHeaderEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             } else if (item.id == ROW_ROUND_VIDEO_CAMERA_FEATURE) {
                 boolean enabled = !AppearanceSettingsHook.isRoundVideoCameraFeatureEnabled();
                 AppearanceSettingsHook.setRoundVideoCameraFeatureEnabled(enabled);
@@ -216,6 +223,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_TABS,
                 LocaleController.getString(R.string.FluffyTabs),
                 false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CENTER_CHAT_HEADER,
+                LocaleController.getString(R.string.FluffyCenterChatHeader),
+                AppearanceSettingsHook.isCenterChatHeaderEnabled()));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_CHANNEL_POST_STARS_OFFER,
                 LocaleController.getString(R.string.FluffyHideChannelPostStarsOffer),
                 AppearanceSettingsHook.isChannelPostStarsOfferHidden()));

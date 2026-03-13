@@ -70,6 +70,7 @@
     <string name="FluffyTimeWithSeconds">Show seconds in time</string>
     <string name="FluffyDisableRoundedNumbers">Disable rounded counters</string>
     <string name="FluffyThousandsSeparator">Separate thousands</string>
+    <string name="FluffyCenterChatHeader">Center chat header</string>
     <string name="FluffyNotificationIcon">Fluffy notification icon</string>
     <string name="FluffyUpdateReadyToInstall">The update has been downloaded and is ready to install.</string>
     <string name="FluffyUpdateDownloadedInstall">Downloaded. Install?</string>
