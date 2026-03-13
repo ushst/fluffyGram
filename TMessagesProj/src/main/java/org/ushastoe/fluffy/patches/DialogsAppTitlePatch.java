@@ -87,6 +87,23 @@ public final class DialogsAppTitlePatch {
         syncActionBarRightDrawable(actionBar, false);
     }
 
+    public static void onDialogsStatusUpdated(ActionBar actionBar, int currentAccount, Drawable statusDrawable) {
+        if (actionBar == null) {
+            return;
+        }
+        Drawable desiredDrawable = statusDrawable;
+        if (statusDrawable instanceof AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) {
+            if (((AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) statusDrawable).getDrawable() == null) {
+                desiredDrawable = null;
+            }
+        }
+        SimpleTextView titleTextView = actionBar.getTitleTextView();
+        if (titleTextView != null && titleTextView.getRightDrawable() == desiredDrawable) {
+            return;
+        }
+        actionBar.setTitle(getDialogsAppTitle(currentAccount), desiredDrawable);
+    }
+
     public static boolean shouldShowDialogsStoryStatusWithTitle(CharSequence currentTitle) {
         return TextUtils.isEmpty(currentTitle);
     }

@@ -2,6 +2,7 @@ package org.ushastoe.fluffy.patches;
 
 import android.view.View;
 import android.view.Gravity;
+import android.text.TextUtils;
 
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -141,6 +142,13 @@ public final class DialogsCenteredTitlePatch {
         if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_DEFAULT) {
             applyGravity(actionBar.getTitleTextView(), false);
             applyGravity(actionBar.getTitleTextView2(), false);
+            resetTitleView(actionBar.getTitleTextView());
+            resetTitleView(actionBar.getTitleTextView2());
+            resetTitleView(customTitleView);
+            return;
+        }
+
+        if (isTitleTransitionInProgress(actionBar)) {
             resetTitleView(actionBar.getTitleTextView());
             resetTitleView(actionBar.getTitleTextView2());
             resetTitleView(customTitleView);
@@ -306,6 +314,14 @@ public final class DialogsCenteredTitlePatch {
             }
         }
         return null;
+    }
+
+    private static boolean isTitleTransitionInProgress(ActionBar actionBar) {
+        SimpleTextView secondaryTitle = actionBar.getTitleTextView2();
+        return secondaryTitle != null
+                && secondaryTitle.getVisibility() == View.VISIBLE
+                && secondaryTitle.getAlpha() > 0.01f
+                && !TextUtils.isEmpty(secondaryTitle.getText());
     }
 
     private static void applyGravity(SimpleTextView titleView, boolean centered) {

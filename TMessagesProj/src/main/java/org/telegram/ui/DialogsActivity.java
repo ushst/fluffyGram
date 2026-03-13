@@ -2960,6 +2960,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             actionBar.setRightDrawableOnClick(null);
         }
         statusDrawable.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
+        DialogsAppTitleHook.onDialogsStatusUpdated(actionBar, currentAccount, statusDrawable);
         if (animatedStatusView != null) {
             animatedStatusView.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
         }

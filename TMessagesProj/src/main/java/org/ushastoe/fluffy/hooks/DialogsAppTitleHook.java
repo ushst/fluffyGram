@@ -51,6 +51,10 @@ public final class DialogsAppTitleHook {
         DialogsAppTitlePatch.onActionBarDetached(actionBar);
     }
 
+    public static void onDialogsStatusUpdated(ActionBar actionBar, int currentAccount, Drawable statusDrawable) {
+        DialogsAppTitlePatch.onDialogsStatusUpdated(actionBar, currentAccount, statusDrawable);
+    }
+
     public static boolean shouldShowDialogsStoryStatusWithTitle(CharSequence currentTitle) {
         return DialogsAppTitlePatch.shouldShowDialogsStoryStatusWithTitle(currentTitle);
     }
