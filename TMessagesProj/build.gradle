@@ -307,3 +307,10 @@ tasks.matching { it.name.startsWith("process") && it.name.endsWith("GoogleServic
         dependsOn syncLocalGoogleServices
     }
 }
+tasks.matching { it.name.startsWith("sync") && it.name.endsWith("LibJars") }.configureEach { task ->
+    if (task.name.contains("Release")) {
+        task.dependsOn("compileReleaseJavaWithJavac", "bundleLibRuntimeToJarRelease")
+    } else if (task.name.contains("Debug")) {
+        task.dependsOn("compileDebugJavaWithJavac", "bundleLibRuntimeToJarDebug")
+    }
+}
