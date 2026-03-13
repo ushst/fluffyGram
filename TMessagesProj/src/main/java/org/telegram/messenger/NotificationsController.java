@@ -81,6 +81,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PopupNotificationActivity;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.ushastoe.fluffy.hooks.NotificationIconHook;
+import org.ushastoe.fluffy.hooks.NotificationLaunchIntentHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -4531,7 +4532,11 @@ public class NotificationsController extends BaseController {
                 }
             }
             intent.putExtra("currentAccount", currentAccount);
-            PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+            PendingIntent contentIntent = NotificationLaunchIntentHook.createContentIntent(
+                    ApplicationLoader.applicationContext,
+                    intent,
+                    currentAccount + 1
+            );
 
             mBuilder.setContentTitle(name)
                     .setSmallIcon(NotificationIconHook.getNotificationSmallIcon())
@@ -5461,7 +5466,11 @@ public class NotificationsController extends BaseController {
                 intent.putExtra("topicId", topicId);
             }
             intent.putExtra("currentAccount", currentAccount);
-            PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+            PendingIntent contentIntent = NotificationLaunchIntentHook.createContentIntent(
+                    ApplicationLoader.applicationContext,
+                    intent,
+                    internalId
+            );
 
             NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
             if (wearReplyAction != null) {
