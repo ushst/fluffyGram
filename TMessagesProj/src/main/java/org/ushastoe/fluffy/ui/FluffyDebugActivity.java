@@ -31,6 +31,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
+import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
 import java.util.ArrayList;
 
@@ -342,7 +343,7 @@ public class FluffyDebugActivity extends BaseFragment {
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, item.value, false);
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue(item.value), false);
             } else {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 cell.setFixedSize(0);

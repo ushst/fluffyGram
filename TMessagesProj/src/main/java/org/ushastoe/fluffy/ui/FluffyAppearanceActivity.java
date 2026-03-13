@@ -46,6 +46,7 @@ import org.ushastoe.fluffy.ui.components.DialogsListSizeCell;
 import org.ushastoe.fluffy.ui.components.DialogsListPreviewCell;
 import org.ushastoe.fluffy.ui.components.DoubleTapEditPreviewCell;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
+import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
 import java.util.ArrayList;
 
@@ -755,15 +756,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     }
 
     private CharSequence getShortSelectedFontDisplayName() {
-        CharSequence value = AppFontPatch.getSelectedFontDisplayName();
-        if (value == null) {
-            return "";
-        }
-        String text = value.toString();
-        if (text.length() <= 6) {
-            return text;
-        }
-        return text.substring(0, 6);
+        return FluffyTextUtils.truncateParameterValue(AppFontPatch.getSelectedFontDisplayName());
     }
 
     private static class ItemInner {
@@ -865,7 +858,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 } else {
                     value = "";
                 }
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, value, false);
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue(value), false);
             }
         }
     }

@@ -587,7 +587,7 @@ public class FluffyTabsActivity extends BaseFragment {
             } else if (holder.getItemViewType() == VIEW_TYPE_ADD) {
                 ((TextCell) holder.itemView).setTextAndIcon(item.text, R.drawable.msg_add, false);
             } else {
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, item.value, false);
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue(item.value), false);
             }
         }
     }
