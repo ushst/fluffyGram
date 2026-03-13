@@ -1,6 +1,8 @@
 package org.ushastoe.fluffy.ui;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -20,10 +22,13 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.PremiumSettingsHook;
+import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 
 import java.util.ArrayList;
 
 public class FluffyPremiumActivity extends BaseFragment {
+
+    private static final String ARG_TARGET = "fluffy_premium_target";
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
@@ -36,6 +41,20 @@ public class FluffyPremiumActivity extends BaseFragment {
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
+
+    public FluffyPremiumActivity() {
+        super();
+    }
+
+    public FluffyPremiumActivity(Bundle args) {
+        super(args);
+    }
+
+    public static FluffyPremiumActivity createForTarget(String target) {
+        Bundle args = new Bundle();
+        args.putString(ARG_TARGET, target);
+        return new FluffyPremiumActivity(args);
+    }
 
     @Override
     public View createView(Context context) {
@@ -73,9 +92,11 @@ public class FluffyPremiumActivity extends BaseFragment {
                 }
             }
         });
+        listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         updateItems();
+        applyTargetScroll();
 
         fragmentView = frameLayout;
         return fragmentView;
@@ -85,6 +106,7 @@ public class FluffyPremiumActivity extends BaseFragment {
     public void onResume() {
         super.onResume();
         updateItems();
+        applyTargetScroll();
     }
 
     private void updateItems() {
@@ -95,6 +117,69 @@ public class FluffyPremiumActivity extends BaseFragment {
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private boolean copyDeepLinkForPosition(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        ItemInner item = items.get(position);
+        String link;
+        if (item.id == ROW_LOCAL_ANON_STORY_VIEW || item.id == ROW_LOCAL_ANON_STORY_VIEW_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "local-anon-story-view");
+        } else {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium");
+        }
+        return FluffySettingsDeepLinkPatch.copyLink(this, link);
+    }
+
+    private void applyTargetScroll() {
+        if (listView == null) {
+            return;
+        }
+        int rowId = getTargetRowId();
+        if (rowId < 0) {
+            return;
+        }
+        int index = findItemIndexById(rowId);
+        if (index < 0) {
+            return;
+        }
+        listView.post(() -> {
+            if (listView == null) {
+                return;
+            }
+            RecyclerView.LayoutManager layoutManager = listView.getLayoutManager();
+            if (layoutManager instanceof LinearLayoutManager) {
+                ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(index, 0);
+            } else {
+                listView.scrollToPosition(index);
+            }
+        });
+    }
+
+    private int getTargetRowId() {
+        Bundle args = getArguments();
+        if (args == null) {
+            return -1;
+        }
+        String target = args.getString(ARG_TARGET);
+        if (TextUtils.isEmpty(target)) {
+            return -1;
+        }
+        if ("local-anon-story-view".equals(target)) {
+            return ROW_LOCAL_ANON_STORY_VIEW;
+        }
+        return -1;
+    }
+
+    private int findItemIndexById(int id) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).id == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static class ItemInner {

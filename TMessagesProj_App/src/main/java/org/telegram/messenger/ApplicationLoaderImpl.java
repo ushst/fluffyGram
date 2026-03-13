@@ -8,6 +8,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.IUpdateLayout;
 import org.ushastoe.fluffy.hooks.CustomUpdateUiHook;
+import org.ushastoe.fluffy.hooks.MapsProviderHook;
 import org.ushastoe.fluffy.updates.FluffyCustomUpdateManager;
 import org.telegram.messenger.regular.BuildConfig;
 import org.telegram.tgnet.TLRPC;
@@ -35,6 +36,11 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
     @Override
     protected boolean isBeta() {
         return BuildConfig.APPLICATION_ID.endsWith(".beta");
+    }
+
+    @Override
+    protected IMapsProvider onCreateMapsProvider() {
+        return MapsProviderHook.createMapsProvider();
     }
 
     @Override

@@ -39,6 +39,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.DialogsActivity;
 import org.ushastoe.fluffy.hooks.MainTabsConfigHook;
 import org.ushastoe.fluffy.patches.MainTabsConfigPatch;
+import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.ui.components.FluffyTabsNavbarPreviewView;
 import org.ushastoe.fluffy.ui.components.FluffyTabsPreviewCell;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
@@ -119,6 +120,8 @@ public class FluffyTabsActivity extends BaseFragment {
                 showBaseTabOptions(item.baseType);
             }
         });
+        listView.setOnItemLongClickListener((view, position) ->
+                FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "tabs")));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         navbarPreviewView = new FluffyTabsNavbarPreviewView(context, currentAccount, getResourceProvider());

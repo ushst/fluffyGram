@@ -113,20 +113,10 @@
     >
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
 
-        <activity
-            android:name="org.ushastoe.fluffy.ui.FluffyDefaultLaunchActivity"
-            android:theme="@style/Theme.TMessages.Start.Fluffy"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode|smallestScreenSize|screenLayout"
-            android:supportsPictureInPicture="true"
-            android:hardwareAccelerated="true"
-            android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="true" />
-
         <activity-alias
              android:enabled="true"
              android:name="org.telegram.messenger.DefaultIcon"
-             android:targetActivity="org.ushastoe.fluffy.ui.FluffyDefaultLaunchActivity"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
              android:exported="true">
 
             <intent-filter>
@@ -302,6 +292,12 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="tg" />
+            </intent-filter>
+            <intent-filter android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:priority="1">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="fluffy" />
             </intent-filter>
             <intent-filter>
                 <action android:name="org.telegram.messenger.CREATE_STICKER_PACK"/>

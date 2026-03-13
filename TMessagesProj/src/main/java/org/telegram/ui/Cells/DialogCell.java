@@ -130,6 +130,7 @@ import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.StoryViewer;
+import org.ushastoe.fluffy.hooks.DialogsListSizeHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -640,7 +641,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         parentFragment = fragment;
         Theme.createDialogsResources(context);
         drawMonoforumAvatar = false;
-        avatarImage.setRoundRadius(dp(28));
+        avatarImage.setRoundRadius(dp(DialogsListSizeHook.getDialogAvatarRoundRadius(28)));
         for (int i = 0; i < thumbImage.length; ++i) {
             thumbImage[i] = new ImageReceiver(this);
             thumbImage[i].ignoreNotifications = true;
@@ -940,7 +941,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     private int computeHeight() {
         int height;
         if (isForumCell() && !isTransitionSupport && !collapsed) {
-            height = dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 86 : 91);
+            height = dp(DialogsListSizeHook.adjustDialogCellHeight(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 86 : 91));
             if (useSeparator) {
                 height += 1;
             }
@@ -954,7 +955,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     }
 
     private int getCollapsedHeight() {
-        int height = dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? heightThreeLines : heightDefault);
+        int height = dp(DialogsListSizeHook.adjustDialogCellHeight(useForceThreeLines || SharedConfig.useThreeLinesLayout ? heightThreeLines : heightDefault));
         if (useSeparator || true) {
             height += 1;
         }
@@ -1129,28 +1130,17 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         }
 
         if (useForceThreeLines || SharedConfig.useThreeLinesLayout || true) {
-            Theme.dialogs_namePaint[0].setTextSize(dp(17));
-            Theme.dialogs_nameEncryptedPaint[0].setTextSize(dp(17));
-            Theme.dialogs_messagePaint[0].setTextSize(dp(16));
-            Theme.dialogs_messagePrintingPaint[0].setTextSize(dp(16));
-
-            Theme.dialogs_namePaint[1].setTextSize(dp(16));
-            Theme.dialogs_nameEncryptedPaint[1].setTextSize(dp(16));
-            Theme.dialogs_messagePaint[1].setTextSize(dp(15));
-            Theme.dialogs_messagePrintingPaint[1].setTextSize(dp(15));
+            DialogsListSizeHook.applyDialogCellTextSizes(true);
 
             Theme.dialogs_messagePaint[1].setColor(Theme.dialogs_messagePaint[1].linkColor = Theme.getColor(Theme.key_chats_message_threeLines, resourcesProvider));
             paintIndex = 1;
-            thumbSize = 18;
+            thumbSize = DialogsListSizeHook.adjustDialogThumbSize(18);
         } else {
-            Theme.dialogs_namePaint[0].setTextSize(dp(17));
-            Theme.dialogs_nameEncryptedPaint[0].setTextSize(dp(17));
-            Theme.dialogs_messagePaint[0].setTextSize(dp(16));
-            Theme.dialogs_messagePrintingPaint[0].setTextSize(dp(16));
+            DialogsListSizeHook.applyDialogCellTextSizes(false);
 
             Theme.dialogs_messagePaint[0].setColor(Theme.dialogs_messagePaint[0].linkColor = Theme.getColor(Theme.key_chats_message, resourcesProvider));
             paintIndex = 0;
-            thumbSize = 19;
+            thumbSize = DialogsListSizeHook.adjustDialogThumbSize(19);
         }
 
         currentDialogFolderDialogsCount = 0;
@@ -2281,7 +2271,8 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         int avatarTop;
         int thumbLeft;
         if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
-            avatarTop = dp(11);
+            int avatarSize = DialogsListSizeHook.getDialogAvatarSize(56);
+            avatarTop = dp(DialogsListSizeHook.getDialogAvatarTop(11, 56, avatarSize));
             messageNameTop = dp(32);
             timeTop = dp(13);
             errorTop = dp(42.33f);
@@ -2292,19 +2283,20 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
             if (LocaleController.isRTL) {
                 buttonLeft = typingLeft = messageLeft = messageNameLeft = dp(16);
-                avatarLeft = getMeasuredWidth() - dp(56 + avatarStart);
+                avatarLeft = getMeasuredWidth() - dp(avatarSize + avatarStart);
                 thumbLeft = avatarLeft - dp(13 + 18);
             } else {
                 buttonLeft = typingLeft = messageLeft = messageNameLeft = dp(messagePaddingStart + 6);
                 avatarLeft = dp(avatarStart);
-                thumbLeft = avatarLeft + dp(56 + 13);
+                thumbLeft = avatarLeft + dp(avatarSize + 13);
             }
-            storyParams.originalAvatarRect.set(avatarLeft, avatarTop, avatarLeft + dp(56), avatarTop + dp(56));
+            storyParams.originalAvatarRect.set(avatarLeft, avatarTop, avatarLeft + dp(avatarSize), avatarTop + dp(avatarSize));
             for (int i = 0; i < thumbImage.length; ++i) {
                 thumbImage[i].setImageCoords(thumbLeft + (thumbSize + 2) * i, avatarTop + dp(31) + (twoLinesForName ? dp(20) : 0) - (!(useForceThreeLines || SharedConfig.useThreeLinesLayout) && tags != null && !tags.isEmpty() ? dp(9) : 0), dp(18), dp(18));
             }
         } else {
-            avatarTop = dp(9);
+            int avatarSize = DialogsListSizeHook.getDialogAvatarSize(52);
+            avatarTop = dp(DialogsListSizeHook.getDialogAvatarTop(9, 52, avatarSize));
             messageNameTop = dp(31);
             timeTop = dp(16);
             errorTop = dp(38);
@@ -2315,14 +2307,14 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
             if (LocaleController.isRTL) {
                 buttonLeft = typingLeft = messageLeft = messageNameLeft = dp(22);
-                avatarLeft = getMeasuredWidth() - dp(52 + avatarStart);
+                avatarLeft = getMeasuredWidth() - dp(avatarSize + avatarStart);
                 thumbLeft = avatarLeft - dp(11 + (thumbsCount * (thumbSize + 2) - 2));
             } else {
                 buttonLeft = typingLeft = messageLeft = messageNameLeft = dp(messagePaddingStart + 4);
                 avatarLeft = dp(avatarStart);
-                thumbLeft = avatarLeft + dp(56 + 11);
+                thumbLeft = avatarLeft + dp(avatarSize + 11);
             }
-            storyParams.originalAvatarRect.set(avatarLeft, avatarTop, avatarLeft + dp(52), avatarTop + dp(52));
+            storyParams.originalAvatarRect.set(avatarLeft, avatarTop, avatarLeft + dp(avatarSize), avatarTop + dp(avatarSize));
             for (int i = 0; i < thumbImage.length; ++i) {
                 thumbImage[i].setImageCoords(thumbLeft + (thumbSize + 2) * i, avatarTop + dp(30) + (twoLinesForName ? dp(20) : 0) - (!(useForceThreeLines || SharedConfig.useThreeLinesLayout) && tags != null && !tags.isEmpty() ? dp(9) : 0), dp(thumbSize), dp(thumbSize));
             }
@@ -3036,7 +3028,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 thumbImage[i].setImageBitmap((BitmapDrawable) null);
             }
             drawMonoforumAvatar = false;
-            avatarImage.setRoundRadius(dp(28));
+            avatarImage.setRoundRadius(dp(DialogsListSizeHook.getDialogAvatarRoundRadius(28)));
             drawUnmute = false;
         } else {
             int oldUnreadCount = unreadCount;
@@ -3447,7 +3439,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 reactionsMentionsAnimator.start();
             }
             drawMonoforumAvatar = !isFolderCell() && chat != null && chat.monoforum;
-            avatarImage.setRoundRadius(drawMonoforumAvatar ? 1 : chat != null && chat.forum && currentDialogFolderId == 0 && !useFromUserAsAvatar || !isSavedDialog && user != null && user.self && MessagesController.getInstance(currentAccount).savedViewAsChats ? dp(16) : dp(28));
+            avatarImage.setRoundRadius(drawMonoforumAvatar ? 1 : chat != null && chat.forum && currentDialogFolderId == 0 && !useFromUserAsAvatar || !isSavedDialog && user != null && user.self && MessagesController.getInstance(currentAccount).savedViewAsChats ? dp(16) : dp(DialogsListSizeHook.getDialogAvatarRoundRadius(28)));
         }
         if (!isTopic && (getMeasuredWidth() != 0 || getMeasuredHeight() != 0)) {
             rebuildLayout = true;

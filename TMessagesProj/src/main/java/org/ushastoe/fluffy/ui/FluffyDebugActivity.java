@@ -2,6 +2,7 @@ package org.ushastoe.fluffy.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,10 +29,13 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
+import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 
 import java.util.ArrayList;
 
 public class FluffyDebugActivity extends BaseFragment {
+
+    private static final String ARG_TARGET = "fluffy_debug_target";
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
@@ -48,6 +52,20 @@ public class FluffyDebugActivity extends BaseFragment {
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
+
+    public FluffyDebugActivity() {
+        super();
+    }
+
+    public FluffyDebugActivity(Bundle args) {
+        super(args);
+    }
+
+    public static FluffyDebugActivity createForTarget(String target) {
+        Bundle args = new Bundle();
+        args.putString(ARG_TARGET, target);
+        return new FluffyDebugActivity(args);
+    }
 
     @Override
     public View createView(Context context) {
@@ -83,9 +101,11 @@ public class FluffyDebugActivity extends BaseFragment {
                 checkForUpdates();
             }
         });
+        listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         updateItems();
+        applyTargetScroll();
 
         fragmentView = frameLayout;
         return fragmentView;
@@ -95,6 +115,7 @@ public class FluffyDebugActivity extends BaseFragment {
     public void onResume() {
         super.onResume();
         updateItems();
+        applyTargetScroll();
     }
 
     private void updateItems() {
@@ -199,6 +220,79 @@ public class FluffyDebugActivity extends BaseFragment {
             return token;
         }
         return token.substring(0, 8) + "..." + token.substring(token.length() - 8);
+    }
+
+    private boolean copyDeepLinkForPosition(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        ItemInner item = items.get(position);
+        String link;
+        if (item.id == ROW_CHECK_UPDATES) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "check-updates");
+        } else if (item.id == ROW_SAVE_LOG || item.id == ROW_SAVE_LOG_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
+        } else if (item.id == ROW_GOOGLE_CLOUD_HEADER || item.id == ROW_GOOGLE_CLOUD_STATUS || item.id == ROW_GOOGLE_CLOUD_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "google-cloud");
+        } else {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug");
+        }
+        return FluffySettingsDeepLinkPatch.copyLink(this, link);
+    }
+
+    private void applyTargetScroll() {
+        if (listView == null) {
+            return;
+        }
+        int rowId = getTargetRowId();
+        if (rowId < 0) {
+            return;
+        }
+        int index = findItemIndexById(rowId);
+        if (index < 0) {
+            return;
+        }
+        listView.post(() -> {
+            if (listView == null) {
+                return;
+            }
+            RecyclerView.LayoutManager layoutManager = listView.getLayoutManager();
+            if (layoutManager instanceof LinearLayoutManager) {
+                ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(index, 0);
+            } else {
+                listView.scrollToPosition(index);
+            }
+        });
+    }
+
+    private int getTargetRowId() {
+        Bundle args = getArguments();
+        if (args == null) {
+            return -1;
+        }
+        String target = args.getString(ARG_TARGET);
+        if (TextUtils.isEmpty(target)) {
+            return -1;
+        }
+        switch (target) {
+            case "check-updates":
+                return ROW_CHECK_UPDATES;
+            case "save-log":
+                return ROW_SAVE_LOG;
+            case "google-cloud":
+                return ROW_GOOGLE_CLOUD_STATUS;
+            default:
+                return -1;
+        }
+    }
+
+    private int findItemIndexById(int id) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).id == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static class ItemInner {

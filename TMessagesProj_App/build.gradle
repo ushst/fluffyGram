@@ -41,6 +41,7 @@ def fluffyUpdateManifestUrl = (project.findProperty("FLUFFY_UPDATE_MANIFEST_URL"
 def fluffyUpdatePageUrl = (project.findProperty("FLUFFY_UPDATE_PAGE_URL") ?: "").toString()
 def fluffyBetaUpdateManifestUrl = (project.findProperty("FLUFFY_BETA_UPDATE_MANIFEST_URL") ?: fluffyUpdateManifestUrl).toString()
 def fluffyBetaUpdatePageUrl = (project.findProperty("FLUFFY_BETA_UPDATE_PAGE_URL") ?: fluffyUpdatePageUrl).toString()
+def mapsApiKey = getDevLocalProp("MAPS_V2_API", (System.getenv("MAPS_V2_API") ?: "").trim())
 
 android {
     compileSdkVersion 35
@@ -197,6 +198,7 @@ android {
         targetSdkVersion 35
         versionName fluffyVersionName
         ndkVersion "21.4.7075529"
+        manifestPlaceholders = [MAPS_V2_API: mapsApiKey]
 
         multiDexEnabled true
         buildConfigField "String", "FLUFFY_UPDATE_MANIFEST_URL", "\"" + fluffyUpdateManifestUrl + "\""

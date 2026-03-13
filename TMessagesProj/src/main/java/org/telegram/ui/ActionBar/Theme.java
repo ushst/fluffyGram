@@ -119,6 +119,7 @@ import org.telegram.ui.Components.PlayingGameDrawable;
 import org.telegram.ui.Components.Premium.PremiumGradient;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.DialogsListSizeHook;
 import org.telegram.ui.Components.RecordStatusDrawable;
 import org.telegram.ui.Components.RoundStatusDrawable;
 import org.telegram.ui.Components.ScamDrawable;
@@ -8489,6 +8490,7 @@ public class Theme {
         dialogs_tagTextPaint.setTextSize(dp(10));
         dialogs_searchNamePaint.setTextSize(dp(16));
         dialogs_searchNameEncryptedPaint.setTextSize(dp(16));
+        DialogsListSizeHook.applyThemePaintSizes();
         AppFontHook.applyToDialogMessagePaints(
                 dialogs_messagePaint,
                 dialogs_messagePrintingPaint

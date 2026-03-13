@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy.ui;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,11 +22,14 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.ui.elements.HeaderSettingsCell;
 
 import java.util.ArrayList;
 
 public class FluffySettingsActivity extends BaseFragment {
+
+    private static final String ARG_TARGET = "fluffy_settings_target";
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
@@ -48,6 +52,20 @@ public class FluffySettingsActivity extends BaseFragment {
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
+
+    public FluffySettingsActivity() {
+        super();
+    }
+
+    public FluffySettingsActivity(Bundle args) {
+        super(args);
+    }
+
+    public static FluffySettingsActivity createForTarget(String target) {
+        Bundle args = new Bundle();
+        args.putString(ARG_TARGET, target);
+        return new FluffySettingsActivity(args);
+    }
 
     @Override
     public View createView(Context context) {
@@ -85,9 +103,11 @@ public class FluffySettingsActivity extends BaseFragment {
                 presentFragment(new FluffyDebugActivity());
             }
         });
+        listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         updateItems();
+        applyTargetScroll();
 
         fragmentView = frameLayout;
         return fragmentView;
@@ -109,6 +129,96 @@ public class FluffySettingsActivity extends BaseFragment {
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        applyTargetScroll();
+    }
+
+    private boolean copyDeepLinkForPosition(int position) {
+        if (position < 0 || position >= items.size()) {
+            return false;
+        }
+        return FluffySettingsDeepLinkPatch.copyLink(this, getDeepLinkForItem(items.get(position)));
+    }
+
+    private String getDeepLinkForItem(ItemInner item) {
+        if (item == null) {
+            return null;
+        }
+        switch (item.id) {
+            case ROW_APPEARANCE_SECTION:
+            case ROW_APPEARANCE:
+            case ROW_APPEARANCE_INFO:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance");
+            case ROW_PREMIUM_SECTION:
+            case ROW_PREMIUM:
+            case ROW_PREMIUM_INFO:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("premium");
+            case ROW_DEBUG_SECTION:
+            case ROW_DEBUG:
+            case ROW_DEBUG_INFO:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("debug");
+            default:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink();
+        }
+    }
+
+    private void applyTargetScroll() {
+        if (listView == null) {
+            return;
+        }
+        int rowId = getTargetRowId();
+        if (rowId < 0) {
+            return;
+        }
+        int index = findItemIndexById(rowId);
+        if (index < 0) {
+            return;
+        }
+        listView.post(() -> {
+            if (listView == null) {
+                return;
+            }
+            RecyclerView.LayoutManager layoutManager = listView.getLayoutManager();
+            if (layoutManager instanceof LinearLayoutManager) {
+                ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(index, 0);
+            } else {
+                listView.scrollToPosition(index);
+            }
+        });
+    }
+
+    private int getTargetRowId() {
+        Bundle args = getArguments();
+        if (args == null) {
+            return -1;
+        }
+        String target = args.getString(ARG_TARGET);
+        if (TextUtils.isEmpty(target)) {
+            return -1;
+        }
+        switch (target) {
+            case "appearance":
+                return ROW_APPEARANCE;
+            case "premium":
+                return ROW_PREMIUM;
+            case "debug":
+                return ROW_DEBUG;
+            default:
+                return -1;
+        }
+    }
+
+    private int findItemIndexById(int id) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).id == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static class ItemInner {

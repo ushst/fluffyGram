@@ -227,7 +227,10 @@ import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.hooks.CustomUpdateHook;
+import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
+import org.ushastoe.fluffy.hooks.LegacyLaunchTaskRootHook;
+import org.ushastoe.fluffy.hooks.NotificationOpenNavigationHook;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
 import java.io.BufferedReader;
@@ -423,6 +426,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         flagSecureReason.attach();
 
         super.onCreate(savedInstanceState);
+        if (LegacyLaunchTaskRootHook.relaunchIfNeeded(this, getIntent())) {
+            return;
+        }
         if (Build.VERSION.SDK_INT >= 24) {
             AndroidUtilities.isInMultiwindow = isInMultiWindowMode();
         }
@@ -1491,6 +1497,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return true;
         }
         if (AndroidUtilities.handleProxyIntent(this, intent, true)) {
+            return true;
+        }
+        if (FluffySettingsDeepLinkHook.handleIntent(this, intent)) {
             return true;
         }
         if (intent == null || !Intent.ACTION_MAIN.equals(intent.getAction())) {
@@ -2904,6 +2913,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         }
         if (UserConfig.getInstance(currentAccount).isClientActivated()) {
+            NotificationOpenNavigationHook.ensureMainTabsRoot(
+                    this,
+                    intentAccount[0],
+                    push_user_id != 0 || push_chat_id != 0 || push_enc_id != 0
+            );
             if (searchQuery != null) {
                 final BaseFragment lastFragment = actionBarLayout.getLastFragmentIncludeMainTabs();
                 if (lastFragment instanceof DialogsActivity) {
@@ -6453,6 +6467,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     public boolean presentFragment(final BaseFragment fragment, final boolean removeLast, boolean forceWithoutAnimation) {
         return getActionBarLayout().presentFragment(fragment, removeLast, forceWithoutAnimation, true, false);
+    }
+
+    public void fluffyAddMainTabsRoot(MainTabsActivity mainTabsActivity) {
+        actionBarLayout.addFragmentToStack(mainTabsActivity, INavigationLayout.FORCE_ATTACH_VIEW_AS_FIRST);
+        if (AndroidUtilities.isTablet()) {
+            actionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
+            rightActionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
+        }
     }
 
     public INavigationLayout getActionBarLayout() {

@@ -22,7 +22,9 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_TIME_WITH_SECONDS = "time_with_seconds";
     private static final String KEY_DISABLE_ROUNDED_NUMBERS = "disable_rounded_numbers";
     private static final String KEY_THOUSANDS_SEPARATOR = "thousands_separator";
+    private static final String KEY_DIALOGS_LIST_SCALE = "dialogs_list_scale";
     private static final String KEY_CENTER_CHAT_HEADER = "center_chat_header";
+    private static final String KEY_MAP_PROVIDER = "map_provider";
     private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
@@ -36,6 +38,11 @@ public final class AppearanceSettingsPatch {
     public static final int DIALOGS_APP_TITLE_MODE_USERNAME = 3;
     public static final int DIALOGS_APP_TITLE_MODE_FIRST_NAME = 4;
     public static final int DIALOGS_APP_TITLE_MODE_CUSTOM = 5;
+    public static final int DIALOGS_LIST_SCALE_MIN = 90;
+    public static final int DIALOGS_LIST_SCALE_DEFAULT = 100;
+    public static final int DIALOGS_LIST_SCALE_MAX = 110;
+    public static final int MAP_PROVIDER_GOOGLE = 0;
+    public static final int MAP_PROVIDER_OPENSTREETMAP = 1;
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
     public static final int DOUBLE_TAP_ACTION_REPLY = 2;
@@ -251,6 +258,23 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static int getDialogsListScale() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return DIALOGS_LIST_SCALE_DEFAULT;
+        }
+        return clampDialogsListScale(preferences.getInt(KEY_DIALOGS_LIST_SCALE, DIALOGS_LIST_SCALE_DEFAULT));
+    }
+
+    public static void setDialogsListScale(int scale) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_DIALOGS_LIST_SCALE, clampDialogsListScale(scale)).apply();
+        notifyListeners();
+    }
+
     public static boolean isCenterChatHeaderEnabled() {
         SharedPreferences preferences = getPreferences();
         return preferences != null && preferences.getBoolean(KEY_CENTER_CHAT_HEADER, false);
@@ -262,6 +286,28 @@ public final class AppearanceSettingsPatch {
             return;
         }
         preferences.edit().putBoolean(KEY_CENTER_CHAT_HEADER, enabled).apply();
+        notifyListeners();
+    }
+
+    public static int getMapProvider() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return MAP_PROVIDER_OPENSTREETMAP;
+        }
+        int provider = preferences.getInt(KEY_MAP_PROVIDER, MAP_PROVIDER_OPENSTREETMAP);
+        if (provider < MAP_PROVIDER_GOOGLE || provider > MAP_PROVIDER_OPENSTREETMAP) {
+            return MAP_PROVIDER_OPENSTREETMAP;
+        }
+        return provider;
+    }
+
+    public static void setMapProvider(int provider) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_MAP_PROVIDER, clampMapProvider(provider)).apply();
+        MapsProviderPatch.onMapProviderChanged();
         notifyListeners();
     }
 
@@ -361,11 +407,28 @@ public final class AppearanceSettingsPatch {
         return mode;
     }
 
+    private static int clampDialogsListScale(int scale) {
+        if (scale < DIALOGS_LIST_SCALE_MIN) {
+            return DIALOGS_LIST_SCALE_MIN;
+        }
+        if (scale > DIALOGS_LIST_SCALE_MAX) {
+            return DIALOGS_LIST_SCALE_MAX;
+        }
+        return scale;
+    }
+
     private static int clampRoundVideoCameraMode(int mode) {
         if (mode < ROUND_VIDEO_CAMERA_FRONT || mode > ROUND_VIDEO_CAMERA_BACK) {
             return ROUND_VIDEO_CAMERA_FRONT;
         }
         return mode;
+    }
+
+    private static int clampMapProvider(int provider) {
+        if (provider < MAP_PROVIDER_GOOGLE || provider > MAP_PROVIDER_OPENSTREETMAP) {
+            return MAP_PROVIDER_OPENSTREETMAP;
+        }
+        return provider;
     }
 
     private static SharedPreferences getPreferences() {
