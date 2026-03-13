@@ -2,10 +2,14 @@ package org.ushastoe.fluffy.patches;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.text.Spannable;
+import android.text.Spanned;
+import android.text.style.URLSpan;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.LaunchActivity;
@@ -16,11 +20,15 @@ import org.ushastoe.fluffy.ui.FluffySettingsActivity;
 import org.ushastoe.fluffy.ui.FluffyTabsActivity;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class FluffySettingsDeepLinkPatch {
 
     public static final String SCHEME = "fluffy";
     public static final String SETTINGS_HOST = "settings";
+    private static final String[] AUTO_LINK_SCHEMES = new String[]{"http://", "https://", "tg://", "tonsite://", SCHEME + "://"};
+    private static final Pattern DEEP_LINK_PATTERN = Pattern.compile("(?i)\\bfluffy://[\\w\\-./?%&=+#:~]+");
 
     private FluffySettingsDeepLinkPatch() {
     }
@@ -57,6 +65,46 @@ public final class FluffySettingsDeepLinkPatch {
             builder.append('/').append(pathSegment);
         }
         return builder.toString();
+    }
+
+    public static String[] getAutoLinkSchemes() {
+        return AUTO_LINK_SCHEMES;
+    }
+
+    public static boolean isInternalUri(Uri uri) {
+        return uri != null && SCHEME.equalsIgnoreCase(uri.getScheme());
+    }
+
+    public static boolean containsDeepLink(CharSequence text) {
+        return text != null && DEEP_LINK_PATTERN.matcher(text).find();
+    }
+
+    public static boolean shouldForceLinkParse(CharSequence text) {
+        return containsDeepLink(text);
+    }
+
+    public static boolean addCustomLinks(Spannable text, boolean removeOldReplacements) {
+        if (text == null) {
+            return false;
+        }
+        boolean added = false;
+        Matcher matcher = DEEP_LINK_PATTERN.matcher(text);
+        while (matcher.find()) {
+            int start = matcher.start();
+            int end = matcher.end();
+            URLSpan[] spans = text.getSpans(start, end, URLSpan.class);
+            if (spans != null) {
+                for (URLSpan span : spans) {
+                    if (!(span instanceof URLSpanNoUnderline) || removeOldReplacements) {
+                        text.removeSpan(span);
+                    }
+                }
+            }
+            String url = matcher.group();
+            text.setSpan(new URLSpanNoUnderline(url), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            added = true;
+        }
+        return added;
     }
 
     public static boolean copyLink(BaseFragment fragment, String link) {

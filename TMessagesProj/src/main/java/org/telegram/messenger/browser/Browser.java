@@ -54,6 +54,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BubbleActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.web.RestrictedDomainsList;
+import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 
 import java.lang.ref.WeakReference;
 import java.net.IDN;
@@ -668,6 +669,9 @@ public class Browser {
     }
 
     public static boolean isInternalUri(Uri uri, boolean all, boolean[] forceBrowser) {
+        if (FluffySettingsDeepLinkHook.isInternalUri(uri)) {
+            return true;
+        }
         String host = AndroidUtilities.getHostAuthority(uri);
         host = host != null ? host.toLowerCase() : "";
 

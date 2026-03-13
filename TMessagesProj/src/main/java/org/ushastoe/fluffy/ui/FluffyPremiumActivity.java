@@ -23,6 +23,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.PremiumSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
+import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 
 import java.util.ArrayList;
 
@@ -149,12 +150,7 @@ public class FluffyPremiumActivity extends BaseFragment {
             if (listView == null) {
                 return;
             }
-            RecyclerView.LayoutManager layoutManager = listView.getLayoutManager();
-            if (layoutManager instanceof LinearLayoutManager) {
-                ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(index, 0);
-            } else {
-                listView.scrollToPosition(index);
-            }
+            FluffySettingsTargetAnimator.scrollAndPulseTarget(listView, index);
         });
     }
 

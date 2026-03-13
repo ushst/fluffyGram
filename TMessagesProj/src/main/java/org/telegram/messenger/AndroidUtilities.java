@@ -179,6 +179,7 @@ import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.PeerStoriesView;
 import org.telegram.ui.Stories.StoryMediaAreasView;
@@ -1377,11 +1378,12 @@ public class AndroidUtilities {
             Linkify.addLinks(text, Linkify.PHONE_NUMBERS);
         }
         if ((mask & Linkify.WEB_URLS) != 0) {
-            gatherLinks(links, text, LinkifyPort.WEB_URL, new String[]{"http://", "https://", "tg://", "tonsite://"}, sUrlMatchFilter, internalOnly);
+            gatherLinks(links, text, LinkifyPort.WEB_URL, FluffySettingsDeepLinkHook.getAutoLinkSchemes(), sUrlMatchFilter, internalOnly);
         }
+        boolean fluffyLinksAdded = FluffySettingsDeepLinkHook.addCustomLinks(text, removeOldReplacements);
         pruneOverlaps(links);
         if (links.size() == 0) {
-            return false;
+            return fluffyLinksAdded;
         }
         for (int a = 0, N = links.size(); a < N; a++) {
             LinkSpec link = links.get(a);

@@ -45,6 +45,7 @@ import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.ui.components.DialogsListSizeCell;
 import org.ushastoe.fluffy.ui.components.DialogsListPreviewCell;
 import org.ushastoe.fluffy.ui.components.DoubleTapEditPreviewCell;
+import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 
 import java.util.ArrayList;
 
@@ -692,12 +693,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
             if (listView == null) {
                 return;
             }
-            RecyclerView.LayoutManager layoutManager = listView.getLayoutManager();
-            if (layoutManager instanceof LinearLayoutManager) {
-                ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(index, 0);
-            } else {
-                listView.scrollToPosition(index);
-            }
+            FluffySettingsTargetAnimator.scrollAndPulseTarget(listView, index);
         });
     }
 

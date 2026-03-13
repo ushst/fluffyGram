@@ -93,6 +93,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.web.BotWebViewContainer;
+import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6811,6 +6812,9 @@ public class MessageObject {
         if (message == null || message.length() < 2 || message.length() > 1024 * 20) {
             return false;
         }
+        if (FluffySettingsDeepLinkHook.containsDeepLink(message)) {
+            return true;
+        }
 
         int length = message.length();
 
@@ -7052,7 +7056,7 @@ public class MessageObject {
                 messageOwner.id < 0
             );
 
-            if (useManualParse) {
+            if (useManualParse || FluffySettingsDeepLinkHook.shouldForceLinkParse(caption)) {
                 if (containsUrls(caption)) {
                     try {
                         AndroidUtilities.addLinksSafe((Spannable) caption, Linkify.WEB_URLS | Linkify.PHONE_NUMBERS, false, true);
@@ -7929,7 +7933,7 @@ public class MessageObject {
             messageOwner.id < 0
         );
 
-        if (useManualParse) {
+        if (useManualParse || FluffySettingsDeepLinkHook.shouldForceLinkParse(messageText)) {
             addLinks(isOutOwner(), messageText, true, true);
         } else {
             addPhoneLinks(messageText);
