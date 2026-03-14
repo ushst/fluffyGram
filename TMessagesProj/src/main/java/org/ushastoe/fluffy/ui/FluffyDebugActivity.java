@@ -218,10 +218,10 @@ public class FluffyDebugActivity extends BaseFragment {
     }
 
     private String maskToken(String token) {
-        if (TextUtils.isEmpty(token) || token.length() <= 16) {
+        if (TextUtils.isEmpty(token) || token.length() <= 8) {
             return token;
         }
-        return token.substring(0, 8) + "..." + token.substring(token.length() - 8);
+        return token.substring(0, 4) + "..." + token.substring(token.length() - 4);
     }
 
     private boolean copyDeepLinkForPosition(int position) {
