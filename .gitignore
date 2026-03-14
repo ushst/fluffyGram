@@ -16,3 +16,13 @@ TMessagesProj_App/afat/
 TMessagesProj_AppHockeyApp/afat/
 TMessagesProj_AppStandalone/afat/
 TMessagesProj_AppHuawei/afat/
+.gradle-local
+*.apk
+*.aab
+artifacts/
+_fluffyGram_dev_probe/
+_tmp_*
+scripts/__pycache__/
+*.pyc
+account*_cache*.db
+user*.xml
