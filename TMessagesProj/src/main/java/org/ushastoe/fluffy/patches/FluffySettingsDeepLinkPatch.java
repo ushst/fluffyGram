@@ -171,11 +171,21 @@ public final class FluffySettingsDeepLinkPatch {
         if (PremiumAccessHook.importPremiumAccessToken(token)) {
             intent.setAction(null);
             intent.setData(null);
-            BulletinFactory.global().createSuccessBulletin(LocaleController.getString(R.string.FluffyPremiumAccessGranted)).show();
+            showPremiumBullet(activity, true);
             activity.presentFragment(new FluffyPremiumActivity());
             return true;
         }
-        BulletinFactory.global().createErrorBulletin(LocaleController.getString(R.string.FluffyPremiumAccessDenied)).show();
+        showPremiumBullet(activity, false);
         return true;
+    }
+
+    private static void showPremiumBullet(LaunchActivity activity, boolean success) {
+        Runnable openSettings = () -> activity.presentFragment(new FluffySettingsActivity());
+        int icon = success ? R.raw.info : R.raw.error;
+        String message = LocaleController.getString(success
+                ? R.string.FluffyPremiumAccessGranted
+                : R.string.FluffyPremiumAccessDenied);
+        BulletinFactory.of(activity).createSimpleBulletin(icon, message,
+                LocaleController.getString(R.string.FluffyPremiumGoToSettings), openSettings).show();
     }
 }
