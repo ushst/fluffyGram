@@ -86,6 +86,13 @@ def getDevLocalProp = { String key, String fallback ->
 def localGoogleServices = rootProject.file('fluffyGram_dev/google-services.json')
 def fluffyPatchVersion = Math.max(0, Integer.parseInt((project.findProperty("FLUFFY_PATCH_VERSION") ?: "0").toString()))
 def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffyPatchVersion : APP_VERSION_NAME
+def fluffyPremiumPublicKey = (project.findProperty("FLUFFY_PREMIUM_PUBLIC_KEY")
+        ?: getDevLocalProp("FLUFFY_PREMIUM_PUBLIC_KEY", (System.getenv("FLUFFY_PREMIUM_PUBLIC_KEY") ?: "").trim()))
+        .toString()
+def fluffyAllAbisEnabled = (project.findProperty("FLUFFY_ALL_ABIS") ?: "false").toString().toBoolean()
+def fluffyNativeAbis = fluffyAllAbisEnabled
+        ? ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+        : ["arm64-v8a"]
 def nativeCcache = (System.getenv("NDK_CCACHE") ?: "").trim()
 def nativeCmakeArguments = ['-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21']
 if (!nativeCcache.isEmpty()) {
@@ -135,7 +142,7 @@ android {
         targetSdkVersion 35
 
         ndk {
-            abiFilters "arm64-v8a"
+            abiFilters(*fluffyNativeAbis)
         }
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
@@ -144,6 +151,7 @@ android {
 
         buildConfigField "int", "TELEGRAM_APP_ID", getDevLocalProp("TELEGRAM_APP_ID", "4")
         buildConfigField "String", "TELEGRAM_APP_HASH", "\"" + getDevLocalProp("TELEGRAM_APP_HASH", "014b35b6184100b085b0d0572f9b5103") + "\""
+        buildConfigField "String", "FLUFFY_PREMIUM_PUBLIC_KEY", "\"" + fluffyPremiumPublicKey.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
         externalNativeBuild {
             cmake {

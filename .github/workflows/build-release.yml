@@ -183,7 +183,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build release and debug APKs
-        run: ./gradlew :TMessagesProj:assembleRelease :TMessagesProj:assembleDebug :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:assembleAfatDebug
+        run: ./gradlew :TMessagesProj:assembleRelease :TMessagesProj:assembleDebug :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:assembleAfatDebug :TMessagesProj_App:bundleBundleAfatRelease
         env:
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
           NDK_CCACHE: ccache
@@ -195,6 +195,7 @@ jobs:
           mkdir -p artifacts
           RELEASE_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
           DEBUG_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/debug/app.apk' | head -n 1)"
+          RELEASE_AAB_PATH="$(find TMessagesProj_App/build/outputs/bundle -path '*bundleAfatRelease/*.aab' | head -n 1)"
           if [ -z "$RELEASE_APK_PATH" ]; then
             echo "Release APK not found" >&2
             exit 1
@@ -203,8 +204,13 @@ jobs:
             echo "Debug APK not found" >&2
             exit 1
           fi
+          if [ -z "$RELEASE_AAB_PATH" ]; then
+            echo "Release AAB not found" >&2
+            exit 1
+          fi
           cp "$RELEASE_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
           cp "$DEBUG_APK_PATH" "artifacts/${{ steps.meta.outputs.debug_apk_name }}"
+          cp "$RELEASE_AAB_PATH" "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab"
           ls -lah artifacts
 
       - name: Prepare release notes
@@ -276,6 +282,13 @@ jobs:
           path: artifacts/${{ steps.meta.outputs.debug_apk_name }}
           retention-days: 30
 
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fluffyGram-${{ steps.meta.outputs.version_name }}.aab
+          path: artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab
+          retention-days: 30
+
       - name: Upload update manifest artifact
         uses: actions/upload-artifact@v4
         with:
@@ -300,6 +313,7 @@ jobs:
           files: |
             artifacts/${{ steps.meta.outputs.apk_name }}
             artifacts/${{ steps.meta.outputs.debug_apk_name }}
+            artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab
             artifacts/${{ steps.meta.outputs.update_manifest_name }}
             artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}
           generate_release_notes: false

@@ -22,6 +22,7 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.PremiumAccessHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.ui.elements.HeaderSettingsCell;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
@@ -121,9 +122,11 @@ public class FluffySettingsActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_SECTION, LocaleController.getString(R.string.FluffyAppearanceSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APPEARANCE, LocaleController.getString(R.string.FluffyAppearance), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_APPEARANCE_INFO, LocaleController.getString(R.string.FluffyAppearanceInfo), null));
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_PREMIUM_SECTION, LocaleController.getString(R.string.FluffyPremiumSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_PREMIUM, LocaleController.getString(R.string.FluffyPremium), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_PREMIUM_INFO, LocaleController.getString(R.string.FluffyPremiumInfo), null));
+        if (PremiumAccessHook.hasPremiumAccess()) {
+            items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_PREMIUM_SECTION, LocaleController.getString(R.string.FluffyPremiumSection), null));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_PREMIUM, LocaleController.getString(R.string.FluffyPremium), null));
+            items.add(new ItemInner(VIEW_TYPE_INFO, ROW_PREMIUM_INFO, LocaleController.getString(R.string.FluffyPremiumInfo), null));
+        }
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null));

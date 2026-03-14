@@ -42,6 +42,10 @@ def fluffyUpdatePageUrl = (project.findProperty("FLUFFY_UPDATE_PAGE_URL") ?: "")
 def fluffyBetaUpdateManifestUrl = (project.findProperty("FLUFFY_BETA_UPDATE_MANIFEST_URL") ?: fluffyUpdateManifestUrl).toString()
 def fluffyBetaUpdatePageUrl = (project.findProperty("FLUFFY_BETA_UPDATE_PAGE_URL") ?: fluffyUpdatePageUrl).toString()
 def mapsApiKey = getDevLocalProp("MAPS_V2_API", (System.getenv("MAPS_V2_API") ?: "").trim())
+def fluffyAllAbisEnabled = (project.findProperty("FLUFFY_ALL_ABIS") ?: "false").toString().toBoolean()
+def fluffyNativeAbis = fluffyAllAbisEnabled
+        ? ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+        : ["arm64-v8a"]
 
 android {
     compileSdkVersion 35
@@ -134,7 +138,7 @@ android {
     productFlavors {
         bundleAfat {
             ndk {
-                abiFilters "arm64-v8a"
+                abiFilters(*fluffyNativeAbis)
             }
             ext {
                 abiVersionCode = 1
@@ -143,7 +147,7 @@ android {
         }
         bundleAfat_SDK23 {
             ndk {
-                abiFilters "arm64-v8a"
+                abiFilters(*fluffyNativeAbis)
             }
             sourceSets.debug {
                 manifest.srcFile '../TMessagesProj/config/debug/AndroidManifest_SDK23.xml'
@@ -159,7 +163,7 @@ android {
         }
         afat {
             ndk {
-                abiFilters "arm64-v8a"
+                abiFilters(*fluffyNativeAbis)
             }
             sourceSets.debug {
                 manifest.srcFile '../TMessagesProj/config/debug/AndroidManifest_SDK23.xml'
@@ -205,7 +209,6 @@ android {
         buildConfigField "String", "FLUFFY_UPDATE_PAGE_URL", "\"" + fluffyUpdatePageUrl + "\""
         buildConfigField "String", "FLUFFY_BETA_UPDATE_MANIFEST_URL", "\"" + fluffyBetaUpdateManifestUrl + "\""
         buildConfigField "String", "FLUFFY_BETA_UPDATE_PAGE_URL", "\"" + fluffyBetaUpdatePageUrl + "\""
-
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
         externalNativeBuild {

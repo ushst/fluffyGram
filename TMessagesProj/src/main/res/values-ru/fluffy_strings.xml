@@ -16,6 +16,8 @@
     <string name="FluffyPremiumSection">Premium</string>
     <string name="FluffyPremium">Premium</string>
     <string name="FluffyPremiumInfo">Дополнительное premium-поведение, изолированное внутри Fluffy patch-логики.</string>
+    <string name="FluffyPremiumAccessGranted">Premium-доступ активирован.</string>
+    <string name="FluffyPremiumAccessDenied">Недействительный токен premium-доступа.</string>
     <string name="FluffyTabsSection">Навигация</string>
     <string name="FluffyTabs">Вкладки</string>
     <string name="FluffyTabsInfo">Настройка нижних вкладок на главном экране.</string>

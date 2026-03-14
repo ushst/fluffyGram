@@ -16,6 +16,8 @@
     <string name="FluffyPremiumSection">Premium</string>
     <string name="FluffyPremium">Premium</string>
     <string name="FluffyPremiumInfo">Extra premium-like behavior that stays isolated in Fluffy patches.</string>
+    <string name="FluffyPremiumAccessGranted">Premium access activated.</string>
+    <string name="FluffyPremiumAccessDenied">Invalid premium access token.</string>
     <string name="FluffyTabsSection">Navigation</string>
     <string name="FluffyTabs">Tabs</string>
     <string name="FluffyTabsInfo">Customize the bottom tabs on the main screen.</string>

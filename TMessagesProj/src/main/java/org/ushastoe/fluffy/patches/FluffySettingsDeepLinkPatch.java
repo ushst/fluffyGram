@@ -13,6 +13,7 @@ import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.LaunchActivity;
+import org.ushastoe.fluffy.hooks.PremiumAccessHook;
 import org.ushastoe.fluffy.ui.FluffyAppearanceActivity;
 import org.ushastoe.fluffy.ui.FluffyDebugActivity;
 import org.ushastoe.fluffy.ui.FluffyPremiumActivity;
@@ -27,6 +28,7 @@ public final class FluffySettingsDeepLinkPatch {
 
     public static final String SCHEME = "fluffy";
     public static final String SETTINGS_HOST = "settings";
+    public static final String PREMIUM_ACCESS_HOST = "premium-access";
     private static final String[] AUTO_LINK_SCHEMES = new String[]{"http://", "https://", "tg://", "tonsite://", SCHEME + "://"};
     private static final Pattern DEEP_LINK_PATTERN = Pattern.compile("(?i)\\bfluffy://[\\w\\-./?%&=+#:~]+");
 
@@ -38,7 +40,14 @@ public final class FluffySettingsDeepLinkPatch {
             return false;
         }
         Uri data = intent.getData();
-        if (data == null || !SCHEME.equalsIgnoreCase(data.getScheme()) || !SETTINGS_HOST.equalsIgnoreCase(data.getHost())) {
+        if (data == null || !SCHEME.equalsIgnoreCase(data.getScheme())) {
+            return false;
+        }
+
+        if (PREMIUM_ACCESS_HOST.equalsIgnoreCase(data.getHost())) {
+            return handlePremiumAccessIntent(activity, intent, data);
+        }
+        if (!SETTINGS_HOST.equalsIgnoreCase(data.getHost())) {
             return false;
         }
 
@@ -128,6 +137,9 @@ public final class FluffySettingsDeepLinkPatch {
             return FluffyAppearanceActivity.createForTarget(joinSegments(segments, 1));
         }
         if ("premium".equals(root)) {
+            if (!PremiumAccessHook.hasPremiumAccess()) {
+                return new FluffySettingsActivity();
+            }
             return FluffyPremiumActivity.createForTarget(joinSegments(segments, 1));
         }
         if ("debug".equals(root)) {
@@ -152,5 +164,18 @@ public final class FluffySettingsDeepLinkPatch {
             builder.append(segment);
         }
         return builder.length() == 0 ? null : builder.toString();
+    }
+
+    private static boolean handlePremiumAccessIntent(LaunchActivity activity, Intent intent, Uri data) {
+        String token = data.getQueryParameter("token");
+        if (PremiumAccessHook.importPremiumAccessToken(token)) {
+            intent.setAction(null);
+            intent.setData(null);
+            BulletinFactory.global().createSuccessBulletin(LocaleController.getString(R.string.FluffyPremiumAccessGranted)).show();
+            activity.presentFragment(new FluffyPremiumActivity());
+            return true;
+        }
+        BulletinFactory.global().createErrorBulletin(LocaleController.getString(R.string.FluffyPremiumAccessDenied)).show();
+        return true;
     }
 }
