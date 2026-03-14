@@ -185,7 +185,7 @@ public final class FluffySettingsDeepLinkPatch {
         String message = LocaleController.getString(success
                 ? R.string.FluffyPremiumAccessGranted
                 : R.string.FluffyPremiumAccessDenied);
-        BulletinFactory.of(activity).createSimpleBulletin(icon, message,
+        BulletinFactory.global().createSimpleBulletin(icon, message,
                 LocaleController.getString(R.string.FluffyPremiumGoToSettings), openSettings).show();
     }
 }
