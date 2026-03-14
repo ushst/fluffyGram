@@ -16,6 +16,7 @@ import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.glass.GlassTabView;
 import org.telegram.ui.MainTabsActivity;
+import org.ushastoe.fluffy.ui.FluffySettingsActivity;
 import org.ushastoe.fluffy.ui.FluffyTabsActivity;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
@@ -263,6 +264,8 @@ public final class MainTabsUiPatch {
             return false;
         }
         ItemOptions options = ItemOptions.makeOptions(host.getActivity(), anchor);
+        options.add(R.drawable.fluffy_settings_icon, LocaleController.getString(R.string.FluffySettings), () ->
+                host.getActivity().presentFragment(new FluffySettingsActivity()));
         options.add(R.drawable.msg_settings, LocaleController.getString(R.string.FluffyTabs), () ->
                 host.getActivity().presentFragment(new FluffyTabsActivity()));
         host.getActivity().showMainTabsPopup(options);
