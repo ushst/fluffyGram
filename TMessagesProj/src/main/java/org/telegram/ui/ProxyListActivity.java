@@ -65,6 +65,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SlideChooseView;
+import org.ushastoe.fluffy.hooks.MediaOnlyProxySettingsHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -100,6 +101,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private int rotationRow;
     private int rotationTimeoutRow;
     private int rotationTimeoutInfoRow;
+    private int mediaOnlyProxyRow;
+    private int mediaOnlyProxyInfoRow;
     private int callsDetailRow;
     private int deleteAllRow;
 
@@ -457,6 +460,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
                 editor.putBoolean("proxy_enabled_calls", useProxyForCalls);
                 editor.commit();
+            } else if (position == mediaOnlyProxyRow) {
+                boolean enabled = !MediaOnlyProxySettingsHook.isEnabled();
+                TextCheckCell textCheckCell = (TextCheckCell) view;
+                textCheckCell.setChecked(enabled);
+                MediaOnlyProxySettingsHook.setEnabled(enabled);
             } else if (position >= proxyStartRow && position < proxyEndRow) {
                 if (!selectedItems.isEmpty()) {
                     listAdapter.toggleSelected(position);
@@ -687,21 +695,23 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         }
         proxyAddRow = rowCount++;
         proxyShadowRow = rowCount++;
+        mediaOnlyProxyRow = rowCount++;
+        mediaOnlyProxyInfoRow = rowCount++;
         if (SharedConfig.currentProxy == null || SharedConfig.currentProxy.secret.isEmpty()) {
             boolean change = callsRow == -1;
             callsRow = rowCount++;
             callsDetailRow = rowCount++;
             if (!notify && change) {
-                listAdapter.notifyItemChanged(proxyShadowRow);
-                listAdapter.notifyItemRangeInserted(proxyShadowRow + 1, 2);
+                listAdapter.notifyItemChanged(mediaOnlyProxyInfoRow);
+                listAdapter.notifyItemRangeInserted(mediaOnlyProxyInfoRow + 1, 2);
             }
         } else {
             boolean change = callsRow != -1;
             callsRow = -1;
             callsDetailRow = -1;
             if (!notify && change) {
-                listAdapter.notifyItemChanged(proxyShadowRow);
-                listAdapter.notifyItemRangeRemoved(proxyShadowRow + 1, 2);
+                listAdapter.notifyItemChanged(mediaOnlyProxyInfoRow);
+                listAdapter.notifyItemRangeRemoved(mediaOnlyProxyInfoRow + 1, 2);
             }
         }
         if (proxyList.size() >= 10) {
@@ -906,6 +916,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.UseProxySettings), useProxySettings, rotationRow != -1);
                     } else if (position == callsRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.UseProxyForCalls), useProxyForCalls, false);
+                    } else if (position == mediaOnlyProxyRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString(R.string.FluffyMediaProxyOnly), MediaOnlyProxySettingsHook.isEnabled(), true);
                     } else if (position == rotationRow) {
                         checkCell.setTextAndCheck(LocaleController.getString(R.string.UseProxyRotation), SharedConfig.proxyRotationEnabled, true);
                     }
@@ -915,6 +927,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                     if (position == callsDetailRow) {
                         cell.setText(LocaleController.getString(R.string.UseProxyForCallsInfo));
+                    } else if (position == mediaOnlyProxyInfoRow) {
+                        cell.setText(LocaleController.getString(R.string.FluffyMediaProxyOnlyInfo));
                     } else if (position == rotationTimeoutInfoRow) {
                         cell.setText(LocaleController.getString(R.string.ProxyRotationTimeoutInfo));
                     }
@@ -965,6 +979,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     checkCell.setChecked(useProxySettings);
                 } else if (position == callsRow) {
                     checkCell.setChecked(useProxyForCalls);
+                } else if (position == mediaOnlyProxyRow) {
+                    checkCell.setChecked(MediaOnlyProxySettingsHook.isEnabled());
                 } else if (position == rotationRow) {
                     checkCell.setChecked(SharedConfig.proxyRotationEnabled);
                 }
@@ -983,6 +999,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     checkCell.setChecked(useProxySettings);
                 } else if (position == callsRow) {
                     checkCell.setChecked(useProxyForCalls);
+                } else if (position == mediaOnlyProxyRow) {
+                    checkCell.setChecked(MediaOnlyProxySettingsHook.isEnabled());
                 } else if (position == rotationRow) {
                     checkCell.setChecked(SharedConfig.proxyRotationEnabled);
                 }
@@ -992,7 +1010,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == useProxyRow || position == rotationRow || position == callsRow || position == proxyAddRow || position == deleteAllRow || position >= proxyStartRow && position < proxyEndRow;
+            return position == useProxyRow || position == rotationRow || position == mediaOnlyProxyRow || position == callsRow || position == proxyAddRow || position == deleteAllRow || position >= proxyStartRow && position < proxyEndRow;
         }
 
         @Override
@@ -1054,6 +1072,10 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return -10;
             } else if (position == rotationTimeoutInfoRow) {
                 return -11;
+            } else if (position == mediaOnlyProxyRow) {
+                return -12;
+            } else if (position == mediaOnlyProxyInfoRow) {
+                return -13;
             } else if (position >= proxyStartRow && position < proxyEndRow) {
                 return proxyList.get(position - proxyStartRow).hashCode();
             } else {
@@ -1067,7 +1089,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return VIEW_TYPE_SHADOW;
             } else if (position == proxyAddRow || position == deleteAllRow) {
                 return VIEW_TYPE_TEXT_SETTING;
-            } else if (position == useProxyRow || position == rotationRow || position == callsRow) {
+            } else if (position == useProxyRow || position == rotationRow || position == mediaOnlyProxyRow || position == callsRow) {
                 return VIEW_TYPE_TEXT_CHECK;
             } else if (position == connectionsHeaderRow) {
                 return VIEW_TYPE_HEADER;
