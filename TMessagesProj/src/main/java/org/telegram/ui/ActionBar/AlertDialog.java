@@ -82,6 +82,7 @@ import org.telegram.ui.Components.spoilers.SpoilersTextView;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stars.BalanceCloud;
 import org.telegram.ui.Stars.StarsIntroActivity;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -260,6 +261,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             textView.setEllipsize(TextUtils.TruncateAt.END);
             textView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+            AppFontHook.applyToTextView(textView);
             addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL));
         }
 
@@ -790,6 +792,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             titleTextView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
             titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
             titleTextView.setTypeface(AndroidUtilities.bold());
+            AppFontHook.applyBoldToTextView(titleTextView);
             titleTextView.setGravity((topAnimationIsNew ? Gravity.CENTER_HORIZONTAL : LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
             titleContainer.addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (topAnimationIsNew ? Gravity.CENTER_HORIZONTAL : LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 0, 19, 0, topAnimationIsNew ? 4 : (subtitle != null ? 2 : (items != null ? 14 : 10))));
         }
@@ -799,6 +802,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             secondTitleTextView.setText(secondTitle);
             secondTitleTextView.setTextColor(getThemedColor(Theme.key_dialogTextGray3));
             secondTitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+            AppFontHook.applyToTextView(secondTitleTextView);
             secondTitleTextView.setGravity((LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP);
             titleContainer.addView(secondTitleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, 0, 21, 0, 0));
         }
@@ -808,6 +812,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             subtitleTextView.setText(subtitle);
             subtitleTextView.setTextColor(getThemedColor(Theme.key_dialogIcon));
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            AppFontHook.applyToTextView(subtitleTextView);
             subtitleTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
             containerView.addView(subtitleTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 24, 0, 24, items != null ? 14 : 10));
         }
@@ -850,6 +855,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         messageTextView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         messageTextView.setLinkTextColor(getThemedColor(Theme.key_dialogTextLink));
+        AppFontHook.applyToTextView(messageTextView);
         if (!messageTextViewClickable) {
             messageTextView.setClickable(false);
             messageTextView.setEnabled(false);
@@ -866,6 +872,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
 
             lineProgressViewPercent = new TextView(getContext());
             lineProgressViewPercent.setTypeface(AndroidUtilities.bold());
+            AppFontHook.applyBoldToTextView(lineProgressViewPercent);
             lineProgressViewPercent.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
             lineProgressViewPercent.setTextColor(getThemedColor(Theme.key_dialogTextGray2));
             lineProgressViewPercent.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -1077,6 +1084,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
                 textView.setTextColor(getThemedColor(dialogButtonColorKey));
                 textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(AndroidUtilities.bold());
+                AppFontHook.applyBoldToTextView(textView);
                 textView.setText(positiveButtonText);
                 textView.setBackground(Theme.getRoundRectSelectorDrawable(dp(20), getThemedColor(dialogButtonColorKey)));
                 textView.setPadding(dp(12), 0, dp(12), 0);
@@ -1116,6 +1124,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
                 textView.setTextColor(getThemedColor(dialogButtonColorKey));
                 textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(AndroidUtilities.bold());
+                AppFontHook.applyBoldToTextView(textView);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setSingleLine(true);
                 textView.setText(negativeButtonText.toString());
@@ -1157,6 +1166,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
                 textView.setTextColor(getThemedColor(dialogButtonColorKey));
                 textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(AndroidUtilities.bold());
+                AppFontHook.applyBoldToTextView(textView);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setSingleLine(true);
                 textView.setText(neutralButtonText.toString());
@@ -1198,6 +1208,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
                 textView.setTextColor(getThemedColor(dialogButtonColorKey));
                 textView.setGravity(Gravity.CENTER);
                 textView.setTypeface(AndroidUtilities.bold());
+                AppFontHook.applyBoldToTextView(textView);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setSingleLine(true);
                 textView.setText(negative2ButtonText.toString());

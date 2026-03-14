@@ -52,4 +52,12 @@ public final class AppFontHook {
     public static void applyToSimpleTextView(SimpleTextView textView) {
         AppFontPatch.applyToSimpleTextView(textView);
     }
+
+    public static void applyToTextView(TextView textView) {
+        AppFontPatch.applyToTextView(textView);
+    }
+
+    public static void applyBoldToTextView(TextView textView) {
+        AppFontPatch.applyBoldToTextView(textView);
+    }
 }

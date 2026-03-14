@@ -87,6 +87,22 @@ public final class AppFontPatch {
         textView.setTypeface(regularTypeface);
     }
 
+    public static void applyToTextView(TextView textView) {
+        Typeface regularTypeface = getSelectedTypeface(Typeface.NORMAL);
+        if (regularTypeface == null || textView == null) {
+            return;
+        }
+        textView.setTypeface(regularTypeface);
+    }
+
+    public static void applyBoldToTextView(TextView textView) {
+        Typeface boldTypeface = getSelectedTypeface(Typeface.BOLD);
+        if (boldTypeface == null || textView == null) {
+            return;
+        }
+        textView.setTypeface(boldTypeface);
+    }
+
     public static void applyToAnimatedTextView(AnimatedTextView textView) {
         Typeface regularTypeface = getSelectedTypeface(Typeface.NORMAL);
         if (regularTypeface == null) {
