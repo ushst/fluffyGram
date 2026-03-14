@@ -43,6 +43,7 @@ import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.ui.components.FluffyTabsNavbarPreviewView;
 import org.ushastoe.fluffy.ui.components.FluffyTabsPreviewCell;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
+import org.telegram.ui.Components.BulletinFactory;
 
 import java.util.ArrayList;
 
