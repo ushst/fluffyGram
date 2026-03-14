@@ -172,7 +172,6 @@ public final class FluffySettingsDeepLinkPatch {
             intent.setAction(null);
             intent.setData(null);
             showPremiumBullet(activity, true);
-            activity.presentFragment(new FluffyPremiumActivity());
             return true;
         }
         showPremiumBullet(activity, false);
