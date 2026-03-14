@@ -1,39 +1,134 @@
-## Telegram messenger for Android
+# fluffyGram
 
-[Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.
-This repo contains the official source code for [Telegram App for Android](https://play.google.com/store/apps/details?id=org.telegram.messenger).
+<p align="center">
+  <img src="TMessagesProj/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="fluffyGram icon" width="128" height="128">
+</p>
 
-## Creating your Telegram Application
+<p align="center">
+  <a href="https://github.com/ushst/fluffyGram/releases/latest">Latest Release</a>
+  ·
+  <a href="https://github.com/ushst/fluffyGram/actions">GitHub Actions</a>
+  ·
+  <a href="https://github.com/DrKLO/Telegram">Upstream Telegram</a>
+</p>
 
-We welcome all developers to use our API and source code to create applications on our platform.
-There are several things we require from **all developers** for the moment.
+`fluffyGram` is a Telegram-based Android client with a focus on UI customization, cleaner patch-based changes, and custom release/update tooling.
 
-1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
-2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
-3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-3. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-4. Please remember to publish **your** code too in order to comply with the licences.
+## What Is Included
 
-### API, Protocol documentation
+- Fluffy-owned settings screens and UI tweaks
+- Custom app updater backed by GitHub Releases
+- Appearance customization:
+  - custom fonts
+  - chat list scaling
+  - centered titles and chat header options
+  - tabs customization
+  - formatting toggles
+- Debug utilities and Fluffy deeplinks like `fluffy://settings/...`
+- Optional `OpenStreetMap` interactive map provider
 
-Telegram API manuals: https://core.telegram.org/api
+## Project Structure
 
-MTproto protocol manuals: https://core.telegram.org/mtproto
+This project is based on [Telegram for Android](https://github.com/DrKLO/Telegram), but all custom logic should stay isolated in:
 
-### Compilation Guide
+- `TMessagesProj/src/main/java/org/ushastoe/fluffy/patches`
+- `TMessagesProj/src/main/java/org/ushastoe/fluffy/hooks`
+- `TMessagesProj/src/main/java/org/ushastoe/fluffy/utils`
+- `TMessagesProj/src/main/java/org/ushastoe/fluffy/ui`
 
-**Note**: In order to support [reproducible builds](https://core.telegram.org/reproducible-builds), this repo contains dummy release.keystore,  google-services.json and filled variables inside BuildVars.java. Before publishing your own APKs please make sure to replace all these files with your own.
+Telegram core files should contain only minimal hook points.
 
-You will require Android Studio 3.4, Android NDK rev. 20 and Android SDK 8.1
+## Build Setup
 
-1. Download the Telegram source code from https://github.com/DrKLO/Telegram ( git clone https://github.com/DrKLO/Telegram.git )
-2. Copy your release.keystore into TMessagesProj/config
-3. Fill out RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_STORE_PASSWORD in gradle.properties to access your  release.keystore
-4.  Go to https://console.firebase.google.com/, create two android apps with application IDs org.telegram.messenger and org.telegram.messenger.beta, turn on firebase messaging and download google-services.json, which should be copied to the same folder as TMessagesProj.
-5. Open the project in the Studio (note that it should be opened, NOT imported).
-6. Fill out values in TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java – there’s a link for each of the variables showing where and which data to obtain.
-7. You are ready to compile Telegram.
+Private local assets live in `fluffyGram_dev/` and are not meant to be committed as public app secrets.
 
-### Localization
+Expected local files:
 
-We moved all translations to https://translations.telegram.org/en/android/. Please use it.
+- `fluffyGram_dev/devlocal.properties`
+- `fluffyGram_dev/ushastoe-release.keystore`
+- `fluffyGram_dev/google-services.json`
+
+Typical `devlocal.properties` keys:
+
+- `storeFile`
+- `storePassword`
+- `keyAlias`
+- `keyPassword`
+- `MAPS_V2_API`
+- `TELEGRAM_APP_ID`
+- `TELEGRAM_APP_HASH`
+
+## Quick Start
+
+Debug build and install:
+
+```powershell
+.\build_and_deploy_debug.ps1
+```
+
+Release APK/AAB copy:
+
+```powershell
+.\build_and_copy.ps1 -Configuration Release -PackageFormat Both
+```
+
+All-ABI release APK/AAB copy:
+
+```powershell
+.\build_and_copy_all_abis.ps1 -Configuration Release -PackageFormat Both
+```
+
+## Releases And Updates
+
+GitHub release publishing is handled by:
+
+- `.github/workflows/build-release.yml`
+
+In-app updates are served from GitHub Releases through:
+
+- `update.json`
+- `update-beta.json`
+
+Versioning rule:
+
+- upstream Telegram version stays unchanged
+- Fluffy-only releases increment `FLUFFY_PATCH_VERSION` in `gradle.properties`
+
+Example:
+
+- upstream: `12.5.1`
+- Fluffy patch releases: `12.5.1.1`, `12.5.1.2`, `12.5.1.3`
+
+## RuStore
+
+This repo includes helper scripts for store packaging and key export:
+
+- `build_and_copy.ps1`
+- `build_and_copy_all_abis.ps1`
+- `export_rustore_upload_cert.ps1`
+- `fluffyGram_dev/export_rustore_upload_cert.ps1`
+- `fluffyGram_dev/export_rustore_pepk.ps1`
+
+There is also a dedicated workflow for RuStore publishing:
+
+- `.github/workflows/publish-rustore.yml`
+
+## Upstream
+
+Main upstream source:
+
+- https://github.com/DrKLO/Telegram
+
+API documentation:
+
+- https://core.telegram.org/api
+- https://core.telegram.org/mtproto
+
+## License And Branding Notes
+
+If you fork this project further:
+
+- use your own Telegram API credentials
+- use your own signing keys
+- use your own Firebase project
+- do not present the app as the official Telegram client
