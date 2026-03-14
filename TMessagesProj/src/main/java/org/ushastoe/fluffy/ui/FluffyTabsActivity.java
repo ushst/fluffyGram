@@ -134,6 +134,10 @@ public class FluffyTabsActivity extends BaseFragment {
                 0,
                 PREVIEW_BOTTOM_MARGIN_DP
         ));
+        navbarPreviewView.setOnLongClickListener(v -> {
+            showTabsSettingsBullet();
+            return true;
+        });
 
         updateItems();
 
@@ -198,6 +202,19 @@ public class FluffyTabsActivity extends BaseFragment {
         if (navbarPreviewView != null) {
             navbarPreviewView.updatePreview();
         }
+    }
+
+    private void showTabsSettingsBullet() {
+        BulletinFactory.of(this).createSimpleBulletin(
+                R.raw.chats_infotip,
+                LocaleController.getString(R.string.FluffyTabsOpenSettings),
+                LocaleController.getString(R.string.FluffyTabsOpenSettings),
+                this::openFluffySettings
+        ).show();
+    }
+
+    private void openFluffySettings() {
+        presentFragment(new FluffySettingsActivity());
     }
 
     private void showBaseTabOptions(int type) {

@@ -19,6 +19,7 @@
     <string name="FluffyPremiumAccessGranted">Premium-доступ активирован.</string>
     <string name="FluffyPremiumAccessDenied">Недействительный токен premium-доступа.</string>
     <string name="FluffyPremiumGoToSettings">Открыть Fluffy-настройки</string>
+    <string name="FluffyTabsOpenSettings">Открыть Fluffy-настройки</string>
     <string name="FluffyTabsSection">Навигация</string>
     <string name="FluffyTabs">Вкладки</string>
     <string name="FluffyTabsInfo">Настройка нижних вкладок на главном экране.</string>

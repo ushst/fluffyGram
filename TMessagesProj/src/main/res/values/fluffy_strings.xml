@@ -19,6 +19,7 @@
     <string name="FluffyPremiumAccessGranted">Premium access activated.</string>
     <string name="FluffyPremiumAccessDenied">Invalid premium access token.</string>
     <string name="FluffyPremiumGoToSettings">Open Fluffy Settings</string>
+    <string name="FluffyTabsOpenSettings">Open Fluffy Settings</string>
     <string name="FluffyTabsSection">Navigation</string>
     <string name="FluffyTabs">Tabs</string>
     <string name="FluffyTabsInfo">Customize the bottom tabs on the main screen.</string>
