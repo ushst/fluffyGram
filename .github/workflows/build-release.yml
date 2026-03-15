@@ -11,6 +11,11 @@ on:
         required: false
         default: true
         type: boolean
+      post_to_telegram:
+        description: Post built APK to Telegram channel
+        required: false
+        default: true
+        type: boolean
       changelog:
         description: Optional changelog text for update.json and release notes
         required: false
@@ -28,12 +33,17 @@ jobs:
       ANDROID_PLATFORM: '35'
       ANDROID_BUILD_TOOLS: '35.0.0'
       ANDROID_NDK_VERSION: '21.4.7075529'
+      CCACHE_KEY_SCOPE: global
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_NOHASHDIR: 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.ref }}
           fetch-depth: 100
 
       - name: Checkout private submodule (latest main)
@@ -70,10 +80,14 @@ jobs:
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ runner.os }}-ccache
+          key: ${{ runner.os }}-ccache-${{ env.CCACHE_KEY_SCOPE }}-v1
           restore-keys: |
+            ${{ runner.os }}-ccache-${{ env.CCACHE_KEY_SCOPE }}-
             ${{ runner.os }}-ccache-
+          append-timestamp: false
+          max-size: 2G
           create-symlink: true
+          update-package-index: true
       - name: Cache CMake intermediates
         id: cache-cmake
         uses: actions/cache@v4
@@ -300,6 +314,7 @@ jobs:
             --output "artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}"
 
       - name: Upload APK artifact
+        if: env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.apk_name }}
@@ -307,6 +322,7 @@ jobs:
           retention-days: 30
 
       - name: Upload debug APK artifact
+        if: env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.debug_apk_name }}
@@ -314,6 +330,7 @@ jobs:
           retention-days: 30
 
       - name: Upload AAB artifact
+        if: env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: fluffyGram-${{ steps.meta.outputs.version_name }}.aab
@@ -321,6 +338,7 @@ jobs:
           retention-days: 30
 
       - name: Upload update manifest artifact
+        if: env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: update-json-${{ steps.meta.outputs.version_name }}
@@ -328,6 +346,7 @@ jobs:
           retention-days: 30
 
       - name: Upload beta update manifest artifact
+        if: env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: update-beta-json-${{ steps.meta.outputs.version_name }}
@@ -335,23 +354,49 @@ jobs:
           retention-days: 30
 
       - name: Publish GitHub release
-        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.create_release == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.meta.outputs.release_tag }}
-          name: ${{ steps.meta.outputs.release_name }}
-          body: ${{ steps.notes.outputs.body }}
-          files: |
-            artifacts/${{ steps.meta.outputs.apk_name }}
-            artifacts/${{ steps.meta.outputs.debug_apk_name }}
-            artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab
-            artifacts/${{ steps.meta.outputs.update_manifest_name }}
-            artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}
-          generate_release_notes: false
-          overwrite_files: true
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && (inputs.create_release || github.event.inputs.create_release == 'true'))
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
+          RELEASE_NAME: ${{ steps.meta.outputs.release_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "Missing GH token for release publish"
+            exit 1
+          fi
+
+          FILES=(
+            "artifacts/${{ steps.meta.outputs.apk_name }}"
+            "artifacts/${{ steps.meta.outputs.debug_apk_name }}"
+            "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab"
+            "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
+            "artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}"
+          )
+
+          if gh release view "$RELEASE_TAG" -R "$GH_REPO" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" \
+              -R "$GH_REPO" \
+              --title "$RELEASE_NAME" \
+              --notes-file artifacts/changelog.txt
+
+            gh release upload "$RELEASE_TAG" \
+              -R "$GH_REPO" \
+              --clobber \
+              "${FILES[@]}"
+          else
+            gh release create "$RELEASE_TAG" \
+              -R "$GH_REPO" \
+              --title "$RELEASE_NAME" \
+              --notes-file artifacts/changelog.txt \
+              "${FILES[@]}"
+          fi
 
       - name: Post release to Telegram channel
-        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.create_release == 'true'
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && (inputs.post_to_telegram || github.event.inputs.post_to_telegram == 'true'))
         shell: bash
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -365,8 +410,13 @@ jobs:
           set -euo pipefail
 
           if [[ -z "${TELEGRAM_BOT_TOKEN}" || -z "${TELEGRAM_CHANNEL_ID}" ]]; then
-            echo "Telegram secrets are not configured, skipping Telegram release post."
-            exit 0
+            echo "TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID is missing."
+            echo "Set both in repository or organization GitHub Actions secrets."
+            exit 1
+          fi
+
+          if [[ "${TELEGRAM_CHANNEL_ID}" =~ ^[0-9]+$ ]]; then
+            echo "Warning: TELEGRAM_CHANNEL_ID looks like a positive numeric ID. For channels/supergroups it usually must start with -100..."
           fi
 
           CAPTION_FILE="artifacts/telegram-caption.txt"
@@ -383,11 +433,16 @@ jobs:
           CAPTION="$(cat "${CAPTION_FILE}")"
 
           RESPONSE_FILE="artifacts/telegram-send-response.json"
-          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+          HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F "chat_id=${TELEGRAM_CHANNEL_ID}" \
             -F "document=@artifacts/${{ steps.meta.outputs.apk_name }}" \
-            -F "caption=${CAPTION}" \
-            -o "$RESPONSE_FILE"
+            -F "caption=${CAPTION}")"
+
+          if [[ "$HTTP_CODE" -ge 400 ]]; then
+            echo "Telegram sendDocument HTTP $HTTP_CODE"
+            cat "$RESPONSE_FILE" || true
+            exit 1
+          fi
 
           MESSAGE_ID="$(python - <<'PY'
           import json
@@ -400,7 +455,14 @@ jobs:
           PY
           )"
 
-          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
+          PIN_RESPONSE_FILE="artifacts/telegram-pin-response.json"
+          PIN_HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$PIN_RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
             -d "chat_id=${TELEGRAM_CHANNEL_ID}" \
             -d "message_id=${MESSAGE_ID}" \
-            -d "disable_notification=true" >/dev/null
+            -d "disable_notification=true")"
+
+          if [[ "$PIN_HTTP_CODE" -ge 400 ]]; then
+            echo "Warning: pinChatMessage failed with HTTP $PIN_HTTP_CODE"
+            cat "$PIN_RESPONSE_FILE" || true
+            echo "Continuing because APK upload already succeeded."
+          fi
