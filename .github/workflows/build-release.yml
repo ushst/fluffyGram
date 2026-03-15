@@ -384,14 +384,14 @@ jobs:
             -o "$RESPONSE_FILE"
 
           MESSAGE_ID="$(python - <<'PY'
-import json
-from pathlib import Path
+          import json
+          from pathlib import Path
 
-data = json.loads(Path("artifacts/telegram-send-response.json").read_text(encoding="utf-8"))
-if not data.get("ok"):
-    raise SystemExit(f"Telegram sendDocument failed: {data}")
-print(data["result"]["message_id"])
-PY
+          data = json.loads(Path("artifacts/telegram-send-response.json").read_text(encoding="utf-8"))
+          if not data.get("ok"):
+            raise SystemExit(f"Telegram sendDocument failed: {data}")
+          print(data["result"]["message_id"])
+          PY
           )"
 
           curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
