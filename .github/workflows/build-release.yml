@@ -383,7 +383,16 @@ jobs:
             -F "caption=${CAPTION}" \
             -o "$RESPONSE_FILE"
 
-          MESSAGE_ID="$(python -c 'import json;from pathlib import Path;data=json.loads(Path("artifacts/telegram-send-response.json").read_text(encoding="utf-8"));print(data["result"]["message_id"]) if data.get("ok") else (_ for _ in ()).throw(SystemExit(f"Telegram sendDocument failed: {data}"))')"
+          MESSAGE_ID="$(python - <<'PY'
+import json
+from pathlib import Path
+
+data = json.loads(Path("artifacts/telegram-send-response.json").read_text(encoding="utf-8"))
+if not data.get("ok"):
+    raise SystemExit(f"Telegram sendDocument failed: {data}")
+print(data["result"]["message_id"])
+PY
+          )"
 
           curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
             -d "chat_id=${TELEGRAM_CHANNEL_ID}" \
