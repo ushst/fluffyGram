@@ -1,3 +1,4 @@
 [submodule "fluffyGram_dev"]
 	path = fluffyGram_dev
 	url = git@github.com:krolchonok/fluffyGram_dev
+	branch = main

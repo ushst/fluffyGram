@@ -36,7 +36,7 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 100
 
-      - name: Checkout private submodule
+      - name: Checkout private submodule (latest main)
         shell: bash
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
@@ -47,7 +47,8 @@ jobs:
             exit 0
           fi
           git config --global url."https://${GH_PAT}@github.com/".insteadOf "git@github.com:"
-          git submodule update --init --depth 1 fluffyGram_dev
+          git submodule sync -- fluffyGram_dev
+          git submodule update --init --remote --depth 1 fluffyGram_dev
 
       - name: Fetch tags for release notes
         run: git fetch --force --tags origin
