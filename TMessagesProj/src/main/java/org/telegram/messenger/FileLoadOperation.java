@@ -17,6 +17,7 @@ import org.telegram.tgnet.Vector;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Storage.CacheModel;
+import org.ushastoe.fluffy.hooks.MediaOnlyProxyHook;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -993,6 +994,7 @@ public class FileLoadOperation {
         cancelledRequestInfos = new ArrayList<>();
         delayedRequestInfos = new ArrayList<>(currentMaxDownloadRequests - 1);
         state = stateDownloading;
+        MediaOnlyProxyHook.onMediaOperationStart(this);
 
         if (parentObject instanceof TLRPC.TL_theme) {
             TLRPC.TL_theme theme = (TLRPC.TL_theme) parentObject;
@@ -1450,6 +1452,7 @@ public class FileLoadOperation {
     }
 
     private void cleanup() {
+        MediaOnlyProxyHook.onMediaOperationStop(this);
         try {
             if (fileOutputStream != null) {
                 try {
