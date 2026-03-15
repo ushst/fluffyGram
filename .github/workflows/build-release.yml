@@ -220,6 +220,8 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
 
+          PREV_TAG=""
+
           if [ -n "${{ github.event.inputs.changelog }}" ]; then
             BODY="${{ github.event.inputs.changelog }}"
           else
@@ -242,6 +244,34 @@ jobs:
           {
             echo 'body<<EOF'
             printf '%s\n' "$BODY"
+            echo 'EOF'
+            echo "previous_tag=$PREV_TAG"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Telegram post metadata
+        id: telegram_meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_TAG="${{ steps.meta.outputs.release_tag }}"
+          PREV_TAG="${{ steps.notes.outputs.previous_tag }}"
+
+          if [ -n "$PREV_TAG" ]; then
+            COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${CURRENT_TAG}"
+            COMMITS_SUMMARY="$(git log "${PREV_TAG}"..HEAD --pretty='• %s (%h)' -n 15)"
+          else
+            COMPARE_URL="https://github.com/${{ github.repository }}/commits/${CURRENT_TAG}"
+            COMMITS_SUMMARY="$(git log -15 --pretty='• %s (%h)')"
+          fi
+
+          if [ -z "$COMMITS_SUMMARY" ]; then
+            COMMITS_SUMMARY="• Без изменений в журнале коммитов"
+          fi
+
+          {
+            echo "compare_url=$COMPARE_URL"
+            echo 'commits_summary<<EOF'
+            printf '%s\n' "$COMMITS_SUMMARY"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
@@ -318,3 +348,53 @@ jobs:
             artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}
           generate_release_notes: false
           overwrite_files: true
+
+      - name: Post release to Telegram channel
+        if: (startsWith(github.ref, 'refs/tags/') || github.event.inputs.create_release == 'true') && secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHANNEL_ID != ''
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          VERSION_NAME: ${{ steps.meta.outputs.version_name }}
+          VERSION_CODE: ${{ steps.meta.outputs.version_code }}
+          RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
+          COMPARE_URL: ${{ steps.telegram_meta.outputs.compare_url }}
+          COMMITS_SUMMARY: ${{ steps.telegram_meta.outputs.commits_summary }}
+        run: |
+          set -euo pipefail
+
+          CAPTION_FILE="artifacts/telegram-caption.txt"
+          {
+            echo "🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})"
+            echo
+            echo "Тег: ${RELEASE_TAG}"
+            echo "Разница в коммитах: ${COMPARE_URL}"
+            echo
+            echo "Изменения:"
+            printf '%s\n' "$COMMITS_SUMMARY"
+          } > "$CAPTION_FILE"
+
+          CAPTION="$(cat "${CAPTION_FILE}")"
+
+          RESPONSE_FILE="artifacts/telegram-send-response.json"
+          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F "chat_id=${TELEGRAM_CHANNEL_ID}" \
+            -F "document=@artifacts/${{ steps.meta.outputs.apk_name }}" \
+            -F "caption=${CAPTION}" \
+            -o "$RESPONSE_FILE"
+
+          MESSAGE_ID="$(python - <<'PY'
+import json
+from pathlib import Path
+
+data = json.loads(Path("artifacts/telegram-send-response.json").read_text(encoding="utf-8"))
+if not data.get("ok"):
+    raise SystemExit(f"Telegram sendDocument failed: {data}")
+print(data["result"]["message_id"])
+PY
+          )"
+
+          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
+            -d "chat_id=${TELEGRAM_CHANNEL_ID}" \
+            -d "message_id=${MESSAGE_ID}" \
+            -d "disable_notification=true" >/dev/null
