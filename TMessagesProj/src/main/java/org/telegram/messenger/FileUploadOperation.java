@@ -19,6 +19,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.ushastoe.fluffy.hooks.MediaOnlyProxyHook;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -114,6 +115,7 @@ public class FileUploadOperation {
             return;
         }
         state = 1;
+        MediaOnlyProxyHook.onMediaOperationStart(this);
         AutoDeleteMediaTask.lockFile(uploadingFilePath);
         Utilities.stageQueue.postRunnable(() -> {
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("uploadinfo", Activity.MODE_PRIVATE);
@@ -182,6 +184,7 @@ public class FileUploadOperation {
     }
 
     private void cleanup() {
+        MediaOnlyProxyHook.onMediaOperationStop(this);
         if (preferences == null) {
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("uploadinfo", Activity.MODE_PRIVATE);
         }

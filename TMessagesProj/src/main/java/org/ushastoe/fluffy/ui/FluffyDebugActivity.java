@@ -296,9 +296,9 @@ public class FluffyDebugActivity extends BaseFragment {
         final int viewType;
         final int id;
         final CharSequence text;
-        final CharSequence value;
+        final Object value;
 
-        ItemInner(int viewType, int id, CharSequence text, CharSequence value) {
+        ItemInner(int viewType, int id, CharSequence text, Object value) {
             this.viewType = viewType;
             this.id = id;
             this.text = text;
@@ -343,7 +343,7 @@ public class FluffyDebugActivity extends BaseFragment {
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue(item.value), false);
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue((CharSequence) item.value), false);
             } else {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 cell.setFixedSize(0);
