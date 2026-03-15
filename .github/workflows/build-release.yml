@@ -43,6 +43,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          repository: krolchonok/fluffyGram
+          token: ${{ secrets.GH_PAT || github.token }}
           ref: ${{ github.ref }}
           fetch-depth: 100
 
