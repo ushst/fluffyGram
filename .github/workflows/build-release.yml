@@ -278,21 +278,12 @@ jobs:
 
           if [ -n "$PREV_TAG" ]; then
             COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${CURRENT_TAG}"
-            COMMITS_SUMMARY="$(git log "${PREV_TAG}"..HEAD --pretty='• %s (%h)' -n 15)"
           else
-            COMPARE_URL="https://github.com/${{ github.repository }}/commits/${CURRENT_TAG}"
-            COMMITS_SUMMARY="$(git log -15 --pretty='• %s (%h)')"
-          fi
-
-          if [ -z "$COMMITS_SUMMARY" ]; then
-            COMMITS_SUMMARY="• Без изменений в журнале коммитов"
+            COMPARE_URL="https://github.com/${{ github.repository }}/releases/tag/${CURRENT_TAG}"
           fi
 
           {
             echo "compare_url=$COMPARE_URL"
-            echo 'commits_summary<<EOF'
-            printf '%s\n' "$COMMITS_SUMMARY"
-            echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
       - name: Generate update manifests
@@ -410,7 +401,6 @@ jobs:
           VERSION_CODE: ${{ steps.meta.outputs.version_code }}
           RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
           COMPARE_URL: ${{ steps.telegram_meta.outputs.compare_url }}
-          COMMITS_SUMMARY: ${{ steps.telegram_meta.outputs.commits_summary }}
         run: |
           set -euo pipefail
 
@@ -424,18 +414,9 @@ jobs:
             echo "Warning: TELEGRAM_CHANNEL_ID looks like a positive numeric ID. For channels/supergroups it usually must start with -100..."
           fi
 
-          CAPTION_FILE="artifacts/telegram-caption.txt"
-          {
-            echo "🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})"
-            echo
-            echo "Тег: ${RELEASE_TAG}"
-            echo "Разница в коммитах: ${COMPARE_URL}"
-            echo
-            echo "Изменения:"
-            printf '%s\n' "$COMMITS_SUMMARY"
-          } > "$CAPTION_FILE"
+          CAPTION="🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
 
-          CAPTION="$(cat "${CAPTION_FILE}")"
+📋 Changelog: ${COMPARE_URL}"
 
           RESPONSE_FILE="artifacts/telegram-send-response.json"
           HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
