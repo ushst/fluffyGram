@@ -47,6 +47,7 @@ import org.telegram.ui.Components.CodepointsLengthInputFilter;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.NumberTextView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 
@@ -132,6 +133,7 @@ public class ChangeBioActivity extends BaseFragment {
         firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
+        AppFontHook.applyToTextView(firstNameField);
         firstNameField.setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_DONE && doneButton != null) {
                 doneButton.performClick();

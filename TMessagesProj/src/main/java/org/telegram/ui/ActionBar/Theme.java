@@ -9008,7 +9008,10 @@ public class Theme {
                     chat_topicTextPaint,
                     chat_audioTitlePaint,
                     chat_botButtonPaint,
-                    chat_contactNamePaint
+                    chat_contactNamePaint,
+                    chat_actionTextPaint,
+                    chat_actionTextPaint2,
+                    chat_actionTextPaint3
             );
             chat_gamePaint.setTextSize(dp(13));
             chat_shipmentPaint.setTextSize(dp(13));
@@ -9459,6 +9462,7 @@ public class Theme {
     public static void createProfileResources(Context context) {
         if (profile_verifiedDrawable == null) {
             profile_aboutTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            AppFontHook.applyToRegularPaints(profile_aboutTextPaint);
 
             Resources resources = context.getResources();
 

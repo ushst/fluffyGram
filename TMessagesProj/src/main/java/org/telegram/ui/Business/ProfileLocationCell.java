@@ -33,6 +33,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.Locale;
 
@@ -67,6 +68,7 @@ public class ProfileLocationCell extends LinearLayout {
         textView1.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         textView1.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView1.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        AppFontHook.applyToTextView(textView1);
         addView(textView1, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, LocaleController.isRTL ? 70 : 18, 10, LocaleController.isRTL ? 18 : 70, 4));
 
         textView2 = new TextView(context);
@@ -74,6 +76,7 @@ public class ProfileLocationCell extends LinearLayout {
         textView2.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         textView2.setText(LocaleController.getString(R.string.BusinessProfileLocation));
         textView2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        AppFontHook.applyToTextView(textView2);
         addView(textView2, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, LocaleController.isRTL ? 70 : 18, 0, LocaleController.isRTL ? 18 : 70, 8));
 
         setWillNotDraw(false);

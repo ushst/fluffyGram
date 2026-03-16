@@ -12,7 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 public class FluffySettingsActivity extends BaseFragment {
 
     private static final String ARG_TARGET = "fluffy_settings_target";
+    private static final int MAX_RIGHT_VALUE_LENGTH = 10;
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
@@ -50,6 +53,12 @@ public class FluffySettingsActivity extends BaseFragment {
     private static final int ROW_DEBUG_SECTION = 8;
     private static final int ROW_DEBUG = 9;
     private static final int ROW_DEBUG_INFO = 10;
+    private static final int ROW_LINKS_SECTION = 11;
+    private static final int ROW_CHANNEL = 12;
+    private static final int ROW_GITHUB = 13;
+
+    private static final String FLUFFY_CHANNEL_USERNAME = "fluffyGram";
+    private static final String FLUFFY_GITHUB_URL = "https://github.com/ushst/fluffyGram";
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -103,6 +112,10 @@ public class FluffySettingsActivity extends BaseFragment {
                 presentFragment(new FluffyPremiumActivity());
             } else if (item.id == ROW_DEBUG) {
                 presentFragment(new FluffyDebugActivity());
+            } else if (item.id == ROW_CHANNEL) {
+                MessagesController.getInstance(currentAccount).openByUserName(FLUFFY_CHANNEL_USERNAME, this, 1);
+            } else if (item.id == ROW_GITHUB) {
+                Browser.openUrl(getParentActivity(), FLUFFY_GITHUB_URL);
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -117,19 +130,22 @@ public class FluffySettingsActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
-        items.add(new ItemInner(VIEW_TYPE_ABOUT_HEADER, ROW_ABOUT, null, null));
-        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_ABOUT_SHADOW, null, null));
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_SECTION, LocaleController.getString(R.string.FluffyAppearanceSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APPEARANCE, LocaleController.getString(R.string.FluffyAppearance), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_APPEARANCE_INFO, LocaleController.getString(R.string.FluffyAppearanceInfo), null));
+        items.add(new ItemInner(VIEW_TYPE_ABOUT_HEADER, ROW_ABOUT, null, null, 0));
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_ABOUT_SHADOW, null, null, 0));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_SECTION, LocaleController.getString(R.string.FluffyAppearanceSection), null, 0));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APPEARANCE, LocaleController.getString(R.string.FluffyAppearance), null, R.drawable.msg_theme));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_APPEARANCE_INFO, LocaleController.getString(R.string.FluffyAppearanceInfo), null, 0));
         if (PremiumAccessHook.hasPremiumAccess()) {
-            items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_PREMIUM_SECTION, LocaleController.getString(R.string.FluffyPremiumSection), null));
-            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_PREMIUM, LocaleController.getString(R.string.FluffyPremium), null));
-            items.add(new ItemInner(VIEW_TYPE_INFO, ROW_PREMIUM_INFO, LocaleController.getString(R.string.FluffyPremiumInfo), null));
+            items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_PREMIUM_SECTION, LocaleController.getString(R.string.FluffyPremiumSection), null, 0));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_PREMIUM, LocaleController.getString(R.string.FluffyPremium), null, R.drawable.msg_settings_premium));
+            items.add(new ItemInner(VIEW_TYPE_INFO, ROW_PREMIUM_INFO, LocaleController.getString(R.string.FluffyPremiumInfo), null, 0));
         }
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null, 0));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null, R.drawable.msg_log));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null, 0));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_LINKS_SECTION, LocaleController.getString(R.string.FluffyLinksSection), null, 0));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CHANNEL, LocaleController.getString(R.string.ProfileChannel), "t.me/fluffyGram", R.drawable.msg_channel));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GITHUB, LocaleController.getString(R.string.FluffyGitHub), "github.com/ushst/fluffyGram", R.drawable.msg_link2));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -165,6 +181,10 @@ public class FluffySettingsActivity extends BaseFragment {
             case ROW_DEBUG:
             case ROW_DEBUG_INFO:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("debug");
+            case ROW_LINKS_SECTION:
+            case ROW_CHANNEL:
+            case ROW_GITHUB:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("community");
             default:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink();
         }
@@ -206,6 +226,8 @@ public class FluffySettingsActivity extends BaseFragment {
                 return ROW_PREMIUM;
             case "debug":
                 return ROW_DEBUG;
+            case "community":
+                return ROW_CHANNEL;
             default:
                 return -1;
         }
@@ -220,17 +242,30 @@ public class FluffySettingsActivity extends BaseFragment {
         return -1;
     }
 
+    private CharSequence getDisplayValue(CharSequence value) {
+        if (value == null) {
+            return null;
+        }
+        String source = value.toString();
+        if (source.length() <= MAX_RIGHT_VALUE_LENGTH) {
+            return source;
+        }
+        return source.substring(0, MAX_RIGHT_VALUE_LENGTH) + "...";
+    }
+
     private static class ItemInner {
         final int viewType;
         final int id;
         final CharSequence text;
         final CharSequence value;
+        final int iconResId;
 
-        ItemInner(int viewType, int id, CharSequence text, CharSequence value) {
+        ItemInner(int viewType, int id, CharSequence text, CharSequence value, int iconResId) {
             this.viewType = viewType;
             this.id = id;
             this.text = text;
             this.value = value;
+            this.iconResId = iconResId;
         }
     }
 
@@ -279,7 +314,13 @@ public class FluffySettingsActivity extends BaseFragment {
             } else if (holder.getItemViewType() == VIEW_TYPE_SHADOW) {
                 // Static section separator, no binding required.
             } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
-                ((TextSettingsCell) holder.itemView).setText(item.text, false);
+                TextSettingsCell cell = (TextSettingsCell) holder.itemView;
+                if (TextUtils.isEmpty(item.value)) {
+                    cell.setText(item.text, false);
+                } else {
+                    cell.setTextAndValue(item.text, getDisplayValue(item.value), false);
+                }
+                cell.setIcon(item.iconResId);
             } else {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 if (TextUtils.isEmpty(item.text)) {

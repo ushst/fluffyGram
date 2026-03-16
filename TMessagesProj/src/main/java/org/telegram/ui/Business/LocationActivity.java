@@ -58,6 +58,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,6 +152,7 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
         editText.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         editText.setCursorSize(dp(19));
         editText.setCursorWidth(1.5f);
+        AppFontHook.applyToTextView(editText);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {}

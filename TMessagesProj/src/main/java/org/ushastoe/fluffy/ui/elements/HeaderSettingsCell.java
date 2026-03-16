@@ -19,6 +19,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class HeaderSettingsCell extends FrameLayout {
 
@@ -47,6 +48,7 @@ public class HeaderSettingsCell extends FrameLayout {
         titleTextView.setMaxLines(1);
         titleTextView.setSingleLine(true);
         titleTextView.setGravity(Gravity.CENTER);
+        AppFontHook.applyToTextView(titleTextView);
         addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 50, 145, 50, 0));
 
         TextView subtitleTextView = new TextView(context);
@@ -58,6 +60,7 @@ public class HeaderSettingsCell extends FrameLayout {
         subtitleTextView.setLines(0);
         subtitleTextView.setMaxLines(0);
         subtitleTextView.setSingleLine(false);
+        AppFontHook.applyToTextView(subtitleTextView);
         addView(subtitleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 60, 180, 60, 27));
     }
 

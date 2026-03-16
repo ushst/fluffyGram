@@ -100,6 +100,8 @@
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>
     <string name="FluffyDebugInfo">Tools and internal options for debugging Fluffy patches.</string>
+    <string name="FluffyLinksSection">Community</string>
+    <string name="FluffyGitHub">GitHub</string>
     <string name="FluffyUpdateCheckMode">Update check</string>
     <string name="FluffyUpdateCheckModeNever">Never</string>
     <string name="FluffyUpdateCheckModeOnLaunch">On launch</string>
