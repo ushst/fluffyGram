@@ -28,6 +28,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
+    private static final String KEY_HIDE_STORIES = "hide_stories";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
@@ -373,6 +374,20 @@ public final class AppearanceSettingsPatch {
 
     public static boolean useFrontRoundVideoCameraByDefault() {
         return getDefaultRoundVideoCameraMode() == ROUND_VIDEO_CAMERA_FRONT;
+    }
+
+    public static boolean isStoriesHidden() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_HIDE_STORIES, false);
+    }
+
+    public static void setStoriesHidden(boolean hidden) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_HIDE_STORIES, hidden).apply();
+        notifyListeners();
     }
 
     private static int clampDoubleTapAction(int action) {

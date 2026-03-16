@@ -169,6 +169,14 @@ public final class AppearanceSettingsHook {
         return AppearanceSettingsPatch.useFrontRoundVideoCameraByDefault();
     }
 
+    public static boolean isStoriesHidden() {
+        return AppearanceSettingsPatch.isStoriesHidden();
+    }
+
+    public static void setStoriesHidden(boolean hidden) {
+        AppearanceSettingsPatch.setStoriesHidden(hidden);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;

@@ -76,6 +76,7 @@ import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.Stories.DialogStoriesCell;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1169,6 +1170,9 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
 
     @Override
     public void openStory(DialogCell dialogCell, Runnable onDone) {
+        if (AppearanceSettingsHook.isStoriesHidden()) {
+            return;
+        }
         MessagesController messagesController = MessagesController.getInstance(currentAccount);
         if (MessagesController.getInstance(currentAccount).getStoriesController().hasStories(dialogCell.getDialogId())) {
             parentFragment.getOrCreateStoryViewer().doOnAnimationReady(onDone);
@@ -1184,6 +1188,9 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
 
     @Override
     public void openHiddenStories() {
+        if (AppearanceSettingsHook.isStoriesHidden()) {
+            return;
+        }
         StoriesController storiesController = MessagesController.getInstance(currentAccount).getStoriesController();
         if (storiesController.getHiddenList().isEmpty()) {
             return;

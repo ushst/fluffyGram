@@ -255,6 +255,7 @@ import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.UserListPoller;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
@@ -8672,7 +8673,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     public boolean storiesEnabled = true;
     private void updateStoriesPosting() {
-        final boolean storiesEnabled = getMessagesController().storiesEnabled();
+        final boolean storiesEnabled = getMessagesController().storiesEnabled() && !AppearanceSettingsHook.isStoriesHidden();
         if (this.storiesEnabled != storiesEnabled) {
             updateFloatingButtonOffset();
             if (!this.storiesEnabled && storiesEnabled && storyHint != null) {
@@ -12243,6 +12244,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             newVisibility = !onlySelfStories && getStoriesController().hasStories();
             onlySelfStories = getStoriesController().hasOnlySelfStories();
         }
+        if (AppearanceSettingsHook.isStoriesHidden()) {
+            newVisibility = false;
+            onlySelfStories = false;
+        }
 
         hasOnlySlefStories = onlySelfStories;
 
@@ -12297,6 +12302,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return;
         }
         animateToHasStories = newVisibility;
+        final boolean targetStoriesVisibility = newVisibility;
 
         if (newVisibility) {
             dialogStoriesCell.setProgressToCollapse(1f, false);
@@ -12318,7 +12324,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 @Override
                 public void onAnimationUpdate(@NonNull ValueAnimator animation) {
                     progressToShowStories = (float) animation.getAnimatedValue();
-                    if (!newVisibility) {
+                    if (!targetStoriesVisibility) {
                         progressToShowStories = 1f - progressToShowStories;
                     }
                     int newValue = (int) AndroidUtilities.lerp(fromScrollY, toScrollY, (float) animation.getAnimatedValue());
@@ -12334,11 +12340,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     storiesVisibilityAnimator = null;
-                    hasStories = newVisibility;
+                    hasStories = targetStoriesVisibility;
                     if (!hasStories && !hasOnlySlefStories) {
                         dialogStoriesCell.setVisibility(View.GONE);
                     }
-                    if (!newVisibility) {
+                    if (!targetStoriesVisibility) {
                         setScrollY(0);
                         scrollAdditionalOffset = dp(DialogStoriesCell.HEIGHT_IN_DP);
                     } else {

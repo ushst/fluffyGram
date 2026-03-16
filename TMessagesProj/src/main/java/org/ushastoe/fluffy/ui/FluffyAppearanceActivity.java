@@ -90,6 +90,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_RECORDER_HEADER = 25;
     private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 26;
     private static final int ROW_ROUND_VIDEO_CAMERA = 27;
+    private static final int ROW_HIDE_STORIES = 28;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -177,6 +178,12 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 AppearanceSettingsHook.setCenterChatHeaderEnabled(enabled);
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_HIDE_STORIES) {
+                boolean hidden = !AppearanceSettingsHook.isStoriesHidden();
+                AppearanceSettingsHook.setStoriesHidden(hidden);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(hidden);
                 }
             } else if (item.id == ROW_MAP_PROVIDER) {
                 showMapProviderDialog();
@@ -270,6 +277,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CENTER_CHAT_HEADER,
                 LocaleController.getString(R.string.FluffyCenterChatHeader),
                 AppearanceSettingsHook.isCenterChatHeaderEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_STORIES,
+            LocaleController.getString(R.string.FluffyHideStories),
+            AppearanceSettingsHook.isStoriesHidden()));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_MAP_PROVIDER,
                 LocaleController.getString(R.string.FluffyMapProvider),
                 false));
@@ -661,6 +671,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "tabs");
             case ROW_CENTER_CHAT_HEADER:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "center-chat-header");
+            case ROW_HIDE_STORIES:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "hide-stories");
             case ROW_MAP_PROVIDER:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "map-provider");
             case ROW_HIDE_CHANNEL_POST_STARS_OFFER:
@@ -738,6 +750,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_CHAT_UI_HEADER;
             case "center-chat-header":
                 return ROW_CENTER_CHAT_HEADER;
+            case "hide-stories":
+                return ROW_HIDE_STORIES;
             case "map-provider":
                 return ROW_MAP_PROVIDER;
             case "hide-channel-post-stars-offer":
