@@ -10,4 +10,8 @@ public final class CustomUpdateHook {
     public static boolean shouldAllowLaunchActivityCheck() {
         return CustomUpdatePatch.shouldAllowLaunchActivityCheck();
     }
+
+    public static boolean shouldCheckCustomUpdateOnLaunch() {
+        return CustomUpdatePatch.shouldCheckCustomUpdateOnLaunch();
+    }
 }

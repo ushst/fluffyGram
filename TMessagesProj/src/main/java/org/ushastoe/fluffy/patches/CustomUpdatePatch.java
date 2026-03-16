@@ -11,4 +11,8 @@ public final class CustomUpdatePatch {
         return ApplicationLoader.applicationLoaderInstance != null
             && ApplicationLoader.applicationLoaderInstance.isCustomUpdate();
     }
+
+    public static boolean shouldCheckCustomUpdateOnLaunch() {
+        return UpdateCheckSettingsPatch.shouldCheckOnLaunch();
+    }
 }

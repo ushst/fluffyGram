@@ -100,6 +100,10 @@
     <string name="FluffyDebugSection">Отладка</string>
     <string name="FluffyDebug">Отладка</string>
     <string name="FluffyDebugInfo">Инструменты и внутренние параметры для отладки Fluffy patch-логики.</string>
+    <string name="FluffyUpdateCheckMode">Проверка обновлений</string>
+    <string name="FluffyUpdateCheckModeNever">Никогда</string>
+    <string name="FluffyUpdateCheckModeOnLaunch">При загрузке</string>
+    <string name="FluffyCheckVersion">Проверить версию</string>
     <string name="FluffyCheckUpdates">Проверить обновления</string>
     <string name="FluffyCheckingUpdates">Проверка обновлений...</string>
     <string name="FluffyNoUpdatesFound">Обновления не найдены.</string>

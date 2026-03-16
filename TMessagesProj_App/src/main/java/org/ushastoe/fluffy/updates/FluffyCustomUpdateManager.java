@@ -27,6 +27,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.AlertsCreator;
+import org.ushastoe.fluffy.hooks.UpdateCheckSettingsHook;
 import org.telegram.messenger.regular.BuildConfig;
 
 import java.io.BufferedInputStream;
@@ -91,6 +92,10 @@ public final class FluffyCustomUpdateManager {
 
     public void checkUpdate(boolean force, Runnable whenDone) {
         if (!isEnabled()) {
+            AndroidUtilities.runOnUIThread(whenDone);
+            return;
+        }
+        if (!force && !UpdateCheckSettingsHook.shouldCheckOnLaunch()) {
             AndroidUtilities.runOnUIThread(whenDone);
             return;
         }

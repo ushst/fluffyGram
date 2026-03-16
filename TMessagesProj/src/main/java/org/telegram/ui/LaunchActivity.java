@@ -5888,6 +5888,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return;
         }
         if (ApplicationLoader.applicationLoaderInstance.isCustomUpdate()) {
+            if (!force && !CustomUpdateHook.shouldCheckCustomUpdateOnLaunch()) {
+                return;
+            }
             final BetaUpdate prevUpdate = ApplicationLoader.applicationLoaderInstance.getUpdate();
             final boolean first = firstAppUpdateCheck;
             firstAppUpdateCheck = false;

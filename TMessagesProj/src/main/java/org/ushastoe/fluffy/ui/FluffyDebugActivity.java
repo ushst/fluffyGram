@@ -21,6 +21,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
@@ -29,6 +30,7 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
+import org.ushastoe.fluffy.hooks.UpdateCheckSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
@@ -44,12 +46,13 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int VIEW_TYPE_INFO = 2;
 
     private static final int ROW_DEBUG_HEADER = 0;
-    private static final int ROW_SAVE_LOG = 1;
-    private static final int ROW_CHECK_UPDATES = 2;
-    private static final int ROW_SAVE_LOG_INFO = 3;
-    private static final int ROW_GOOGLE_CLOUD_HEADER = 4;
-    private static final int ROW_GOOGLE_CLOUD_STATUS = 5;
-    private static final int ROW_GOOGLE_CLOUD_INFO = 6;
+    private static final int ROW_UPDATE_CHECK_MODE = 1;
+    private static final int ROW_CHECK_VERSION = 2;
+    private static final int ROW_SAVE_LOG = 3;
+    private static final int ROW_SAVE_LOG_INFO = 4;
+    private static final int ROW_GOOGLE_CLOUD_HEADER = 5;
+    private static final int ROW_GOOGLE_CLOUD_STATUS = 6;
+    private static final int ROW_GOOGLE_CLOUD_INFO = 7;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -99,7 +102,9 @@ public class FluffyDebugActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (item.id == ROW_SAVE_LOG) {
                 FluffyLocalLogHook.onSaveLogClicked(this);
-            } else if (item.id == ROW_CHECK_UPDATES) {
+            } else if (item.id == ROW_UPDATE_CHECK_MODE) {
+                showUpdateCheckModeDialog();
+            } else if (item.id == ROW_CHECK_VERSION) {
                 checkForUpdates();
             }
         });
@@ -124,8 +129,10 @@ public class FluffyDebugActivity extends BaseFragment {
         items.clear();
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_HEADER,
                 LocaleController.getString(R.string.FluffyDebugSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CHECK_UPDATES,
-                LocaleController.getString(R.string.FluffyCheckUpdates), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_UPDATE_CHECK_MODE,
+            LocaleController.getString(R.string.FluffyUpdateCheckMode), getUpdateCheckModeValue()));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CHECK_VERSION,
+            LocaleController.getString(R.string.FluffyCheckVersion), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
@@ -139,6 +146,33 @@ public class FluffyDebugActivity extends BaseFragment {
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private CharSequence getUpdateCheckModeValue() {
+        int mode = UpdateCheckSettingsHook.getAutoCheckMode();
+        if (mode == UpdateCheckSettingsHook.AUTO_CHECK_NEVER) {
+            return LocaleController.getString(R.string.FluffyUpdateCheckModeNever);
+        }
+        return LocaleController.getString(R.string.FluffyUpdateCheckModeOnLaunch);
+    }
+
+    private void showUpdateCheckModeDialog() {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        CharSequence[] options = new CharSequence[] {
+                LocaleController.getString(R.string.FluffyUpdateCheckModeNever),
+                LocaleController.getString(R.string.FluffyUpdateCheckModeOnLaunch)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyUpdateCheckMode));
+        builder.setItems(options, (dialog, which) -> {
+            int mode = which == 0 ? UpdateCheckSettingsHook.AUTO_CHECK_NEVER : UpdateCheckSettingsHook.AUTO_CHECK_ON_LAUNCH;
+            UpdateCheckSettingsHook.setAutoCheckMode(mode);
+            updateItems();
+        });
+        showDialog(builder.create());
     }
 
     private String getGoogleCloudStatusValue() {
@@ -230,7 +264,9 @@ public class FluffyDebugActivity extends BaseFragment {
         }
         ItemInner item = items.get(position);
         String link;
-        if (item.id == ROW_CHECK_UPDATES) {
+        if (item.id == ROW_UPDATE_CHECK_MODE) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "update-check-mode");
+        } else if (item.id == ROW_CHECK_VERSION) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "check-updates");
         } else if (item.id == ROW_SAVE_LOG || item.id == ROW_SAVE_LOG_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
@@ -272,8 +308,10 @@ public class FluffyDebugActivity extends BaseFragment {
             return -1;
         }
         switch (target) {
+            case "update-check-mode":
+                return ROW_UPDATE_CHECK_MODE;
             case "check-updates":
-                return ROW_CHECK_UPDATES;
+                return ROW_CHECK_VERSION;
             case "save-log":
                 return ROW_SAVE_LOG;
             case "google-cloud":
