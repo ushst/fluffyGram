@@ -6,6 +6,15 @@ on:
       - 'fluffy-v*'
   workflow_dispatch:
     inputs:
+      build_type:
+        description: What to build
+        required: false
+        default: 'release and debug'
+        type: choice
+        options:
+          - release and debug
+          - release
+          - debug
       create_release:
         description: Create GitHub Release
         required: false
@@ -104,6 +113,7 @@ jobs:
           key: ${{ runner.os }}-cmake-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('TMessagesProj/jni/**/*.cpp', 'TMessagesProj/jni/**/*.c', 'TMessagesProj/jni/**/*.h', 'TMessagesProj/jni/**/CMakeLists.txt', 'TMessagesProj_App/build.gradle', 'TMessagesProj/build.gradle') }}
           restore-keys: |
             ${{ runner.os }}-cmake-${{ env.ANDROID_NDK_VERSION }}-
+          save-always: true
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -203,8 +213,42 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x gradlew
 
-      - name: Build release and debug APKs
-        run: ./gradlew :TMessagesProj:assembleRelease :TMessagesProj:assembleDebug :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:assembleAfatDebug :TMessagesProj_App:bundleBundleAfatRelease
+      - name: Resolve build type
+        id: build_type
+        shell: bash
+        run: |
+          BT="${{ inputs.build_type }}"
+          if [ -z "$BT" ]; then
+            BT="release and debug"
+          fi
+          BUILD_RELEASE=false
+          BUILD_DEBUG=false
+          if [[ "$BT" == "release" || "$BT" == "release and debug" ]]; then
+            BUILD_RELEASE=true
+          fi
+          if [[ "$BT" == "debug" || "$BT" == "release and debug" ]]; then
+            BUILD_DEBUG=true
+          fi
+          echo "build_release=$BUILD_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "build_debug=$BUILD_DEBUG" >> "$GITHUB_OUTPUT"
+          echo "Resolved build type: $BT (release=$BUILD_RELEASE, debug=$BUILD_DEBUG)"
+
+      - name: Build APKs
+        run: |
+          BUILD_RELEASE="${{ steps.build_type.outputs.build_release }}"
+          BUILD_DEBUG="${{ steps.build_type.outputs.build_debug }}"
+          TASKS=""
+          if [[ "$BUILD_RELEASE" == "true" ]]; then
+            TASKS="$TASKS :TMessagesProj:assembleRelease :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:bundleBundleAfatRelease"
+          fi
+          if [[ "$BUILD_DEBUG" == "true" ]]; then
+            TASKS="$TASKS :TMessagesProj:assembleDebug :TMessagesProj_App:assembleAfatDebug"
+          fi
+          if [ -z "${TASKS// }" ]; then
+            echo "No build tasks selected. Please choose a valid build_type." >&2
+            exit 1
+          fi
+          ./gradlew $TASKS
         env:
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
           NDK_CCACHE: ccache
@@ -214,24 +258,33 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          RELEASE_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
-          DEBUG_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/debug/app.apk' | head -n 1)"
-          RELEASE_AAB_PATH="$(find TMessagesProj_App/build/outputs/bundle -path '*bundleAfatRelease/*.aab' | head -n 1)"
-          if [ -z "$RELEASE_APK_PATH" ]; then
-            echo "Release APK not found" >&2
-            exit 1
+          BUILD_RELEASE="${{ steps.build_type.outputs.build_release }}"
+          BUILD_DEBUG="${{ steps.build_type.outputs.build_debug }}"
+
+          if [[ "$BUILD_RELEASE" == "true" ]]; then
+            RELEASE_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
+            RELEASE_AAB_PATH="$(find TMessagesProj_App/build/outputs/bundle -path '*bundleAfatRelease/*.aab' | head -n 1)"
+            if [ -z "$RELEASE_APK_PATH" ]; then
+              echo "Release APK not found" >&2
+              exit 1
+            fi
+            if [ -z "$RELEASE_AAB_PATH" ]; then
+              echo "Release AAB not found" >&2
+              exit 1
+            fi
+            cp "$RELEASE_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
+            cp "$RELEASE_AAB_PATH" "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab"
           fi
-          if [ -z "$DEBUG_APK_PATH" ]; then
-            echo "Debug APK not found" >&2
-            exit 1
+
+          if [[ "$BUILD_DEBUG" == "true" ]]; then
+            DEBUG_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/debug/app.apk' | head -n 1)"
+            if [ -z "$DEBUG_APK_PATH" ]; then
+              echo "Debug APK not found" >&2
+              exit 1
+            fi
+            cp "$DEBUG_APK_PATH" "artifacts/${{ steps.meta.outputs.debug_apk_name }}"
           fi
-          if [ -z "$RELEASE_AAB_PATH" ]; then
-            echo "Release AAB not found" >&2
-            exit 1
-          fi
-          cp "$RELEASE_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
-          cp "$DEBUG_APK_PATH" "artifacts/${{ steps.meta.outputs.debug_apk_name }}"
-          cp "$RELEASE_AAB_PATH" "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab"
+
           ls -lah artifacts
 
       - name: Prepare release notes
@@ -291,27 +344,35 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
-          DEBUG_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.debug_apk_name }}" | cut -d ' ' -f 1)"
-          python scripts/generate_update_manifest.py \
-            --gradle-properties gradle.properties \
-            --apk-url "${{ steps.meta.outputs.apk_url }}" \
-            --page-url "${{ steps.meta.outputs.page_url }}" \
-            --sha256 "$RELEASE_SHA256" \
-            --file-name "${{ steps.meta.outputs.apk_name }}" \
-            --changelog-file artifacts/changelog.txt \
-            --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
-          python scripts/generate_update_manifest.py \
-            --gradle-properties gradle.properties \
-            --apk-url "${{ steps.meta.outputs.debug_apk_url }}" \
-            --page-url "${{ steps.meta.outputs.page_url }}" \
-            --sha256 "$DEBUG_SHA256" \
-            --file-name "${{ steps.meta.outputs.debug_apk_name }}" \
-            --changelog-file artifacts/changelog.txt \
-            --output "artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}"
+          BUILD_RELEASE="${{ steps.build_type.outputs.build_release }}"
+          BUILD_DEBUG="${{ steps.build_type.outputs.build_debug }}"
+
+          if [[ "$BUILD_RELEASE" == "true" ]]; then
+            RELEASE_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
+            python scripts/generate_update_manifest.py \
+              --gradle-properties gradle.properties \
+              --apk-url "${{ steps.meta.outputs.apk_url }}" \
+              --page-url "${{ steps.meta.outputs.page_url }}" \
+              --sha256 "$RELEASE_SHA256" \
+              --file-name "${{ steps.meta.outputs.apk_name }}" \
+              --changelog-file artifacts/changelog.txt \
+              --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
+          fi
+
+          if [[ "$BUILD_DEBUG" == "true" ]]; then
+            DEBUG_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.debug_apk_name }}" | cut -d ' ' -f 1)"
+            python scripts/generate_update_manifest.py \
+              --gradle-properties gradle.properties \
+              --apk-url "${{ steps.meta.outputs.debug_apk_url }}" \
+              --page-url "${{ steps.meta.outputs.page_url }}" \
+              --sha256 "$DEBUG_SHA256" \
+              --file-name "${{ steps.meta.outputs.debug_apk_name }}" \
+              --changelog-file artifacts/changelog.txt \
+              --output "artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}"
+          fi
 
       - name: Upload APK artifact
-        if: env.ACT != 'true'
+        if: env.ACT != 'true' && steps.build_type.outputs.build_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.apk_name }}
@@ -319,7 +380,7 @@ jobs:
           retention-days: 30
 
       - name: Upload debug APK artifact
-        if: env.ACT != 'true'
+        if: env.ACT != 'true' && steps.build_type.outputs.build_debug == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.meta.outputs.debug_apk_name }}
@@ -327,7 +388,7 @@ jobs:
           retention-days: 30
 
       - name: Upload AAB artifact
-        if: env.ACT != 'true'
+        if: env.ACT != 'true' && steps.build_type.outputs.build_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: fluffyGram-${{ steps.meta.outputs.version_name }}.aab
@@ -335,7 +396,7 @@ jobs:
           retention-days: 30
 
       - name: Upload update manifest artifact
-        if: env.ACT != 'true'
+        if: env.ACT != 'true' && steps.build_type.outputs.build_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: update-json-${{ steps.meta.outputs.version_name }}
@@ -343,7 +404,7 @@ jobs:
           retention-days: 30
 
       - name: Upload beta update manifest artifact
-        if: env.ACT != 'true'
+        if: env.ACT != 'true' && steps.build_type.outputs.build_debug == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: update-beta-json-${{ steps.meta.outputs.version_name }}
@@ -358,6 +419,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ steps.meta.outputs.release_tag }}
           RELEASE_NAME: ${{ steps.meta.outputs.release_name }}
+          BUILD_RELEASE: ${{ steps.build_type.outputs.build_release }}
+          BUILD_DEBUG: ${{ steps.build_type.outputs.build_debug }}
         run: |
           set -euo pipefail
 
@@ -366,13 +429,16 @@ jobs:
             exit 1
           fi
 
-          FILES=(
-            "artifacts/${{ steps.meta.outputs.apk_name }}"
-            "artifacts/${{ steps.meta.outputs.debug_apk_name }}"
-            "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab"
-            "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
-            "artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}"
-          )
+          FILES=()
+          if [[ "$BUILD_RELEASE" == "true" ]]; then
+            FILES+=("artifacts/${{ steps.meta.outputs.apk_name }}")
+            FILES+=("artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab")
+            FILES+=("artifacts/${{ steps.meta.outputs.update_manifest_name }}")
+          fi
+          if [[ "$BUILD_DEBUG" == "true" ]]; then
+            FILES+=("artifacts/${{ steps.meta.outputs.debug_apk_name }}")
+            FILES+=("artifacts/${{ steps.meta.outputs.beta_update_manifest_name }}")
+          fi
 
           if gh release view "$RELEASE_TAG" -R "$GH_REPO" >/dev/null 2>&1; then
             gh release edit "$RELEASE_TAG" \
@@ -393,7 +459,7 @@ jobs:
           fi
 
       - name: Post release to Telegram channel
-        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && (inputs.post_to_telegram || github.event.inputs.post_to_telegram == 'true'))
+        if: steps.build_type.outputs.build_release == 'true' && (startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && (inputs.post_to_telegram || github.event.inputs.post_to_telegram == 'true')))
         shell: bash
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
