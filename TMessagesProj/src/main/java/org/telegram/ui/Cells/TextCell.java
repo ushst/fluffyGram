@@ -46,6 +46,7 @@ import org.telegram.ui.FilterCreateActivity;
 import org.telegram.ui.PeerColorActivity;
 import org.telegram.ui.SettingsActivity;
 import org.telegram.ui.Stories.recorder.HintView2;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class TextCell extends FrameLayout {
 
@@ -124,6 +125,11 @@ public class TextCell extends FrameLayout {
         valueSpoilersTextView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         valueSpoilersTextView.setVisibility(GONE);
         addView(valueSpoilersTextView);
+
+        AppFontHook.applyToSimpleTextView(textView);
+        AppFontHook.applyToSimpleTextView(subtitleView);
+        AppFontHook.applyToAnimatedTextView(valueTextView);
+        AppFontHook.applyToSimpleTextView(valueSpoilersTextView);
 
         imageView = new RLottieImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);

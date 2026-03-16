@@ -132,6 +132,7 @@ import org.telegram.ui.bots.BotDownloads;
 import org.telegram.ui.bots.BotLocation;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.SettingsFluffyHook;
 
@@ -971,6 +972,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             textView.setTextSize(15);
             textView.setTypeface(AndroidUtilities.bold());
             textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+            AppFontHook.applyToSimpleTextView(textView);
 
             botDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(textView, dp(24), AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS);
             emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(textView, dp(24), AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS);
@@ -995,6 +997,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             counterView.setGravity(Gravity.CENTER);
             counterView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
             counterView.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
+            AppFontHook.applyBoldToTextView(counterView);
 
             arrowView = new ImageView(context);
             arrowView.setImageResource(R.drawable.msg_arrowright);
@@ -1136,13 +1139,16 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             titleView = new TextView(context);
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             textLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 0));
+            AppFontHook.applyToTextView(titleView);
 
             subtitleView = new TextView(context);
             subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             textLayout.addView(subtitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
+            AppFontHook.applyToTextView(subtitleView);
 
             valueView = new TextView(context);
             valueView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+            AppFontHook.applyToTextView(valueView);
             if (LocaleController.isRTL) {
                 addView(valueView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 20, 0, 0, 0));
                 addView(textLayout, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1, Gravity.CENTER_VERTICAL | Gravity.FILL_HORIZONTAL, 20, 0, 18, 0));
@@ -1307,10 +1313,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             titleView = TextHelper.makeLinkTextView(context, 15, Theme.key_windowBackgroundWhiteBlackText, true, resourcesProvider);
             titleView.setGravity(Gravity.CENTER);
             addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, 32, 20, 32, 0));
+            AppFontHook.applyBoldToTextView(titleView);
 
             textView = TextHelper.makeLinkTextView(context, 13, Theme.key_windowBackgroundWhiteBlackText, false, resourcesProvider);
             textView.setGravity(Gravity.CENTER);
             addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, 32, 9.33f, 32, 0));
+            AppFontHook.applyToTextView(textView);
 
             final LinearLayout buttons = new LinearLayout(context);
             buttons.setOrientation(HORIZONTAL);

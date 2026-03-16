@@ -32,6 +32,7 @@ import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Switch;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class NotificationsCheckCell extends FrameLayout {
 
@@ -83,6 +84,7 @@ public class NotificationsCheckCell extends FrameLayout {
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         textView.setEllipsize(TextUtils.TruncateAt.END);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 80 : (withImage ? 64 : padding), 13 + (currentHeight - 70) / 2, LocaleController.isRTL ? (withImage ? 64 : padding) : 80, 0));
+        AppFontHook.applyToTextView(textView);
 
         valueTextView = new AnimatedTextView(context);
         valueTextView.setAnimationProperties(.55f, 0, 320, CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -92,6 +94,7 @@ public class NotificationsCheckCell extends FrameLayout {
         valueTextView.setPadding(0, 0, 0, 0);
         valueTextView.setEllipsizeByGradient(true);
         addView(valueTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 80 : (withImage ? 64 : padding), 38 - 9 - (withImage ? 2 : 0) + (currentHeight - 70) / 2, LocaleController.isRTL ? (withImage ? 64 : padding) : 80, 0));
+        AppFontHook.applyToAnimatedTextView(valueTextView);
 
         multilineValueTextView = new TextView(context);
         multilineValueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
@@ -104,6 +107,7 @@ public class NotificationsCheckCell extends FrameLayout {
         multilineValueTextView.setPadding(0, 0, 0, 0);
         multilineValueTextView.setVisibility(View.GONE);
         addView(multilineValueTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 80 : (withImage ? 64 : padding), 38 - (withImage ? 2 : 0) + (currentHeight - 70) / 2, LocaleController.isRTL ? (withImage ? 64 : padding) : 80, 0));
+        AppFontHook.applyToTextView(multilineValueTextView);
 
         checkBox = new Switch(context, resourcesProvider) {
             @Override

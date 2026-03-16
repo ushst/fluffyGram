@@ -23,6 +23,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.URLSpanNoUnderline;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class SettingsSuggestionCell extends LinearLayout {
 
@@ -52,6 +53,7 @@ public class SettingsSuggestionCell extends LinearLayout {
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader, resourcesProvider));
         addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 21, 15, 21, 0));
+        AppFontHook.applyBoldToTextView(textView);
 
         detailTextView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider);
         detailTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
@@ -61,6 +63,7 @@ public class SettingsSuggestionCell extends LinearLayout {
         detailTextView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         detailTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         addView(detailTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, 21, 14, 21, 0));
+        AppFontHook.applyToTextView(detailTextView);
 
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(HORIZONTAL);
@@ -78,6 +81,7 @@ public class SettingsSuggestionCell extends LinearLayout {
             textView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             textView.setTypeface(AndroidUtilities.bold());
+            AppFontHook.applyBoldToTextView(textView);
             linearLayout.addView(textView, LayoutHelper.createLinear(0, 44, 0.5f, a == 0 ? 0 : 4, 0, a == 0 ? 4 : 0, 0));
             if (a == 0) {
                 yesButton = textView;

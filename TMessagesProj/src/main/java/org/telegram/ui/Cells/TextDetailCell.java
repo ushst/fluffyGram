@@ -36,6 +36,7 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class TextDetailCell extends FrameLayout {
 
@@ -89,6 +90,7 @@ public class TextDetailCell extends FrameLayout {
         textView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         textView.setPadding(dp(6), dp(2), dp(6), dp(5));
         addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, horizPadding - 6, 8 - 2, horizPadding - 6, textMultiline ? 27 : 0));
+        AppFontHook.applyToTextView(textView);
 
         valueTextView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider) {
             @Override
@@ -124,6 +126,7 @@ public class TextDetailCell extends FrameLayout {
         } else {
             addView(valueTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, horizPadding, 33 - 1, horizPadding, 10 - 6));
         }
+        AppFontHook.applyToTextView(valueTextView);
 
         rightValueTextView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider) {
             @Override
@@ -159,6 +162,7 @@ public class TextDetailCell extends FrameLayout {
         } else {
             addView(rightValueTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, horizPadding, 33 - 1, horizPadding, 10 - 6));
         }
+        AppFontHook.applyToTextView(rightValueTextView);
 
         updateColors();
 
