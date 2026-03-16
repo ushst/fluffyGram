@@ -416,7 +416,7 @@ jobs:
 
           CAPTION="🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
 
-📋 Changelog: ${COMPARE_URL}"
+          📋 Changelog: ${COMPARE_URL}"
 
           RESPONSE_FILE="artifacts/telegram-send-response.json"
           HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
