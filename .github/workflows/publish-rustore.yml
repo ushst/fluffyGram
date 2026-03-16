@@ -47,6 +47,12 @@ jobs:
       ANDROID_BUILD_TOOLS: '35.0.0'
       ANDROID_NDK_VERSION: '21.4.7075529'
       PACKAGE_NAME: org.ushastoe.fluffy
+      CCACHE_KEY_SCOPE: global
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_NOHASHDIR: 'true'
+      CCACHE_SLOPPINESS: 'time_macros'
 
     steps:
       - name: Checkout
@@ -84,10 +90,14 @@ jobs:
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ runner.os }}-ccache
+          key: ${{ runner.os }}-ccache-${{ env.CCACHE_KEY_SCOPE }}-v1
           restore-keys: |
+            ${{ runner.os }}-ccache-${{ env.CCACHE_KEY_SCOPE }}-
             ${{ runner.os }}-ccache-
+          append-timestamp: false
+          max-size: 10G
           create-symlink: true
+          update-package-index: true
 
       - name: Cache CMake intermediates
         uses: actions/cache@v4
