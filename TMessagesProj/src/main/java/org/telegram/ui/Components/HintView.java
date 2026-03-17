@@ -36,6 +36,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ChatMessageCell;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -94,6 +95,7 @@ public class HintView extends FrameLayout {
         textView = new CorrectlyMeasuringTextView(context);
         textView.setTextColor(getThemedColor(Theme.key_chat_gifSaveHintText));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        AppFontHook.applyToTextView(textView);
         textView.setMaxLines(2);
         if (type == 7 || type == 8 || type == 9) {
             textView.setMaxWidth(AndroidUtilities.dp(310));

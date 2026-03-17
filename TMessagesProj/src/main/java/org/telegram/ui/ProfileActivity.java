@@ -300,6 +300,7 @@ import org.telegram.ui.Stories.recorder.DualCameraView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
+import org.ushastoe.fluffy.hooks.ShowIdHook;
 import org.telegram.ui.TON.TONIntroActivity;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 import org.telegram.ui.bots.BotBiometry;
@@ -682,6 +683,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     @Keep
     private int botPermissionBiometry;
     private int botPermissionsDivider;
+    private int fluffyIdRow;
 
     private int settingsTimerRow;
     private int settingsKeyRow;
@@ -7517,6 +7519,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             popupWindow.dimBehind();
             return true;
         }
+        if (position == fluffyIdRow) {
+            String id = ShowIdHook.getIdString(userId, chatId, currentChat != null && ChatObject.isChannel(currentChat));
+            if (id != null) {
+                AndroidUtilities.addToClipboard(id);
+                BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+            }
+            return true;
+        }
         return false;
     }
 
@@ -10318,6 +10328,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         bizLocationRow = -1;
         bizHoursRow = -1;
         infoSectionRow = -1;
+        fluffyIdRow = -1;
         affiliateRow = -1;
         infoAffiliateRow = -1;
         secretSettingsSectionRow = -1;
@@ -10518,6 +10529,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     botAppRow = rowCount++;
                 }
                 infoEndRow = rowCount - 1;
+                if (ShowIdHook.isEnabled()) fluffyIdRow = rowCount++;
                 infoSectionRow = rowCount++;
 
                 if (isBot && userInfo != null && userInfo.starref_program != null && (userInfo.starref_program.flags & 2) == 0 && getMessagesController().starrefConnectAllowed) {
@@ -10658,6 +10670,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 notificationsRow = rowCount++;
             }
             if (rowCount > 0) {
+                if (ShowIdHook.isEnabled()) fluffyIdRow = rowCount++;
                 infoSectionRow = rowCount++;
             }
 
@@ -13351,6 +13364,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                         detailCell.setTextAndValue(text, value, true);
                         detailCell.setContentDescriptionValueFirst(true);
+                    } else if (position == fluffyIdRow) {
+                        ShowIdHook.bindIdCell(detailCell, userId, chatId, currentChat != null && ChatObject.isChannel(currentChat));
                     }
                     if (containsGift) {
                         Drawable drawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.msg_input_gift);
@@ -14001,7 +14016,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == fluffyIdRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;

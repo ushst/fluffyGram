@@ -78,6 +78,7 @@ import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.Components.Premium.PremiumLockIconView;
 import org.telegram.ui.Components.Reactions.CustomEmojiReactionsWindow;
 import org.telegram.ui.Components.Reactions.HwEmojis;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.telegram.ui.Components.Reactions.ReactionsEffectOverlay;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.Reactions.ReactionsUtils;
@@ -1638,6 +1639,7 @@ public class ReactionsContainerLayout extends FrameLayout implements Notificatio
             hintView.setPadding(dp(8), 0, dp(8), 0);
             hintView.setClickable(true);
             hintView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            AppFontHook.applyToTextView(hintView);
             if (type == TYPE_STORY || type == TYPE_STORY_LIKES || type == TYPE_STICKER_SET_EMOJI) {
                 hintView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
                 hintView.setAlpha(0.5f);
