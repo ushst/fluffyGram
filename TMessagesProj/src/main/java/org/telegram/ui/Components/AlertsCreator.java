@@ -148,6 +148,7 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.ThemePreviewActivity;
 import org.telegram.ui.TooManyCommunitiesActivity;
+import org.ushastoe.fluffy.hooks.DeleteForEveryoneDefaultHook;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -2355,6 +2356,7 @@ public class AlertsCreator {
         } else if (!second && (secret && !clear || canDeleteInbox) && !UserObject.isDeleted(user) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackground(Theme.getSelectorDrawable(false));
+            deleteForAll[0] = DeleteForEveryoneDefaultHook.shouldEnableByDefault();
             final boolean deleteChatForAllFinal = deleteChatForAll;
             if (deleteChatForAll) {
                 if (ChatObject.isChannel(chat) && !chat.megagroup) {
@@ -2370,6 +2372,7 @@ public class AlertsCreator {
             cell[0].setMultiline(true);
             cell[0].setPadding(LocaleController.isRTL ? dp(16) : dp(8), dp(10), LocaleController.isRTL ? dp(8) : dp(16), dp(10));
             frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));
+            cell[0].setChecked(deleteForAll[0], false);
             final Runnable updateText = () -> {
                 if (!deleteChatForAllFinal || !ChatObject.isChannel(chat)) return;
 
@@ -2396,6 +2399,8 @@ public class AlertsCreator {
                 cell1.setChecked(deleteForAll[0], true);
                 updateText.run();
             });
+
+            updateText.run();
 
             if (forceDeleteForAll) {
                 cell[0].setChecked(deleteForAll[0] = true, false);
@@ -2684,6 +2689,7 @@ public class AlertsCreator {
                 cell[0].setText(LocaleController.getString(R.string.DeleteMessagesForBothSidesWherePossible), "", false, false);
                 cell[0].setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
                 frameLayout.addView(cell[0], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 0));
+                cell[0].setChecked(deleteForAll[0] = DeleteForEveryoneDefaultHook.shouldEnableByDefault(), false);
                 cell[0].setOnClickListener(v -> {
                     CheckBoxCell cell1 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];
@@ -7368,6 +7374,7 @@ public class AlertsCreator {
                 }
                 cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
                 frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+                cell.setChecked(deleteForAll[0] = DeleteForEveryoneDefaultHook.shouldEnableByDefault(), false);
                 cell.setOnClickListener(v -> {
                     CheckBoxCell cell12 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];
@@ -7427,6 +7434,7 @@ public class AlertsCreator {
                 }
                 cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
                 frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+                cell.setChecked(deleteForAll[0] = DeleteForEveryoneDefaultHook.shouldEnableByDefault(), false);
                 cell.setOnClickListener(v -> {
                     CheckBoxCell cell1 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];

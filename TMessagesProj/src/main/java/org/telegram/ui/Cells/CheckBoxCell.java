@@ -50,6 +50,7 @@ import org.telegram.ui.Components.CheckBoxSquare;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class CheckBoxCell extends FrameLayout {
 
@@ -118,6 +119,8 @@ public class CheckBoxCell extends FrameLayout {
             animatedTextView.setTextSize(dp(16));
             if (type == TYPE_CHECK_BOX_USER) {
                 animatedTextView.setTypeface(AndroidUtilities.bold());
+            } else {
+                AppFontHook.applyToAnimatedTextView(animatedTextView);
             }
             if (type == TYPE_CHECK_BOX_UNKNOWN) {
                 animatedTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
@@ -160,6 +163,8 @@ public class CheckBoxCell extends FrameLayout {
             linksTextView.setEllipsize(TextUtils.TruncateAt.END);
             if (type == TYPE_CHECK_BOX_USER) {
                 linksTextView.setTypeface(AndroidUtilities.bold());
+            } else {
+                AppFontHook.applyToTextView(linksTextView);
             }
             if (type == TYPE_CHECK_BOX_UNKNOWN) {
                 linksTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
@@ -188,6 +193,7 @@ public class CheckBoxCell extends FrameLayout {
         valueTextView.setSingleLine(true);
         valueTextView.setEllipsize(TextUtils.TruncateAt.END);
         valueTextView.setGravity((LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL);
+        AppFontHook.applyToTextView(valueTextView);
         addView(valueTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, padding, 0, padding, 0));
 
         if (isCheckboxRound()) {
