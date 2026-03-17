@@ -148,6 +148,7 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.ThemePreviewActivity;
 import org.telegram.ui.TooManyCommunitiesActivity;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.DeleteForEveryoneDefaultHook;
 
 import java.time.LocalDate;
@@ -1561,6 +1562,7 @@ public class AlertsCreator {
         message.setPadding(dp(23), 0, dp(23), 0);
         message.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         message.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        AppFontHook.applyToTextView(message);
 
         AlertDialog.Builder builder1 = new AlertDialog.Builder(fragment.getParentActivity(), resourcesProvider);
         builder1.setView(message);

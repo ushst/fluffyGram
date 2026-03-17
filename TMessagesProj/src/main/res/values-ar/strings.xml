@@ -556,7 +556,7 @@
     <string name="DirectShareInfo">إظهار آخر المحادثات في قائمة المشاركة</string>
     <string name="Emoji">الرموز التعبيرية</string>
     <string name="LargeEmoji">رموز تعبيرية كبيرة</string>
-    <string name="TelegramVersion">تيليجرام للأندرويد %1$s</string>
+    <string name="TelegramVersion">fluffyGram %1$s</string>
     <string name="ChangeLanguageLater">يمكنك تغيير لغة التطبيق لاحقًا من الإعدادات.</string>
     <string name="ChooseYourLanguage">اختيار اللغة</string>
     <string name="ChooseYourLanguageOther">أخرى</string>

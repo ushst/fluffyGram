@@ -179,6 +179,7 @@ import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.BuildVersionBrandingHook;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.PeerStoriesView;
@@ -6698,7 +6699,7 @@ public class AndroidUtilities {
                     }
                     break;
             }
-            return formatString("TelegramVersion", R.string.TelegramVersion, String.format(Locale.US, "v%s (%d) %s", pInfo.versionName, code, abi));
+            return BuildVersionBrandingHook.formatVersionName(pInfo.versionName, code, abi, false);
         } catch (Exception e) {
             FileLog.e(e);
         }

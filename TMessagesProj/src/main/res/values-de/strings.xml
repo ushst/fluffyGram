@@ -534,7 +534,7 @@
     <string name="DirectShareInfo">Letzte Chats im Teilen-Menü anzeigen</string>
     <string name="Emoji">Emoji</string>
     <string name="LargeEmoji">Große Emoji</string>
-    <string name="TelegramVersion">Telegram für Android %1$s</string>
+    <string name="TelegramVersion">fluffyGram %1$s</string>
     <string name="ChangeLanguageLater">Du kannst deine Sprache später in den Einstellungen ändern.</string>
     <string name="ChooseYourLanguage">Wähle deine Sprache</string>
     <string name="ChooseYourLanguageOther">Weitere</string>

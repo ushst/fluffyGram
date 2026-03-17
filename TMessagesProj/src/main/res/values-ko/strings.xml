@@ -589,7 +589,7 @@
     <string name="DirectShareInfo">안드로이드 공유 메뉴에 최근 대화방을 표시합니다</string>
     <string name="Emoji">이모지</string>
     <string name="LargeEmoji">큰 이모지</string>
-    <string name="TelegramVersion">Android용 텔레그램 %1$s</string>
+    <string name="TelegramVersion">fluffyGram %1$s</string>
     <string name="DebugMenu">디버그 메뉴</string>
     <string name="DebugMenuLongPress">디버그 메뉴로 이동하려면 길게 눌러주세요</string>
     <string name="DebugSendLogs">로그 보내기</string>

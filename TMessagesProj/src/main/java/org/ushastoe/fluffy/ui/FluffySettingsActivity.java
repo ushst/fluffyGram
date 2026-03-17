@@ -24,6 +24,7 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.PremiumAccessHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.ui.elements.HeaderSettingsCell;
@@ -299,7 +300,9 @@ public class FluffySettingsActivity extends BaseFragment {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
-                view = new TextInfoPrivacyCell(parent.getContext());
+                TextInfoPrivacyCell infoCell = new TextInfoPrivacyCell(parent.getContext());
+                AppFontHook.applyToTextView(infoCell.getTextView());
+                view = infoCell;
             }
             return new RecyclerListView.Holder(view);
         }

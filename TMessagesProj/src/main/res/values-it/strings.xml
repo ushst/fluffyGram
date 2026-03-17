@@ -588,7 +588,7 @@
     <string name="DirectShareInfo">Mostra le chat recenti nel menu di condivisione</string>
     <string name="Emoji">Emoji</string>
     <string name="LargeEmoji">Emoji grandi</string>
-    <string name="TelegramVersion">Telegram per Android %1$s</string>
+    <string name="TelegramVersion">fluffyGram %1$s</string>
     <string name="DebugMenu">Menu debug</string>
     <string name="DebugMenuLongPress">Tieni premuto di nuovo per il menu di debug</string>
     <string name="DebugSendLogs">Invia i log</string>

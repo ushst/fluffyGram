@@ -133,6 +133,7 @@ import org.telegram.ui.bots.BotLocation;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.BuildVersionBrandingHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.SettingsFluffyHook;
 
@@ -453,6 +454,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         titleView.setGravity(Gravity.CENTER);
         titleView.setSingleLine();
         titleView.setEllipsize(TextUtils.TruncateAt.END);
+        AppFontHook.applyBoldToTextView(titleView);
         topView.addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 16, 138.333f - 12, 16, 0));
 
         subtitleView = new TextView(context);
@@ -460,6 +462,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         subtitleView.setGravity(Gravity.CENTER);
         subtitleView.setSingleLine();
         subtitleView.setEllipsize(TextUtils.TruncateAt.END);
+        AppFontHook.applyToTextView(subtitleView);
         topView.addView(subtitleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 168 - 12, 0, 0));
 
         versionView = new TextView(context);
@@ -468,6 +471,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         versionView.setPadding(dp(21), dp(10), dp(21), dp(10));
         versionView.setGravity(Gravity.CENTER);
         versionView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+        AppFontHook.applyToTextView(versionView);
         versionView.setOnClickListener(v -> {
             versionViewPressCount++;
             if (versionViewPressCount < 2 && !BuildVars.DEBUG_PRIVATE_VERSION) {
@@ -919,7 +923,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     }
                     break;
             }
-            return formatString(R.string.TelegramVersion, String.format(Locale.US, "v%s (%d)\n%s", pInfo.versionName, code, abi));
+            return BuildVersionBrandingHook.formatVersionName(pInfo.versionName, code, abi, true);
         } catch (Exception e) {
             FileLog.e(e);
         }
