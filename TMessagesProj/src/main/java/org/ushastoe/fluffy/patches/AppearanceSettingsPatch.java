@@ -27,6 +27,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_MAP_PROVIDER = "map_provider";
     private static final String KEY_EDITED_MARKER_ICON = "edited_marker_icon";
     private static final String KEY_EDITED_MARKER_MODE = "edited_marker_mode";
+    private static final String KEY_SCHEDULED_MARKER_MODE = "scheduled_marker_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
@@ -50,6 +51,10 @@ public final class AppearanceSettingsPatch {
     public static final int EDITED_MARKER_MODE_SHORT_TEXT = 1;
     public static final int EDITED_MARKER_MODE_ICON_STAMP = 2;
     public static final int EDITED_MARKER_MODE_ICON_EDIT = 3;
+    public static final int SCHEDULED_MARKER_MODE_TEXT = 0;
+    public static final int SCHEDULED_MARKER_MODE_SHORT_TEXT = 1;
+    public static final int SCHEDULED_MARKER_MODE_ICON_CALENDAR = 2;
+    public static final int SCHEDULED_MARKER_MODE_ICON_SCHEDULE = 3;
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
     public static final int DOUBLE_TAP_ACTION_REPLY = 2;
@@ -353,6 +358,24 @@ public final class AppearanceSettingsPatch {
         setEditedMarkerMode(enabled ? EDITED_MARKER_MODE_ICON_STAMP : EDITED_MARKER_MODE_TEXT);
     }
 
+    public static int getScheduledMarkerMode() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return SCHEDULED_MARKER_MODE_TEXT;
+        }
+        int mode = preferences.getInt(KEY_SCHEDULED_MARKER_MODE, SCHEDULED_MARKER_MODE_TEXT);
+        return clampScheduledMarkerMode(mode);
+    }
+
+    public static void setScheduledMarkerMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_SCHEDULED_MARKER_MODE, clampScheduledMarkerMode(mode)).apply();
+        notifyListeners();
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         SharedPreferences preferences = getPreferences();
         return preferences != null && preferences.getBoolean(KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED, false);
@@ -441,6 +464,13 @@ public final class AppearanceSettingsPatch {
     private static int clampEditedMarkerMode(int mode) {
         if (mode < EDITED_MARKER_MODE_TEXT || mode > EDITED_MARKER_MODE_ICON_EDIT) {
             return EDITED_MARKER_MODE_TEXT;
+        }
+        return mode;
+    }
+
+    private static int clampScheduledMarkerMode(int mode) {
+        if (mode < SCHEDULED_MARKER_MODE_TEXT || mode > SCHEDULED_MARKER_MODE_ICON_SCHEDULE) {
+            return SCHEDULED_MARKER_MODE_TEXT;
         }
         return mode;
     }

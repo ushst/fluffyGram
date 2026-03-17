@@ -82,6 +82,11 @@
     <string name="FluffyEditedMarkerModeShort">ed</string>
     <string name="FluffyEditedMarkerModeIconStamp">Pencil icon (stamp)</string>
     <string name="FluffyEditedMarkerModeIconEdit">Pencil icon (edit button)</string>
+    <string name="FluffyScheduledMarker">Scheduled marker</string>
+    <string name="FluffyScheduledMarkerModeFull">scheduled</string>
+    <string name="FluffyScheduledMarkerModeShort">sch</string>
+    <string name="FluffyScheduledMarkerModeIconCalendar">Calendar icon</string>
+    <string name="FluffyScheduledMarkerModeIconSchedule">Schedule icon</string>
     <string name="FluffyMapProvider">Map provider</string>
     <string name="FluffyMapProviderGoogle">Google Maps</string>
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>

@@ -208,6 +208,7 @@ import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.EditedMessageIndicatorHook;
+import org.ushastoe.fluffy.hooks.ScheduledMessageIndicatorHook;
 import org.telegram.ui.Components.VideoForwardDrawable;
 import org.telegram.ui.Components.WebPlayerView;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
@@ -17541,6 +17542,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = "";
         } else if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {
             timeString = "";
+        } else if (currentMessageObject.scheduled) {
+            timeString = ScheduledMessageIndicatorHook.buildScheduledTimeLabel(currentMessageObject);
         } else if (currentMessageObject.realDate != 0) {
             timeString = LocaleController.formatSmallDateChat(currentMessageObject.realDate) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (currentMessageObject.realDate) * 1000);
         } else if (currentMessageObject.isRepostPreview) {

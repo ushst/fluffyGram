@@ -82,6 +82,11 @@
     <string name="FluffyEditedMarkerModeShort">изм</string>
     <string name="FluffyEditedMarkerModeIconStamp">Иконка карандаша (штамп)</string>
     <string name="FluffyEditedMarkerModeIconEdit">Иконка карандаша (как в кнопке Изменить)</string>
+    <string name="FluffyScheduledMarker">Отметка отложенного сообщения</string>
+    <string name="FluffyScheduledMarkerModeFull">отложено</string>
+    <string name="FluffyScheduledMarkerModeShort">отл</string>
+    <string name="FluffyScheduledMarkerModeIconCalendar">Иконка календаря</string>
+    <string name="FluffyScheduledMarkerModeIconSchedule">Иконка планирования</string>
     <string name="FluffyMapProvider">Провайдер карт</string>
     <string name="FluffyMapProviderGoogle">Google Maps</string>
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>

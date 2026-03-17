@@ -153,6 +153,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setEditedMarkerMode(mode);
     }
 
+    public static int getScheduledMarkerMode() {
+        return AppearanceSettingsPatch.getScheduledMarkerMode();
+    }
+
+    public static void setScheduledMarkerMode(int mode) {
+        AppearanceSettingsPatch.setScheduledMarkerMode(mode);
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         return AppearanceSettingsPatch.isRoundVideoCameraFeatureEnabled();
     }
