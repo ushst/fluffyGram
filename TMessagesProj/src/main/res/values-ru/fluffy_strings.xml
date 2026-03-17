@@ -146,4 +146,20 @@
     <string name="FluffyStatusUnavailable">Недоступно</string>
     <string name="FluffyMediaProxyOnly">Прокси только для медиа (экспериментально)</string>
     <string name="FluffyMediaProxyOnlyInfo">Временно включает выбранный прокси только во время загрузки или отправки медиа. Во время активных медиа-передач немедиа-трафик тоже может идти через прокси.</string>
+    <string name="MessageDetails">Сведения</string>
+    <string name="idRow">ID</string>
+    <string name="dateRow">Дата</string>
+    <string name="editDateRow">Дата изменения</string>
+    <string name="deleteRow">Удалено</string>
+    <string name="captionRow">Подпись</string>
+    <string name="scheduleRow">Из отложенных</string>
+    <string name="silenceRow">Без звука</string>
+    <string name="textRow">Текст</string>
+    <string name="forwardRow">Переслано от</string>
+    <string name="ownerIdRow">ID отправителя</string>
+    <string name="ownerRow">Отправитель</string>
+    <string name="ownerChannelRow">Канал</string>
+    <string name="docIdRow">ID документа</string>
+    <string name="fileNameRow">Имя файла</string>
+    <string name="filePathRow">Путь к файлу</string>
 </resources>

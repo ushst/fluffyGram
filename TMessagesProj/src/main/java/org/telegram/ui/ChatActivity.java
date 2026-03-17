@@ -304,6 +304,7 @@ import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.hooks.ChatHeaderCenteringHook;
+import org.ushastoe.fluffy.hooks.MessageDetailsMenuHook;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -1168,6 +1169,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_GIFT = 108;
     public final static int OPTION_EDIT_TODO = 109;
     public final static int OPTION_ADD_TO_TODO = 110;
+    private final static int OPTION_DETAILS = MessageDetailsMenuHook.OPTION_DETAILS;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -32897,6 +32899,10 @@ public class ChatActivity extends BaseFragment implements
                 FactCheckController.getInstance(currentAccount).openFactCheckEditor(getContext(), getResourceProvider(), msg, false);
                 break;
             }
+            case OPTION_DETAILS: {
+                MessageDetailsMenuHook.openDetails(this, selectedObject);
+                break;
+            }
             case OPTION_SUGGESTION_ADD_OFFER:
             case OPTION_SUGGESTION_EDIT_PRICE: {
                 final MessageObject msg = selectedObjectGroup != null ? selectedObjectGroup.findPrimaryMessageObject() : selectedObject;
@@ -44083,6 +44089,10 @@ public class ChatActivity extends BaseFragment implements
                 options.add(OPTION_DELETE);
                 icons.add(deleteIconRes);
             }
+        }
+
+        if (message != null && message.messageOwner != null) {
+            MessageDetailsMenuHook.appendOption(items, options, icons, message);
         }
     }
 
