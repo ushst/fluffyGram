@@ -28,6 +28,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_EDITED_MARKER_ICON = "edited_marker_icon";
     private static final String KEY_EDITED_MARKER_MODE = "edited_marker_mode";
     private static final String KEY_SCHEDULED_MARKER_MODE = "scheduled_marker_mode";
+    private static final String KEY_SILENT_MARKER_MODE = "silent_marker_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
@@ -55,6 +56,10 @@ public final class AppearanceSettingsPatch {
     public static final int SCHEDULED_MARKER_MODE_SHORT_TEXT = 1;
     public static final int SCHEDULED_MARKER_MODE_ICON_CALENDAR = 2;
     public static final int SCHEDULED_MARKER_MODE_ICON_SCHEDULE = 3;
+    public static final int SILENT_MARKER_MODE_TEXT = 0;
+    public static final int SILENT_MARKER_MODE_SHORT_TEXT = 1;
+    public static final int SILENT_MARKER_MODE_ICON_NOTIFY_OFF = 2;
+    public static final int SILENT_MARKER_MODE_ICON_MUTE = 3;
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
     public static final int DOUBLE_TAP_ACTION_REPLY = 2;
@@ -376,6 +381,24 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static int getSilentMarkerMode() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return SILENT_MARKER_MODE_TEXT;
+        }
+        int mode = preferences.getInt(KEY_SILENT_MARKER_MODE, SILENT_MARKER_MODE_TEXT);
+        return clampSilentMarkerMode(mode);
+    }
+
+    public static void setSilentMarkerMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_SILENT_MARKER_MODE, clampSilentMarkerMode(mode)).apply();
+        notifyListeners();
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         SharedPreferences preferences = getPreferences();
         return preferences != null && preferences.getBoolean(KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED, false);
@@ -471,6 +494,13 @@ public final class AppearanceSettingsPatch {
     private static int clampScheduledMarkerMode(int mode) {
         if (mode < SCHEDULED_MARKER_MODE_TEXT || mode > SCHEDULED_MARKER_MODE_ICON_SCHEDULE) {
             return SCHEDULED_MARKER_MODE_TEXT;
+        }
+        return mode;
+    }
+
+    private static int clampSilentMarkerMode(int mode) {
+        if (mode < SILENT_MARKER_MODE_TEXT || mode > SILENT_MARKER_MODE_ICON_MUTE) {
+            return SILENT_MARKER_MODE_TEXT;
         }
         return mode;
     }

@@ -49,6 +49,6 @@ public final class ScheduledMessageIndicatorPatch {
                 || AppearanceSettingsPatch.getScheduledMarkerMode() == AppearanceSettingsPatch.SCHEDULED_MARKER_MODE_ICON_SCHEDULE) {
             return ICON_PLACEHOLDER;
         }
-        return LocaleController.getString(R.string.ScheduledMessage);
+        return LocaleController.getString(R.string.FluffyScheduledMarkerModeFull);
     }
 }

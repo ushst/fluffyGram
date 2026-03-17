@@ -87,6 +87,11 @@
     <string name="FluffyScheduledMarkerModeShort">отл</string>
     <string name="FluffyScheduledMarkerModeIconCalendar">Иконка календаря</string>
     <string name="FluffyScheduledMarkerModeIconSchedule">Иконка планирования</string>
+    <string name="FluffySilentMarker">Отметка беззвучной отправки</string>
+    <string name="FluffySilentMarkerModeFull">без звука</string>
+    <string name="FluffySilentMarkerModeShort">бзв</string>
+    <string name="FluffySilentMarkerModeIconNotifyOff">Иконка выключенных уведомлений</string>
+    <string name="FluffySilentMarkerModeIconMute">Иконка без звука</string>
     <string name="FluffyMapProvider">Провайдер карт</string>
     <string name="FluffyMapProviderGoogle">Google Maps</string>
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>

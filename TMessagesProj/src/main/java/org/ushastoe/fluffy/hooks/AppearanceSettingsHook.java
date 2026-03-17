@@ -161,6 +161,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setScheduledMarkerMode(mode);
     }
 
+    public static int getSilentMarkerMode() {
+        return AppearanceSettingsPatch.getSilentMarkerMode();
+    }
+
+    public static void setSilentMarkerMode(int mode) {
+        AppearanceSettingsPatch.setSilentMarkerMode(mode);
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         return AppearanceSettingsPatch.isRoundVideoCameraFeatureEnabled();
     }

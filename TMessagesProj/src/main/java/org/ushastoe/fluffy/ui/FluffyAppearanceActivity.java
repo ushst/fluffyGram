@@ -93,6 +93,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_ROUND_VIDEO_CAMERA = 28;
     private static final int ROW_HIDE_STORIES = 29;
     private static final int ROW_SCHEDULED_MARKER = 30;
+    private static final int ROW_SILENT_MARKER = 31;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -185,6 +186,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 showEditedMarkerDialog();
             } else if (item.id == ROW_SCHEDULED_MARKER) {
                 showScheduledMarkerDialog();
+            } else if (item.id == ROW_SILENT_MARKER) {
+                showSilentMarkerDialog();
             } else if (item.id == ROW_HIDE_STORIES) {
                 boolean hidden = !AppearanceSettingsHook.isStoriesHidden();
                 AppearanceSettingsHook.setStoriesHidden(hidden);
@@ -288,6 +291,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
             false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SCHEDULED_MARKER,
             LocaleController.getString(R.string.FluffyScheduledMarker),
+            false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SILENT_MARKER,
+            LocaleController.getString(R.string.FluffySilentMarker),
             false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_HIDE_STORIES,
             LocaleController.getString(R.string.FluffyHideStories),
@@ -596,6 +602,38 @@ public class FluffyAppearanceActivity extends BaseFragment {
         }
     }
 
+    private void showSilentMarkerDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] items = new CharSequence[] {
+                LocaleController.getString(R.string.FluffySilentMarkerModeFull),
+                LocaleController.getString(R.string.FluffySilentMarkerModeShort),
+                LocaleController.getString(R.string.FluffySilentMarkerModeIconNotifyOff),
+                LocaleController.getString(R.string.FluffySilentMarkerModeIconMute)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffySilentMarker));
+        builder.setItems(items, (dialog, which) -> {
+            AppearanceSettingsHook.setSilentMarkerMode(which);
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence getSilentMarkerValue() {
+        switch (AppearanceSettingsHook.getSilentMarkerMode()) {
+            case AppearanceSettingsPatch.SILENT_MARKER_MODE_SHORT_TEXT:
+                return LocaleController.getString(R.string.FluffySilentMarkerModeShort);
+            case AppearanceSettingsPatch.SILENT_MARKER_MODE_ICON_NOTIFY_OFF:
+                return LocaleController.getString(R.string.FluffySilentMarkerModeIconNotifyOff);
+            case AppearanceSettingsPatch.SILENT_MARKER_MODE_ICON_MUTE:
+                return LocaleController.getString(R.string.FluffySilentMarkerModeIconMute);
+            default:
+                return LocaleController.getString(R.string.FluffySilentMarkerModeFull);
+        }
+    }
+
     private CharSequence getMapProviderValue() {
         return AppearanceSettingsHook.getMapProvider() == AppearanceSettingsPatch.MAP_PROVIDER_OPENSTREETMAP
                 ? LocaleController.getString(R.string.FluffyMapProviderOpenStreetMap)
@@ -751,6 +789,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "edited-marker-icon");
             case ROW_SCHEDULED_MARKER:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "scheduled-marker");
+            case ROW_SILENT_MARKER:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "silent-marker");
             case ROW_HIDE_STORIES:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "hide-stories");
             case ROW_MAP_PROVIDER:
@@ -834,6 +874,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_EDITED_MARKER_ICON;
             case "scheduled-marker":
                 return ROW_SCHEDULED_MARKER;
+            case "silent-marker":
+                return ROW_SILENT_MARKER;
             case "hide-stories":
                 return ROW_HIDE_STORIES;
             case "map-provider":
@@ -953,6 +995,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     value = getEditedMarkerValue();
                 } else if (item.id == ROW_SCHEDULED_MARKER) {
                     value = getScheduledMarkerValue();
+                } else if (item.id == ROW_SILENT_MARKER) {
+                    value = getSilentMarkerValue();
                 } else if (item.id == ROW_MAP_PROVIDER) {
                     value = getMapProviderValue();
                 } else if (item.id == ROW_ROUND_VIDEO_CAMERA) {

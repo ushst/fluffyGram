@@ -87,6 +87,11 @@
     <string name="FluffyScheduledMarkerModeShort">sch</string>
     <string name="FluffyScheduledMarkerModeIconCalendar">Calendar icon</string>
     <string name="FluffyScheduledMarkerModeIconSchedule">Schedule icon</string>
+    <string name="FluffySilentMarker">Silent marker</string>
+    <string name="FluffySilentMarkerModeFull">silent</string>
+    <string name="FluffySilentMarkerModeShort">slt</string>
+    <string name="FluffySilentMarkerModeIconNotifyOff">Notify-off icon</string>
+    <string name="FluffySilentMarkerModeIconMute">Mute icon</string>
     <string name="FluffyMapProvider">Map provider</string>
     <string name="FluffyMapProviderGoogle">Google Maps</string>
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>
