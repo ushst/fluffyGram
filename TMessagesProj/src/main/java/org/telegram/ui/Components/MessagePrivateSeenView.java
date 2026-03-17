@@ -41,6 +41,7 @@ import org.telegram.ui.Components.Premium.PremiumButtonView;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.Date;
 
@@ -79,7 +80,15 @@ public class MessagePrivateSeenView extends FrameLayout {
         dialogId = messageObject.getDialogId();
         messageId = messageObject.getId();
         edit_date = messageObject.messageOwner == null ? 0 : messageObject.messageOwner.edit_date;
-        fwd_date = messageObject.messageOwner == null || messageObject.messageOwner.fwd_from == null ? 0 : messageObject.messageOwner.fwd_from.date;
+        if (messageObject.messageOwner == null || messageObject.messageOwner.fwd_from == null) {
+            fwd_date = 0;
+        } else {
+            int originalDate = messageObject.messageOwner.fwd_from.date;
+            if (originalDate == 0) {
+                originalDate = messageObject.messageOwner.fwd_from.saved_date;
+            }
+            fwd_date = originalDate;
+        }
 
         ImageView iconView = new ImageView(context);
         addView(iconView, LayoutHelper.createFrame(24, 24, Gravity.LEFT | Gravity.CENTER_VERTICAL, 11, 0, 0, 0));
@@ -103,6 +112,7 @@ public class MessagePrivateSeenView extends FrameLayout {
         loadingView.setTextColor(Theme.multAlpha(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), .7f));
         loadingView.setText(text);
         loadingView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        AppFontHook.applyToTextView(loadingView);
         addView(loadingView, LayoutHelper.createFrame(96, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 40, -1, 8, 0));
 
         valueLayout = new LinearLayout(context);
@@ -113,6 +123,7 @@ public class MessagePrivateSeenView extends FrameLayout {
         valueTextView = new TextView(context);
         valueTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        AppFontHook.applyToTextView(valueTextView);
         valueLayout.addView(valueTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 0, -1, 0, 0));
 
         premiumTextView = new TextView(context);
@@ -120,6 +131,7 @@ public class MessagePrivateSeenView extends FrameLayout {
         premiumTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         premiumTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
         premiumTextView.setPadding(dp(5.33f), dp(2), dp(5.33f), dp(2.33f));
+        AppFontHook.applyToTextView(premiumTextView);
         valueLayout.addView(premiumTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 4, 0, 0, 0));
 
         request();

@@ -147,6 +147,12 @@ public class FluffyMessageDetailsActivity extends BaseFragment {
         if (message.edit_date != 0) {
             addRow(LocaleController.getString(R.string.editDateRow), formatTime(message.edit_date));
         }
+        if (message.fwd_from != null) {
+            int forwardedOriginalDate = message.fwd_from.date != 0 ? message.fwd_from.date : message.fwd_from.saved_date;
+            if (forwardedOriginalDate > 0) {
+                addRow(LocaleController.getString(R.string.FluffyForwardedOriginalDateMenu), formatTime(forwardedOriginalDate));
+            }
+        }
         if (message.from_scheduled) {
             addRow(LocaleController.getString(R.string.scheduleRow), String.valueOf(true));
         }

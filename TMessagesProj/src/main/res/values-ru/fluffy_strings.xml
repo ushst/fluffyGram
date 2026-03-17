@@ -163,6 +163,9 @@
     <string name="fileNameRow">Имя файла</string>
     <string name="filePathRow">Путь к файлу</string>
     <string name="JSON">JSON</string>
+    <string name="FluffyForwardOriginalDate">Оригинал: %1$s</string>
+    <string name="FluffyForwardedOriginalDateThirdLine">Оригинальная дата в блоке Переслано</string>
+    <string name="FluffyForwardedOriginalDateMenu">Оригинальная дата пересланного</string>
 </resources>
 
 

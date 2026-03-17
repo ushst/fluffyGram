@@ -165,6 +165,9 @@
     <string name="fileNameRow">File name</string>
     <string name="filePathRow">File path</string>
     <string name="JSON">JSON</string>
+    <string name="FluffyForwardOriginalDate">Original: %1$s</string>
+    <string name="FluffyForwardedOriginalDateThirdLine">Original date in forwarded header</string>
+    <string name="FluffyForwardedOriginalDateMenu">Forwarded original date</string>
 </resources>
 
 
