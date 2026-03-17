@@ -104,6 +104,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.hooks.VoiceMessageAudioFocusHook;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -1474,8 +1475,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                 audioFocus = AUDIO_NO_FOCUS_NO_DUCK;
                 if (isPlayingMessage(getPlayingMessageObject()) && !isMessagePaused()) {
-                    pauseMessage(playingMessageObject);
                     resumeAudioOnFocusGain = true;
+                    pauseMessage(playingMessageObject);
                 }
             }
             setPlayerVolume();
@@ -3068,7 +3069,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             if (neededAudioFocus == 3) {
                 result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN);
             } else {
-                result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, neededAudioFocus == 2 && !SharedConfig.pauseMusicOnMedia ? AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK : AudioManager.AUDIOFOCUS_GAIN);
+                int focusGain = neededAudioFocus == 2 && !SharedConfig.pauseMusicOnMedia ? AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK : AudioManager.AUDIOFOCUS_GAIN;
+                focusGain = VoiceMessageAudioFocusHook.resolvePlaybackFocusGain(messageObject.isVoice() || messageObject.isRoundVideo(), focusGain);
+                result = NotificationsController.audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, focusGain);
             }
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 audioFocus = AUDIO_FOCUSED;
@@ -4243,6 +4246,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 videoPlayer.pause();
             }
             isPaused = true;
+            if (VoiceMessageAudioFocusHook.shouldAbandonFocusOnPause(playingMessageObject.isVoice() || playingMessageObject.isRoundVideo(), resumeAudioOnFocusGain)) {
+                NotificationsController.audioManager.abandonAudioFocus(this);
+                hasAudioFocus = 0;
+                audioFocus = AUDIO_NO_FOCUS_NO_DUCK;
+            }
             NotificationCenter.getInstance(playingMessageObject.currentAccount).postNotificationName(NotificationCenter.messagePlayingPlayStateChanged, playingMessageObject.getId());
         } catch (Exception e) {
             FileLog.e(e);
