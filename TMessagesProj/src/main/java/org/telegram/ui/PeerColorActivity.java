@@ -124,6 +124,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -2143,7 +2144,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             if (isChannelOrGroup && lock == null) {
                 button = TextCell.applyNewSpan(button);
             }
-            buttonText = new Text(button, 16);
+            buttonText = new Text(button, 16, AppFontHook.getRegularTypefaceOverride());
             updateColors();
         }
 

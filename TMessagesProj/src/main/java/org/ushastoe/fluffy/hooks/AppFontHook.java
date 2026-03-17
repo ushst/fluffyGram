@@ -21,6 +21,18 @@ public final class AppFontHook {
         return AppFontPatch.getBoldTypefaceOverride();
     }
 
+    public static Typeface getRegularTypefaceOverride() {
+        return AppFontPatch.getRegularTypefaceOverride();
+    }
+
+    public static void initializeGlobalOverride() {
+        AppFontPatch.initializeGlobalOverride();
+    }
+
+    public static void onFontChanged() {
+        AppFontPatch.onFontChanged();
+    }
+
     public static void applyToTextSettingsCell(TextView textView, AnimatedTextView valueTextView) {
         AppFontPatch.applyToTextSettingsCell(textView, valueTextView);
     }

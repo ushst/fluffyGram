@@ -46,6 +46,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Adapters.FiltersView;
 import org.telegram.ui.DialogsActivity;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -128,6 +129,7 @@ public class SeekBarView extends FrameLayout {
                 final TextView textView = new MarqueeTextView(context);
                 textView.setTextColor(getThemedColor(Theme.key_player_time));
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                AppFontHook.applyToTextView(textView);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setSingleLine(true);
                 textView.setPadding(dp(0), 0, dp(0), dp(0));
@@ -628,6 +630,7 @@ public class SeekBarView extends FrameLayout {
         if (timestampLabelPaint == null) {
             timestampLabelPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
             timestampLabelPaint.setTextSize(AndroidUtilities.dp(12));
+            AppFontHook.applyToRegularPaints(timestampLabelPaint);
             timestampLabelPaint.setColor(0xffffffff);
         }
         for (int i = 0; i < links.length; ++i) {

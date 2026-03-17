@@ -41,6 +41,7 @@ import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.TextStyleSpan;
 import org.telegram.ui.Components.TypefaceSpan;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 
@@ -196,6 +197,7 @@ public class EditTextCell extends FrameLayout {
         editText.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
         editText.setCursorSize(dp(19));
         editText.setCursorWidth(1.5f);
+        AppFontHook.applyToTextView(editText);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {

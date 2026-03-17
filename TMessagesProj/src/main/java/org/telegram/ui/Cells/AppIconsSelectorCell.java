@@ -43,6 +43,7 @@ import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.LauncherIconController;
 import org.telegram.ui.PremiumPreviewFragment;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.AppIconHook;
 
 import java.util.ArrayList;
@@ -228,6 +229,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
             titleView.setSingleLine();
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            AppFontHook.applyToTextView(titleView);
             addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
 
             outlinePaint.setStyle(Paint.Style.STROKE);

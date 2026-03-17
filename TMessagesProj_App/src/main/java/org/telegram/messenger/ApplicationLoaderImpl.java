@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.IUpdateLayout;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.CustomUpdateUiHook;
 import org.ushastoe.fluffy.hooks.MapsProviderHook;
 import org.ushastoe.fluffy.updates.FluffyCustomUpdateManager;
@@ -20,6 +21,8 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
     @Override
     public void onCreate() {
         super.onCreate();
+        AppFontHook.initializeGlobalOverride();
+        AppFontHook.onFontChanged();
         customUpdateManager.init(this);
     }
 

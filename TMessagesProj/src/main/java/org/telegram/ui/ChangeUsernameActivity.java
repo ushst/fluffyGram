@@ -91,6 +91,7 @@ import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.URLSpanNoUnderline;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -779,6 +780,7 @@ public class ChangeUsernameActivity extends BaseFragment {
             field.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             field.setCursorSize(dp(19));
             field.setCursorWidth(1.5f);
+            AppFontHook.applyToTextView(field);
             field.setOnEditorActionListener((textView, i, keyEvent) -> {
                 if (i == EditorInfo.IME_ACTION_DONE && doneButton != null) {
                     doneButton.performClick();
@@ -844,6 +846,7 @@ public class ChangeUsernameActivity extends BaseFragment {
             tme.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             tme.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
             tme.setTranslationY(-dp(3));
+            AppFontHook.applyToTextView(tme);
             content.addView(tme, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, Gravity.CENTER_VERTICAL, 21, 15, 0, 15));
             content.addView(field, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 1, Gravity.CENTER_VERTICAL, 0, 15, 21, 15));
             addView(content, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP));

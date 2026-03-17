@@ -61,6 +61,15 @@ public final class AppFontPatch {
         return getSelectedTypeface(Typeface.BOLD);
     }
 
+    public static Typeface getRegularTypefaceOverride() {
+        ensureGlobalTypefaceOverride();
+        return getSelectedTypeface(Typeface.NORMAL);
+    }
+
+    public static void initializeGlobalOverride() {
+        ensureGlobalTypefaceOverride();
+    }
+
     public static void applyToTextSettingsCell(TextView textView, AnimatedTextView valueTextView) {
         Typeface regularTypeface = getSelectedTypeface(Typeface.NORMAL);
         if (regularTypeface == null) {

@@ -28,6 +28,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class SliderView extends View {
 
@@ -59,7 +60,7 @@ public class SliderView extends View {
 
         currentType = type;
 
-        text.setTypeface(AndroidUtilities.bold());
+        text.setTypeface(AppFontHook.getBoldTypefaceOverride() != null ? AppFontHook.getBoldTypefaceOverride() : AndroidUtilities.bold());
         text.setAnimationProperties(.3f, 0, 40, CubicBezierInterpolator.EASE_OUT_QUINT);
         text.setCallback(this);
         text.setTextColor(0xffffffff);
@@ -80,7 +81,7 @@ public class SliderView extends View {
             text2 = new AnimatedTextView.AnimatedTextDrawable(false, true, true);
             text2.setOverrideFullWidth(AndroidUtilities.displaySize.x);
             text2.setTextSize(dp(14));
-            text2.setTypeface(AndroidUtilities.bold());
+            text2.setTypeface(AppFontHook.getBoldTypefaceOverride() != null ? AppFontHook.getBoldTypefaceOverride() : AndroidUtilities.bold());
             text2.setAnimationProperties(.3f, 0, 40, CubicBezierInterpolator.EASE_OUT_QUINT);
             text2.setCallback(this);
             text2.setTextColor(0xffffffff);
@@ -260,6 +261,7 @@ public class SliderView extends View {
             r = dpf2(6.33f);
         }
         textPaint.setTextSize(dp(16));
+        AppFontHook.applyToRegularPaints(textPaint);
         text.setTextSize(dp(15));
         if (fixWidth > 0) {
             w = fixWidth;

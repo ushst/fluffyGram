@@ -19,6 +19,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RadioButton;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class ChatListCell extends LinearLayout {
 
@@ -37,6 +38,7 @@ public class ChatListCell extends LinearLayout {
             setContentDescription(threeLines ? LocaleController.getString(R.string.ChatListExpanded) : LocaleController.getString(R.string.ChatListDefault));
 
             textPaint.setTextSize(AndroidUtilities.dp(13));
+            AppFontHook.applyToRegularPaints(textPaint);
 
             button = new RadioButton(context) {
                 @Override

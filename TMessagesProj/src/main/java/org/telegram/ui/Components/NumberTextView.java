@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -45,6 +46,7 @@ public class NumberTextView extends View {
 
     public NumberTextView(Context context) {
         super(context);
+        AppFontHook.applyToRegularPaints(textPaint);
     }
 
     public void setOnTextWidthProgressChangedListener(OnTextWidthProgressChangedListener onTextWidthProgressChangedListener) {
