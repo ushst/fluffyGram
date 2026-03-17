@@ -77,6 +77,11 @@
     <string name="FluffyThousandsSeparator">Separate thousands</string>
     <string name="FluffyDialogsListSize">Chat list size</string>
     <string name="FluffyCenterChatHeader">Center chat header</string>
+    <string name="FluffyEditedMarkerIcon">Edited marker</string>
+    <string name="FluffyEditedMarkerModeFull">edited</string>
+    <string name="FluffyEditedMarkerModeShort">ed</string>
+    <string name="FluffyEditedMarkerModeIconStamp">Pencil icon (stamp)</string>
+    <string name="FluffyEditedMarkerModeIconEdit">Pencil icon (edit button)</string>
     <string name="FluffyMapProvider">Map provider</string>
     <string name="FluffyMapProviderGoogle">Google Maps</string>
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>

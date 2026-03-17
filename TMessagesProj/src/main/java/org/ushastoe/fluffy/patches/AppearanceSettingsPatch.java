@@ -25,6 +25,8 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_DIALOGS_LIST_SCALE = "dialogs_list_scale";
     private static final String KEY_CENTER_CHAT_HEADER = "center_chat_header";
     private static final String KEY_MAP_PROVIDER = "map_provider";
+    private static final String KEY_EDITED_MARKER_ICON = "edited_marker_icon";
+    private static final String KEY_EDITED_MARKER_MODE = "edited_marker_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED = "round_video_camera_feature_enabled";
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
@@ -44,6 +46,10 @@ public final class AppearanceSettingsPatch {
     public static final int DIALOGS_LIST_SCALE_MAX = 110;
     public static final int MAP_PROVIDER_GOOGLE = 0;
     public static final int MAP_PROVIDER_OPENSTREETMAP = 1;
+    public static final int EDITED_MARKER_MODE_TEXT = 0;
+    public static final int EDITED_MARKER_MODE_SHORT_TEXT = 1;
+    public static final int EDITED_MARKER_MODE_ICON_STAMP = 2;
+    public static final int EDITED_MARKER_MODE_ICON_EDIT = 3;
     public static final int DOUBLE_TAP_ACTION_NONE = 0;
     public static final int DOUBLE_TAP_ACTION_REACTION = 1;
     public static final int DOUBLE_TAP_ACTION_REPLY = 2;
@@ -312,6 +318,41 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static int getEditedMarkerMode() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return EDITED_MARKER_MODE_TEXT;
+        }
+        if (preferences.contains(KEY_EDITED_MARKER_MODE)) {
+            int mode = preferences.getInt(KEY_EDITED_MARKER_MODE, EDITED_MARKER_MODE_TEXT);
+            return clampEditedMarkerMode(mode);
+        }
+        // Backward compatibility with old boolean toggle.
+        boolean useIcon = preferences.getBoolean(KEY_EDITED_MARKER_ICON, false);
+        return useIcon ? EDITED_MARKER_MODE_ICON_STAMP : EDITED_MARKER_MODE_TEXT;
+    }
+
+    public static void setEditedMarkerMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit()
+                .putInt(KEY_EDITED_MARKER_MODE, clampEditedMarkerMode(mode))
+                .remove(KEY_EDITED_MARKER_ICON)
+                .apply();
+        notifyListeners();
+    }
+
+    public static boolean useEditedMarkerIcon() {
+        int mode = getEditedMarkerMode();
+        return mode == EDITED_MARKER_MODE_ICON_STAMP || mode == EDITED_MARKER_MODE_ICON_EDIT;
+    }
+
+    public static void setUseEditedMarkerIcon(boolean enabled) {
+        setEditedMarkerMode(enabled ? EDITED_MARKER_MODE_ICON_STAMP : EDITED_MARKER_MODE_TEXT);
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         SharedPreferences preferences = getPreferences();
         return preferences != null && preferences.getBoolean(KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED, false);
@@ -395,6 +436,13 @@ public final class AppearanceSettingsPatch {
             return DOUBLE_TAP_ACTION_REACTION;
         }
         return action;
+    }
+
+    private static int clampEditedMarkerMode(int mode) {
+        if (mode < EDITED_MARKER_MODE_TEXT || mode > EDITED_MARKER_MODE_ICON_EDIT) {
+            return EDITED_MARKER_MODE_TEXT;
+        }
+        return mode;
     }
 
     public static void addListener(Listener listener) {

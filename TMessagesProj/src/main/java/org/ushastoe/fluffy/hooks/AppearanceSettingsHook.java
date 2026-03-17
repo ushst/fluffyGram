@@ -137,6 +137,22 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setMapProvider(provider);
     }
 
+    public static boolean useEditedMarkerIcon() {
+        return AppearanceSettingsPatch.useEditedMarkerIcon();
+    }
+
+    public static void setUseEditedMarkerIcon(boolean enabled) {
+        AppearanceSettingsPatch.setUseEditedMarkerIcon(enabled);
+    }
+
+    public static int getEditedMarkerMode() {
+        return AppearanceSettingsPatch.getEditedMarkerMode();
+    }
+
+    public static void setEditedMarkerMode(int mode) {
+        AppearanceSettingsPatch.setEditedMarkerMode(mode);
+    }
+
     public static boolean isRoundVideoCameraFeatureEnabled() {
         return AppearanceSettingsPatch.isRoundVideoCameraFeatureEnabled();
     }
