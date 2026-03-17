@@ -33,6 +33,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_ROUND_VIDEO_CAMERA_MODE = "round_video_camera_mode";
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
     private static final String KEY_HIDE_STORIES = "hide_stories";
+    private static final String KEY_SHOW_FORWARDED_ORIGINAL_DATE = "show_forwarded_original_date";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
@@ -474,6 +475,20 @@ public final class AppearanceSettingsPatch {
             return;
         }
         preferences.edit().putBoolean(KEY_HIDE_STORIES, hidden).apply();
+        notifyListeners();
+    }
+
+    public static boolean isForwardedOriginalDateShown() {
+        SharedPreferences preferences = getPreferences();
+        return preferences == null || preferences.getBoolean(KEY_SHOW_FORWARDED_ORIGINAL_DATE, true);
+    }
+
+    public static void setForwardedOriginalDateShown(boolean shown) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_SHOW_FORWARDED_ORIGINAL_DATE, shown).apply();
         notifyListeners();
     }
 

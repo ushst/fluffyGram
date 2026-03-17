@@ -209,6 +209,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setStoriesHidden(hidden);
     }
 
+    public static boolean isForwardedOriginalDateShown() {
+        return AppearanceSettingsPatch.isForwardedOriginalDateShown();
+    }
+
+    public static void setForwardedOriginalDateShown(boolean shown) {
+        AppearanceSettingsPatch.setForwardedOriginalDateShown(shown);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;
