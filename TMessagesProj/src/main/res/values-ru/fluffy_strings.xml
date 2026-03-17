@@ -162,4 +162,9 @@
     <string name="docIdRow">ID документа</string>
     <string name="fileNameRow">Имя файла</string>
     <string name="filePathRow">Путь к файлу</string>
+    <string name="JSON">JSON</string>
 </resources>
+
+
+
+

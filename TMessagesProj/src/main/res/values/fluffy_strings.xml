@@ -164,4 +164,9 @@
     <string name="docIdRow">Document ID</string>
     <string name="fileNameRow">File name</string>
     <string name="filePathRow">File path</string>
+    <string name="JSON">JSON</string>
 </resources>
+
+
+
+
