@@ -10528,4 +10528,11 @@
     <string name="RelativeDateMenuSetAReminder">Set a Reminder</string>
     <string name="RelativeDateCopied">Date copied to clipboard</string>
 
+    <!-- Fluffy Message Actions -->
+    <string name="FluffyMessageActionsSection">Interaction</string>
+    <string name="FluffyMessageActions">Message Actions</string>
+    <string name="FluffyMessageActionsInfo">Configure additional message context menu functions</string>
+    <string name="FluffyInteractionFunctions">Message Context Menu Functions</string>
+    <string name="FluffyMessageActionsHelp">Toggle additional actions to appear in the message context menu</string>
+
 </resources>

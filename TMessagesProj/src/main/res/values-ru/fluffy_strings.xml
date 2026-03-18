@@ -166,6 +166,11 @@
     <string name="FluffyForwardOriginalDate">Оригинал: %1$s</string>
     <string name="FluffyForwardedOriginalDateThirdLine">Оригинальная дата в блоке Переслано</string>
     <string name="FluffyForwardedOriginalDateMenu">Оригинальная дата пересланного</string>
+    <string name="FluffyMessageActionsSection">Взаимодействие</string>
+    <string name="FluffyMessageActions">Действия с сообщениями</string>
+    <string name="FluffyMessageActionsInfo">Настройте дополнительные функции контекстного меню сообщений</string>
+    <string name="FluffyInteractionFunctions">Функции контекстного меню сообщений</string>
+    <string name="FluffyMessageActionsHelp">Включайте и отключайте дополнительные действия в контекстном меню сообщений</string>
 </resources>
 
 

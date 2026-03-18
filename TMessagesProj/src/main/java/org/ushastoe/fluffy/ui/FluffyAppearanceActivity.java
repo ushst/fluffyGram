@@ -94,6 +94,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_HIDE_STORIES = 29;
     private static final int ROW_SCHEDULED_MARKER = 30;
     private static final int ROW_SILENT_MARKER = 31;
+    private static final int ROW_MESSAGE_ACTIONS_SECTION = 32;
+    private static final int ROW_MESSAGE_ACTIONS = 33;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -215,6 +217,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 showDialogsTitleModeDialog();
             } else if (item.id == ROW_DIALOGS_APP_TITLE) {
                 showDialogsAppTitleDialog();
+            } else if (item.id == ROW_MESSAGE_ACTIONS) {
+                presentFragment(new FluffyMessageActionsActivity());
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -319,6 +323,13 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     LocaleController.getString(R.string.FluffyRoundVideoCamera),
                     false));
         }
+
+        items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_MESSAGE_ACTIONS_SECTION, "", false));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_MESSAGE_ACTIONS_SECTION,
+                LocaleController.getString(R.string.FluffyMessageActionsSection), false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_MESSAGE_ACTIONS,
+                LocaleController.getString(R.string.FluffyMessageActions), false));
+
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
