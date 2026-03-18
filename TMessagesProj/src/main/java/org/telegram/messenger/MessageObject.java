@@ -94,6 +94,7 @@ import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.web.BotWebViewContainer;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
+import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -3624,6 +3625,17 @@ public class MessageObject {
             summarized = true;
             translated = false;
             applyNewText(summarizedText.text);
+            generateCaption();
+            return replyUpdated || true;
+        } else if (
+            MessageTranslitMenuHook.shouldDisplayInlineTranslit(this, translatedText)
+        ) {
+            if (translated && !summarized) {
+                return replyUpdated || false;
+            }
+            translated = true;
+            summarized = false;
+            applyNewText(translatedText.text);
             generateCaption();
             return replyUpdated || true;
         } else if (

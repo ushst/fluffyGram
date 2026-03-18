@@ -148,6 +148,10 @@
     <string name="FluffyStatusUnavailable">Unavailable</string>
     <string name="FluffyMediaProxyOnly">Proxy only for media (experimental)</string>
     <string name="FluffyMediaProxyOnlyInfo">Temporarily enables the configured proxy only while downloading or uploading media. Non-media traffic can still go through proxy during active media transfers.</string>
+    <string name="FluffyMessageTranslit">Translit</string>
+    <string name="FluffyMessageTranslitToChat">Translit to chat</string>
+    <string name="FluffyMessageTranslitUpdateInChat">Update in chat</string>
+    <string name="FluffyMessageTranslitSendInChat">Send in chat</string>
     <string name="MessageDetails">Details</string>
     <string name="idRow">ID</string>
     <string name="dateRow">Date</string>

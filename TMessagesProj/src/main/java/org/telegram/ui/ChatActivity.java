@@ -305,6 +305,7 @@ import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.hooks.ChatHeaderCenteringHook;
 import org.ushastoe.fluffy.hooks.MessageDetailsMenuHook;
+import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -1170,6 +1171,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_EDIT_TODO = 109;
     public final static int OPTION_ADD_TO_TODO = 110;
     private final static int OPTION_DETAILS = MessageDetailsMenuHook.OPTION_DETAILS;
+    private final static int OPTION_TRANSLIT_LAYOUT = MessageTranslitMenuHook.OPTION_TRANSLIT;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -32152,6 +32154,10 @@ public class ChatActivity extends BaseFragment implements
                 undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
                 break;
             }
+            case OPTION_TRANSLIT_LAYOUT: {
+                showTranslitSendDialog(selectedObject);
+                break;
+            }
             case OPTION_SAVE_TO_GALLERY: {
                 if (Build.VERSION.SDK_INT >= 23 && (Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && getParentActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     getParentActivity().requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 4);
@@ -42801,6 +42807,100 @@ public class ChatActivity extends BaseFragment implements
         showDialog(builder.create());
     }
 
+    private void showTranslitSendDialog(MessageObject messageObject) {
+        if (messageObject == null || getParentActivity() == null) {
+            return;
+        }
+
+        final String convertedText = MessageTranslitMenuHook.getConvertedText(messageObject);
+        if (TextUtils.isEmpty(convertedText)) {
+            return;
+        }
+
+        BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity(), false, themeDelegate);
+
+        LinearLayout container = new LinearLayout(getParentActivity());
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(dp(20), dp(18), dp(20), dp(16));
+
+        TextView titleView = new TextView(getParentActivity());
+        titleView.setTypeface(AndroidUtilities.bold());
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 19);
+        titleView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+        titleView.setText(LocaleController.getString(R.string.FluffyMessageTranslit));
+        container.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 8));
+
+        FrameLayout previewWrap = new FrameLayout(getParentActivity());
+        previewWrap.setBackground(Theme.createRoundRectDrawable(dp(14), getThemedColor(Theme.key_windowBackgroundGray)));
+        previewWrap.setPadding(dp(14), dp(12), dp(14), dp(12));
+
+        TextView textView = new TextView(getParentActivity());
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, SharedConfig.fontSize);
+        textView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+        textView.setTextIsSelectable(true);
+        textView.setText(convertedText);
+        previewWrap.addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
+        container.addView(previewWrap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 16));
+
+        LinearLayout buttons = new LinearLayout(getParentActivity());
+        buttons.setOrientation(LinearLayout.VERTICAL);
+
+        TextView closeButton = createTranslitActionButton(
+            LocaleController.getString(R.string.Close),
+            getThemedColor(Theme.key_dialogTextBlack),
+            getThemedColor(Theme.key_windowBackgroundGray));
+        buttons.addView(closeButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 0, 0, 0));
+
+        TextView updateButton = createTranslitActionButton(
+            LocaleController.getString(R.string.FluffyMessageTranslitUpdateInChat),
+            getThemedColor(Theme.key_dialogTextBlack),
+            getThemedColor(Theme.key_windowBackgroundGray));
+        buttons.addView(updateButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 8, 0, 0));
+
+        TextView sendButton = createTranslitActionButton(
+            LocaleController.getString(R.string.FluffyMessageTranslitSendInChat),
+            Theme.getColor(Theme.key_featuredStickers_buttonText),
+            getThemedColor(Theme.key_featuredStickers_addButton));
+        buttons.addView(sendButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 8, 0, 0));
+
+        container.addView(buttons, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        builder.setCustomView(container);
+
+        BottomSheet sheet = builder.create();
+        closeButton.setOnClickListener(v -> sheet.dismiss());
+        updateButton.setOnClickListener(v -> {
+            if (!MessageTranslitMenuHook.toggleInlineTranslit(messageObject)) {
+                return;
+            }
+            updateMessageTranslation(messageObject, false);
+            sheet.dismiss();
+        });
+        sendButton.setOnClickListener(v -> {
+            if (currentChat != null && (!ChatObject.canSendMessages(currentChat)
+                    || ChatObject.isNotInChat(currentChat)
+                    || ChatObject.isChannel(currentChat) && !ChatObject.canPost(currentChat) && !currentChat.megagroup)) {
+                return;
+            }
+            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(convertedText,
+                    dialog_id, messageObject, getThreadMessage(), null, false, null, null, null, true, 0, 0,
+                    null, false);
+            getSendMessagesHelper().sendMessage(params);
+            sheet.dismiss();
+        });
+        showDialog(sheet);
+    }
+
+    private TextView createTranslitActionButton(CharSequence text, int textColor, int backgroundColor) {
+        TextView button = new TextView(getParentActivity());
+        button.setGravity(Gravity.CENTER);
+        button.setTypeface(AndroidUtilities.bold());
+        button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        button.setTextColor(textColor);
+        button.setText(text);
+        button.setBackground(Theme.AdaptiveRipple.filledRect(backgroundColor, 24));
+        return button;
+    }
+
     public void didPressPhoneNumber(ChatMessageCell cell, CharacterStyle link, String phone) {
         final Browser.Progress progress = makeProgressForLink(cell, link);
         final TLRPC.TL_contact contact = getContactsController().contactsByPhone.get(PhoneFormat.stripExceptNumbers(phone));
@@ -44099,6 +44199,7 @@ public class ChatActivity extends BaseFragment implements
         }
 
         if (message != null && message.messageOwner != null) {
+            MessageTranslitMenuHook.appendOption(items, options, icons, message);
             MessageDetailsMenuHook.appendOption(items, options, icons, message);
         }
     }

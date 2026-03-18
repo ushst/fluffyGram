@@ -146,6 +146,10 @@
     <string name="FluffyStatusUnavailable">Недоступно</string>
     <string name="FluffyMediaProxyOnly">Прокси только для медиа (экспериментально)</string>
     <string name="FluffyMediaProxyOnlyInfo">Временно включает выбранный прокси только во время загрузки или отправки медиа. Во время активных медиа-передач немедиа-трафик тоже может идти через прокси.</string>
+    <string name="FluffyMessageTranslit">Транслит</string>
+    <string name="FluffyMessageTranslitToChat">Транслит в чат</string>
+    <string name="FluffyMessageTranslitUpdateInChat">Обновить в чате</string>
+    <string name="FluffyMessageTranslitSendInChat">Отправить в чате</string>
     <string name="MessageDetails">Сведения</string>
     <string name="idRow">ID</string>
     <string name="dateRow">Дата</string>
