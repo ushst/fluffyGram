@@ -72,6 +72,7 @@ import org.telegram.messenger.support.fingerprint.FingerprintManagerCompat;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.recorder.KeyboardNotifier;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -583,6 +584,7 @@ public class PasscodeView extends FrameLayout implements NotificationCenter.Noti
         passwordEditText.setSingleLine(true);
         passwordEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         passwordEditText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(passwordEditText);
         passwordEditText.setBackgroundDrawable(null);
         passwordEditText.setCursorColor(0xffffffff);
         passwordEditText.setCursorSize(dp(32));

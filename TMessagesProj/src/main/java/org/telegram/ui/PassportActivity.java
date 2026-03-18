@@ -122,6 +122,7 @@ import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.RadialProgress;
 import org.telegram.ui.Components.SlideView;
 import org.telegram.ui.Components.URLSpanNoUnderline;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -1591,6 +1592,7 @@ public class PassportActivity extends BaseFragment implements NotificationCenter
             inputFields[a].setSingleLine(true);
             inputFields[a].setTransformationMethod(PasswordTransformationMethod.getInstance());
             inputFields[a].setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(inputFields[a]);
             inputFields[a].setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
             inputFields[a].setPadding(0, 0, 0, AndroidUtilities.dp(6));
             inputFields[a].setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);

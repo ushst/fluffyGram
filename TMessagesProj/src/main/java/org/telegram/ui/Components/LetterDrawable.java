@@ -26,6 +26,7 @@ import android.text.TextPaint;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.ActionBar.Theme;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class LetterDrawable extends Drawable {
 
@@ -70,6 +71,7 @@ public class LetterDrawable extends Drawable {
             namePaintTopic.setColor(Color.WHITE);
             namePaintTopic.setTextSize(dp(13));
             namePaintTopic.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+            AppFontHook.applyToBoldPaints(namePaintTopic);
             textPaint = namePaintTopic;
         } else {
             if (namePaintSmallTopic == null) {
@@ -78,6 +80,7 @@ public class LetterDrawable extends Drawable {
             namePaintSmallTopic.setColor(Color.WHITE);
             namePaintSmallTopic.setTextSize(Theme.chat_topicTextPaint.getTextSize() * .75f);
             namePaintSmallTopic.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+            AppFontHook.applyToBoldPaints(namePaintSmallTopic);
             textPaint = namePaintSmallTopic;
         }
     }

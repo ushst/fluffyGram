@@ -97,6 +97,7 @@ import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -324,6 +325,7 @@ public class ChannelMonetizationLayout extends SizeNotifierFrameLayout implement
         starsBalanceEditText.setPadding(dp(6), padding, padding, padding);
         starsBalanceEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
         starsBalanceEditText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(starsBalanceEditText);
         starsBalanceEditText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
         starsBalanceEditText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));
         starsBalanceEditText.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);

@@ -62,6 +62,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.Premium.boosts.BoostRepository;
 import org.telegram.ui.PaymentFormActivity;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 
@@ -947,6 +948,7 @@ public class UndoView extends FrameLayout {
                 subinfoTextView.setVisibility(GONE);
                 infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                 infoTextView.setTypeface(Typeface.DEFAULT);
+                AppFontHook.applyToTextView(infoTextView);
             }
 
             undoButton.setVisibility(GONE);
@@ -960,6 +962,7 @@ public class UndoView extends FrameLayout {
             leftImageView.setVisibility(VISIBLE);
 
             infoTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(infoTextView);
             long hapticDelay = -1;
             if (currentAction == ACTION_GIGAGROUP_SUCCESS) {
                 infoTextView.setText(LocaleController.getString(R.string.BroadcastGroupConvertSuccess));
@@ -1179,6 +1182,7 @@ public class UndoView extends FrameLayout {
                 layoutParams.topMargin = AndroidUtilities.dp(6);
             } else {
                 infoTextView.setTypeface(Typeface.DEFAULT);
+                AppFontHook.applyToTextView(infoTextView);
                 infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                 leftImageView.clearLayerColors();
                 leftImageView.setLayerColor("Body Main.**", getThemedColor(Theme.key_undo_infoColor));
@@ -1359,6 +1363,7 @@ public class UndoView extends FrameLayout {
             infoTextView.setVisibility(VISIBLE);
             infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             infoTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(infoTextView);
             infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.UnlockPremiumTranscriptionHint)));
             leftImageView.setVisibility(VISIBLE);
             leftImageView.setAnimation(R.raw.voice_to_text, 36, 36);
@@ -1424,6 +1429,7 @@ public class UndoView extends FrameLayout {
             infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             undoButton.setVisibility(GONE);
             infoTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(infoTextView);
             subinfoTextView.setVisibility(GONE);
 
             leftImageView.setVisibility(VISIBLE);
@@ -1444,6 +1450,7 @@ public class UndoView extends FrameLayout {
             infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             undoButton.setVisibility(VISIBLE);
             infoTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(infoTextView);
             subinfoTextView.setVisibility(GONE);
 
             leftImageView.setVisibility(VISIBLE);
@@ -1458,6 +1465,7 @@ public class UndoView extends FrameLayout {
             undoButton.setVisibility(VISIBLE);
             infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             infoTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(infoTextView);
             subinfoTextView.setVisibility(GONE);
 
             avatarImageView.setVisibility(VISIBLE);
@@ -1482,6 +1490,7 @@ public class UndoView extends FrameLayout {
             infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             undoButton.setVisibility(VISIBLE);
             infoTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(infoTextView);
             subinfoTextView.setVisibility(GONE);
             leftImageView.setVisibility(GONE);
 
@@ -1506,6 +1515,7 @@ public class UndoView extends FrameLayout {
                     subinfoTextView.setText(LocaleController.formatPluralString("FolderLinkDeletedSubtitle", chatsCount));
                 } else {
                     infoTextView.setTypeface(Typeface.DEFAULT);
+                    AppFontHook.applyToTextView(infoTextView);
                     infoTextView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("FolderLinkDeleted", R.string.FolderLinkDeleted, (folderName == null ? "" : folderName).replace('*', '✱'))));
                 }
             } else if (currentAction == ACTION_CLEAR_DATES || currentAction == ACTION_CLEAR || currentAction == ACTION_CLEAR_FEW) {

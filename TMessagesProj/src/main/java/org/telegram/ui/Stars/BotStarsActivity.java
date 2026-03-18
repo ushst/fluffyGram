@@ -80,6 +80,7 @@ import org.telegram.ui.TwoStepVerificationActivity;
 import org.telegram.ui.TwoStepVerificationSetupActivity;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -257,6 +258,7 @@ public class BotStarsActivity extends BaseFragment implements NotificationCenter
         balanceEditText.setPadding(dp(6), padding, padding, padding);
         balanceEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
         balanceEditText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(balanceEditText);
         balanceEditText.setHighlightColor(getThemedColor(Theme.key_chat_inTextSelectionHighlight));
         balanceEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
         balanceEditText.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);

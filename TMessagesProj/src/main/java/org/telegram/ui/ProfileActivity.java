@@ -309,6 +309,7 @@ import org.telegram.ui.bots.BotLocation;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -1829,6 +1830,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
             textPaint.setColor(Color.WHITE);
             textPaint.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToRegularPaints(textPaint);
             textPaint.setTextAlign(Paint.Align.CENTER);
             textPaint.setTextSize(AndroidUtilities.dpf2(15f));
             backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

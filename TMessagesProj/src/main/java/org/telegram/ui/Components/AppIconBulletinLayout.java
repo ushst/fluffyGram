@@ -16,6 +16,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.AppIconsSelectorCell;
 import org.telegram.ui.LauncherIconController;
 import org.ushastoe.fluffy.hooks.AppIconHook;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 @SuppressLint("ViewConstructor")
 public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
@@ -32,6 +33,7 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
         textView.setTextColor(getThemedColor(Theme.key_undo_infoColor));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         textView.setTypeface(Typeface.SANS_SERIF);
+        AppFontHook.applyToTextView(textView);
         addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 16, 0));
 
         AppIconHook.bindPreviewIcon(imageView, icon, 24);

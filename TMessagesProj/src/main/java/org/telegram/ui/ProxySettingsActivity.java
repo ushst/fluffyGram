@@ -67,6 +67,7 @@ import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.QRCodeBottomSheet;
 import org.telegram.ui.Components.SectionsScrollView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -388,6 +389,7 @@ public class ProxySettingsActivity extends BaseFragment {
             } else if (a == FIELD_PASSWORD) {
                 inputFields[a].setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 inputFields[a].setTypeface(Typeface.DEFAULT);
+                AppFontHook.applyToTextView(inputFields[a]);
                 inputFields[a].setTransformationMethod(PasswordTransformationMethod.getInstance());
             } else {
                 inputFields[a].setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);

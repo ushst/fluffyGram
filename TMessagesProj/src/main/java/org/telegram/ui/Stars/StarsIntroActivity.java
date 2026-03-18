@@ -155,6 +155,7 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -5072,6 +5073,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
         editText.setPadding(dp(6), padding, padding, padding);
         editText.setInputType(InputType.TYPE_CLASS_NUMBER);
         editText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(editText);
         editText.setSelectAllOnFocus(true);
         editText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
         editText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));
@@ -5293,6 +5295,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
         editText.setPadding(dp(6), padding, padding, padding);
         editText.setInputType(InputType.TYPE_CLASS_NUMBER);
         editText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(editText);
         editText.setSelectAllOnFocus(true);
         editText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
         editText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));

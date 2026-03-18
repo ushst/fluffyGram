@@ -20,6 +20,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class TextPriceCell extends FrameLayout {
 
@@ -92,6 +93,8 @@ public class TextPriceCell extends FrameLayout {
             valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
             textView.setTypeface(Typeface.DEFAULT);
             valueTextView.setTypeface(Typeface.DEFAULT);
+            AppFontHook.applyToTextView(textView);
+            AppFontHook.applyToTextView(valueTextView);
         }
         requestLayout();
     }

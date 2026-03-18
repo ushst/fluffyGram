@@ -80,6 +80,7 @@ import org.telegram.ui.Components.quickforward.BlurVisibilityDrawable;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.ViewPagerActivity;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
@@ -1340,6 +1341,7 @@ public class Bulletin {
             textView.setSingleLine();
             textView.setTextColor(undoInfoColor);
             textView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(textView);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 16, 0));
         }
@@ -1364,6 +1366,7 @@ public class Bulletin {
             textView.setTextColor(getThemedColor(Theme.key_undo_infoColor));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             textView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(textView);
             addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 16, 0));
         }
 
@@ -1404,6 +1407,7 @@ public class Bulletin {
             subtitleTextView.setLinkTextColor(getThemedColor(Theme.key_undo_cancelColor));
             subtitleTextView.setMovementMethod(new LinkMovementMethod());
             subtitleTextView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(subtitleTextView);
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             linearLayout.addView(subtitleTextView);
         }
@@ -1456,6 +1460,7 @@ public class Bulletin {
             subtitleTextView.setTextColor(undoInfoColor);
             subtitleTextView.setLinkTextColor(undoLinkColor);
             subtitleTextView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(subtitleTextView);
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             linearLayout.addView(subtitleTextView);
         }
@@ -1557,6 +1562,7 @@ public class Bulletin {
             subtitleTextView.setTextColor(undoInfoColor);
             subtitleTextView.setLinkTextColor(undoLinkColor);
             subtitleTextView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(subtitleTextView);
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             linearLayout.addView(subtitleTextView);
         }
@@ -1633,6 +1639,7 @@ public class Bulletin {
             subtitleTextView.setPadding(dp(4), 0, dp(4), 0);
             subtitleTextView.setTextColor(undoInfoColor);
             subtitleTextView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToAnimatedTextView(subtitleTextView);
             subtitleTextView.setTextSize(dp(13));
             subtitleTextView.setEllipsizeByGradient(true);
             linearLayout.addView(subtitleTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 18));
@@ -1871,6 +1878,7 @@ public class Bulletin {
 
             textView = new AnimatedTextView(context);
             textView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToAnimatedTextView(textView);
             textView.setTextSize(dp(15));
             textView.setPadding(0, dp(8), 0, dp(8));
             addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, 18, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 8, 0));
@@ -1932,6 +1940,7 @@ public class Bulletin {
             NotificationCenter.listenEmojiLoading(textView);
             textView.setSingleLine();
             textView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(textView);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             textView.setEllipsize(TextUtils.TruncateAt.END);
             textView.setPadding(0, dp(8), 0, dp(8));
@@ -2002,6 +2011,7 @@ public class Bulletin {
             textLoadingView.setDisablePaddingsOffset(true);
             textLoadingView.setSingleLine();
             textLoadingView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(textLoadingView);
             textLoadingView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             textLoadingView.setEllipsize(TextUtils.TruncateAt.END);
             textLoadingView.setPadding(0, dp(8), 0, dp(8));
@@ -2057,6 +2067,7 @@ public class Bulletin {
                 };
                 NotificationCenter.listenEmojiLoading(textView);
                 textView.setTypeface(Typeface.SANS_SERIF);
+                AppFontHook.applyToTextView(textView);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setPadding(0, dp(8), 0, dp(8));
@@ -2076,6 +2087,7 @@ public class Bulletin {
                 };
                 NotificationCenter.listenEmojiLoading(textView);
                 textView.setTypeface(Typeface.SANS_SERIF);
+                AppFontHook.applyToTextView(textView);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
                 textView.setTypeface(AndroidUtilities.bold());
                 textView.setEllipsize(TextUtils.TruncateAt.END);
@@ -2084,6 +2096,7 @@ public class Bulletin {
 
                 subtitleView = new LinkSpanDrawable.LinksTextView(context);
                 subtitleView.setTypeface(Typeface.SANS_SERIF);
+                AppFontHook.applyToTextView(subtitleView);
                 subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                 subtitleView.setEllipsize(TextUtils.TruncateAt.END);
                 subtitleView.setSingleLine(false);

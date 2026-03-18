@@ -70,6 +70,7 @@ import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.ReportBottomSheet;
 import org.telegram.ui.RevenueSharingAdsInfoBottomSheet;
 import org.telegram.ui.Stories.DarkThemeResourceProvider;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -819,6 +820,7 @@ public class VideoAds {
             subtitleTextView.setTextColor(undoInfoColor);
             subtitleTextView.setLinkTextColor(undoLinkColor);
             subtitleTextView.setTypeface(Typeface.SANS_SERIF);
+            AppFontHook.applyToTextView(subtitleTextView);
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             linearLayout.addView(subtitleTextView);
 

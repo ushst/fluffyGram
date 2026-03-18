@@ -54,6 +54,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PeerColorActivity;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Stories.recorder.HintView2;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1549,6 +1550,7 @@ public final class BulletinFactory {
         layout.removeView(layout.textView);
         layout.textView = new AnimatedEmojiSpan.TextViewEmojis(layout.getContext());
         layout.textView.setTypeface(Typeface.SANS_SERIF);
+        AppFontHook.applyToTextView(layout.textView);
         layout.textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         layout.textView.setEllipsize(TextUtils.TruncateAt.END);
         layout.textView.setPadding(0, 0, 0, dp(8));

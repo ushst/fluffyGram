@@ -38,6 +38,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.ShareLocationDrawable;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class SendLocationCell extends FrameLayout {
 
@@ -182,6 +183,9 @@ public class SendLocationCell extends FrameLayout {
         textDrawable.setAnimationProperties(.3f, 0, 320, CubicBezierInterpolator.EASE_OUT_QUINT);
         textDrawable.setTextSize(dp(12));
         textDrawable.setTypeface(Typeface.DEFAULT_BOLD);
+        if (AppFontHook.getBoldTypefaceOverride() != null) {
+            textDrawable.setTypeface(AppFontHook.getBoldTypefaceOverride());
+        }
         textDrawable.setGravity(Gravity.CENTER);
         textDrawable.setCallback(this);
     }

@@ -19,6 +19,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Charts.BaseChartView;
 import org.telegram.ui.Components.LayoutHelper;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -59,6 +60,7 @@ public class ChartHeaderView extends FrameLayout {
         back = new TextView(context);
         back.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         back.setTypeface(Typeface.DEFAULT_BOLD);
+        AppFontHook.applyBoldToTextView(back);
         back.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         addView(back, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 8, 0, 8, 0));
 

@@ -49,6 +49,7 @@ import org.telegram.ui.Components.OutlineTextContainerView;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class BotVerifySheet {
 
@@ -235,6 +236,7 @@ public class BotVerifySheet {
         editText.setMaxLines(15);
         editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         editText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(editText);
         editText.setSelectAllOnFocus(true);
         editText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight));
         editText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor));

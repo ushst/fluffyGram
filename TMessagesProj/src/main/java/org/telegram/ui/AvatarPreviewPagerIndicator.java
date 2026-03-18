@@ -21,6 +21,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.ProfileGalleryView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.Arrays;
 
@@ -116,6 +117,7 @@ public class AvatarPreviewPagerIndicator extends View implements ProfileGalleryV
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(Color.WHITE);
         textPaint.setTypeface(Typeface.SANS_SERIF);
+        AppFontHook.applyToRegularPaints(textPaint);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setTextSize(AndroidUtilities.dpf2(15f));
     }

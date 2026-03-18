@@ -60,6 +60,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.TON.TONIntroActivity;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 
@@ -239,6 +240,7 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
         editText.setPadding(dp(6), padding, padding, padding);
         editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         editText.setTypeface(Typeface.DEFAULT);
+        AppFontHook.applyToTextView(editText);
         editText.setSelectAllOnFocus(true);
         editText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
         editText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));
@@ -497,6 +499,7 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
         layout.textView = new ButtonSpan.TextViewButtons(f.getContext());
         layout.textView.setSingleLine();
         layout.textView.setTypeface(Typeface.SANS_SERIF);
+        AppFontHook.applyToTextView(layout.textView);
         layout.textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         layout.textView.setEllipsize(TextUtils.TruncateAt.END);
         layout.textView.setPadding(0, dp(8), 0, dp(8));

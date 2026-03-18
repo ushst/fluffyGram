@@ -82,6 +82,7 @@ import org.telegram.ui.Components.TextStyleSpan;
 import org.telegram.ui.Components.TransformableLoginButtonView;
 import org.telegram.ui.Components.VerticalPositionAutoAnimator;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.ArrayList;
 
@@ -433,6 +434,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
             case TYPE_PASSWORD_SET:
             case TYPE_VERIFY_OK:
                 titleTextView.setTypeface(Typeface.DEFAULT);
+                AppFontHook.applyToTextView(titleTextView);
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
                 break;
             default:
@@ -993,6 +995,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 editTextFirstRow.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 editTextFirstRow.setTransformationMethod(PasswordTransformationMethod.getInstance());
                 editTextFirstRow.setTypeface(Typeface.DEFAULT);
+                AppFontHook.applyToTextView(editTextFirstRow);
 
                 imageView.setAnimation(R.raw.wallet_science, 120, 120);
                 imageView.playAnimation();
@@ -1019,6 +1022,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 editTextFirstRow.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 editTextFirstRow.setTransformationMethod(PasswordTransformationMethod.getInstance());
                 editTextFirstRow.setTypeface(Typeface.DEFAULT);
+                AppFontHook.applyToTextView(editTextFirstRow);
 
                 needPasswordButton = currentType == TYPE_CREATE_PASSWORD_STEP_1;
                 AndroidUtilities.updateViewVisibilityAnimated(showPasswordButton, false, 0.1f, false);
