@@ -29,10 +29,13 @@ def getDevLocalProp = { String key, String fallback ->
     def value = devLocalProps.getProperty(key)
     return value != null && value.trim().length() > 0 ? value.trim() : fallback
 }
+// Signing credentials must be set in fluffyGram_dev/devlocal.properties (storeFile, storePassword,
+// keyAlias, keyPassword). Without that file the signing steps will fail — this is intentional to
+// prevent accidental use of an unsigned or wrongly-signed build.
 def releaseStoreFilePath = getDevLocalProp("storeFile", "../TMessagesProj/config/release.keystore")
-def releaseStorePassword = getDevLocalProp("storePassword", RELEASE_STORE_PASSWORD)
-def releaseKeyAlias = getDevLocalProp("keyAlias", RELEASE_KEY_ALIAS)
-def releaseKeyPassword = getDevLocalProp("keyPassword", RELEASE_KEY_PASSWORD)
+def releaseStorePassword = getDevLocalProp("storePassword", "")
+def releaseKeyAlias = getDevLocalProp("keyAlias", "")
+def releaseKeyPassword = getDevLocalProp("keyPassword", "")
 def localGoogleServices = rootProject.file('fluffyGram_dev/google-services.json')
 def fluffyPatchVersion = Math.max(0, Integer.parseInt((project.findProperty("FLUFFY_PATCH_VERSION") ?: "0").toString()))
 def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffyPatchVersion : APP_VERSION_NAME

@@ -86,8 +86,13 @@ public final class FluffyCustomUpdateManager {
         if (!isEnabled()) {
             return false;
         }
-        // Keep updates enabled for the public release channel, while preserving beta/standalone support.
-        return !isDebugBuild || isStandalone || isBeta;
+        // Debug builds (BuildConfig.DEBUG = true) must not receive custom updates to avoid
+        // overwriting development builds with production APKs. Non-debug builds (release,
+        // standalone) are always eligible regardless of the beta channel setting.
+        if (isDebugBuild) {
+            return false;
+        }
+        return true;
     }
 
     public void checkUpdate(boolean force, Runnable whenDone) {
@@ -421,7 +426,10 @@ public final class FluffyCustomUpdateManager {
                 }
                 output.getFD().sync();
             }
-            if (!TextUtils.isEmpty(snapshot.sha256) && !verifySha256(tempFile, snapshot.sha256)) {
+            if (TextUtils.isEmpty(snapshot.sha256)) {
+                throw new IOException("Update manifest is missing required SHA256 hash");
+            }
+            if (!verifySha256(tempFile, snapshot.sha256)) {
                 throw new IOException("Downloaded update hash mismatch");
             }
             deleteFile(targetFile);
