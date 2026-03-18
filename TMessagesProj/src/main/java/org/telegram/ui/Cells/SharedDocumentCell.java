@@ -54,6 +54,7 @@ import org.telegram.ui.Components.LineProgressView;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.FilteredSearchView;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.File;
 import java.util.Date;
@@ -131,6 +132,7 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
         extTextView.setGravity(Gravity.CENTER);
         extTextView.setEllipsize(TextUtils.TruncateAt.END);
         extTextView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+        AppFontHook.applyBoldToTextView(extTextView);
         if (viewType == VIEW_TYPE_PICKER) {
             addView(extTextView, LayoutHelper.createFrame(32, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 0 : 20, 28, LocaleController.isRTL ? 20 : 0, 0));
         } else {
@@ -164,6 +166,7 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
         nameTextView.setTypeface(AndroidUtilities.bold());
         nameTextView.setEllipsize(TextUtils.TruncateAt.END);
         nameTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
+        AppFontHook.applyBoldToTextView(nameTextView);
 
         LinearLayout linearLayout;
         if (viewType == VIEW_TYPE_PICKER) {
@@ -179,6 +182,7 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
             rightDateTextView = new TextView(context);
             rightDateTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText3));
             rightDateTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            AppFontHook.applyToTextView(rightDateTextView);
             if (!LocaleController.isRTL) {
                 linearLayout.addView(nameTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 1f));
                 linearLayout.addView(rightDateTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0f, 4, 0, 0, 0));
@@ -196,6 +200,7 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
             captionTextView.setEllipsize(TextUtils.TruncateAt.END);
             captionTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
             captionTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+            AppFontHook.applyToTextView(captionTextView);
             addView(captionTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 8 : 72, 30, LocaleController.isRTL ? 72 : 8, 0));
             captionTextView.setVisibility(View.GONE);
         } else {
@@ -222,6 +227,7 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
         dateTextView.setEllipsize(TextUtils.TruncateAt.END);
         dateTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         NotificationCenter.listenEmojiLoading(dateTextView);
+        AppFontHook.applyToTextView(dateTextView);
         if (viewType == VIEW_TYPE_PICKER) {
             dateTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             addView(dateTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 8 : 72, 34, LocaleController.isRTL ? 72 : 8, 0));

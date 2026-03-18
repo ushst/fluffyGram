@@ -67,6 +67,7 @@ import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.Stories.StoryWidgetsImageDecorator;
 import org.telegram.ui.Stories.recorder.DominantColors;
 import org.telegram.ui.Stories.recorder.StoryPrivacyBottomSheet;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.util.HashMap;
 
@@ -180,6 +181,9 @@ public class SharedPhotoVideoCell2 extends FrameLayout {
         viewsText.setTextColor(Color.WHITE);
         viewsText.setTypeface(AndroidUtilities.bold());
         viewsText.setOverrideFullWidth(AndroidUtilities.displaySize.x);
+        if (AppFontHook.getBoldTypefaceOverride() != null) {
+            viewsText.setTypeface(AppFontHook.getBoldTypefaceOverride());
+        }
 
         setWillNotDraw(false);
     }
@@ -1155,6 +1159,7 @@ public class SharedPhotoVideoCell2 extends FrameLayout {
             textPaint.setTextSize(dp(12));
             textPaint.setColor(Color.WHITE);
             textPaint.setTypeface(AndroidUtilities.bold());
+            AppFontHook.applyToBoldPaints(textPaint);
             playDrawable = ContextCompat.getDrawable(context, R.drawable.play_mini_video).mutate();
             playDrawable.setBounds(0, 0, playDrawable.getIntrinsicWidth(), playDrawable.getIntrinsicHeight());
             viewDrawable = ContextCompat.getDrawable(context, R.drawable.filled_views).mutate();

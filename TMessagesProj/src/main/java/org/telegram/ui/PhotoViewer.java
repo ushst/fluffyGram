@@ -313,6 +313,7 @@ import org.telegram.ui.Stories.recorder.CaptionContainerView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.KeyboardNotifier;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -390,6 +391,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         SimpleTextView[] titleTextView;
         AnimatedTextView subtitleTextView;
 
+        private void applySubtitleFont() {
+            if (AppFontHook.getRegularTypefaceOverride() != null) {
+                subtitleTextView.setTypeface(AppFontHook.getRegularTypefaceOverride());
+                subtitleTextView.getDrawable().setTypeface(AppFontHook.getRegularTypefaceOverride());
+                subtitleTextView.getPaint().setTypeface(AppFontHook.getRegularTypefaceOverride());
+            }
+        }
+
         public PhotoViewerActionBarContainer(Context context) {
             super(context);
 
@@ -426,6 +435,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             subtitleTextView.setTextSize(dp(14));
             subtitleTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
             subtitleTextView.setTextColor(0xffffffff);
+            AppFontHook.applyToAnimatedTextView(subtitleTextView);
+            applySubtitleFont();
             subtitleTextView.setEllipsizeByGradient(true);
             container.addView(subtitleTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 20, Gravity.LEFT | Gravity.TOP, 16, 0, 0, 0));
         }
@@ -528,6 +539,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             setSubtitle(subtitle, true);
         }
         public void setSubtitle(CharSequence subtitle, boolean animated) {
+            applySubtitleFont();
             final boolean haveSubtitle = !TextUtils.isEmpty(subtitle);
             if (haveSubtitle != hasSubtitle) {
                 hasSubtitle = haveSubtitle;
