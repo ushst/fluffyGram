@@ -20,6 +20,19 @@ Recommended subpackages:
 - `org.ushastoe.fluffy.hooks` for bridge/helper methods
 - `org.ushastoe.fluffy.utils` for shared utilities
 
+## Config Registry
+1. Every new key added to any Fluffy config or Fluffy-owned `SharedPreferences` must also be recorded in a dedicated registry file kept in the repo.
+2. The registry entry must describe at least:
+- key name
+- storage file / `SharedPreferences` name
+- value type
+- default value
+- whether the key is local-only or included in sync
+3. The primary registry file for this repo is:
+`fluffyGram_dev/fluffy_config_registry.md`
+4. Do not introduce a new Fluffy config key without updating that registry file in the same change.
+5. If a key is account-scoped or user-scoped, record the storage pattern as well, for example `prefix_<userId>`.
+
 ## Implementation Pattern
 1. Add a small hook in Telegram class.
 2. Delegate to patch class in `org.ushastoe.fluffy...`.
