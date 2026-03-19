@@ -51,12 +51,15 @@ public class FluffySettingsActivity extends BaseFragment {
     private static final int ROW_PREMIUM_SECTION = 5;
     private static final int ROW_PREMIUM = 6;
     private static final int ROW_PREMIUM_INFO = 7;
-    private static final int ROW_DEBUG_SECTION = 8;
-    private static final int ROW_DEBUG = 9;
-    private static final int ROW_DEBUG_INFO = 10;
-    private static final int ROW_LINKS_SECTION = 11;
-    private static final int ROW_CHANNEL = 12;
-    private static final int ROW_GITHUB = 13;
+    private static final int ROW_CLOUD_SECTION = 8;
+    private static final int ROW_CLOUD = 9;
+    private static final int ROW_CLOUD_INFO = 10;
+    private static final int ROW_DEBUG_SECTION = 11;
+    private static final int ROW_DEBUG = 12;
+    private static final int ROW_DEBUG_INFO = 13;
+    private static final int ROW_LINKS_SECTION = 14;
+    private static final int ROW_CHANNEL = 15;
+    private static final int ROW_GITHUB = 16;
 
     private static final String FLUFFY_CHANNEL_USERNAME = "fluffyGram";
     private static final String FLUFFY_GITHUB_URL = "https://github.com/ushst/fluffyGram";
@@ -111,6 +114,8 @@ public class FluffySettingsActivity extends BaseFragment {
                 presentFragment(new FluffyAppearanceActivity());
             } else if (item.id == ROW_PREMIUM) {
                 presentFragment(new FluffyPremiumActivity());
+            } else if (item.id == ROW_CLOUD) {
+                presentFragment(new FluffyCloudSettingsActivity());
             } else if (item.id == ROW_DEBUG) {
                 presentFragment(new FluffyDebugActivity());
             } else if (item.id == ROW_CHANNEL) {
@@ -141,6 +146,9 @@ public class FluffySettingsActivity extends BaseFragment {
             items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_PREMIUM, LocaleController.getString(R.string.FluffyPremium), null, R.drawable.msg_settings_premium));
             items.add(new ItemInner(VIEW_TYPE_INFO, ROW_PREMIUM_INFO, LocaleController.getString(R.string.FluffyPremiumInfo), null, 0));
         }
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_CLOUD_SECTION, LocaleController.getString(R.string.FluffyCloudSection), null, 0));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CLOUD, LocaleController.getString(R.string.FluffyCloud), null, R.drawable.msg_folders));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CLOUD_INFO, LocaleController.getString(R.string.FluffyCloudInfo), null, 0));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DEBUG_SECTION, LocaleController.getString(R.string.FluffyDeveloperSettingsSection), null, 0));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DEBUG, LocaleController.getString(R.string.FluffyDebug), null, R.drawable.msg_log));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null, 0));
@@ -155,6 +163,7 @@ public class FluffySettingsActivity extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        updateItems();
         applyTargetScroll();
     }
 
@@ -178,6 +187,10 @@ public class FluffySettingsActivity extends BaseFragment {
             case ROW_PREMIUM:
             case ROW_PREMIUM_INFO:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("premium");
+            case ROW_CLOUD_SECTION:
+            case ROW_CLOUD:
+            case ROW_CLOUD_INFO:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("cloud");
             case ROW_DEBUG_SECTION:
             case ROW_DEBUG:
             case ROW_DEBUG_INFO:
@@ -225,6 +238,8 @@ public class FluffySettingsActivity extends BaseFragment {
                 return ROW_APPEARANCE;
             case "premium":
                 return ROW_PREMIUM;
+            case "cloud":
+                return ROW_CLOUD;
             case "debug":
                 return ROW_DEBUG;
             case "community":

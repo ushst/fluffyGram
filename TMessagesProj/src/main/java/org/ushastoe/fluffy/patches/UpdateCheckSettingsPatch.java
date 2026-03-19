@@ -2,7 +2,9 @@ package org.ushastoe.fluffy.patches;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
+import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 
 public final class UpdateCheckSettingsPatch {
@@ -14,6 +16,23 @@ public final class UpdateCheckSettingsPatch {
     public static final int AUTO_CHECK_ON_LAUNCH = 1;
 
     private UpdateCheckSettingsPatch() {
+    }
+
+    public static String exportSettingsJson() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put(KEY_AUTO_CHECK_MODE, getAutoCheckMode());
+        } catch (Exception ignore) {
+        }
+        return object.toString();
+    }
+
+    public static void importSettingsJson(String json) {
+        try {
+            JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            setAutoCheckMode(object.optInt(KEY_AUTO_CHECK_MODE, AUTO_CHECK_ON_LAUNCH));
+        } catch (Exception ignore) {
+        }
     }
 
     public static int getAutoCheckMode() {

@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.UserConfig;
+import org.ushastoe.fluffy.sync.FluffySyncManager;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -29,7 +30,8 @@ public final class PremiumAccessPatch {
         if (currentUserId == 0) {
             return false;
         }
-        return validateToken(getStoredToken(currentUserId), currentUserId);
+        return FluffySyncManager.getInstance().hasServerPremiumAccess()
+                || validateToken(getStoredToken(currentUserId), currentUserId);
     }
 
     public static boolean importPremiumAccessToken(String token) {

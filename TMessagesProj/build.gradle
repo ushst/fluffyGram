@@ -89,6 +89,8 @@ def fluffyVersionName = fluffyPatchVersion > 0 ? APP_VERSION_NAME + "." + fluffy
 def fluffyPremiumPublicKey = (project.findProperty("FLUFFY_PREMIUM_PUBLIC_KEY")
         ?: getDevLocalProp("FLUFFY_PREMIUM_PUBLIC_KEY", (System.getenv("FLUFFY_PREMIUM_PUBLIC_KEY") ?: "").trim()))
         .toString()
+def fluffySyncBackendUrl = getDevLocalProp("FLUFFY_SYNC_BACKEND_URL", "")
+def fluffySyncHelperBot = getDevLocalProp("FLUFFY_SYNC_HELPER_BOT", "")
 def fluffyAllAbisEnabled = (project.findProperty("FLUFFY_ALL_ABIS") ?: "false").toString().toBoolean()
 def fluffyNativeAbis = fluffyAllAbisEnabled
         ? ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
@@ -152,6 +154,8 @@ android {
         buildConfigField "int", "TELEGRAM_APP_ID", getDevLocalProp("TELEGRAM_APP_ID", "4")
         buildConfigField "String", "TELEGRAM_APP_HASH", "\"" + getDevLocalProp("TELEGRAM_APP_HASH", "014b35b6184100b085b0d0572f9b5103") + "\""
         buildConfigField "String", "FLUFFY_PREMIUM_PUBLIC_KEY", "\"" + fluffyPremiumPublicKey.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+        buildConfigField "String", "FLUFFY_SYNC_BACKEND_URL", "\"" + fluffySyncBackendUrl.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+        buildConfigField "String", "FLUFFY_SYNC_HELPER_BOT", "\"" + fluffySyncHelperBot.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
         externalNativeBuild {
             cmake {

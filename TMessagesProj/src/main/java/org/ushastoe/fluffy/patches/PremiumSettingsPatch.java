@@ -2,7 +2,9 @@ package org.ushastoe.fluffy.patches;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
+import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 
 public final class PremiumSettingsPatch {
@@ -10,6 +12,23 @@ public final class PremiumSettingsPatch {
     private static final String KEY_LOCAL_ANON_STORY_VIEW = "local_anon_story_view";
 
     private PremiumSettingsPatch() {
+    }
+
+    public static String exportSettingsJson() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put(KEY_LOCAL_ANON_STORY_VIEW, useLocalAnonymousStoryView());
+        } catch (Exception ignore) {
+        }
+        return object.toString();
+    }
+
+    public static void importSettingsJson(String json) {
+        try {
+            JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            setUseLocalAnonymousStoryView(object.optBoolean(KEY_LOCAL_ANON_STORY_VIEW, false));
+        } catch (Exception ignore) {
+        }
     }
 
     public static boolean useLocalAnonymousStoryView() {

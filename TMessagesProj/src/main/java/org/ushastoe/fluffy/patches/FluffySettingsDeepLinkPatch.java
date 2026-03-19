@@ -15,6 +15,7 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.LaunchActivity;
 import org.ushastoe.fluffy.hooks.PremiumAccessHook;
 import org.ushastoe.fluffy.ui.FluffyAppearanceActivity;
+import org.ushastoe.fluffy.ui.FluffyCloudSettingsActivity;
 import org.ushastoe.fluffy.ui.FluffyDebugActivity;
 import org.ushastoe.fluffy.ui.FluffyPremiumActivity;
 import org.ushastoe.fluffy.ui.FluffySettingsActivity;
@@ -141,6 +142,9 @@ public final class FluffySettingsDeepLinkPatch {
                 return new FluffySettingsActivity();
             }
             return FluffyPremiumActivity.createForTarget(joinSegments(segments, 1));
+        }
+        if ("cloud".equals(root)) {
+            return FluffyCloudSettingsActivity.createForTarget(joinSegments(segments, 1));
         }
         if ("debug".equals(root)) {
             return FluffyDebugActivity.createForTarget(joinSegments(segments, 1));

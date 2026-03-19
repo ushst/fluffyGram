@@ -2,11 +2,21 @@ package org.ushastoe.fluffy.patches;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class AppearanceSettingsPatch {
@@ -71,7 +81,33 @@ public final class AppearanceSettingsPatch {
     public static final int DOUBLE_TAP_ACTION_DELETE = 7;
     public static final int ROUND_VIDEO_CAMERA_FRONT = 0;
     public static final int ROUND_VIDEO_CAMERA_BACK = 1;
+    private static final int MAX_SYNC_JSON_BYTES = 16 * 1024;
+    private static final int MAX_CUSTOM_TITLE_LENGTH = 64;
+    private static final int MAX_FONT_KEY_LENGTH = 128;
     private static final CopyOnWriteArrayList<Listener> listeners = new CopyOnWriteArrayList<>();
+    private static final Set<String> SYNC_ALLOWED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            KEY_HIDE_CHANNEL_POST_STARS_OFFER,
+            KEY_DIALOGS_TITLE_MODE,
+            KEY_DIALOGS_APP_TITLE_MODE,
+            KEY_DIALOGS_APP_TITLE_CUSTOM,
+            KEY_FLUFFY_NOTIFICATION_ICON,
+            KEY_DOUBLE_TAP_IN_ACTION,
+            KEY_DOUBLE_TAP_OUT_ACTION,
+            KEY_TIME_WITH_SECONDS,
+            KEY_DISABLE_ROUNDED_NUMBERS,
+            KEY_THOUSANDS_SEPARATOR,
+            KEY_DIALOGS_LIST_SCALE,
+            KEY_CENTER_CHAT_HEADER,
+            KEY_MAP_PROVIDER,
+            KEY_EDITED_MARKER_MODE,
+            KEY_SCHEDULED_MARKER_MODE,
+            KEY_SILENT_MARKER_MODE,
+            KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED,
+            KEY_ROUND_VIDEO_CAMERA_MODE,
+            KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE,
+            KEY_HIDE_STORIES,
+            KEY_SHOW_FORWARDED_ORIGINAL_DATE
+    )));
 
     public interface Listener {
         void onAppearanceSettingsChanged();
@@ -492,6 +528,66 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static String exportSettingsJson() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return "{}";
+        }
+        JSONObject result = new JSONObject();
+        try {
+            for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+                if (!SYNC_ALLOWED_KEYS.contains(entry.getKey())) {
+                    continue;
+                }
+                Object sanitizedValue = sanitizeValueForKey(entry.getKey(), entry.getValue());
+                if (sanitizedValue != null) {
+                    result.put(entry.getKey(), wrapJsonValue(sanitizedValue));
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        String json = result.toString();
+        if (json.getBytes(StandardCharsets.UTF_8).length > MAX_SYNC_JSON_BYTES) {
+            return "{}";
+        }
+        return json;
+    }
+
+    public static void importSettingsJson(String json) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        try {
+            if (!isSyncJsonValid(json)) {
+                return;
+            }
+            JSONObject data = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.clear();
+            java.util.Iterator<String> keys = data.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                if (!SYNC_ALLOWED_KEYS.contains(key)) {
+                    continue;
+                }
+                putSanitizedJsonValue(editor, key, data.opt(key));
+            }
+            editor.apply();
+            AppFontPatch.onFontChanged();
+            MapsProviderPatch.onMapProviderChanged();
+            notifyListeners();
+        } catch (Exception ignore) {
+        }
+    }
+
+    public static boolean isSyncJsonValid(String json) {
+        if (TextUtils.isEmpty(json)) {
+            return true;
+        }
+        return json.getBytes(StandardCharsets.UTF_8).length <= MAX_SYNC_JSON_BYTES;
+    }
+
     private static int clampDoubleTapAction(int action) {
         if (action < DOUBLE_TAP_ACTION_NONE || action > DOUBLE_TAP_ACTION_DELETE) {
             return DOUBLE_TAP_ACTION_REACTION;
@@ -567,6 +663,118 @@ public final class AppearanceSettingsPatch {
             return MAP_PROVIDER_OPENSTREETMAP;
         }
         return provider;
+    }
+
+    private static Object wrapJsonValue(Object value) {
+        if (value instanceof Collection) {
+            return new JSONArray((Collection<?>) value);
+        }
+        return value;
+    }
+
+    private static void putSanitizedJsonValue(SharedPreferences.Editor editor, String key, Object value) {
+        if (editor == null || TextUtils.isEmpty(key) || value == null || value == JSONObject.NULL) {
+            return;
+        }
+        Object sanitized = sanitizeValueForKey(key, value);
+        if (sanitized == null) {
+            return;
+        }
+        if (sanitized instanceof Boolean) {
+            editor.putBoolean(key, (Boolean) sanitized);
+        } else if (sanitized instanceof Integer) {
+            editor.putInt(key, (Integer) sanitized);
+        } else if (sanitized instanceof Long) {
+            editor.putLong(key, (Long) sanitized);
+        } else if (sanitized instanceof Float) {
+            editor.putFloat(key, (Float) sanitized);
+        } else if (sanitized instanceof String) {
+            editor.putString(key, (String) sanitized);
+        }
+    }
+
+    private static Object sanitizeValueForKey(String key, Object value) {
+        if (TextUtils.isEmpty(key) || value == null || value == JSONObject.NULL) {
+            return null;
+        }
+        switch (key) {
+            case KEY_HIDE_CHANNEL_POST_STARS_OFFER:
+            case KEY_FLUFFY_NOTIFICATION_ICON:
+            case KEY_TIME_WITH_SECONDS:
+            case KEY_DISABLE_ROUNDED_NUMBERS:
+            case KEY_THOUSANDS_SEPARATOR:
+            case KEY_CENTER_CHAT_HEADER:
+            case KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED:
+            case KEY_HIDE_STORIES:
+            case KEY_SHOW_FORWARDED_ORIGINAL_DATE:
+                return asBoolean(value);
+            case KEY_DIALOGS_TITLE_MODE:
+                return clampDialogsTitleMode(asInt(value, DIALOGS_TITLE_MODE_DEFAULT));
+            case KEY_DIALOGS_APP_TITLE_MODE:
+                return clampDialogsAppTitleMode(asInt(value, DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM));
+            case KEY_DIALOGS_APP_TITLE_CUSTOM:
+                return trimToLength(asString(value), MAX_CUSTOM_TITLE_LENGTH);
+            case KEY_DOUBLE_TAP_IN_ACTION:
+            case KEY_DOUBLE_TAP_OUT_ACTION:
+                return clampDoubleTapAction(asInt(value, DOUBLE_TAP_ACTION_REACTION));
+            case KEY_DIALOGS_LIST_SCALE:
+                return clampDialogsListScale(asInt(value, DIALOGS_LIST_SCALE_DEFAULT));
+            case KEY_MAP_PROVIDER:
+                return clampMapProvider(asInt(value, MAP_PROVIDER_OPENSTREETMAP));
+            case KEY_EDITED_MARKER_MODE:
+                return clampEditedMarkerMode(asInt(value, EDITED_MARKER_MODE_TEXT));
+            case KEY_SCHEDULED_MARKER_MODE:
+                return clampScheduledMarkerMode(asInt(value, SCHEDULED_MARKER_MODE_TEXT));
+            case KEY_SILENT_MARKER_MODE:
+                return clampSilentMarkerMode(asInt(value, SILENT_MARKER_MODE_TEXT));
+            case KEY_ROUND_VIDEO_CAMERA_MODE:
+            case KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE:
+                return clampRoundVideoCameraMode(asInt(value, ROUND_VIDEO_CAMERA_FRONT));
+            default:
+                return null;
+        }
+    }
+
+    private static int clampDialogsTitleMode(int mode) {
+        if (mode < DIALOGS_TITLE_MODE_DEFAULT || mode > DIALOGS_TITLE_MODE_CENTERED_IGNORE_ACTIONS) {
+            return DIALOGS_TITLE_MODE_DEFAULT;
+        }
+        return mode;
+    }
+
+    private static boolean asBoolean(Object value) {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue() != 0;
+        }
+        return Boolean.parseBoolean(String.valueOf(value));
+    }
+
+    private static int asInt(Object value, int fallback) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception ignore) {
+            return fallback;
+        }
+    }
+
+    private static String asString(Object value) {
+        return value == null || value == JSONObject.NULL ? "" : String.valueOf(value).trim();
+    }
+
+    private static String trimToLength(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        if (value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     private static SharedPreferences getPreferences() {

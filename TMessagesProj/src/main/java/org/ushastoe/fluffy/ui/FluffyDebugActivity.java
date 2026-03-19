@@ -2,19 +2,23 @@ package org.ushastoe.fluffy.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BetaUpdate;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.PushListenerController;
 import org.telegram.messenger.R;
@@ -25,6 +29,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
@@ -35,6 +40,7 @@ import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class FluffyDebugActivity extends BaseFragment {
@@ -44,16 +50,17 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
     private static final int VIEW_TYPE_INFO = 2;
+    private static final int VIEW_TYPE_CHECK = 3;
 
     private static final int ROW_DEBUG_HEADER = 0;
     private static final int ROW_UPDATE_CHECK_MODE = 1;
     private static final int ROW_CHECK_VERSION = 2;
-    private static final int ROW_SAVE_LOG = 3;
-    private static final int ROW_SAVE_LOG_INFO = 4;
-    private static final int ROW_GOOGLE_CLOUD_HEADER = 5;
-    private static final int ROW_GOOGLE_CLOUD_STATUS = 6;
-    private static final int ROW_GOOGLE_CLOUD_INFO = 7;
-
+    private static final int ROW_SHARE_APK = 3;
+    private static final int ROW_SAVE_LOG = 4;
+    private static final int ROW_SAVE_LOG_INFO = 5;
+    private static final int ROW_GOOGLE_CLOUD_HEADER = 6;
+    private static final int ROW_GOOGLE_CLOUD_STATUS = 7;
+    private static final int ROW_GOOGLE_CLOUD_INFO = 8;
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
@@ -106,6 +113,8 @@ public class FluffyDebugActivity extends BaseFragment {
                 showUpdateCheckModeDialog();
             } else if (item.id == ROW_CHECK_VERSION) {
                 checkForUpdates();
+            } else if (item.id == ROW_SHARE_APK) {
+                shareCurrentApk();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -133,6 +142,8 @@ public class FluffyDebugActivity extends BaseFragment {
             LocaleController.getString(R.string.FluffyUpdateCheckMode), getUpdateCheckModeValue()));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CHECK_VERSION,
             LocaleController.getString(R.string.FluffyCheckVersion), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SHARE_APK,
+                LocaleController.getString(R.string.FluffyShareApk), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
@@ -248,7 +259,50 @@ public class FluffyDebugActivity extends BaseFragment {
                         .createSuccessBulletin(LocaleController.getString(R.string.FluffyNoUpdatesFound))
                         .show();
             }
-        }));
+                }));
+    }
+
+    private void shareCurrentApk() {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        try {
+            File sourceFile = new File(activity.getApplicationInfo().sourceDir);
+            if (!sourceFile.isFile()) {
+                BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyShareApkFailed)).show();
+                return;
+            }
+
+            File sharingDir = AndroidUtilities.getSharingDirectory();
+            if (!sharingDir.exists() && !sharingDir.mkdirs()) {
+                BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyShareApkFailed)).show();
+                return;
+            }
+
+            String versionName = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+            if (TextUtils.isEmpty(versionName)) {
+                versionName = "debug";
+            }
+            String apkName = activity.getPackageName() + "-" + versionName + ".apk";
+            File shareFile = new File(sharingDir, apkName);
+            if (!AndroidUtilities.copyFileSafe(sourceFile, shareFile)) {
+                BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyShareApkFailed)).show();
+                return;
+            }
+
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.putExtra(Intent.EXTRA_STREAM,
+                    FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", shareFile));
+            intent.putExtra(Intent.EXTRA_SUBJECT, apkName);
+            intent.putExtra(Intent.EXTRA_TEXT, LocaleController.getString(R.string.FluffyShareApkText));
+            startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.FluffyShareApk)), 500);
+        } catch (Exception e) {
+            FileLog.e(e);
+            BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyShareApkFailed)).show();
+        }
     }
 
     private String maskToken(String token) {
@@ -268,6 +322,8 @@ public class FluffyDebugActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "update-check-mode");
         } else if (item.id == ROW_CHECK_VERSION) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "check-updates");
+        } else if (item.id == ROW_SHARE_APK) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "share-apk");
         } else if (item.id == ROW_SAVE_LOG || item.id == ROW_SAVE_LOG_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
         } else if (item.id == ROW_GOOGLE_CLOUD_HEADER || item.id == ROW_GOOGLE_CLOUD_STATUS || item.id == ROW_GOOGLE_CLOUD_INFO) {
@@ -312,6 +368,8 @@ public class FluffyDebugActivity extends BaseFragment {
                 return ROW_UPDATE_CHECK_MODE;
             case "check-updates":
                 return ROW_CHECK_VERSION;
+            case "share-apk":
+                return ROW_SHARE_APK;
             case "save-log":
                 return ROW_SAVE_LOG;
             case "google-cloud":
@@ -352,7 +410,8 @@ public class FluffyDebugActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_TEXT;
+            int type = holder.getItemViewType();
+            return type == VIEW_TYPE_TEXT || type == VIEW_TYPE_CHECK;
         }
 
         @Override
@@ -366,6 +425,9 @@ public class FluffyDebugActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
+            } else if (viewType == VIEW_TYPE_CHECK) {
+                view = new TextCheckCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_TEXT) {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -380,6 +442,8 @@ public class FluffyDebugActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
+            } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
+                ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, (Boolean) item.value, false);
             } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
                 ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue((CharSequence) item.value), false);
             } else {

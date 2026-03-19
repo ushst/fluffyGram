@@ -2,9 +2,12 @@ package org.ushastoe.fluffy.patches;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
+import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.UserConfig;
 import org.telegram.ui.DialogsActivity;
 
 import java.util.ArrayList;
@@ -15,6 +18,34 @@ public final class DialogFilterSelectionPatch {
     private static final String KEY_ACCOUNT_PREFIX = "selected_filter_account_";
 
     private DialogFilterSelectionPatch() {
+    }
+
+    public static String exportSettingsJson() {
+        JSONObject object = new JSONObject();
+        try {
+            long userId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
+            if (userId != 0L) {
+                object.put("selected_filter_id", getPreferences().getLong(KEY_USER_PREFIX + userId, Long.MIN_VALUE));
+            }
+        } catch (Exception ignore) {
+        }
+        return object.toString();
+    }
+
+    public static void importSettingsJson(String json) {
+        try {
+            long userId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
+            if (userId == 0L) {
+                return;
+            }
+            JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            if (!object.has("selected_filter_id")) {
+                return;
+            }
+            long filterId = object.optLong("selected_filter_id", Long.MIN_VALUE);
+            getPreferences().edit().putLong(KEY_USER_PREFIX + userId, filterId).apply();
+        } catch (Exception ignore) {
+        }
     }
 
     public static int resolveSelectedType(DialogsActivity target, int currentSelectedType, ArrayList<MessagesController.DialogFilter> filters) {

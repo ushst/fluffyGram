@@ -16,6 +16,9 @@
     <string name="FluffyPremiumSection">Premium</string>
     <string name="FluffyPremium">Premium</string>
     <string name="FluffyPremiumInfo">Extra premium-like behavior that stays isolated in Fluffy patches.</string>
+    <string name="FluffyCloudSection">Cloud Settings</string>
+    <string name="FluffyCloud">Cloud Settings</string>
+    <string name="FluffyCloudInfo">Sync supported Fluffy and Telegram preferences across your devices.</string>
     <string name="FluffyPremiumAccessGranted">Premium access activated.</string>
     <string name="FluffyPremiumAccessDenied">Invalid premium access token.</string>
     <string name="FluffyPremiumGoToSettings">Open Fluffy Settings</string>
@@ -124,6 +127,9 @@
     <string name="FluffyCheckUpdates">Check for updates</string>
     <string name="FluffyCheckingUpdates">Checking for updates...</string>
     <string name="FluffyNoUpdatesFound">No updates found.</string>
+    <string name="FluffyShareApk">Share APK</string>
+    <string name="FluffyShareApkText">Current fluffyGram build APK.</string>
+    <string name="FluffyShareApkFailed">Failed to prepare APK for sharing.</string>
     <string name="FluffySaveLog">Save Log</string>
     <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
     <string name="FluffyLocalLogsTitle">Local Logs</string>
@@ -146,6 +152,51 @@
     <string name="FluffyStatusInactive">Inactive</string>
     <string name="FluffyStatusAvailable">Available</string>
     <string name="FluffyStatusUnavailable">Unavailable</string>
+    <string name="FluffySyncSection">Cloud Sync</string>
+    <string name="FluffySyncEndpoint">Backend URL</string>
+    <string name="FluffySyncEndpointHint">https://example.com/telegram-probe</string>
+    <string name="FluffySyncEndpointText">Base URL of the Fluffy sync backend. The app opens the helper bot Mini App for Telegram authorization, exchanges initData for a session, and then sends sync requests directly to this backend.</string>
+    <string name="FluffySyncEndpointSaved">Sync backend saved.</string>
+    <string name="FluffySyncBot">Helper bot</string>
+    <string name="FluffySyncBotHint">@my_sync_bot</string>
+    <string name="FluffySyncBotText">Enter the helper bot username that exposes the Fluffy Sync Mini App. fluffyGram opens this Mini App with a challenge, Telegram signs the user identity, and the backend issues a reusable sync session token.</string>
+    <string name="FluffySyncBotSaved">Helper bot saved.</string>
+    <string name="FluffySyncBotNotConfigured">helper bot not configured</string>
+    <string name="FluffySyncBotResolveFailed">Failed to resolve helper bot.</string>
+    <string name="FluffySyncRole">Status</string>
+    <string name="FluffySyncRoleUser">user</string>
+    <string name="FluffySyncRolePremium">premium</string>
+    <string name="FluffySyncRoleAdmin">admin</string>
+    <string name="FluffySyncRefreshAccess">Refresh access</string>
+    <string name="FluffySyncAccessUpdated">Access updated: %1$s</string>
+    <string name="FluffySyncActivity">Cloud Activity</string>
+    <string name="FluffySyncActivityEmpty">No cloud activity yet.</string>
+    <string name="FluffySyncActivityUploaded">Uploaded from device %1$s</string>
+    <string name="FluffySyncActivityDownloaded">Downloaded on device %1$s</string>
+    <string name="FluffySyncUnknownDevice">unknown device</string>
+    <string name="FluffySyncConsentTitle">Developer Cloud Notice</string>
+    <string name="FluffySyncConsentMessage">When you use Cloud Settings, your IP address will be sent to the developer server. If you do not agree, leave this menu.</string>
+    <string name="FluffySyncConsentAgree">I agree</string>
+    <string name="FluffySyncConsentExit">Exit</string>
+    <string name="FluffySyncConsentRequired">Open Cloud Settings and confirm the network notice first.</string>
+    <string name="FluffySyncCooldownActive">Sync is temporarily limited. Try again in %1$d seconds.</string>
+    <string name="FluffySyncAutoSync">Auto sync Fluffy settings</string>
+    <string name="FluffySyncPushAppearance">Push Fluffy settings</string>
+    <string name="FluffySyncPullAppearance">Pull Fluffy settings</string>
+    <string name="FluffySyncInfoInactive">Manual push/pull uses a Telegram Mini App challenge to obtain a backend session on demand. After that, fluffyGram syncs the supported Fluffy settings bundle directly with the configured backend. Auto sync only runs while a valid session is still cached.</string>
+    <string name="FluffySyncStatusIdle">Idle</string>
+    <string name="FluffySyncStatusSyncing">Syncing...</string>
+    <string name="FluffySyncStatusAuthRequired">Authorization required</string>
+    <string name="FluffySyncStatusPushSuccess">Pushed at %1$s</string>
+    <string name="FluffySyncStatusPullSuccess">Pulled at %1$s</string>
+    <string name="FluffySyncStatusError">Error: %1$s</string>
+    <string name="FluffySyncPushSuccess">Fluffy settings pushed.</string>
+    <string name="FluffySyncPullSuccess">Fluffy settings pulled.</string>
+    <string name="FluffySyncFailed">Sync failed.</string>
+    <string name="FluffySyncPayloadTooLarge">Sync payload is too large or contains invalid data.</string>
+    <string name="FluffySyncAuthRequired">Open the helper Mini App once to authorize sync.</string>
+    <string name="FluffySyncAuthTimedOut">Timed out waiting for Mini App authorization.</string>
+    <string name="FluffySyncWrongAccount">Mini App authorized a different Telegram account.</string>
     <string name="FluffyMediaProxyOnly">Proxy only for media (experimental)</string>
     <string name="FluffyMediaProxyOnlyInfo">Temporarily enables the configured proxy only while downloading or uploading media. Non-media traffic can still go through proxy during active media transfers.</string>
     <string name="FluffyMessageTranslit">Translit</string>
@@ -173,7 +224,3 @@
     <string name="FluffyForwardedOriginalDateThirdLine">Original date in forwarded header</string>
     <string name="FluffyForwardedOriginalDateMenu">Forwarded original date</string>
 </resources>
-
-
-
-

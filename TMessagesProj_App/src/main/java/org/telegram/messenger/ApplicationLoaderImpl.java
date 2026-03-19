@@ -10,6 +10,7 @@ import org.telegram.ui.IUpdateLayout;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.CustomUpdateUiHook;
 import org.ushastoe.fluffy.hooks.MapsProviderHook;
+import org.ushastoe.fluffy.hooks.SyncSettingsHook;
 import org.ushastoe.fluffy.updates.FluffyCustomUpdateManager;
 import org.telegram.messenger.regular.BuildConfig;
 import org.telegram.tgnet.TLRPC;
@@ -23,6 +24,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
         super.onCreate();
         AppFontHook.initializeGlobalOverride();
         AppFontHook.onFontChanged();
+        SyncSettingsHook.initialize(this);
         customUpdateManager.init(this);
     }
 

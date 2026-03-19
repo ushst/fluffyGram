@@ -2,7 +2,10 @@ package org.ushastoe.fluffy.patches;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 
 import java.util.ArrayList;
@@ -32,6 +35,70 @@ public final class MainTabsConfigPatch {
     };
 
     private MainTabsConfigPatch() {
+    }
+
+    public static String exportSettingsJson() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put(KEY_OPTIONAL_ORDER, serialize(getOptionalVisibleTypes()));
+            JSONArray quickDialogs = new JSONArray();
+            for (long dialogId : getQuickDialogIds()) {
+                quickDialogs.put(dialogId);
+            }
+            object.put(KEY_QUICK_DIALOGS, quickDialogs);
+            JSONObject labels = new JSONObject();
+            for (long dialogId : getQuickDialogIds()) {
+                String label = getQuickDialogCustomLabel(dialogId);
+                if (!TextUtils.isEmpty(label)) {
+                    labels.put(String.valueOf(dialogId), label);
+                }
+            }
+            object.put("quick_dialog_labels", labels);
+        } catch (Exception ignore) {
+        }
+        return object.toString();
+    }
+
+    public static void importSettingsJson(String json) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        try {
+            JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(KEY_OPTIONAL_ORDER, sanitizeOptionalOrder(object.optString(KEY_OPTIONAL_ORDER, "")));
+
+            JSONArray quickDialogs = object.optJSONArray(KEY_QUICK_DIALOGS);
+            ArrayList<Long> dialogIds = new ArrayList<>();
+            if (quickDialogs != null) {
+                for (int i = 0; i < quickDialogs.length(); i++) {
+                    long dialogId = quickDialogs.optLong(i, 0L);
+                    if (dialogId != 0L && !dialogIds.contains(dialogId)) {
+                        dialogIds.add(dialogId);
+                    }
+                }
+            }
+            editor.putString(KEY_QUICK_DIALOGS, serializeDialogIds(toLongArray(dialogIds)));
+            editor.remove(KEY_QUICK_CONTACTS);
+
+            for (String key : preferences.getAll().keySet()) {
+                if (key != null && key.startsWith(KEY_QUICK_DIALOG_LABEL_PREFIX)) {
+                    editor.remove(key);
+                }
+            }
+            JSONObject labels = object.optJSONObject("quick_dialog_labels");
+            if (labels != null) {
+                for (long dialogId : toLongArray(dialogIds)) {
+                    String label = trimLabel(labels.optString(String.valueOf(dialogId), ""));
+                    if (!TextUtils.isEmpty(label)) {
+                        editor.putString(getQuickDialogLabelKey(dialogId), label);
+                    }
+                }
+            }
+            editor.apply();
+        } catch (Exception ignore) {
+        }
     }
 
     public static int[] getVisibleTabTypes() {
@@ -348,6 +415,24 @@ public final class MainTabsConfigPatch {
         return String.join(",", names);
     }
 
+    private static String sanitizeOptionalOrder(String raw) {
+        if (TextUtils.isEmpty(raw)) {
+            return serialize(DEFAULT_OPTIONAL_TYPES);
+        }
+        ArrayList<Integer> parsed = new ArrayList<>();
+        String[] parts = raw.split(",");
+        for (String part : parts) {
+            int type = parseType(part.trim());
+            if (isOptionalType(type) && !parsed.contains(type)) {
+                parsed.add(type);
+            }
+        }
+        if (parsed.isEmpty()) {
+            return serialize(DEFAULT_OPTIONAL_TYPES);
+        }
+        return serialize(toIntArray(parsed));
+    }
+
     private static String serializeDialogIds(long[] dialogIds) {
         List<String> ids = new ArrayList<>();
         for (long dialogId : dialogIds) {
@@ -356,6 +441,14 @@ public final class MainTabsConfigPatch {
             }
         }
         return String.join(",", ids);
+    }
+
+    private static String trimLabel(String label) {
+        String value = label != null ? label.trim() : "";
+        if (value.length() > 32) {
+            value = value.substring(0, 32);
+        }
+        return value;
     }
 
     private static String serializeDialogLabels(long[] dialogIds) {

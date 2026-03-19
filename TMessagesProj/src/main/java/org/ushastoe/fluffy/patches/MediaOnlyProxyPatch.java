@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.patches;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
+import org.json.JSONObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.tgnet.ConnectionsManager;
 
@@ -19,6 +20,23 @@ public final class MediaOnlyProxyPatch {
     private static boolean runtimeProxyEnabledByPatch;
 
     private MediaOnlyProxyPatch() {
+    }
+
+    public static String exportSettingsJson() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put(PREF_MEDIA_ONLY_PROXY, isEnabled());
+        } catch (Exception ignore) {
+        }
+        return object.toString();
+    }
+
+    public static void importSettingsJson(String json) {
+        try {
+            JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            setEnabled(object.optBoolean(PREF_MEDIA_ONLY_PROXY, false));
+        } catch (Exception ignore) {
+        }
     }
 
     public static boolean isEnabled() {
