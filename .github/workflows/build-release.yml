@@ -139,6 +139,8 @@ jobs:
           MAPS_V2_API=${{ secrets.MAPS_V2_API }}
           TELEGRAM_APP_ID=${{ secrets.TELEGRAM_APP_ID }}
           TELEGRAM_APP_HASH=${{ secrets.TELEGRAM_APP_HASH }}
+          FLUFFY_SYNC_BACKEND_URL=${{ secrets.FLUFFY_SYNC_BACKEND_URL }}
+          FLUFFY_SYNC_HELPER_BOT=${{ secrets.FLUFFY_SYNC_HELPER_BOT }}
           EOF
 
           if [ -f "fluffyGram_dev/google-services.json" ]; then
