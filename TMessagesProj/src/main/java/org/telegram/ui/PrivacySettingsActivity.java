@@ -73,6 +73,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.TextStyleSpan;
 import org.telegram.ui.bots.BotBiometry;
 import org.telegram.ui.bots.BotBiometrySettings;
+import org.ushastoe.fluffy.hooks.FluffyPasskeysUnsupportedHook;
 
 import java.util.ArrayList;
 
@@ -484,7 +485,11 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     presentFragment(new TwoStepVerificationSetupActivity(type, currentPassword));
                 }
             } else if (position == passkeysRow) {
-                if (Build.VERSION.SDK_INT < 28 || !BuildVars.SUPPORTS_PASSKEYS) return;
+                if (Build.VERSION.SDK_INT < 28) return;
+                if (!BuildVars.SUPPORTS_PASSKEYS) {
+                    FluffyPasskeysUnsupportedHook.showUnsupportedAlert(this);
+                    return;
+                }
                 if (currentPasskeys != null && currentPasskeys.size() > 0) {
                     presentFragment(new PasskeysActivity(currentPasskeys));
                 } else {

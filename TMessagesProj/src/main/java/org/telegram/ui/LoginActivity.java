@@ -197,6 +197,7 @@ import org.telegram.ui.Stars.ExplainStarsSheet;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.FluffyPasskeysUnsupportedHook;
 import org.ushastoe.fluffy.hooks.LoginSmsWarningHook;
 
 import java.io.BufferedReader;
@@ -3410,7 +3411,13 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         private Runnable cancelRequestingPasskey;
         private void requestPasskey(boolean clickedButton) {
             if (activityMode != MODE_LOGIN) return;
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || !BuildVars.SUPPORTS_PASSKEYS) return;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return;
+            if (!BuildVars.SUPPORTS_PASSKEYS) {
+                if (clickedButton) {
+                    FluffyPasskeysUnsupportedHook.showUnsupportedAlert(LoginActivity.this);
+                }
+                return;
+            }
             if (requestingPasskey || !clickedButton && requestedPasskey) return;
 
             requestingPasskey = true;
