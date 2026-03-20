@@ -135,6 +135,8 @@
     <string name="FluffyShareApkFailed">Failed to prepare APK for sharing.</string>
     <string name="FluffyInAppCamera">In-app camera</string>
     <string name="FluffyInAppCameraInfo">Turn off to use the system camera instead of the built-in camera from the chat attachment panel.</string>
+    <string name="FluffyGoToFirstMessage">Go to first message</string>
+    <string name="FluffyGoToFirstMessageInfo">Adds a chat menu action that jumps to the beginning of the current chat history.</string>
     <string name="FluffySaveLog">Save Log</string>
     <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
     <string name="FluffyLocalLogsTitle">Local Logs</string>

@@ -287,6 +287,7 @@ import org.telegram.ui.Stars.StarsReactionsSheet;
 import org.telegram.ui.Stars.MessageSuggestionOfferSheet;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
+import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.MessageDoubleTapActionHook;
 import org.ushastoe.fluffy.hooks.RoundVideoCameraMenuHook;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
@@ -1605,6 +1606,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int chat_menu_topic_create = 73;
     private final static int fluffy_round_video_camera_front = 75;
     private final static int fluffy_round_video_camera_back = 76;
+    private final static int fluffy_go_to_first_message = 77;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3719,6 +3721,8 @@ public class ChatActivity extends BaseFragment implements
                     }
                 } else if (RoundVideoCameraMenuHook.onChatMenuItemClick(chatActivityEnterView, headerItem, id, fluffy_round_video_camera_front, fluffy_round_video_camera_back)) {
                     return;
+                } else if (ChatFirstMessageHook.onChatMenuItemClick(ChatActivity.this, headerItem, id, fluffy_go_to_first_message)) {
+                    return;
                 } else if (id == copy) {
                     SpannableStringBuilder str = new SpannableStringBuilder();
                     long previousUid = 0;
@@ -4376,6 +4380,7 @@ public class ChatActivity extends BaseFragment implements
                 }
             }
             RoundVideoCameraMenuHook.addChatMenuItems(headerItem, fluffy_round_video_camera_front, fluffy_round_video_camera_back);
+            ChatFirstMessageHook.addChatMenuItem(headerItem, fluffy_go_to_first_message);
 
             if (searchItem != null) {
                 headerItem.lazilyAddSubItem(search, R.drawable.msg_search, LocaleController.getString(R.string.Search));
@@ -28824,6 +28829,7 @@ public class ChatActivity extends BaseFragment implements
 
         checkActionBarMenu(false);
         RoundVideoCameraMenuHook.updateChatMenuItems(headerItem, chatActivityEnterView, fluffy_round_video_camera_front, fluffy_round_video_camera_back);
+        ChatFirstMessageHook.updateChatMenuItem(headerItem, fluffy_go_to_first_message);
         if (replyImageLocation != null && replyImageView != null) {
             replyImageView.setImage(ImageLocation.getForObject(replyImageLocation, replyImageLocationObject), "50_50", ImageLocation.getForObject(replyImageThumbLocation, replyImageLocationObject), "50_50_b", null, replyImageSize, replyImageCacheType, replyingMessageObject);
         }

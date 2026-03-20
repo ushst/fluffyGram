@@ -12,6 +12,7 @@ public final class FluffySettingsSyncPatch {
     private static final String KEY_PREMIUM_SETTINGS = "premium_settings";
     private static final String KEY_DIALOG_FILTER = "dialog_filter";
     private static final String KEY_MEDIA_ONLY_PROXY = "media_only_proxy";
+    private static final String KEY_CHAT_FIRST_MESSAGE = "chat_first_message";
     private static final String KEY_TELEGRAM_SETTINGS = "telegram_settings";
 
     private FluffySettingsSyncPatch() {
@@ -26,6 +27,7 @@ public final class FluffySettingsSyncPatch {
             putSection(root, KEY_PREMIUM_SETTINGS, PremiumSettingsPatch.exportSettingsJson());
             putSection(root, KEY_DIALOG_FILTER, DialogFilterSelectionPatch.exportSettingsJson());
             putSection(root, KEY_MEDIA_ONLY_PROXY, MediaOnlyProxyPatch.exportSettingsJson());
+            putSection(root, KEY_CHAT_FIRST_MESSAGE, ChatFirstMessagePatch.exportSettingsJson());
             putSection(root, KEY_TELEGRAM_SETTINGS, TelegramSettingsSyncPatch.exportSettingsJson());
         } catch (Exception ignore) {
         }
@@ -41,6 +43,7 @@ public final class FluffySettingsSyncPatch {
             importSection(root, KEY_PREMIUM_SETTINGS, PremiumSettingsPatch::importSettingsJson);
             importSection(root, KEY_DIALOG_FILTER, DialogFilterSelectionPatch::importSettingsJson);
             importSection(root, KEY_MEDIA_ONLY_PROXY, MediaOnlyProxyPatch::importSettingsJson);
+            importSection(root, KEY_CHAT_FIRST_MESSAGE, ChatFirstMessagePatch::importSettingsJson);
             importSection(root, KEY_TELEGRAM_SETTINGS, TelegramSettingsSyncPatch::importSettingsJson);
         } catch (Exception ignore) {
         }

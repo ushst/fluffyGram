@@ -21,6 +21,7 @@ import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.InAppCameraSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
@@ -38,6 +39,8 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_GENERAL_HEADER = 0;
     private static final int ROW_IN_APP_CAMERA = 1;
     private static final int ROW_IN_APP_CAMERA_INFO = 2;
+    private static final int ROW_CHAT_FIRST_MESSAGE = 3;
+    private static final int ROW_CHAT_FIRST_MESSAGE_INFO = 4;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -91,6 +94,12 @@ public class FluffyGeneralActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_CHAT_FIRST_MESSAGE) {
+                boolean enabled = !ChatFirstMessageHook.isEnabled();
+                ChatFirstMessageHook.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -115,6 +124,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GENERAL_HEADER, LocaleController.getString(R.string.FluffyGeneralSection), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_IN_APP_CAMERA, LocaleController.getString(R.string.FluffyInAppCamera), InAppCameraSettingsHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_IN_APP_CAMERA_INFO, LocaleController.getString(R.string.FluffyInAppCameraInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_FIRST_MESSAGE, LocaleController.getString(R.string.FluffyGoToFirstMessage), ChatFirstMessageHook.isEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHAT_FIRST_MESSAGE_INFO, LocaleController.getString(R.string.FluffyGoToFirstMessageInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -128,6 +139,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         String link;
         if (item.id == ROW_IN_APP_CAMERA || item.id == ROW_IN_APP_CAMERA_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "in-app-camera");
+        } else if (item.id == ROW_CHAT_FIRST_MESSAGE || item.id == ROW_CHAT_FIRST_MESSAGE_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "go-to-first-message");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general");
         }
@@ -165,6 +178,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("in-app-camera".equals(target)) {
             return ROW_IN_APP_CAMERA;
+        }
+        if ("go-to-first-message".equals(target)) {
+            return ROW_CHAT_FIRST_MESSAGE;
         }
         return -1;
     }
