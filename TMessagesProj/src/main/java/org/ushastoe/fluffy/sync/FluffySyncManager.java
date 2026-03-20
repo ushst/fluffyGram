@@ -95,6 +95,7 @@ public final class FluffySyncManager {
     private boolean initialized;
     private boolean syncing;
     private boolean applyingRemoteState;
+    private String pendingAction;
 
     private FluffySyncManager() {
     }
@@ -215,6 +216,12 @@ public final class FluffySyncManager {
         }
     }
 
+    public boolean hasPendingSync() {
+        synchronized (lock) {
+            return !TextUtils.isEmpty(pendingAction);
+        }
+    }
+
     public String getStatusText() {
         if (!isConfigured()) {
             return LocaleController.getString(R.string.FluffySyncBotNotConfigured);
@@ -288,7 +295,7 @@ public final class FluffySyncManager {
     }
 
     public void pushAppearanceSettings(BaseFragment fragment, Callback callback) {
-        if (!canStartSync(callback)) {
+        if (!canStartSync(ACTION_PUSH, callback)) {
             return;
         }
         ensureSession(fragment, (token, errorMessage) -> {
@@ -320,7 +327,7 @@ public final class FluffySyncManager {
     }
 
     public void pullAppearanceSettings(BaseFragment fragment, Callback callback) {
-        if (!canStartSync(callback)) {
+        if (!canStartSync(ACTION_PULL, callback)) {
             return;
         }
         ensureSession(fragment, (token, errorMessage) -> {
@@ -559,19 +566,21 @@ public final class FluffySyncManager {
         AndroidUtilities.runOnUIThread(autoSyncRunnable, AUTO_SYNC_DELAY_MS);
     }
 
-    private boolean canStartSync(Callback callback) {
+    private boolean canStartSync(String action, Callback callback) {
         if (!isConfigured()) {
             finishSync(false, "", LocaleController.getString(R.string.FluffySyncBotNotConfigured), callback);
             return false;
         }
         synchronized (lock) {
             if (syncing) {
+                pendingAction = action;
                 if (callback != null) {
-                    AndroidUtilities.runOnUIThread(() -> callback.onComplete(false, LocaleController.getString(R.string.FluffySyncStatusSyncing)));
+                    AndroidUtilities.runOnUIThread(() -> callback.onComplete(false, LocaleController.getString(R.string.FluffySyncQueued)));
                 }
                 return false;
             }
             syncing = true;
+            pendingAction = null;
         }
         return true;
     }
@@ -598,6 +607,25 @@ public final class FluffySyncManager {
         if (callback != null) {
             AndroidUtilities.runOnUIThread(() -> callback.onComplete(success, errorMessage));
         }
+        runPendingSyncIfNeeded();
+    }
+
+    private void runPendingSyncIfNeeded() {
+        final String queuedAction;
+        synchronized (lock) {
+            if (syncing || TextUtils.isEmpty(pendingAction) || isCooldownActive()) {
+                return;
+            }
+            queuedAction = pendingAction;
+            pendingAction = null;
+        }
+        AndroidUtilities.runOnUIThread(() -> {
+            if (ACTION_PULL.equals(queuedAction)) {
+                pullAppearanceSettings(null, null);
+            } else if (ACTION_PUSH.equals(queuedAction)) {
+                pushAppearanceSettings(null, null);
+            }
+        }, 100L);
     }
 
     private SharedPreferences getPreferences() {

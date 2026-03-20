@@ -562,9 +562,11 @@ public final class AppearanceSettingsPatch {
             if (!isSyncJsonValid(json)) {
                 return;
             }
+            String preservedAppFont = preferences.getString(KEY_APP_FONT, "");
             JSONObject data = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
             SharedPreferences.Editor editor = preferences.edit();
             editor.clear();
+            editor.putString(KEY_APP_FONT, preservedAppFont != null ? preservedAppFont : "");
             java.util.Iterator<String> keys = data.keys();
             while (keys.hasNext()) {
                 String key = keys.next();

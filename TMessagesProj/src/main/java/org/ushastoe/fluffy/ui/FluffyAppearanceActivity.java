@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
@@ -33,6 +34,7 @@ import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Cells.TextRadioCell;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
@@ -657,22 +659,28 @@ public class FluffyAppearanceActivity extends BaseFragment {
             return;
         }
         ArrayList<String> availableFonts = AppFontPatch.getAvailableFonts();
-        CharSequence[] dialogItems = new CharSequence[availableFonts.size() + 1];
-        dialogItems[0] = LocaleController.getString(R.string.FluffyAppFontDefault);
-        for (int i = 0; i < availableFonts.size(); i++) {
-            dialogItems[i + 1] = AppFontPatch.getFontDisplayName(availableFonts.get(i));
-        }
+        ArrayList<String> dialogFontKeys = new ArrayList<>();
+        dialogFontKeys.add("");
+        dialogFontKeys.addAll(availableFonts);
+        String selectedFontKey = AppearanceSettingsHook.getAppFontKey();
+        RecyclerListView dialogListView = new RecyclerListView(activity);
+        dialogListView.setLayoutManager(new LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false));
+        dialogListView.setVerticalScrollBarEnabled(false);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity, getResourceProvider());
         builder.setTitle(LocaleController.getString(R.string.FluffyAppFont));
-        builder.setItems(dialogItems, (dialog, which) -> {
-            if (which == 0) {
-                AppearanceSettingsHook.setAppFontKey("");
-            } else {
-                AppearanceSettingsHook.setAppFontKey(availableFonts.get(which - 1));
+        builder.setView(dialogListView, Math.min(AndroidUtilities.dp(56 * dialogFontKeys.size()), AndroidUtilities.dp(360)));
+        builder.setCustomViewOffset(0);
+        AlertDialog dialog = builder.create();
+        dialogListView.setAdapter(new FontDialogAdapter(activity, dialogFontKeys, selectedFontKey));
+        dialogListView.setOnItemClickListener((view, position) -> {
+            if (position < 0 || position >= dialogFontKeys.size()) {
+                return;
             }
+            AppearanceSettingsHook.setAppFontKey(dialogFontKeys.get(position));
             onFontChanged();
+            dialog.dismiss();
         });
-        showDialog(builder.create());
+        showDialog(dialog);
     }
 
     private void startFontImport() {
@@ -908,6 +916,47 @@ public class FluffyAppearanceActivity extends BaseFragment {
 
     private CharSequence getShortSelectedFontDisplayName() {
         return FluffyTextUtils.truncateParameterValue(AppFontPatch.getSelectedFontDisplayName());
+    }
+
+    private static final class FontDialogAdapter extends RecyclerListView.SelectionAdapter {
+        private final Context context;
+        private final ArrayList<String> fontKeys;
+        private final String selectedFontKey;
+
+        private FontDialogAdapter(Context context, ArrayList<String> fontKeys, String selectedFontKey) {
+            this.context = context;
+            this.fontKeys = fontKeys;
+            this.selectedFontKey = selectedFontKey != null ? selectedFontKey : "";
+        }
+
+        @Override
+        public int getItemCount() {
+            return fontKeys.size();
+        }
+
+        @Override
+        public boolean isEnabled(RecyclerView.ViewHolder holder) {
+            return true;
+        }
+
+        @NonNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new RecyclerListView.Holder(new TextRadioCell(context, 21, true));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            TextRadioCell cell = (TextRadioCell) holder.itemView;
+            String fontKey = fontKeys.get(position);
+            boolean isDefault = TextUtils.isEmpty(fontKey);
+            boolean isChecked = TextUtils.equals(selectedFontKey, fontKey) || isDefault && TextUtils.isEmpty(selectedFontKey);
+            cell.setTextAndCheck((isDefault
+                    ? LocaleController.getString(R.string.FluffyAppFontDefault)
+                    : AppFontPatch.getFontDisplayName(fontKey)).toString(), isChecked, position != fontKeys.size() - 1);
+            Typeface previewTypeface = AppFontPatch.getPreviewTypeface(fontKey);
+            cell.setTypeface(previewTypeface != null ? previewTypeface : Typeface.DEFAULT);
+        }
     }
 
     private static class ItemInner {

@@ -177,6 +177,9 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
     private CharSequence getSyncInfoText(long cooldownSeconds) {
         String base = FluffySyncManager.getInstance().getStatusText() + "\n\n"
                 + LocaleController.getString(R.string.FluffySyncInfoInactive);
+        if (FluffySyncManager.getInstance().hasPendingSync()) {
+            base = base + "\n\n" + LocaleController.getString(R.string.FluffySyncQueued);
+        }
         if (cooldownSeconds <= 0L) {
             return base;
         }
@@ -225,6 +228,7 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
     }
 
     private void pushFluffySettings() {
+        updateItems();
         BulletinFactory.of(this)
                 .createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.FluffySyncStatusSyncing))
                 .show();
@@ -233,6 +237,8 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             scheduleCooldownTicker();
             if (success) {
                 BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffySyncPushSuccess)).show();
+            } else if (isQueuedMessage(errorMessage)) {
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.ic_download, errorMessage).show();
             } else {
                 BulletinFactory.of(this).createErrorBulletin(formatSyncError(errorMessage)).show();
             }
@@ -256,6 +262,7 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
     }
 
     private void pullFluffySettings() {
+        updateItems();
         BulletinFactory.of(this)
                 .createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.FluffySyncStatusSyncing))
                 .show();
@@ -264,10 +271,16 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             scheduleCooldownTicker();
             if (success) {
                 BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffySyncPullSuccess)).show();
+            } else if (isQueuedMessage(errorMessage)) {
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.ic_download, errorMessage).show();
             } else {
                 BulletinFactory.of(this).createErrorBulletin(formatSyncError(errorMessage)).show();
             }
         });
+    }
+
+    private boolean isQueuedMessage(String errorMessage) {
+        return TextUtils.equals(errorMessage, LocaleController.getString(R.string.FluffySyncQueued));
     }
 
     private CharSequence formatSyncError(String errorMessage) {
@@ -384,7 +397,8 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
                 return false;
             }
             ItemInner item = items.get(position);
-            if ((item.id == ROW_SYNC_PUSH || item.id == ROW_SYNC_PULL) && FluffySyncManager.getInstance().isCooldownActive()) {
+            if ((item.id == ROW_SYNC_PUSH || item.id == ROW_SYNC_PULL)
+                    && (FluffySyncManager.getInstance().isCooldownActive() || FluffySyncManager.getInstance().isSyncing())) {
                 return false;
             }
             int type = holder.getItemViewType();

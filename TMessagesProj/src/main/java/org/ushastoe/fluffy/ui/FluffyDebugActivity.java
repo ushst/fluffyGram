@@ -168,15 +168,14 @@ public class FluffyDebugActivity extends BaseFragment {
     }
 
     private void showUpdateCheckModeDialog() {
-        Activity activity = getParentActivity();
-        if (activity == null) {
+        if (getParentActivity() == null) {
             return;
         }
         CharSequence[] options = new CharSequence[] {
                 LocaleController.getString(R.string.FluffyUpdateCheckModeNever),
                 LocaleController.getString(R.string.FluffyUpdateCheckModeOnLaunch)
         };
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity, getResourceProvider());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
         builder.setTitle(LocaleController.getString(R.string.FluffyUpdateCheckMode));
         builder.setItems(options, (dialog, which) -> {
             int mode = which == 0 ? UpdateCheckSettingsHook.AUTO_CHECK_NEVER : UpdateCheckSettingsHook.AUTO_CHECK_ON_LAUNCH;
@@ -239,8 +238,7 @@ public class FluffyDebugActivity extends BaseFragment {
     }
 
     private void checkForUpdates() {
-        Activity activity = getParentActivity();
-        if (activity == null) {
+        if (getParentActivity() == null) {
             return;
         }
         BulletinFactory.of(this)
@@ -263,12 +261,11 @@ public class FluffyDebugActivity extends BaseFragment {
     }
 
     private void shareCurrentApk() {
-        Activity activity = getParentActivity();
-        if (activity == null) {
+        if (getParentActivity() == null) {
             return;
         }
         try {
-            File sourceFile = new File(activity.getApplicationInfo().sourceDir);
+            File sourceFile = new File(getParentActivity().getApplicationInfo().sourceDir);
             if (!sourceFile.isFile()) {
                 BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyShareApkFailed)).show();
                 return;
@@ -280,11 +277,11 @@ public class FluffyDebugActivity extends BaseFragment {
                 return;
             }
 
-            String versionName = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+            String versionName = getParentActivity().getPackageManager().getPackageInfo(getParentActivity().getPackageName(), 0).versionName;
             if (TextUtils.isEmpty(versionName)) {
                 versionName = "debug";
             }
-            String apkName = activity.getPackageName() + "-" + versionName + ".apk";
+            String apkName = getParentActivity().getPackageName() + "-" + versionName + ".apk";
             File shareFile = new File(sharingDir, apkName);
             if (!AndroidUtilities.copyFileSafe(sourceFile, shareFile)) {
                 BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyShareApkFailed)).show();
@@ -295,7 +292,7 @@ public class FluffyDebugActivity extends BaseFragment {
             intent.setType("application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             intent.putExtra(Intent.EXTRA_STREAM,
-                    FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", shareFile));
+                    FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", shareFile));
             intent.putExtra(Intent.EXTRA_SUBJECT, apkName);
             intent.putExtra(Intent.EXTRA_TEXT, LocaleController.getString(R.string.FluffyShareApkText));
             startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.FluffyShareApk)), 500);
