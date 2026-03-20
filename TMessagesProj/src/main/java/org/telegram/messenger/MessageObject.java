@@ -95,6 +95,7 @@ import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.web.BotWebViewContainer;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
+import org.ushastoe.fluffy.hooks.QuickShareMediaHook;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6352,7 +6353,7 @@ public class MessageObject {
     public static boolean canPreviewDocument(TLRPC.Document document) {
         if (document != null && document.mime_type != null) {
             String mime = document.mime_type;
-            if (isDocumentHasThumb(document) && (mime.equalsIgnoreCase("image/png") || mime.equalsIgnoreCase("image/jpg") || mime.equalsIgnoreCase("image/jpeg")) || (Build.VERSION.SDK_INT >= 26 && (mime.equalsIgnoreCase("image/heic")))) {
+            if (isDocumentHasThumb(document) && (mime.equalsIgnoreCase("image/png") || mime.equalsIgnoreCase("image/jpg") || mime.equalsIgnoreCase("image/jpeg"))) {
                 for (int a = 0; a < document.attributes.size(); a++) {
                     TLRPC.DocumentAttribute attribute = document.attributes.get(a);
                     if (attribute instanceof TLRPC.TL_documentAttributeImageSize) {
@@ -7801,6 +7802,9 @@ public class MessageObject {
             }
             if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaEmpty || getMedia(messageOwner) == null || getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && !(getMedia(messageOwner).webpage instanceof TLRPC.TL_webPage)) {
                 return false;
+            }
+            if (QuickShareMediaHook.shouldDrawForPrivateChat(this, user)) {
+                return true;
             }
             if (user != null && user.bot && !hasExtendedMedia()) {
                 return true;
