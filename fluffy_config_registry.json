@@ -1,0 +1,686 @@
+{
+  "version": 1,
+  "generated": "manual",
+  "sections": [
+    {
+      "name": "Appearance",
+      "storage": "SharedPreferences(\"fluffy_appearance_settings\")",
+      "entries": [
+        {
+          "key": "hide_channel_post_stars_offer",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "dialogs_title_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "dialogs_app_title_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "dialogs_app_title_custom",
+          "storage": "fluffy_appearance_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "fluffy_notification_icon",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "app_font",
+          "storage": "fluffy_appearance_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "double_tap_in_action",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 1,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "double_tap_out_action",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 1,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "time_with_seconds",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "disable_rounded_numbers",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "thousands_separator",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "dialogs_list_scale",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 100,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "center_chat_header",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "map_provider",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 1,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "edited_marker_icon",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": "legacy",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "edited_marker_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "scheduled_marker_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "silent_marker_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "round_video_camera_feature_enabled",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "round_video_camera_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "round_video_camera_default_mode",
+          "storage": "fluffy_appearance_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "hide_stories",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "show_forwarded_original_date",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        }
+      ]
+    },
+    {
+      "name": "Main Tabs",
+      "storage": "SharedPreferences(\"fluffy_main_tabs_settings\")",
+      "entries": [
+        {
+          "key": "optional_order",
+          "storage": "fluffy_main_tabs_settings",
+          "type": "string",
+          "default": "contacts,settings,profile",
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "quick_dialogs",
+          "storage": "fluffy_main_tabs_settings",
+          "type": "csv<long>",
+          "default": "empty",
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "quick_contacts",
+          "storage": "fluffy_main_tabs_settings",
+          "type": "csv<long>",
+          "default": "legacy",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "quick_dialog_label_<dialogId>",
+          "storage": "fluffy_main_tabs_settings",
+          "type": "string",
+          "default": "unset",
+          "scope": "dialog-scoped",
+          "sync": "sync"
+        }
+      ]
+    },
+    {
+      "name": "Update Check",
+      "storage": "SharedPreferences(\"fluffy_update_settings\")",
+      "entries": [
+        {
+          "key": "auto_check_mode",
+          "storage": "fluffy_update_settings",
+          "type": "int",
+          "default": 1,
+          "scope": "global",
+          "sync": "sync"
+        }
+      ]
+    },
+    {
+      "name": "Premium Settings",
+      "storage": "SharedPreferences(\"fluffy_premium_settings\")",
+      "entries": [
+        {
+          "key": "local_anon_story_view",
+          "storage": "fluffy_premium_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        }
+      ]
+    },
+    {
+      "name": "Premium Access",
+      "storage": "SharedPreferences(\"fluffy_premium_access\")",
+      "entries": [
+        {
+          "key": "signed_access_token_<userId>",
+          "storage": "fluffy_premium_access",
+          "type": "string",
+          "default": "unset",
+          "scope": "user-scoped",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "General Settings",
+      "storage": "SharedPreferences(\"fluffy_general_settings\")",
+      "entries": [
+        {
+          "key": "chat_go_to_first_message_enabled",
+          "storage": "fluffy_general_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "quick_share_private_media_enabled",
+          "storage": "fluffy_general_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "unlimited_unarchived_pins_enabled",
+          "storage": "fluffy_general_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        }
+      ]
+    },
+    {
+      "name": "Dialog Filters",
+      "storage": "SharedPreferences(\"fluffy_dialog_filters\")",
+      "entries": [
+        {
+          "key": "selected_filter_user_<userId>",
+          "storage": "fluffy_dialog_filters",
+          "type": "long",
+          "default": "Long.MIN_VALUE",
+          "scope": "user-scoped",
+          "sync": "sync"
+        },
+        {
+          "key": "selected_filter_account_<account>",
+          "storage": "fluffy_dialog_filters",
+          "type": "long",
+          "default": "Long.MIN_VALUE",
+          "scope": "account-scoped fallback",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "Local Logs",
+      "storage": "SharedPreferences(\"fluffy_local_logs\")",
+      "entries": [
+        {
+          "key": "consent_<userId>",
+          "storage": "fluffy_local_logs",
+          "type": "int",
+          "default": -1,
+          "scope": "user-scoped",
+          "sync": "local-only"
+        }
+      ],
+      "managed_files": [
+        "files/fluffy_logs/session_account_<accountId>_<timestamp>.log",
+        "files/fluffy_logs/saved_account_<accountId>_<timestamp>.log"
+      ]
+    },
+    {
+      "name": "Sync Runtime",
+      "storage": "SharedPreferences(\"fluffy_sync_settings\")",
+      "entries": [
+        {
+          "key": "helper_bot",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "BuildConfig.FLUFFY_SYNC_HELPER_BOT",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "backend_url",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "BuildConfig.FLUFFY_SYNC_BACKEND_URL",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "auto_sync",
+          "storage": "fluffy_sync_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "last_action",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "last_completed_at",
+          "storage": "fluffy_sync_settings",
+          "type": "long",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "last_error",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "network_consent",
+          "storage": "fluffy_sync_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "session_token",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "unset",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "session_expires_at",
+          "storage": "fluffy_sync_settings",
+          "type": "long",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "session_user_id",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "session_role",
+          "storage": "fluffy_sync_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ],
+      "backend_storage_keys": [
+        "fluffy_settings_bundle"
+      ]
+    },
+    {
+      "name": "Global Main Settings Used By Fluffy",
+      "storage": "MessagesController.getGlobalMainSettings()",
+      "entries": [
+        {
+          "key": "fluffy_proxy_media_only_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        }
+      ]
+    },
+    {
+      "name": "Telegram Settings Included In Fluffy Sync Bundle",
+      "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+      "owned_by_fluffy": false,
+      "entries": [
+        {
+          "key": "raise_to_speak",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "raise_to_listen",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "custom_tabs",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "inapp_browser",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "adaptableBrowser",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "direct_share",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "inappCamera",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "streamMedia",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "streamAllVideo",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": "false or build-dependent",
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "streamMkv",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "saveStreamMedia",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "pauseMusicOnRecord",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "pauseMusicOnMedia",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "sortContactsByName",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "sortFilesByName",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "repeatMode",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "allowBigEmoji",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "useSystemEmoji",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "fons_size",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "int",
+          "default": "device-dependent Telegram default",
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "bubbleRadius",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "int",
+          "default": 17,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "useThreeLinesLayout",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "archiveHidden",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "distanceSystemType",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        },
+        {
+          "key": "view_animations",
+          "storage": "MessagesController.getGlobalMainSettings() / SharedConfig",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync-via-bundle"
+        }
+      ]
+    },
+    {
+      "name": "Dev Local Build Config",
+      "storage": "fluffyGram_dev/devlocal.properties",
+      "entries": [
+        {
+          "key": "FLUFFY_SYNC_BACKEND_URL",
+          "storage": "fluffyGram_dev/devlocal.properties",
+          "type": "string",
+          "default": "unset",
+          "scope": "local build config",
+          "sync": "local-only"
+        },
+        {
+          "key": "FLUFFY_SYNC_HELPER_BOT",
+          "storage": "fluffyGram_dev/devlocal.properties",
+          "type": "string",
+          "default": "unset",
+          "scope": "local build config",
+          "sync": "local-only"
+        },
+        {
+          "key": "FLUFFY_PREMIUM_PUBLIC_KEY",
+          "storage": "fluffyGram_dev/devlocal.properties",
+          "type": "string",
+          "default": "unset",
+          "scope": "local build config",
+          "sync": "local-only"
+        }
+      ]
+    }
+  ]
+}

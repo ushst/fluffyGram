@@ -32,6 +32,18 @@ Recommended subpackages:
 `fluffyGram_dev/fluffy_config_registry.md`
 4. Do not introduce a new Fluffy config key without updating that registry file in the same change.
 5. If a key is account-scoped or user-scoped, record the storage pattern as well, for example `prefix_<userId>`.
+6. In addition to the human-readable markdown registry, keep a machine-readable registry file for automation and backend sync:
+`fluffyGram_dev/fluffy_config_registry.json`
+7. Every new key added to the markdown registry must also be added to the JSON registry in the same change.
+8. The JSON registry should be treated as the backend-facing source for scripts that sync config metadata or update remote constants/strings.
+9. Each JSON entry should include at least:
+- `key`
+- `storage`
+- `type`
+- `default`
+- `sync`
+- `scope`
+10. Prefer keeping markdown and JSON entries semantically aligned so humans and scripts read the same config metadata.
 
 ## Implementation Pattern
 1. Add a small hook in Telegram class.
