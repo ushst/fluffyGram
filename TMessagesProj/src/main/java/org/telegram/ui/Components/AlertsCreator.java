@@ -118,6 +118,7 @@ import org.telegram.ui.ActionBar.AlertDialogDecor;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.SimpleTextView;
+import org.ushastoe.fluffy.hooks.SecretChatTtlOptionsHook;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Business.TimezonesController;
 import org.telegram.ui.CacheControlActivity;
@@ -6959,57 +6960,13 @@ public class AlertsCreator {
         builder.setTitle(LocaleController.getString(R.string.MessageLifetime));
         final NumberPicker numberPicker = new NumberPicker(context);
         numberPicker.setMinValue(0);
-        numberPicker.setMaxValue(20);
-        if (encryptedChat.ttl > 0 && encryptedChat.ttl < 16) {
-            numberPicker.setValue(encryptedChat.ttl);
-        } else if (encryptedChat.ttl == 30) {
-            numberPicker.setValue(16);
-        } else if (encryptedChat.ttl == 60) {
-            numberPicker.setValue(17);
-        } else if (encryptedChat.ttl == 60 * 60) {
-            numberPicker.setValue(18);
-        } else if (encryptedChat.ttl == 60 * 60 * 24) {
-            numberPicker.setValue(19);
-        } else if (encryptedChat.ttl == 60 * 60 * 24 * 7) {
-            numberPicker.setValue(20);
-        } else if (encryptedChat.ttl == 0) {
-            numberPicker.setValue(0);
-        }
-        numberPicker.setFormatter(value -> {
-            if (value == 0) {
-                return LocaleController.getString(R.string.ShortMessageLifetimeForever);
-            } else if (value >= 1 && value < 16) {
-                return LocaleController.formatTTLString(value);
-            } else if (value == 16) {
-                return LocaleController.formatTTLString(30);
-            } else if (value == 17) {
-                return LocaleController.formatTTLString(60);
-            } else if (value == 18) {
-                return LocaleController.formatTTLString(60 * 60);
-            } else if (value == 19) {
-                return LocaleController.formatTTLString(60 * 60 * 24);
-            } else if (value == 20) {
-                return LocaleController.formatTTLString(60 * 60 * 24 * 7);
-            }
-            return "";
-        });
+        numberPicker.setMaxValue(SecretChatTtlOptionsHook.getPickerMaxValue());
+        numberPicker.setValue(SecretChatTtlOptionsHook.getPickerValueForTtl(encryptedChat.ttl));
+        numberPicker.setFormatter(SecretChatTtlOptionsHook::formatPickerValue);
         builder.setView(numberPicker);
         builder.setNegativeButton(LocaleController.getString(R.string.Done), (dialog, which) -> {
             int oldValue = encryptedChat.ttl;
-            which = numberPicker.getValue();
-            if (which >= 0 && which < 16) {
-                encryptedChat.ttl = which;
-            } else if (which == 16) {
-                encryptedChat.ttl = 30;
-            } else if (which == 17) {
-                encryptedChat.ttl = 60;
-            } else if (which == 18) {
-                encryptedChat.ttl = 60 * 60;
-            } else if (which == 19) {
-                encryptedChat.ttl = 60 * 60 * 24;
-            } else if (which == 20) {
-                encryptedChat.ttl = 60 * 60 * 24 * 7;
-            }
+            encryptedChat.ttl = SecretChatTtlOptionsHook.getTtlForPickerValue(numberPicker.getValue());
             if (oldValue != encryptedChat.ttl) {
                 SecretChatHelper.getInstance(UserConfig.selectedAccount).sendTTLMessage(encryptedChat, null);
                 MessagesStorage.getInstance(UserConfig.selectedAccount).updateEncryptedChatTTL(encryptedChat);
