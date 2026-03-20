@@ -289,6 +289,7 @@ import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.MessageDoubleTapActionHook;
+import org.ushastoe.fluffy.hooks.PrivateReactionTimestampHook;
 import org.ushastoe.fluffy.hooks.RoundVideoCameraMenuHook;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
@@ -30384,6 +30385,9 @@ public class ChatActivity extends BaseFragment implements
                         closeMenu(true);
                     }, themeDelegate);
                     popupLayout.addView(messagePrivateSeenView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36));
+                    addGap = true;
+                }
+                if (PrivateReactionTimestampHook.addPrivateReactionRow(popupLayout, getContext(), message, themeDelegate)) {
                     addGap = true;
                 }
                 if (showPrivateMessageFwdOriginal) {
