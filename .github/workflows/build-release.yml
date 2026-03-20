@@ -80,10 +80,11 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: gradle
           
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Cache NDK
         id: cache-ndk
@@ -103,9 +104,9 @@ jobs:
           max-size: 5G
           create-symlink: true
           update-package-index: true
-      - name: Cache CMake intermediates
-        id: cache-cmake
-        uses: actions/cache@v4
+      - name: Restore CMake intermediates
+        id: cache-cmake-restore
+        uses: actions/cache/restore@v4
         with:
           path: |
             TMessagesProj/.cxx
@@ -113,7 +114,6 @@ jobs:
           key: ${{ runner.os }}-cmake-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('TMessagesProj/jni/**/*.cpp', 'TMessagesProj/jni/**/*.c', 'TMessagesProj/jni/**/*.h', 'TMessagesProj/jni/**/CMakeLists.txt', 'TMessagesProj_App/build.gradle', 'TMessagesProj/build.gradle') }}
           restore-keys: |
             ${{ runner.os }}-cmake-${{ env.ANDROID_NDK_VERSION }}-
-          save-always: true
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -248,10 +248,19 @@ jobs:
             echo "No build tasks selected. Please choose a valid build_type." >&2
             exit 1
           fi
-          ./gradlew $TASKS
+          ./gradlew --configuration-cache --configuration-cache-problems=warn $TASKS
         env:
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
           NDK_CCACHE: ccache
+
+      - name: Save CMake intermediates
+        if: always() && steps.cache-cmake-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            TMessagesProj/.cxx
+            TMessagesProj_App/.cxx
+          key: ${{ steps.cache-cmake-restore.outputs.cache-primary-key }}
 
       - name: Collect APKs
         shell: bash
