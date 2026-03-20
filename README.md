@@ -124,6 +124,15 @@ API documentation:
 - https://core.telegram.org/api
 - https://core.telegram.org/mtproto
 
+## Thanks
+
+Thanks to the communities and maintainers of these Telegram forks for ideas, references, and prior work that helped this project:
+
+- [NekoGram](https://github.com/Nekogram/Nekogram)
+- [Cherrygram](https://github.com/arsLan4k1390/Cherrygram)
+- [NagramX](https://github.com/risin42/NagramX)
+- [Forkgram](https://github.com/forkgram/TelegramAndroid)
+
 ## License And Branding Notes
 
 If you fork this project further:
