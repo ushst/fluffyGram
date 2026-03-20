@@ -3,22 +3,14 @@ package org.telegram.messenger;
 import android.content.Context;
 import android.os.Build;
 import android.os.CancellationSignal;
-import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.credentials.CreateCredentialResponse;
-import androidx.credentials.CreatePublicKeyCredentialRequest;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.GetPublicKeyCredentialOption;
-import androidx.credentials.PrepareGetCredentialResponse;
 import androidx.credentials.exceptions.CreateCredentialCancellationException;
-import androidx.credentials.exceptions.CreateCredentialCustomException;
 import androidx.credentials.exceptions.CreateCredentialInterruptedException;
 import androidx.credentials.exceptions.CreateCredentialNoCreateOptionException;
 import androidx.credentials.exceptions.GetCredentialCancellationException;
@@ -27,31 +19,17 @@ import androidx.credentials.exceptions.GetCredentialInterruptedException;
 import androidx.credentials.exceptions.NoCredentialException;
 
 import org.json.JSONObject;
-import org.json.JSONStringer;
-import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.AlertDialog;
-import org.telegram.ui.LaunchActivity;
-
-import java.util.Arrays;
-import java.util.concurrent.Executors;
 
 import kotlin.Result;
-import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.EmptyCoroutineContext;
-import kotlinx.coroutines.BuildersKt;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.CoroutineScopeKt;
-import kotlinx.coroutines.CoroutineStart;
-import kotlinx.coroutines.Dispatchers;
-import kotlinx.coroutines.GlobalScope;
-import kotlinx.coroutines.Job;
-import kotlinx.coroutines.JobCancellationException;
+import org.ushastoe.fluffy.hooks.FluffyPasskeysHook;
 
 @RequiresApi(api = 28)
 public class PasskeysController {
@@ -73,22 +51,17 @@ public class PasskeysController {
                     return;
                 }
 
-                final String requestJson;
+                final FluffyPasskeysHook.CreateOptions createOptions;
                 try {
-                    final JSONObject obj = new JSONObject(res.options.data);
-                    final JSONObject publicKeyObj = obj.getJSONObject("publicKey");
-                    requestJson = publicKeyObj.toString();
+                    createOptions = FluffyPasskeysHook.prepareCreateOptions(res.options.data);
                 } catch (Exception e) {
                     FileLog.e(e);
                     done.run(null, e.getMessage());
                     return;
                 }
 
-                final CreatePublicKeyCredentialRequest credentialRequest =
-                    new CreatePublicKeyCredentialRequest(requestJson);
-
                 try {
-                    credentialManager.createCredential(context, credentialRequest, ktxCallback((res2, err2) -> {
+                    credentialManager.createCredential(context, createOptions.request, ktxCallback((res2, err2) -> {
                         if (err2 instanceof CreateCredentialCancellationException || err2 instanceof CreateCredentialInterruptedException) {
                             AndroidUtilities.runOnUIThread(() -> {
                                 done.run(null, "CANCELLED");
@@ -111,21 +84,7 @@ public class PasskeysController {
 
                         try {
                             final String responseJson = res2.getData().getString("androidx.credentials.BUNDLE_KEY_REGISTRATION_RESPONSE_JSON");
-                            final JSONObject json = new JSONObject(responseJson);
-
-                            req2.credential = new TL_account.inputPasskeyCredentialPublicKey();
-                            req2.credential.id = json.getString("id");
-                            req2.credential.raw_id = json.getString("rawId");
-
-                            final JSONObject response = json.getJSONObject("response");
-                            final TL_account.inputPasskeyResponseRegister passkeyResponse = new TL_account.inputPasskeyResponseRegister();
-                            passkeyResponse.client_data = new TLRPC.TL_dataJSON();
-                            passkeyResponse.client_data.data = new String(Base64.decode(response.getString("clientDataJSON"), Base64.URL_SAFE));
-                            passkeyResponse.attestation_object = Base64.decode(response.getString("attestationObject"), Base64.URL_SAFE);
-
-                            FileLog.d("AAGUID: " + bytesToHex(Arrays.copyOfRange(passkeyResponse.attestation_object, 67, 67 + 16)));
-
-                            req2.credential.response = passkeyResponse;
+                            FluffyPasskeysHook.applyRegisterResponse(req2, responseJson, createOptions.clientDataJson);
                         } catch (Exception e) {
                             FileLog.e(e);
                             AndroidUtilities.runOnUIThread(() -> {
@@ -180,57 +139,29 @@ public class PasskeysController {
                 return;
             }
 
-            final String requestJson;
+            final FluffyPasskeysHook.LoginOptions loginOptions;
             try {
-                final JSONObject obj = new JSONObject(res.options.data);
-                final JSONObject publicKeyObj = obj.getJSONObject("publicKey");
-                requestJson = publicKeyObj.toString();
+                loginOptions = FluffyPasskeysHook.prepareLoginOptions(res.options.data, clickedButton);
             } catch (Exception e) {
                 FileLog.e(e);
                 done.run(0L, null, e.getMessage());
                 return;
             }
 
-            final GetPublicKeyCredentialOption passkeyOption = new GetPublicKeyCredentialOption(requestJson);
-            final GetCredentialRequest request = new GetCredentialRequest.Builder()
-                    .addCredentialOption(passkeyOption)
-                    .setPreferImmediatelyAvailableCredentials(!clickedButton)
-                    .build();
-
             try {
                 final CancellationSignal cancellationSignal = new CancellationSignal();
-                credentialManager.getCredentialAsync(context, request, cancellationSignal, context.getMainExecutor(), new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                credentialManager.getCredentialAsync(context, loginOptions.request, cancellationSignal, context.getMainExecutor(), new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
                     @Override
                     public void onResult(GetCredentialResponse res2) {
                         final Credential credential = res2.getCredential();
 
-                        final int datacenterId;
-                        final long userId;
+                        final FluffyPasskeysHook.LoginResult loginResult;
 
                         final TL_account.finishPasskeyLogin req2 = new TL_account.finishPasskeyLogin();
-                        req2.credential = new TL_account.inputPasskeyCredentialPublicKey();
 
                         try {
                             final String responseJson = credential.getData().getString("androidx.credentials.BUNDLE_KEY_AUTHENTICATION_RESPONSE_JSON");
-                            final JSONObject json = new JSONObject(responseJson);
-
-                            req2.credential.id = json.getString("id");
-                            req2.credential.raw_id = json.getString("rawId");
-
-                            final JSONObject response = json.getJSONObject("response");
-                            final TL_account.inputPasskeyResponseLogin passkeyResponse = new TL_account.inputPasskeyResponseLogin();
-                            passkeyResponse.client_data = new TLRPC.TL_dataJSON();
-                            passkeyResponse.client_data.data = new String(Base64.decode(response.getString("clientDataJSON"), Base64.URL_SAFE));
-
-                            passkeyResponse.authenticator_data = Base64.decode(response.getString("authenticatorData"), Base64.URL_SAFE);
-                            passkeyResponse.signature = Base64.decode(response.getString("signature"), Base64.URL_SAFE);
-                            passkeyResponse.user_handle = new String(Base64.decode(response.getString("userHandle"), Base64.URL_SAFE));
-
-                            datacenterId = Integer.parseInt(passkeyResponse.user_handle.split(":")[0]);
-                            userId = Long.parseLong(passkeyResponse.user_handle.split(":")[1]);
-
-                            req2.credential.response = passkeyResponse;
-
+                            loginResult = FluffyPasskeysHook.applyLoginResponse(req2, responseJson, loginOptions.clientDataJson);
                         } catch (Exception e) {
                             FileLog.e(e);
                             done.run(0L, null, e.getMessage());
@@ -240,11 +171,11 @@ public class PasskeysController {
                         final AlertDialog progressDialog = new AlertDialog(context, AlertDialog.ALERT_TYPE_SPINNER);
                         progressDialog.showDelayed(500);
 
-                        if (datacenterId != ConnectionsManager.getInstance(currentAccount).getCurrentDatacenterId()) {
+                        if (loginResult.datacenterId != ConnectionsManager.getInstance(currentAccount).getCurrentDatacenterId()) {
                             final int from_dc_id = ConnectionsManager.getInstance(currentAccount).getCurrentDatacenterId();
                             final long from_auth_key_id = ConnectionsManager.getInstance(currentAccount).getCurrentAuthKeyId();
 
-                            ConnectionsManager.getInstance(currentAccount).setDefaultDatacenterId(datacenterId);
+                            ConnectionsManager.getInstance(currentAccount).setDefaultDatacenterId(loginResult.datacenterId);
 
                             req2.flags |= TLObject.FLAG_0;
                             req2.from_dc_id = from_dc_id;
@@ -254,15 +185,15 @@ public class PasskeysController {
                         final int requestId = ConnectionsManager.getInstance(currentAccount).sendRequestTyped(req2, AndroidUtilities::runOnUIThread, (auth, err3) -> {
                             progressDialog.dismiss();
                             if (err3 != null) {
-                                done.run(userId, null, err3.text);
+                                done.run(loginResult.userId, null, err3.text);
                             } else {
-                                done.run(userId, auth, null);
+                                done.run(loginResult.userId, auth, null);
                             }
-                        }, datacenterId, ConnectionsManager.RequestFlagWithoutLogin | ConnectionsManager.RequestFlagInvokeAfter);
+                        }, loginResult.datacenterId, ConnectionsManager.RequestFlagWithoutLogin | ConnectionsManager.RequestFlagInvokeAfter);
 
                         progressDialog.setOnCancelListener(d -> {
                             ConnectionsManager.getInstance(currentAccount).cancelRequest(requestId, true);
-                            done.run(userId, null, "CANCELLED");
+                            done.run(loginResult.userId, null, "CANCELLED");
                         });
                     }
 
