@@ -111,6 +111,7 @@ import org.telegram.ui.TopicsFragment;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.hooks.UnlimitedPinsHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16376,6 +16377,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void reorderPinnedDialogs(int folderId, ArrayList<TLRPC.InputDialogPeer> order, long taskId) {
+        if (UnlimitedPinsHook.shouldSkipPinnedDialogsSync(folderId)) {
+            return;
+        }
         TLRPC.TL_messages_reorderPinnedDialogs req = new TLRPC.TL_messages_reorderPinnedDialogs();
         req.folder_id = folderId;
         req.force = true;
@@ -16472,6 +16476,10 @@ public class MessagesController extends BaseController implements NotificationCe
         getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
         if (!DialogObject.isEncryptedDialog(dialogId)) {
             if (taskId != -1) {
+                if (UnlimitedPinsHook.shouldSkipPinnedDialogsSync(folderId)) {
+                    getMessagesStorage().setDialogPinned(dialogId, dialog.pinnedNum);
+                    return true;
+                }
                 TLRPC.TL_messages_toggleDialogPin req = new TLRPC.TL_messages_toggleDialogPin();
                 req.pinned = pin;
                 if (peer == null) {
@@ -16513,6 +16521,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void loadPinnedDialogs(final int folderId, long newDialogId, ArrayList<Long> order) {
+        if (UnlimitedPinsHook.shouldSkipPinnedDialogsSync(folderId)) {
+            return;
+        }
         if (loadingPinnedDialogs.indexOfKey(folderId) >= 0 || getUserConfig().isPinnedDialogsLoaded(folderId)) {
             return;
         }
@@ -19002,6 +19013,9 @@ public class MessagesController extends BaseController implements NotificationCe
                         dbUsers.add(toDbUser);
                     } else if (baseUpdate instanceof TLRPC.TL_updateDialogPinned) {
                         TLRPC.TL_updateDialogPinned update = (TLRPC.TL_updateDialogPinned) baseUpdate;
+                        if (UnlimitedPinsHook.shouldSkipPinnedDialogsSync(update.folder_id)) {
+                            continue;
+                        }
                         long did;
                         if (update.peer instanceof TLRPC.TL_dialogPeer) {
                             TLRPC.TL_dialogPeer dialogPeer = (TLRPC.TL_dialogPeer) update.peer;
@@ -19016,6 +19030,9 @@ public class MessagesController extends BaseController implements NotificationCe
                         }
                     } else if (baseUpdate instanceof TLRPC.TL_updatePinnedDialogs) {
                         TLRPC.TL_updatePinnedDialogs update = (TLRPC.TL_updatePinnedDialogs) baseUpdate;
+                        if (UnlimitedPinsHook.shouldSkipPinnedDialogsSync(update.folder_id)) {
+                            continue;
+                        }
                         getUserConfig().setPinnedDialogsLoaded(update.folder_id, false);
                         getUserConfig().saveConfig(false);
                         ArrayList<Long> order;

@@ -136,6 +136,8 @@
     <string name="FluffyInAppCamera">In-app camera</string>
     <string name="FluffyInAppCameraInfo">Turn off to use the system camera instead of the built-in camera from the chat attachment panel.</string>
     <string name="FluffyGoToFirstMessage">Go to first message</string>
+    <string name="FluffyUnlimitedUnarchivedPins">Unlimited unarchived pins</string>
+    <string name="FluffyUnlimitedUnarchivedPinsInfo">Allows up to 100 pinned chats in the main list and turns off pinned chats sync for that list, so extra pins and order stay local to this device.</string>
     <string name="FluffyGoToFirstMessageInfo">Adds a chat menu action that jumps to the beginning of the current chat history.</string>
     <string name="FluffySaveLog">Save Log</string>
     <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
