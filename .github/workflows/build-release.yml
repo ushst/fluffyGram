@@ -73,7 +73,7 @@ jobs:
           git submodule update --init --remote --depth 1 fluffyGram_dev
 
       - name: Fetch tags for release notes
-        run: git fetch --force --tags origin
+        run: git -c fetch.recurseSubmodules=false fetch --force --tags origin
 
       - name: Set up Java
         uses: actions/setup-java@v5
