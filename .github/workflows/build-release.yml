@@ -83,8 +83,6 @@ jobs:
           
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Cache NDK
         id: cache-ndk
@@ -248,7 +246,7 @@ jobs:
             echo "No build tasks selected. Please choose a valid build_type." >&2
             exit 1
           fi
-          ./gradlew --configuration-cache --configuration-cache-problems=warn $TASKS
+          ./gradlew $TASKS
         env:
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
           NDK_CCACHE: ccache
