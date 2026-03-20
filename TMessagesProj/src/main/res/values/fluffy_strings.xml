@@ -114,6 +114,9 @@
     <string name="FluffyStoryViewAnonLocal">View Anon (local)</string>
     <string name="FluffyStoryViewAnonLocalInfo">Adds a long-press story action that opens the viewer without sending story view requests from this device. It is local-only and can desync with server-side read state.</string>
     <string name="FluffyViewAnonLocal">View Anon (local)</string>
+    <string name="FluffyGeneralSection">General</string>
+    <string name="FluffyGeneral">General</string>
+    <string name="FluffyGeneralInfo">General fluffyGram settings and behavior switches.</string>
     <string name="FluffyDeveloperSettingsSection">Developer Settings</string>
     <string name="FluffyDebugSection">Debug</string>
     <string name="FluffyDebug">Debug</string>
@@ -130,6 +133,8 @@
     <string name="FluffyShareApk">Share APK</string>
     <string name="FluffyShareApkText">Current fluffyGram build APK.</string>
     <string name="FluffyShareApkFailed">Failed to prepare APK for sharing.</string>
+    <string name="FluffyInAppCamera">In-app camera</string>
+    <string name="FluffyInAppCameraInfo">Turn off to use the system camera instead of the built-in camera from the chat attachment panel.</string>
     <string name="FluffySaveLog">Save Log</string>
     <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
     <string name="FluffyLocalLogsTitle">Local Logs</string>

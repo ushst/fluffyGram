@@ -19,6 +19,7 @@ public final class TelegramSettingsSyncPatch {
     private static final String KEY_INAPP_BROWSER = "inapp_browser";
     private static final String KEY_ADAPTABLE_BROWSER = "adaptableBrowser";
     private static final String KEY_DIRECT_SHARE = "direct_share";
+    private static final String KEY_INAPP_CAMERA = "inappCamera";
     private static final String KEY_STREAM_MEDIA = "streamMedia";
     private static final String KEY_STREAM_ALL_VIDEO = "streamAllVideo";
     private static final String KEY_STREAM_MKV = "streamMkv";
@@ -57,6 +58,7 @@ public final class TelegramSettingsSyncPatch {
             object.put(KEY_INAPP_BROWSER, SharedConfig.inappBrowser);
             object.put(KEY_ADAPTABLE_BROWSER, SharedConfig.adaptableColorInBrowser);
             object.put(KEY_DIRECT_SHARE, SharedConfig.directShare);
+            object.put(KEY_INAPP_CAMERA, SharedConfig.inappCamera);
             object.put(KEY_STREAM_MEDIA, SharedConfig.streamMedia);
             object.put(KEY_STREAM_ALL_VIDEO, SharedConfig.streamAllVideo);
             object.put(KEY_STREAM_MKV, SharedConfig.streamMkv);
@@ -100,6 +102,7 @@ public final class TelegramSettingsSyncPatch {
             applyToggleBoolean(object, KEY_INAPP_BROWSER, SharedConfig.inappBrowser, SharedConfig::toggleInappBrowser);
             applyToggleBoolean(object, KEY_ADAPTABLE_BROWSER, SharedConfig.adaptableColorInBrowser, SharedConfig::toggleBrowserAdaptableColors);
             applyToggleBoolean(object, KEY_DIRECT_SHARE, SharedConfig.directShare, SharedConfig::toggleDirectShare);
+            applyToggleBoolean(object, KEY_INAPP_CAMERA, SharedConfig.inappCamera, SharedConfig::toggleInappCamera);
             applyToggleBoolean(object, KEY_STREAM_MEDIA, SharedConfig.streamMedia, SharedConfig::toggleStreamMedia);
             applyToggleBoolean(object, KEY_STREAM_ALL_VIDEO, SharedConfig.streamAllVideo, SharedConfig::toggleStreamAllVideo);
             applyToggleBoolean(object, KEY_STREAM_MKV, SharedConfig.streamMkv, SharedConfig::toggleStreamMkv);

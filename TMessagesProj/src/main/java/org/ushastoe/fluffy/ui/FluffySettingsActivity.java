@@ -45,21 +45,24 @@ public class FluffySettingsActivity extends BaseFragment {
 
     private static final int ROW_ABOUT = 0;
     private static final int ROW_ABOUT_SHADOW = 1;
-    private static final int ROW_APPEARANCE_SECTION = 2;
-    private static final int ROW_APPEARANCE = 3;
-    private static final int ROW_APPEARANCE_INFO = 4;
-    private static final int ROW_PREMIUM_SECTION = 5;
-    private static final int ROW_PREMIUM = 6;
-    private static final int ROW_PREMIUM_INFO = 7;
-    private static final int ROW_CLOUD_SECTION = 8;
-    private static final int ROW_CLOUD = 9;
-    private static final int ROW_CLOUD_INFO = 10;
-    private static final int ROW_DEBUG_SECTION = 11;
-    private static final int ROW_DEBUG = 12;
-    private static final int ROW_DEBUG_INFO = 13;
-    private static final int ROW_LINKS_SECTION = 14;
-    private static final int ROW_CHANNEL = 15;
-    private static final int ROW_GITHUB = 16;
+    private static final int ROW_GENERAL_SECTION = 2;
+    private static final int ROW_GENERAL = 3;
+    private static final int ROW_GENERAL_INFO = 4;
+    private static final int ROW_APPEARANCE_SECTION = 5;
+    private static final int ROW_APPEARANCE = 6;
+    private static final int ROW_APPEARANCE_INFO = 7;
+    private static final int ROW_PREMIUM_SECTION = 8;
+    private static final int ROW_PREMIUM = 9;
+    private static final int ROW_PREMIUM_INFO = 10;
+    private static final int ROW_CLOUD_SECTION = 11;
+    private static final int ROW_CLOUD = 12;
+    private static final int ROW_CLOUD_INFO = 13;
+    private static final int ROW_DEBUG_SECTION = 14;
+    private static final int ROW_DEBUG = 15;
+    private static final int ROW_DEBUG_INFO = 16;
+    private static final int ROW_LINKS_SECTION = 17;
+    private static final int ROW_CHANNEL = 18;
+    private static final int ROW_GITHUB = 19;
 
     private static final String FLUFFY_CHANNEL_USERNAME = "fluffyGram";
     private static final String FLUFFY_GITHUB_URL = "https://github.com/ushst/fluffyGram";
@@ -110,7 +113,9 @@ public class FluffySettingsActivity extends BaseFragment {
                 return;
             }
             ItemInner item = items.get(position);
-            if (item.id == ROW_APPEARANCE) {
+            if (item.id == ROW_GENERAL) {
+                presentFragment(new FluffyGeneralActivity());
+            } else if (item.id == ROW_APPEARANCE) {
                 presentFragment(new FluffyAppearanceActivity());
             } else if (item.id == ROW_PREMIUM) {
                 presentFragment(new FluffyPremiumActivity());
@@ -138,6 +143,9 @@ public class FluffySettingsActivity extends BaseFragment {
         items.clear();
         items.add(new ItemInner(VIEW_TYPE_ABOUT_HEADER, ROW_ABOUT, null, null, 0));
         items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_ABOUT_SHADOW, null, null, 0));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GENERAL_SECTION, LocaleController.getString(R.string.FluffyGeneralSection), null, 0));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GENERAL, LocaleController.getString(R.string.FluffyGeneral), null, R.drawable.msg_settings));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_GENERAL_INFO, LocaleController.getString(R.string.FluffyGeneralInfo), null, 0));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_APPEARANCE_SECTION, LocaleController.getString(R.string.FluffyAppearanceSection), null, 0));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APPEARANCE, LocaleController.getString(R.string.FluffyAppearance), null, R.drawable.msg_theme));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_APPEARANCE_INFO, LocaleController.getString(R.string.FluffyAppearanceInfo), null, 0));
@@ -179,6 +187,10 @@ public class FluffySettingsActivity extends BaseFragment {
             return null;
         }
         switch (item.id) {
+            case ROW_GENERAL_SECTION:
+            case ROW_GENERAL:
+            case ROW_GENERAL_INFO:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("general");
             case ROW_APPEARANCE_SECTION:
             case ROW_APPEARANCE:
             case ROW_APPEARANCE_INFO:
@@ -234,6 +246,8 @@ public class FluffySettingsActivity extends BaseFragment {
             return -1;
         }
         switch (target) {
+            case "general":
+                return ROW_GENERAL;
             case "appearance":
                 return ROW_APPEARANCE;
             case "premium":

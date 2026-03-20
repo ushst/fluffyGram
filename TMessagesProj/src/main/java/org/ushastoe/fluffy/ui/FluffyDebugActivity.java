@@ -29,7 +29,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
@@ -50,8 +49,6 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
     private static final int VIEW_TYPE_INFO = 2;
-    private static final int VIEW_TYPE_CHECK = 3;
-
     private static final int ROW_DEBUG_HEADER = 0;
     private static final int ROW_UPDATE_CHECK_MODE = 1;
     private static final int ROW_CHECK_VERSION = 2;
@@ -408,7 +405,7 @@ public class FluffyDebugActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int type = holder.getItemViewType();
-            return type == VIEW_TYPE_TEXT || type == VIEW_TYPE_CHECK;
+            return type == VIEW_TYPE_TEXT;
         }
 
         @Override
@@ -422,9 +419,6 @@ public class FluffyDebugActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
-            } else if (viewType == VIEW_TYPE_CHECK) {
-                view = new TextCheckCell(parent.getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_TEXT) {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -439,8 +433,6 @@ public class FluffyDebugActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
-            } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
-                ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, (Boolean) item.value, false);
             } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
                 ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue((CharSequence) item.value), false);
             } else {

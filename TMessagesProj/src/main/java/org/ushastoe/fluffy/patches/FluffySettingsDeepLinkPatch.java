@@ -17,6 +17,7 @@ import org.ushastoe.fluffy.hooks.PremiumAccessHook;
 import org.ushastoe.fluffy.ui.FluffyAppearanceActivity;
 import org.ushastoe.fluffy.ui.FluffyCloudSettingsActivity;
 import org.ushastoe.fluffy.ui.FluffyDebugActivity;
+import org.ushastoe.fluffy.ui.FluffyGeneralActivity;
 import org.ushastoe.fluffy.ui.FluffyPremiumActivity;
 import org.ushastoe.fluffy.ui.FluffySettingsActivity;
 import org.ushastoe.fluffy.ui.FluffyTabsActivity;
@@ -136,6 +137,9 @@ public final class FluffySettingsDeepLinkPatch {
                 return new FluffyTabsActivity();
             }
             return FluffyAppearanceActivity.createForTarget(joinSegments(segments, 1));
+        }
+        if ("general".equals(root)) {
+            return FluffyGeneralActivity.createForTarget(joinSegments(segments, 1));
         }
         if ("premium".equals(root)) {
             if (!PremiumAccessHook.hasPremiumAccess()) {
