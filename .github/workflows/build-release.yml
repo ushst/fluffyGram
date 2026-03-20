@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: krolchonok/fluffyGram
           token: ${{ secrets.GH_PAT || github.token }}
@@ -76,13 +76,13 @@ jobs:
         run: git fetch --force --tags origin
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Cache NDK
         id: cache-ndk
@@ -120,6 +120,7 @@ jobs:
             platform-tools
             platforms;android-${{ env.ANDROID_PLATFORM }}
             build-tools;${{ env.ANDROID_BUILD_TOOLS }}
+            cmake;3.22.1
             ndk;${{ env.ANDROID_NDK_VERSION }}
 
       - name: Prepare signing and local config
@@ -237,7 +238,7 @@ jobs:
           BUILD_DEBUG="${{ steps.build_type.outputs.build_debug }}"
           TASKS=""
           if [[ "$BUILD_RELEASE" == "true" ]]; then
-            TASKS="$TASKS :TMessagesProj:assembleRelease :TMessagesProj_App:assembleAfatRelease :TMessagesProj_App:bundleBundleAfatRelease"
+            TASKS="$TASKS :TMessagesProj:assembleRelease :TMessagesProj_App:assembleAfatRelease"
           fi
           if [[ "$BUILD_DEBUG" == "true" ]]; then
             TASKS="$TASKS :TMessagesProj:assembleDebug :TMessagesProj_App:assembleAfatDebug"
@@ -270,17 +271,11 @@ jobs:
 
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             RELEASE_APK_PATH="$(find TMessagesProj_App/build/outputs/apk -path '*afat/release/app.apk' | head -n 1)"
-            RELEASE_AAB_PATH="$(find TMessagesProj_App/build/outputs/bundle -path '*bundleAfatRelease/*.aab' | head -n 1)"
             if [ -z "$RELEASE_APK_PATH" ]; then
               echo "Release APK not found" >&2
               exit 1
             fi
-            if [ -z "$RELEASE_AAB_PATH" ]; then
-              echo "Release AAB not found" >&2
-              exit 1
-            fi
             cp "$RELEASE_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}"
-            cp "$RELEASE_AAB_PATH" "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab"
           fi
 
           if [[ "$BUILD_DEBUG" == "true" ]]; then
@@ -394,14 +389,6 @@ jobs:
           path: artifacts/${{ steps.meta.outputs.debug_apk_name }}
           retention-days: 30
 
-      - name: Upload AAB artifact
-        if: env.ACT != 'true' && steps.build_type.outputs.build_release == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: fluffyGram-${{ steps.meta.outputs.version_name }}.aab
-          path: artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab
-          retention-days: 30
-
       - name: Upload update manifest artifact
         if: env.ACT != 'true' && steps.build_type.outputs.build_release == 'true'
         uses: actions/upload-artifact@v4
@@ -439,7 +426,6 @@ jobs:
           FILES=()
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             FILES+=("artifacts/${{ steps.meta.outputs.apk_name }}")
-            FILES+=("artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.aab")
             FILES+=("artifacts/${{ steps.meta.outputs.update_manifest_name }}")
           fi
           if [[ "$BUILD_DEBUG" == "true" ]]; then
