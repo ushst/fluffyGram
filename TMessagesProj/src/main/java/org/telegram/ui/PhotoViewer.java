@@ -313,6 +313,7 @@ import org.telegram.ui.Stories.recorder.CaptionContainerView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.KeyboardNotifier;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.hooks.ProfilePhotoDateHook;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 
 import java.io.ByteArrayInputStream;
@@ -14718,11 +14719,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (avatarsDialogId != 0) {
                 title = DialogObject.getName(avatarsDialogId);
                 ImageLocation imageLocation = imagesArrLocations.get(index);
-                if (imageLocation != null && imageLocation.photo != null) {
-                    actionBarContainer.setSubtitle(LocaleController.formatDateTime(imageLocation.photo.date, true), animated);
-                } else {
-                    actionBarContainer.setSubtitle("", animated);
-                }
+                actionBarContainer.setSubtitle(ProfilePhotoDateHook.getPhotoViewerSubtitle(imageLocation), animated);
                 menuItem.showSubItem(gallery_menu_report);
             }
 

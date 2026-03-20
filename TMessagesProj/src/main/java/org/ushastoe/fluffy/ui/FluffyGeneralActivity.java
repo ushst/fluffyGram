@@ -23,6 +23,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.InAppCameraSettingsHook;
+import org.ushastoe.fluffy.hooks.QuickShareMediaHook;
 import org.ushastoe.fluffy.hooks.UnlimitedPinsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
@@ -42,8 +43,10 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_IN_APP_CAMERA_INFO = 2;
     private static final int ROW_CHAT_FIRST_MESSAGE = 3;
     private static final int ROW_CHAT_FIRST_MESSAGE_INFO = 4;
-    private static final int ROW_UNLIMITED_PINS = 5;
-    private static final int ROW_UNLIMITED_PINS_INFO = 6;
+    private static final int ROW_QUICK_SHARE_MEDIA = 5;
+    private static final int ROW_QUICK_SHARE_MEDIA_INFO = 6;
+    private static final int ROW_UNLIMITED_PINS = 7;
+    private static final int ROW_UNLIMITED_PINS_INFO = 8;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -103,6 +106,12 @@ public class FluffyGeneralActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_QUICK_SHARE_MEDIA) {
+                boolean enabled = !QuickShareMediaHook.isEnabled();
+                QuickShareMediaHook.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             } else if (item.id == ROW_UNLIMITED_PINS) {
                 boolean enabled = !UnlimitedPinsHook.isEnabled();
                 UnlimitedPinsHook.setEnabled(enabled);
@@ -135,6 +144,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_IN_APP_CAMERA_INFO, LocaleController.getString(R.string.FluffyInAppCameraInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_FIRST_MESSAGE, LocaleController.getString(R.string.FluffyGoToFirstMessage), ChatFirstMessageHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHAT_FIRST_MESSAGE_INFO, LocaleController.getString(R.string.FluffyGoToFirstMessageInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_QUICK_SHARE_MEDIA, LocaleController.getString(R.string.FluffyQuickSharePrivateMedia), QuickShareMediaHook.isEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_QUICK_SHARE_MEDIA_INFO, LocaleController.getString(R.string.FluffyQuickSharePrivateMediaInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_UNLIMITED_PINS, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPins), UnlimitedPinsHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_UNLIMITED_PINS_INFO, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPinsInfo), false));
         if (adapter != null) {
@@ -152,6 +163,8 @@ public class FluffyGeneralActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "in-app-camera");
         } else if (item.id == ROW_CHAT_FIRST_MESSAGE || item.id == ROW_CHAT_FIRST_MESSAGE_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "go-to-first-message");
+        } else if (item.id == ROW_QUICK_SHARE_MEDIA || item.id == ROW_QUICK_SHARE_MEDIA_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "quick-share-private-media");
         } else if (item.id == ROW_UNLIMITED_PINS || item.id == ROW_UNLIMITED_PINS_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "unlimited-unarchived-pins");
         } else {
@@ -194,6 +207,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("go-to-first-message".equals(target)) {
             return ROW_CHAT_FIRST_MESSAGE;
+        }
+        if ("quick-share-private-media".equals(target)) {
+            return ROW_QUICK_SHARE_MEDIA;
         }
         if ("unlimited-unarchived-pins".equals(target)) {
             return ROW_UNLIMITED_PINS;

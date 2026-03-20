@@ -26,3 +26,4 @@ scripts/__pycache__/
 *.pyc
 account*_cache*.db
 user*.xml
+.github/workflows/.secrets

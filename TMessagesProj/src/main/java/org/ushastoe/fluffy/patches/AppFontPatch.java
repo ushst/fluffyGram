@@ -230,6 +230,21 @@ public final class AppFontPatch {
         return extensionIndex > 0 ? fileName.substring(0, extensionIndex) : fileName;
     }
 
+    public static Typeface getPreviewTypeface(String fileName) {
+        if (TextUtils.isEmpty(fileName)) {
+            return null;
+        }
+        File fontFile = getSelectedFontFile(fileName);
+        if (fontFile == null || !fontFile.exists()) {
+            return null;
+        }
+        try {
+            return Typeface.createFromFile(fontFile);
+        } catch (RuntimeException ignore) {
+            return null;
+        }
+    }
+
     public static void onFontChanged() {
         synchronized (TYPEFACE_LOCK) {
             cachedFontKey = null;

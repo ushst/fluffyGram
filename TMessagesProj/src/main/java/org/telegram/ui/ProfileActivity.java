@@ -10501,6 +10501,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
                 infoStartRow = rowCount;
+                if (ShowIdHook.isEnabled()) {
+                    fluffyIdRow = rowCount++;
+                }
                 if (!isBot && (hasPhone || !hasInfo)) {
                     phoneRow = rowCount++;
                 }
@@ -10531,7 +10534,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     botAppRow = rowCount++;
                 }
                 infoEndRow = rowCount - 1;
-                if (ShowIdHook.isEnabled()) fluffyIdRow = rowCount++;
                 infoSectionRow = rowCount++;
 
                 if (isBot && userInfo != null && userInfo.starref_program != null && (userInfo.starref_program.flags & 2) == 0 && getMessagesController().starrefConnectAllowed) {
@@ -10646,6 +10648,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (actionsView == null) {
                     infoHeaderRow = rowCount++;
                 }
+                if (ShowIdHook.isEnabled()) {
+                    fluffyIdRow = rowCount++;
+                }
                 if (chatInfo != null) {
                     if (!TextUtils.isEmpty(chatInfo.about)) {
                         channelInfoRow = rowCount++;
@@ -10672,7 +10677,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 notificationsRow = rowCount++;
             }
             if (rowCount > 0) {
-                if (ShowIdHook.isEnabled()) fluffyIdRow = rowCount++;
+                if (fluffyIdRow == -1 && ShowIdHook.isEnabled()) fluffyIdRow = rowCount++;
                 infoSectionRow = rowCount++;
             }
 
