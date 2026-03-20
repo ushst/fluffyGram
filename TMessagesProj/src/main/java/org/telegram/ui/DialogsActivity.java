@@ -259,6 +259,7 @@ import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
+import org.ushastoe.fluffy.hooks.DialogsFolderTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
 import org.ushastoe.fluffy.hooks.LocalAnonStoryViewHook;
 
@@ -1518,6 +1519,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                     viewPages[1].dialogsAdapter.pause();
                                 }
                                 viewPages[1].setVisibility(View.GONE);
+                                DialogsFolderTitleHook.onPageSettled(DialogsActivity.this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
                                 showScrollbars(true);
                                 tabsAnimationInProgress = false;
                                 maybeStartTracking = false;
@@ -2962,7 +2964,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             actionBar.setRightDrawableOnClick(null);
         }
         statusDrawable.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
-        DialogsAppTitleHook.onDialogsStatusUpdated(actionBar, currentAccount, statusDrawable);
+        DialogsFolderTitleHook.syncDialogsTitle(this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
         if (animatedStatusView != null) {
             animatedStatusView.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
         }
@@ -3144,6 +3146,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (dialogStoriesCell != null) {
             dialogStoriesCell.setTitleOverlayText(title, titleId);
         }
+    }
+
+    public FilterTabsView.Tab getCurrentFluffySelectedTab() {
+        if (filterTabsView == null || viewPages == null || viewPages.length == 0 || viewPages[0] == null) {
+            return null;
+        }
+        return filterTabsView.getTab(viewPages[0].selectedType);
     }
 
     @Override
@@ -3445,7 +3454,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else {
                 statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
                 statusDrawable.center = true;
-                DialogsAppTitleHook.applyDialogsActionBarTitle(actionBar, currentAccount, statusDrawable);
+                DialogsFolderTitleHook.syncDialogsTitle(this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
             if (folderId == 0) {
@@ -3555,11 +3564,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         return;
                     }
                     viewPages[1].selectedType = tab.id;
+                    DialogsFolderTitleHook.onTabSelected(actionBar, dialogStoriesCell, tab, currentAccount, statusDrawable);
                     viewPages[1].setVisibility(View.VISIBLE);
                     viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
                     showScrollbars(false);
                     switchToCurrentSelectedMode(true);
                     animatingForward = forward;
+                }
+
+                @Override
+                public void onTabPressed(FilterTabsView.Tab tab) {
+                    DialogsFolderTitleHook.onTabPressed(DialogsActivity.this, actionBar, dialogStoriesCell, tab, currentAccount, statusDrawable);
                 }
 
                 @Override
@@ -3584,6 +3599,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         viewPages[0] = viewPages[1];
                         viewPages[1] = tempPage;
                         viewPages[1].setVisibility(View.GONE);
+                        DialogsFolderTitleHook.onPageSettled(DialogsActivity.this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
                         showScrollbars(true);
                         updateCounters(false);
                         filterTabsView.stopAnimatingIndicator();
@@ -5234,6 +5250,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         };
         dialogStoriesCell.setActionBar(actionBar);
+        DialogsFolderTitleHook.syncDialogsTitle(this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
         dialogStoriesCell.setMenuItemsOffset(isArchive() ? dp(68) : dpf2(16.66f));
         dialogStoriesCell.allowGlobalUpdates = false;
         dialogStoriesCell.setVisibility(View.GONE);
@@ -6699,6 +6716,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         viewPages[a].dialogsAdapter.setDialogsType(viewPages[a].dialogsType);
         viewPages[a].layoutManager.scrollToPositionWithOffset(viewPages[a].dialogsType == DIALOGS_TYPE_DEFAULT && hasHiddenArchive() && viewPages[a].archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN ? 1 : 0, (int) scrollYOffset);
         checkListLoad(viewPages[a]);
+        if (!animated) {
+            DialogsFolderTitleHook.syncDialogsTitle(this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
+        }
     }
 
     private boolean scrollBarVisible = true;
@@ -6918,7 +6938,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         if (!onlySelect && folderId == 0) {
             Runnable refreshDialogsActionBar = () -> {
-                DialogsAppTitleHook.applyDialogsActionBarTitle(actionBar, currentAccount, statusDrawable);
+                DialogsFolderTitleHook.syncDialogsTitle(this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
                 DialogsCenteredTitleHook.onTitleChanged(actionBar);
             };
@@ -10476,6 +10496,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.dialogFiltersUpdated) {
             updateFilterTabs(true, true);
+            DialogsFolderTitleHook.syncDialogsTitle(this, actionBar, dialogStoriesCell, currentAccount, statusDrawable);
         } else if (id == NotificationCenter.filterSettingsUpdated) {
             showFiltersHint();
         } else if (id == NotificationCenter.newSuggestionsAvailable) {

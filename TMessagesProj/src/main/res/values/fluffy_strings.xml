@@ -55,6 +55,7 @@
     <string name="FluffyDialogsAppTitleOptionUsername">Username</string>
     <string name="FluffyDialogsAppTitleOptionFirstName">First name</string>
     <string name="FluffyDialogsAppTitleOptionCustom">Custom</string>
+    <string name="FluffyDialogsAppTitleOptionFolder">Folder name</string>
     <string name="FluffyDialogsAppTitleCustomText">Enter a custom title for the main tabs. Leave it empty to use fluffyGram.</string>
     <string name="FluffyDialogsAppTitleCustomHint">Custom title</string>
     <string name="FluffyAppFont">App font</string>

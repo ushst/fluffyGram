@@ -1265,25 +1265,28 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             subtitleToSet = null;
         }
         subtitleOverlayContainer.setText(subtitleToSet, true);
+        applyTitleOverlayText(titleOverlayText != null ? LocaleController.getString(titleOverlayText, textId) : null);
+    }
 
+    public void setTitleOverlayText(CharSequence titleOverlayText) {
+        subtitleOverlayContainer.setText(null, true);
+        overlayTextId = 0;
+        applyTitleOverlayText(titleOverlayText);
+    }
+
+    private void applyTitleOverlayText(CharSequence titleOverlayText) {
         boolean hasEllipsizedText = false;
-        if (titleOverlayText != null) {
+        if (!TextUtils.isEmpty(titleOverlayText)) {
             hasOverlayText = true;
-            if (overlayTextId != textId) {
-                overlayTextId = textId;
-                String title = LocaleController.getString(titleOverlayText, textId);
-                CharSequence textToSet = title;
-                if (!TextUtils.isEmpty(title)) {
-                    int index = TextUtils.indexOf(textToSet, "...");
-                    if (index >= 0) {
-                        SpannableString spannableString = SpannableString.valueOf(textToSet);
-                        ellipsizeSpanAnimator.wrap(spannableString, index);
-                        hasEllipsizedText = true;
-                        textToSet = spannableString;
-                    }
-                }
-                titleView.setText(textToSet, !LocaleController.isRTL);
+            CharSequence textToSet = titleOverlayText;
+            int index = TextUtils.indexOf(textToSet, "...");
+            if (index >= 0) {
+                SpannableString spannableString = SpannableString.valueOf(textToSet);
+                ellipsizeSpanAnimator.wrap(spannableString, index);
+                hasEllipsizedText = true;
+                textToSet = spannableString;
             }
+            titleView.setText(textToSet, !LocaleController.isRTL);
         } else {
             hasOverlayText = false;
             overlayTextId = 0;

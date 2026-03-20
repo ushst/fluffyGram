@@ -54,6 +54,7 @@ public final class AppearanceSettingsPatch {
     public static final int DIALOGS_APP_TITLE_MODE_USERNAME = 3;
     public static final int DIALOGS_APP_TITLE_MODE_FIRST_NAME = 4;
     public static final int DIALOGS_APP_TITLE_MODE_CUSTOM = 5;
+    public static final int DIALOGS_APP_TITLE_MODE_FOLDER = 6;
     public static final int DIALOGS_LIST_SCALE_MIN = 90;
     public static final int DIALOGS_LIST_SCALE_DEFAULT = 100;
     public static final int DIALOGS_LIST_SCALE_MAX = 110;
@@ -170,7 +171,7 @@ public final class AppearanceSettingsPatch {
             return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
         }
         int mode = preferences.getInt(KEY_DIALOGS_APP_TITLE_MODE, DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM);
-        if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_CUSTOM) {
+        if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_FOLDER) {
             return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
         }
         return mode;
@@ -637,7 +638,7 @@ public final class AppearanceSettingsPatch {
     }
 
     private static int clampDialogsAppTitleMode(int mode) {
-        if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_CUSTOM) {
+        if (mode < DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM || mode > DIALOGS_APP_TITLE_MODE_FOLDER) {
             return DIALOGS_APP_TITLE_MODE_FLUFFY_GRAM;
         }
         return mode;

@@ -99,6 +99,8 @@ public class FilterTabsView extends FrameLayout {
     public interface FilterTabsViewDelegate {
         void onPageSelected(Tab tab, boolean forward);
 
+        void onTabPressed(Tab tab);
+
         void onPageScrolled(float progress);
 
         void onSamePageSelected();
@@ -1123,6 +1125,9 @@ public class FilterTabsView extends FrameLayout {
             if (position == currentPosition && delegate != null) {
                 delegate.onSamePageSelected();
                 return;
+            }
+            if (delegate != null) {
+                delegate.onTabPressed(tabView.currentTab);
             }
             scrollToTab(tabView.currentTab, position);
         });

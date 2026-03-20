@@ -376,7 +376,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyDialogsAppTitleOptionTelegram),
                 LocaleController.getString(R.string.FluffyDialogsAppTitleOptionUsername),
                 LocaleController.getString(R.string.FluffyDialogsAppTitleOptionFirstName),
-                LocaleController.getString(R.string.FluffyDialogsAppTitleOptionCustom)
+                LocaleController.getString(R.string.FluffyDialogsAppTitleOptionCustom),
+                LocaleController.getString(R.string.FluffyDialogsAppTitleOptionFolder)
         };
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
         builder.setTitle(LocaleController.getString(R.string.FluffyDialogsAppTitle));
@@ -450,6 +451,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
     }
 
     private CharSequence getDialogsAppTitleValue() {
+        if (AppearanceSettingsHook.getDialogsAppTitleMode() == AppearanceSettingsPatch.DIALOGS_APP_TITLE_MODE_FOLDER) {
+            return LocaleController.getString(R.string.FluffyDialogsAppTitleOptionFolder);
+        }
         return DialogsAppTitleHook.getDialogsAppTitle(UserConfig.selectedAccount);
     }
 

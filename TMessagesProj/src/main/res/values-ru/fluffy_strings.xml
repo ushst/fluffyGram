@@ -52,6 +52,7 @@
     <string name="FluffyDialogsAppTitleOptionUsername">Имя пользователя</string>
     <string name="FluffyDialogsAppTitleOptionFirstName">Имя</string>
     <string name="FluffyDialogsAppTitleOptionCustom">Свой вариант</string>
+    <string name="FluffyDialogsAppTitleOptionFolder">Название папки</string>
     <string name="FluffyDialogsAppTitleCustomText">Введите собственный заголовок для основных вкладок. Оставьте поле пустым, чтобы использовать fluffyGram.</string>
     <string name="FluffyDialogsAppTitleCustomHint">Пользовательский заголовок</string>
     <string name="FluffyAppFont">Шрифт приложения</string>
