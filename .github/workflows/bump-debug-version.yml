@@ -1,0 +1,143 @@
+name: Bump Debug Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: How much to increment FLUFFY_PATCH_VERSION
+        required: false
+        default: '1'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump-debug-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || github.token }}
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump FLUFFY_PATCH_VERSION
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          INCREMENT="${{ inputs.increment }}"
+          if ! [[ "$INCREMENT" =~ ^[0-9]+$ ]]; then
+            echo "increment must be a non-negative integer" >&2
+            exit 1
+          fi
+
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("gradle.properties")
+          lines = path.read_text(encoding="utf-8").splitlines()
+
+          props = {}
+          for line in lines:
+              stripped = line.strip()
+              if not stripped or stripped.startswith("#") or "=" not in stripped:
+                  continue
+              key, value = stripped.split("=", 1)
+              props[key.strip()] = value.strip().replace("\\:", ":")
+
+          current_patch = int(props.get("FLUFFY_PATCH_VERSION", "0"))
+          increment = int("${{ inputs.increment }}")
+          new_patch = current_patch + increment
+
+          updated = []
+          replaced = False
+          for line in lines:
+              if line.startswith("FLUFFY_PATCH_VERSION="):
+                  updated.append(f"FLUFFY_PATCH_VERSION={new_patch}")
+                  replaced = True
+              else:
+                  updated.append(line)
+
+          if not replaced:
+              updated.append(f"FLUFFY_PATCH_VERSION={new_patch}")
+
+          path.write_text("\n".join(updated) + "\n", encoding="utf-8")
+
+          base_name = props["APP_VERSION_NAME"]
+          base_code = int(props["APP_VERSION_CODE"])
+          old_name = f"{base_name}.{current_patch}" if current_patch > 0 else base_name
+          new_name = f"{base_name}.{new_patch}" if new_patch > 0 else base_name
+          old_code = base_code * 1000 + current_patch
+          new_code = base_code * 1000 + new_patch
+
+          output = Path(__import__("os").environ["GITHUB_OUTPUT"])
+          with output.open("a", encoding="utf-8") as fh:
+              fh.write(f"old_patch={current_patch}\n")
+              fh.write(f"new_patch={new_patch}\n")
+              fh.write(f"old_version_name={old_name}\n")
+              fh.write(f"new_version_name={new_name}\n")
+              fh.write(f"old_version_code={old_code}\n")
+              fh.write(f"new_version_code={new_code}\n")
+          PY
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- gradle.properties; then
+            echo "No version change detected."
+            exit 0
+          fi
+
+          git add gradle.properties
+          cat > .git/COMMIT_EDITMSG_CI <<EOF
+          chore(build): bump debug patch version to ${{ steps.bump.outputs.new_patch }}
+
+          Why:
+          - Increase debug build version metadata without touching upstream app version.
+
+          What:
+          - Increment FLUFFY_PATCH_VERSION in gradle.properties from ${{ steps.bump.outputs.old_patch }} to ${{ steps.bump.outputs.new_patch }}.
+          - This updates derived debug versionName to ${{ steps.bump.outputs.new_version_name }}.
+          - This updates derived debug versionCode to ${{ steps.bump.outputs.new_version_code }}.
+
+          Patch points:
+          - n/a
+
+          Patch files:
+          - n/a
+
+          Risk:
+          - Release builds also derive version metadata from FLUFFY_PATCH_VERSION, so future release artifacts will use the bumped patch version.
+
+          Tests:
+          - not run
+
+          Upstream:
+          - n/a
+          EOF
+          git commit -F .git/COMMIT_EDITMSG_CI
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Summary
+        run: |
+          {
+            echo "## Debug version bumped"
+            echo ""
+            echo "- Old patch: \`${{ steps.bump.outputs.old_patch }}\`"
+            echo "- New patch: \`${{ steps.bump.outputs.new_patch }}\`"
+            echo "- Old debug versionName: \`${{ steps.bump.outputs.old_version_name }}\`"
+            echo "- New debug versionName: \`${{ steps.bump.outputs.new_version_name }}\`"
+            echo "- Old debug versionCode: \`${{ steps.bump.outputs.old_version_code }}\`"
+            echo "- New debug versionCode: \`${{ steps.bump.outputs.new_version_code }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
