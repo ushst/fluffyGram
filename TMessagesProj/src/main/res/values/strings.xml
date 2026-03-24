@@ -10534,5 +10534,14 @@
     <string name="FluffyMessageActionsInfo">Configure additional message context menu functions</string>
     <string name="FluffyInteractionFunctions">Message Context Menu Functions</string>
     <string name="FluffyMessageActionsHelp">Toggle additional actions to appear in the message context menu</string>
+    <string name="FluffyInlineCallbackButtonText">Button text</string>
+    <string name="FluffyInlineCallbackDataSize">Payload size</string>
+    <string name="FluffyInlineCallbackDataSizeValue">%1$d bytes</string>
+    <string name="FluffyInlineCallbackDataText">UTF-8 data</string>
+    <string name="FluffyInlineCallbackDataHex">HEX data</string>
+    <string name="FluffyInlineCallbackDataBinary">Binary or non-text data</string>
+    <string name="FluffyInlineCallbackDataEmpty">Empty</string>
+    <string name="FluffyInlineCallbackCopyText">Copy text</string>
+    <string name="FluffyInlineCallbackCopyHex">Copy HEX</string>
 
 </resources>

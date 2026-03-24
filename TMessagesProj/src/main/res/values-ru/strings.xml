@@ -263,5 +263,14 @@
     <string name="RemindTodayAt">\'Отправить сегодня в\' HH:mm</string>
     <string name="RemindDayAt">\'Отправить\' d MMM \'в\' HH:mm</string>
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
+    <string name="FluffyInlineCallbackButtonText">Текст кнопки</string>
+    <string name="FluffyInlineCallbackDataSize">Размер payload</string>
+    <string name="FluffyInlineCallbackDataSizeValue">%1$d байт</string>
+    <string name="FluffyInlineCallbackDataText">Данные UTF-8</string>
+    <string name="FluffyInlineCallbackDataHex">Данные HEX</string>
+    <string name="FluffyInlineCallbackDataBinary">Бинарные или нетекстовые данные</string>
+    <string name="FluffyInlineCallbackDataEmpty">Пусто</string>
+    <string name="FluffyInlineCallbackCopyText">Копировать текст</string>
+    <string name="FluffyInlineCallbackCopyHex">Копировать HEX</string>
 
 </resources>

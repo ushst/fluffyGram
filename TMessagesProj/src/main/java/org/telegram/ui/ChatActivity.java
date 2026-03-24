@@ -289,6 +289,7 @@ import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.MessageDoubleTapActionHook;
+import org.ushastoe.fluffy.hooks.InlineCallbackDataHook;
 import org.ushastoe.fluffy.hooks.PrivateReactionTimestampHook;
 import org.ushastoe.fluffy.hooks.RoundVideoCameraMenuHook;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
@@ -38422,6 +38423,9 @@ public class ChatActivity extends BaseFragment implements
                     !(button instanceof TLRPC.TL_keyboardButtonGame) && !(button instanceof TLRPC.TL_keyboardButtonUrl) &&
                     !(button instanceof TLRPC.TL_keyboardButtonBuy) && !(button instanceof TLRPC.TL_keyboardButtonUrlAuth) &&
                     !(button instanceof TLRPC.TL_keyboardButtonUserProfile) && !(button instanceof TLRPC.TL_keyboardButtonCopy)) {
+                return;
+            }
+            if (InlineCallbackDataHook.showMenu(ChatActivity.this, cell, button)) {
                 return;
             }
             if (button instanceof TLRPC.TL_keyboardButtonCopy) {

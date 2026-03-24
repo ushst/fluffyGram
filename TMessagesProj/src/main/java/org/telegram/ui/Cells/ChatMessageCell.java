@@ -19047,6 +19047,34 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public boolean doNotDraw;
 
+    public boolean getBotButtonBounds(TLRPC.KeyboardButton targetButton, Rect outRect) {
+        if (targetButton == null || outRect == null || botButtons == null || botButtons.isEmpty()) {
+            return false;
+        }
+        int addX;
+        final int widthForButtons = getWidthForButtons();
+        if (currentMessageObject != null && currentMessageObject.isOutOwner()) {
+            addX = getMeasuredWidth() - widthForButtons - dp(10);
+        } else {
+            addX = backgroundDrawableLeft + dp(mediaBackground ? 1 : 7);
+        }
+        for (int i = 0; i < botButtons.size(); i++) {
+            BotButton button = botButtons.get(i);
+            if (button == null || button.button != targetButton) {
+                continue;
+            }
+            int top = button.y + layoutHeight - dp(2);
+            outRect.set(
+                (int) (button.x * widthForButtons) + addX,
+                top,
+                (int) (button.x * widthForButtons + button.width * widthForButtons) + addX,
+                top + button.height
+            );
+            return true;
+        }
+        return false;
+    }
+
     @SuppressLint("WrongCall")
     @Override
     protected void onDraw(Canvas canvas) {
