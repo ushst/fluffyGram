@@ -101,6 +101,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private int rotationRow;
     private int rotationTimeoutRow;
     private int rotationTimeoutInfoRow;
+    private int rotationPingThresholdRow;
+    private int rotationPingThresholdInfoRow;
     private int mediaOnlyProxyRow;
     private int mediaOnlyProxyInfoRow;
     private int callsDetailRow;
@@ -637,16 +639,22 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             if (SharedConfig.proxyRotationEnabled) {
                 rotationTimeoutRow = rowCount++;
                 rotationTimeoutInfoRow = rowCount++;
+                rotationPingThresholdRow = rowCount++;
+                rotationPingThresholdInfoRow = rowCount++;
             } else {
                 rotationTimeoutRow = -1;
                 rotationTimeoutInfoRow = -1;
+                rotationPingThresholdRow = -1;
+                rotationPingThresholdInfoRow = -1;
             }
         } else {
             rotationRow = -1;
             rotationTimeoutRow = -1;
             rotationTimeoutInfoRow = -1;
+            rotationPingThresholdRow = -1;
+            rotationPingThresholdInfoRow = -1;
         }
-        if (rotationTimeoutInfoRow == -1) {
+        if (rotationPingThresholdInfoRow == -1) {
             useProxyShadowRow = rowCount++;
         } else {
             useProxyShadowRow = -1;
@@ -931,6 +939,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                         cell.setText(LocaleController.getString(R.string.FluffyMediaProxyOnlyInfo));
                     } else if (position == rotationTimeoutInfoRow) {
                         cell.setText(LocaleController.getString(R.string.ProxyRotationTimeoutInfo));
+                    } else if (position == rotationPingThresholdInfoRow) {
+                        cell.setText(LocaleController.getString(R.string.ProxyRotationThresholdInfo));
                     }
                     break;
                 }
@@ -956,6 +966,23 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                             SharedConfig.saveConfig();
                         });
                         chooseView.setOptions(SharedConfig.proxyRotationTimeout, values);
+                    } else if (position == rotationPingThresholdRow) {
+                        SlideChooseView chooseView = (SlideChooseView) holder.itemView;
+                        ArrayList<Integer> options = new ArrayList<>(ProxyRotationController.PING_SWITCH_THRESHOLDS);
+                        String[] values = new String[options.size()];
+                        int selectedIndex = 0;
+                        for (int i = 0; i < options.size(); i++) {
+                            int threshold = options.get(i);
+                            values[i] = LocaleController.formatString(R.string.ProxyRotationThresholdMs, threshold);
+                            if (threshold == SharedConfig.proxyRotationPingThreshold) {
+                                selectedIndex = i;
+                            }
+                        }
+                        chooseView.setCallback(i -> {
+                            SharedConfig.proxyRotationPingThreshold = options.get(i);
+                            SharedConfig.saveConfig();
+                        });
+                        chooseView.setOptions(selectedIndex, values);
                     }
                     break;
                 }
@@ -1072,6 +1099,10 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return -10;
             } else if (position == rotationTimeoutInfoRow) {
                 return -11;
+            } else if (position == rotationPingThresholdRow) {
+                return -14;
+            } else if (position == rotationPingThresholdInfoRow) {
+                return -15;
             } else if (position == mediaOnlyProxyRow) {
                 return -12;
             } else if (position == mediaOnlyProxyInfoRow) {
@@ -1093,7 +1124,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return VIEW_TYPE_TEXT_CHECK;
             } else if (position == connectionsHeaderRow) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == rotationTimeoutRow) {
+            } else if (position == rotationTimeoutRow || position == rotationPingThresholdRow) {
                 return VIEW_TYPE_SLIDE_CHOOSER;
             } else if (position >= proxyStartRow && position < proxyEndRow) {
                 return VIEW_TYPE_PROXY_DETAIL;

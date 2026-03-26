@@ -5992,6 +5992,8 @@
     <string name="UseProxyRotation">Auto-switch proxies</string>
     <string name="ProxyRotationTimeoutInfo">You can configure the timeout for connecting to the nearest active proxy if the current one stops working.</string>
     <string name="ProxyRotationTimeoutSeconds">%1$d sec.</string>
+    <string name="ProxyRotationThresholdInfo">Switch only when another proxy is better by at least the selected ping delta.</string>
+    <string name="ProxyRotationThresholdMs">%1$d ms</string>
     <string name="PeerRequirements">Requirements</string>
     <string name="PeerRequirementPremiumTrue">The user should have a Premium subscription.</string>
     <string name="PeerRequirementPremiumFalse">The user should not have a Premium subscription.</string>

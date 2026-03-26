@@ -272,5 +272,7 @@
     <string name="FluffyInlineCallbackDataEmpty">Пусто</string>
     <string name="FluffyInlineCallbackCopyText">Копировать текст</string>
     <string name="FluffyInlineCallbackCopyHex">Копировать HEX</string>
+    <string name="ProxyRotationThresholdInfo">Выберите, насколько ниже должен быть ping другого прокси, чтобы клиент автоматически переключился на него.</string>
+    <string name="ProxyRotationThresholdMs">%1$d мс</string>
 
 </resources>
