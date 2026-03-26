@@ -11,6 +11,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.ActionBar.SimpleTextView;
+import org.telegram.ui.Components.ChatAvatarContainer;
 import org.telegram.ui.Stories.DialogStoriesCell;
 
 public final class DialogsAppTitlePatch {
@@ -43,6 +44,10 @@ public final class DialogsAppTitlePatch {
         if (actionBar == null) {
             return;
         }
+        if (hasChatAvatarContainer(actionBar)) {
+            hideStaleSimpleTitles(actionBar);
+            return;
+        }
         int[] delays = {0, 16, 64, 180};
         for (int delay : delays) {
             actionBar.postDelayed(() -> {
@@ -53,12 +58,20 @@ public final class DialogsAppTitlePatch {
     }
 
     public static void onActionBarTitleUpdated(ActionBar actionBar) {
+        if (hasChatAvatarContainer(actionBar)) {
+            hideStaleSimpleTitles(actionBar);
+            return;
+        }
         syncActionBarRightDrawable(actionBar, true);
         refreshDialogsActionBarTitleLayout(actionBar);
     }
 
     public static void onDialogsEmojiLoaded(ActionBar actionBar) {
         if (actionBar == null) {
+            return;
+        }
+        if (hasChatAvatarContainer(actionBar)) {
+            hideStaleSimpleTitles(actionBar);
             return;
         }
         syncActionBarRightDrawable(actionBar, true);
@@ -70,20 +83,34 @@ public final class DialogsAppTitlePatch {
     }
 
     public static void onActionBarResume(ActionBar actionBar) {
+        if (hasChatAvatarContainer(actionBar)) {
+            hideStaleSimpleTitles(actionBar);
+            return;
+        }
         syncActionBarRightDrawable(actionBar, true);
         refreshDialogsActionBarTitleLayout(actionBar);
     }
 
     public static void onActionBarPause(ActionBar actionBar) {
+        if (hasChatAvatarContainer(actionBar)) {
+            return;
+        }
         syncActionBarRightDrawable(actionBar, false);
     }
 
     public static void onActionBarAttached(ActionBar actionBar) {
+        if (hasChatAvatarContainer(actionBar)) {
+            hideStaleSimpleTitles(actionBar);
+            return;
+        }
         syncActionBarRightDrawable(actionBar, true);
         refreshDialogsActionBarTitleLayout(actionBar);
     }
 
     public static void onActionBarDetached(ActionBar actionBar) {
+        if (hasChatAvatarContainer(actionBar)) {
+            return;
+        }
         syncActionBarRightDrawable(actionBar, false);
     }
 
@@ -232,5 +259,41 @@ public final class DialogsAppTitlePatch {
         swapDrawable.setSecondParent(null);
         titleTextView.invalidate();
         titleTextView2.invalidate();
+    }
+
+    private static boolean hasChatAvatarContainer(ActionBar actionBar) {
+        if (actionBar == null) {
+            return false;
+        }
+        for (int i = 0; i < actionBar.getChildCount(); i++) {
+            if (actionBar.getChildAt(i) instanceof ChatAvatarContainer) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void hideStaleSimpleTitles(ActionBar actionBar) {
+        if (actionBar == null) {
+            return;
+        }
+        hideSimpleTitle(actionBar.getTitleTextView());
+        hideSimpleTitle(actionBar.getTitleTextView2());
+    }
+
+    private static void hideSimpleTitle(SimpleTextView titleView) {
+        if (titleView == null) {
+            return;
+        }
+        if (titleView.getVisibility() != SimpleTextView.INVISIBLE) {
+            titleView.setVisibility(SimpleTextView.INVISIBLE);
+        }
+        if (titleView.getTranslationX() != 0f) {
+            titleView.setTranslationX(0f);
+        }
+        if (titleView.getAlpha() != 0f) {
+            titleView.setAlpha(0f);
+        }
+        titleView.invalidate();
     }
 }
