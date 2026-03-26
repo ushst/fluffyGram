@@ -179,6 +179,7 @@ import org.telegram.ui.ContentPreviewViewer;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.Gifts.GiftSheet;
 import org.ushastoe.fluffy.hooks.ChatEnterSpoilerMenuHook;
+import org.ushastoe.fluffy.hooks.ChatPersistentAttachButtonHook;
 import org.ushastoe.fluffy.hooks.CloudGifCaptionHook;
 import org.telegram.ui.GroupStickersActivity;
 import org.telegram.ui.LaunchActivity;
@@ -3343,6 +3344,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             sendMessage();
         });
         sendButton.setOnLongClickListener(this::onSendLongClick);
+        onFluffyPersistentAttachButtonReady();
 //        ScaleStateListAnimator.apply(sendButton);
 
         slowModeButton = new SlowModeBtn(context);
@@ -4586,6 +4588,10 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     private boolean onFluffyEmojiButtonLongClick(View anchor) {
         return ChatEnterSpoilerMenuHook.onEmojiButtonLongClick(this, anchor, getContext(), resourcesProvider, messageEditText);
+    }
+
+    private void onFluffyPersistentAttachButtonReady() {
+        ChatPersistentAttachButtonHook.attach(this);
     }
 
     private ActionBarMenuSubItem actionScheduleButton;
