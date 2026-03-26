@@ -129,6 +129,15 @@ jobs:
           set -euo pipefail
           mkdir -p fluffyGram_dev
 
+          if [ -z "${{ secrets.FLUFFY_SYNC_BACKEND_URL }}" ]; then
+            echo "Missing FLUFFY_SYNC_BACKEND_URL secret" >&2
+            exit 1
+          fi
+          if [ -z "${{ secrets.FLUFFY_SYNC_HELPER_BOT }}" ]; then
+            echo "Missing FLUFFY_SYNC_HELPER_BOT secret" >&2
+            exit 1
+          fi
+
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fluffyGram_dev/ushastoe-release.keystore
 
           cat > fluffyGram_dev/devlocal.properties <<EOF
