@@ -6,8 +6,8 @@ import android.text.Spanned;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.ushastoe.fluffy.utils.MessageTimeIconSpanFactory;
 
 public final class ScheduledMessageIndicatorPatch {
 
@@ -32,9 +32,7 @@ public final class ScheduledMessageIndicatorPatch {
             int iconRes = mode == AppearanceSettingsPatch.SCHEDULED_MARKER_MODE_ICON_SCHEDULE
                     ? R.drawable.input_schedule
                     : R.drawable.msg_calendar2;
-            ColoredImageSpan span = new ColoredImageSpan(iconRes, ColoredImageSpan.ALIGN_DEFAULT);
-            span.setRelativeSize(Theme.chat_timePaint.getFontMetricsInt());
-            span.setTopOffset(1);
+            ColoredImageSpan span = MessageTimeIconSpanFactory.create(iconRes);
             builder.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return builder;
         }

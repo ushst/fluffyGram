@@ -111,6 +111,7 @@ import org.telegram.ui.TopicsFragment;
 import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.hooks.LocalMessageArchiveHook;
 import org.ushastoe.fluffy.hooks.UnlimitedPinsHook;
 
 import java.io.File;
@@ -11525,6 +11526,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 return;
             }
         }
+        LocalMessageArchiveHook.restoreDeletedMessages(dialogId, threadMessageId, mode, messagesRes.messages);
         int size = messagesRes.messages.size();
         if (!isCache) {
             Integer inboxValue = dialogs_read_inbox_max.get(dialogId);

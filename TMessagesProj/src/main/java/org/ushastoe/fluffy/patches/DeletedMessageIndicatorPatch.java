@@ -6,8 +6,8 @@ import android.text.Spanned;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.ushastoe.fluffy.utils.MessageTimeIconSpanFactory;
 
 public final class DeletedMessageIndicatorPatch {
 
@@ -21,17 +21,19 @@ public final class DeletedMessageIndicatorPatch {
             return "";
         }
         String time = LocaleController.getInstance().getFormatterDay().format((long) messageObject.messageOwner.date * 1000);
-        if (PremiumSettingsPatch.getDeletedMessageMarkerMode() == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT) {
+        int mode = PremiumSettingsPatch.getDeletedMessageMarkerMode();
+        if (mode == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT) {
             return LocaleController.getString(R.string.FluffyDeletedMessageMarkerText) + " " + time;
+        }
+        if (mode == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT) {
+            return LocaleController.getString(R.string.FluffyDeletedMessageMarkerShortText) + " " + time;
         }
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append(ICON_PLACEHOLDER);
         builder.append(" ");
         builder.append(time);
 
-        ColoredImageSpan span = new ColoredImageSpan(R.drawable.msg_delete, ColoredImageSpan.ALIGN_DEFAULT);
-        span.setRelativeSize(Theme.chat_timePaint.getFontMetricsInt());
-        span.setTopOffset(1);
+        ColoredImageSpan span = MessageTimeIconSpanFactory.create(R.drawable.msg_delete);
         builder.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return builder;
     }

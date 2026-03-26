@@ -16,7 +16,8 @@ public final class PremiumSettingsPatch {
     private static final String KEY_DELETED_MESSAGE_MARKER_MODE = "deleted_message_marker_mode";
 
     public static final int DELETED_MESSAGE_MARKER_MODE_TEXT = 0;
-    public static final int DELETED_MESSAGE_MARKER_MODE_ICON = 1;
+    public static final int DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT = 1;
+    public static final int DELETED_MESSAGE_MARKER_MODE_ICON = 2;
 
     private PremiumSettingsPatch() {
     }
@@ -110,7 +111,12 @@ public final class PremiumSettingsPatch {
     }
 
     private static int clampDeletedMessageMarkerMode(int mode) {
-        return mode == DELETED_MESSAGE_MARKER_MODE_TEXT ? DELETED_MESSAGE_MARKER_MODE_TEXT : DELETED_MESSAGE_MARKER_MODE_ICON;
+        if (mode == DELETED_MESSAGE_MARKER_MODE_TEXT
+                || mode == DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT
+                || mode == DELETED_MESSAGE_MARKER_MODE_ICON) {
+            return mode;
+        }
+        return DELETED_MESSAGE_MARKER_MODE_ICON;
     }
 
     private static SharedPreferences getPreferences() {

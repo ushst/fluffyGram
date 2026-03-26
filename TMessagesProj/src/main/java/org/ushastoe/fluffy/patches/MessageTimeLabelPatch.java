@@ -5,8 +5,8 @@ import android.text.Spanned;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.ushastoe.fluffy.utils.MessageTimeIconSpanFactory;
 
 public final class MessageTimeLabelPatch {
     private static final String SILENT_ICON_PLACEHOLDER = "m";
@@ -51,9 +51,7 @@ public final class MessageTimeLabelPatch {
             int iconRes = mode == AppearanceSettingsPatch.SILENT_MARKER_MODE_ICON_MUTE
                     ? R.drawable.msg_mute
                     : R.drawable.input_notify_off;
-            ColoredImageSpan span = new ColoredImageSpan(iconRes, ColoredImageSpan.ALIGN_DEFAULT);
-            span.setRelativeSize(Theme.chat_timePaint.getFontMetricsInt());
-            span.setTopOffset(1);
+            ColoredImageSpan span = MessageTimeIconSpanFactory.create(iconRes);
             builder.setSpan(span, start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return;
         }
@@ -72,9 +70,7 @@ public final class MessageTimeLabelPatch {
             int iconRes = mode == AppearanceSettingsPatch.EDITED_MARKER_MODE_ICON_EDIT
                     ? R.drawable.msg_edit
                     : R.drawable.menu_edited_stamp;
-            ColoredImageSpan span = new ColoredImageSpan(iconRes, ColoredImageSpan.ALIGN_DEFAULT);
-            span.setRelativeSize(Theme.chat_timePaint.getFontMetricsInt());
-            span.setTopOffset(1);
+            ColoredImageSpan span = MessageTimeIconSpanFactory.create(iconRes);
             builder.setSpan(span, start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return;
         }

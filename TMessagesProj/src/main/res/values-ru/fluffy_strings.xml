@@ -24,8 +24,10 @@
     <string name="FluffySaveDeletedMessagesEnabledInfo">Оставляет удалённые сообщения видимыми в текущем сеансе чата и сохраняет их последний локальный снимок на этом устройстве.</string>
     <string name="FluffyDeletedMessageMarkerMode">Стиль пометки удалённого сообщения</string>
     <string name="FluffyDeletedMessageMarkerModeText">Текст</string>
+    <string name="FluffyDeletedMessageMarkerModeShortText">Сокращение</string>
     <string name="FluffyDeletedMessageMarkerModeIcon">Значок</string>
     <string name="FluffyDeletedMessageMarkerText">удалено</string>
+    <string name="FluffyDeletedMessageMarkerShortText">удл</string>
     <string name="FluffyPremiumAccessGranted">Premium-доступ активирован.</string>
     <string name="FluffyPremiumAccessDenied">Недействительный токен premium-доступа.</string>
     <string name="FluffyPremiumGoToSettings">Открыть Fluffy-настройки</string>

@@ -229,9 +229,14 @@ public class FluffyPremiumActivity extends BaseFragment {
     }
 
     private CharSequence getDeletedMessageMarkerModeValue() {
-        return PremiumSettingsHook.getDeletedMessageMarkerMode() == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT
-                ? LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeText)
-                : LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon);
+        int mode = PremiumSettingsHook.getDeletedMessageMarkerMode();
+        if (mode == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT) {
+            return LocaleController.getString(R.string.FluffyDeletedMessageMarkerText);
+        }
+        if (mode == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT) {
+            return LocaleController.getString(R.string.FluffyDeletedMessageMarkerShortText);
+        }
+        return LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon);
     }
 
     private void showDeletedMessageMarkerModeDialog() {
@@ -239,13 +244,21 @@ public class FluffyPremiumActivity extends BaseFragment {
             return;
         }
         CharSequence[] items = new CharSequence[]{
-                LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeText),
+                LocaleController.getString(R.string.FluffyDeletedMessageMarkerText),
+                LocaleController.getString(R.string.FluffyDeletedMessageMarkerShortText),
                 LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon)
         };
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
         builder.setTitle(LocaleController.getString(R.string.FluffyDeletedMessageMarkerMode));
         builder.setItems(items, (dialog, which) -> {
-            int mode = which == 0 ? PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT : PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_ICON;
+            int mode;
+            if (which == 0) {
+                mode = PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT;
+            } else if (which == 1) {
+                mode = PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT;
+            } else {
+                mode = PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_ICON;
+            }
             PremiumSettingsHook.setDeletedMessageMarkerMode(mode);
             updateItems();
         });

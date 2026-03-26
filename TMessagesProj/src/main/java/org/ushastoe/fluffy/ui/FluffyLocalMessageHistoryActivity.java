@@ -76,19 +76,27 @@ public class FluffyLocalMessageHistoryActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
+        long deletedAt = getDeletedAt();
         if (sourceMessage != null) {
-            items.add(new ItemInner(LocaleController.getString(R.string.FluffyLocalMessageHistoryCurrent), cloneForHistory(sourceMessage, LocalMessageArchivePatch.getCurrentText(sourceMessage), sourceMessage.messageOwner != null ? sourceMessage.messageOwner.date : 0)));
+            MessageObject current = cloneForHistory(sourceMessage, LocalMessageArchivePatch.getCurrentText(sourceMessage), sourceMessage.messageOwner != null ? sourceMessage.messageOwner.date : 0);
+            LocalMessageArchivePatch.setHistoryDeletedOverride(current, LocalMessageArchivePatch.isLocallyDeleted(sourceMessage));
+            items.add(new ItemInner(LocaleController.getString(R.string.FluffyLocalMessageHistoryCurrent), current));
         }
 
         long dialogId = getHistoryDialogId();
         int messageId = getHistoryMessageId();
         ArrayList<LocalMessageArchiveStore.Entry> history = LocalMessageArchiveStore.getHistory(dialogId, messageId);
         if (history.isEmpty()) {
-            items.add(new ItemInner(LocaleController.getString(R.string.FluffyLocalMessageHistoryEmpty), cloneForHistory(sourceMessage, LocaleController.getString(R.string.FluffyLocalMessageHistoryEmptyInfo), sourceMessage != null && sourceMessage.messageOwner != null ? sourceMessage.messageOwner.date : 0)));
+            MessageObject empty = cloneForHistory(sourceMessage, LocaleController.getString(R.string.FluffyLocalMessageHistoryEmptyInfo), sourceMessage != null && sourceMessage.messageOwner != null ? sourceMessage.messageOwner.date : 0);
+            LocalMessageArchivePatch.setHistoryDeletedOverride(empty, false);
+            items.add(new ItemInner(LocaleController.getString(R.string.FluffyLocalMessageHistoryEmpty), empty));
         } else {
             for (int i = 0; i < history.size(); i++) {
                 LocalMessageArchiveStore.Entry entry = history.get(i);
-                items.add(new ItemInner(LocalMessageArchivePatch.getArchiveEntryTitle(entry), cloneForHistory(sourceMessage, getDisplayText(entry.text), entry.savedAt)));
+                MessageObject historyMessage = cloneForHistory(sourceMessage, getDisplayText(entry.text), entry.savedAt);
+                boolean showDeleted = shouldShowDeletedMarker(entry, deletedAt);
+                LocalMessageArchivePatch.setHistoryDeletedOverride(historyMessage, showDeleted);
+                items.add(new ItemInner(LocalMessageArchivePatch.getArchiveEntryTitle(entry), historyMessage));
             }
         }
         if (adapter != null) {
@@ -106,6 +114,29 @@ public class FluffyLocalMessageHistoryActivity extends BaseFragment {
 
     private String getDisplayText(String text) {
         return TextUtils.isEmpty(text) ? LocaleController.getString(R.string.FluffyLocalMessageHistoryNoText) : text;
+    }
+
+    private long getDeletedAt() {
+        long dialogId = getHistoryDialogId();
+        int messageId = getHistoryMessageId();
+        ArrayList<LocalMessageArchiveStore.Entry> history = LocalMessageArchiveStore.getHistory(dialogId, messageId);
+        for (int i = 0; i < history.size(); i++) {
+            LocalMessageArchiveStore.Entry entry = history.get(i);
+            if (LocalMessageArchiveStore.SOURCE_DELETED.equals(entry.source)) {
+                return entry.savedAt;
+            }
+        }
+        return 0L;
+    }
+
+    private boolean shouldShowDeletedMarker(LocalMessageArchiveStore.Entry entry, long deletedAt) {
+        if (entry == null) {
+            return false;
+        }
+        if (LocalMessageArchiveStore.SOURCE_DELETED.equals(entry.source)) {
+            return true;
+        }
+        return deletedAt > 0 && entry.savedAt >= deletedAt;
     }
 
     private MessageObject cloneForHistory(MessageObject template, String text, int date) {

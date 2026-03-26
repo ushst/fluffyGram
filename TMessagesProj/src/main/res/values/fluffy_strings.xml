@@ -24,8 +24,10 @@
     <string name="FluffySaveDeletedMessagesEnabledInfo">Keeps deleted messages visible in the current chat session and saves their last local snapshot on this device.</string>
     <string name="FluffyDeletedMessageMarkerMode">Deleted message label style</string>
     <string name="FluffyDeletedMessageMarkerModeText">Text</string>
+    <string name="FluffyDeletedMessageMarkerModeShortText">Abbreviation</string>
     <string name="FluffyDeletedMessageMarkerModeIcon">Icon</string>
     <string name="FluffyDeletedMessageMarkerText">deleted</string>
+    <string name="FluffyDeletedMessageMarkerShortText">del</string>
     <string name="FluffyCloudSection">Cloud Settings</string>
     <string name="FluffyCloud">Cloud Settings</string>
     <string name="FluffyCloudInfo">Sync supported Fluffy and Telegram preferences across your devices.</string>

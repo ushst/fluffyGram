@@ -13593,6 +13593,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<Pair<Long, Integer>> idsToDelete = new ArrayList<>();
                 ArrayList<TopicsController.TopicUpdate> topicUpdatesInUi = null;
                 ArrayList<TLRPC.Message> deletedMessages = currentUser == dialogId || dialogId == 0 ? new ArrayList<>() : null;
+                boolean preserveLocallyDeletedMessages = LocalMessageArchiveHook.shouldCaptureDeletedMessages();
 
                 if (dialogId != 0) {
                     cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, data, read_state, out, mention, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));
@@ -13611,7 +13612,7 @@ public class MessagesStorage extends BaseController {
                             messagesByDialogs.put(did, mids);
                         }
                         mids.add(mid);
-                        if (did != currentUser) {
+                        if (!preserveLocallyDeletedMessages && did != currentUser) {
                             int read_state = cursor.intValue(2);
                             if (cursor.intValue(3) == 0) {
                                 Integer[] unread_count = dialogsToUpdate.get(did);
@@ -13627,13 +13628,15 @@ public class MessagesStorage extends BaseController {
                                 }
                             }
                         }
-                        if (!DialogObject.isEncryptedDialog(did) && !deleteFiles && did != currentUser) {
+                        if (!DialogObject.isEncryptedDialog(did) && !deleteFiles && did != currentUser && !LocalMessageArchiveHook.shouldCaptureDeletedMessages()) {
                             continue;
                         }
                         NativeByteBuffer data = cursor.byteBufferValue(1);
                         if (data != null) {
                             TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                             message.readAttachPath(data, currentUser);
+                            message.dialog_id = did;
+                            LocalMessageArchiveHook.captureDeletedMessage(message, 0);
                             if (deletedMessages != null) {
                                 deletedMessages.add(message);
                             }
@@ -13676,7 +13679,9 @@ public class MessagesStorage extends BaseController {
                             if (data != null) {
                                 TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                                 message.readAttachPath(data, getUserConfig().clientUserId);
+                                message.dialog_id = did;
                                 data.reuse();
+                                LocalMessageArchiveHook.captureDeletedMessage(message, MessageObject.getTopicId(currentAccount, message, getForumTypeFlags(did)));
                                 addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
                                 if (message.action instanceof TLRPC.TL_messageActionTopicCreate) {
                                     if (topicsToDelete == null) {
@@ -13686,7 +13691,7 @@ public class MessagesStorage extends BaseController {
                                 }
                                 topicId = MessageObject.getTopicId(currentAccount, message, getForumTypeFlags(did));
                             }
-                            if (topicId != 0) {
+                            if (!preserveLocallyDeletedMessages && topicId != 0) {
                                 TopicKey topicKey = TopicKey.of(dialogId, topicId);
 
                                 int read_state = cursor.intValue(2);
@@ -13878,11 +13883,13 @@ public class MessagesStorage extends BaseController {
                         cursor.dispose();
                         cursor = null;
                     }
-                    database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
-                    database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
-                    database.executeFast(String.format(Locale.US, "DELETE FROM polls_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
-                    database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
-                    database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    if (!preserveLocallyDeletedMessages) {
+                        database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM polls_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    }
                     if (unknownMessages.isEmpty()) {
                         cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, type FROM media_v4 WHERE mid IN(%s) AND uid = %d", ids, did));
                         SparseArray<LongSparseArray<Integer>> mediaCounts = null;
@@ -13999,8 +14006,10 @@ public class MessagesStorage extends BaseController {
                             state = null;
                         }
                     }
-                    database.executeFast(String.format(Locale.US, "DELETE FROM media_v4 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
-                    database.executeFast(String.format(Locale.US, "DELETE FROM media_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    if (!preserveLocallyDeletedMessages) {
+                        database.executeFast(String.format(Locale.US, "DELETE FROM media_v4 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM media_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    }
                 }
                 if (!savedMessagesByDialogs.isEmpty()) {
                     AndroidUtilities.runOnUIThread(() -> getMessagesController().getSavedMessagesController().updateDeleted(savedMessagesByDialogs));

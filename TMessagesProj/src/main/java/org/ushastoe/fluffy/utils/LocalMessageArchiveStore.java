@@ -11,24 +11,32 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ChatActivity;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 
 public final class LocalMessageArchiveStore {
 
     private static final String DATABASE_NAME = "fluffy_local_message_archive.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_ENTRIES = "message_archive_entries";
     private static final String TABLE_META = "message_archive_meta";
+    private static final String TABLE_DELETED_SNAPSHOTS = "deleted_message_snapshots";
 
     private static final String COL_SEQ = "seq";
     private static final String COL_DIALOG_ID = "dialog_id";
     private static final String COL_MESSAGE_ID = "message_id";
+    private static final String COL_TOPIC_ID = "topic_id";
     private static final String COL_TEXT = "text";
     private static final String COL_SAVED_AT = "saved_at";
     private static final String COL_SOURCE = "source";
+    private static final String COL_MESSAGE_DATA = "message_data";
 
     private static final String META_KEY = "meta_key";
     private static final String META_VALUE = "meta_value";
@@ -151,6 +159,92 @@ public final class LocalMessageArchiveStore {
         }
     }
 
+    public static void putDeletedSnapshot(TLRPC.Message message, long topicId) {
+        if (message == null || message.id == 0) {
+            return;
+        }
+        byte[] data = serializeMessage(message);
+        if (data == null || data.length == 0) {
+            return;
+        }
+        synchronized (LOCK) {
+            SQLiteDatabase database = getDatabaseLocked();
+            database.beginTransaction();
+            try {
+                ContentValues values = new ContentValues();
+                values.put(COL_DIALOG_ID, message.dialog_id);
+                values.put(COL_MESSAGE_ID, message.id);
+                values.put(COL_TOPIC_ID, topicId);
+                values.put(COL_SAVED_AT, Math.max(message.edit_date, message.date));
+                values.put(COL_MESSAGE_DATA, data);
+                database.insertWithOnConflict(TABLE_DELETED_SNAPSHOTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
+            }
+        }
+    }
+
+    public static void restoreDeletedMessages(long dialogId, long topicId, int mode, ArrayList<TLRPC.Message> messages) {
+        if (mode != ChatActivity.MODE_DEFAULT && mode != ChatActivity.MODE_SAVED) {
+            return;
+        }
+        if (messages == null) {
+            return;
+        }
+        synchronized (LOCK) {
+            SQLiteDatabase database = getDatabaseLocked();
+            Cursor cursor = null;
+            HashSet<Integer> existingIds = new HashSet<>();
+            for (int i = 0; i < messages.size(); i++) {
+                existingIds.add(messages.get(i).id);
+            }
+            ArrayList<TLRPC.Message> restored = new ArrayList<>();
+            try {
+                String selection = COL_DIALOG_ID + " = ?";
+                ArrayList<String> args = new ArrayList<>();
+                args.add(String.valueOf(dialogId));
+                if (topicId != 0) {
+                    selection += " AND " + COL_TOPIC_ID + " = ?";
+                    args.add(String.valueOf(topicId));
+                } else {
+                    selection += " AND (" + COL_TOPIC_ID + " = 0 OR " + COL_TOPIC_ID + " IS NULL)";
+                }
+                cursor = database.query(TABLE_DELETED_SNAPSHOTS,
+                        new String[]{COL_MESSAGE_ID, COL_MESSAGE_DATA},
+                        selection,
+                        args.toArray(new String[0]),
+                        null, null, COL_SAVED_AT + " DESC");
+                while (cursor.moveToNext()) {
+                    int messageId = cursor.getInt(0);
+                    if (existingIds.contains(messageId)) {
+                        continue;
+                    }
+                    byte[] data = cursor.getBlob(1);
+                    TLRPC.Message message = deserializeMessage(data);
+                    if (message == null) {
+                        continue;
+                    }
+                    message.dialog_id = dialogId;
+                    restored.add(message);
+                    existingIds.add(messageId);
+                }
+            } finally {
+                closeCursor(cursor);
+            }
+            if (restored.isEmpty()) {
+                return;
+            }
+            messages.addAll(restored);
+            Collections.sort(messages, (left, right) -> {
+                if (left.date == right.date) {
+                    return right.id - left.id;
+                }
+                return right.date - left.date;
+            });
+        }
+    }
+
     public static long getDatabaseSizeBytes() {
         Context context = ApplicationLoader.applicationContext;
         if (context == null) {
@@ -213,6 +307,9 @@ public final class LocalMessageArchiveStore {
                 long dialogId = cursor.getLong(0);
                 int messageId = cursor.getInt(1);
                 database.delete(TABLE_ENTRIES,
+                        COL_DIALOG_ID + " = ? AND " + COL_MESSAGE_ID + " = ?",
+                        new String[]{String.valueOf(dialogId), String.valueOf(messageId)});
+                database.delete(TABLE_DELETED_SNAPSHOTS,
                         COL_DIALOG_ID + " = ? AND " + COL_MESSAGE_ID + " = ?",
                         new String[]{String.valueOf(dialogId), String.valueOf(messageId)});
                 count--;
@@ -357,6 +454,35 @@ public final class LocalMessageArchiveStore {
         }
     }
 
+    private static byte[] serializeMessage(TLRPC.Message message) {
+        try {
+            SerializedData data = new SerializedData(message.getObjectSize());
+            message.serializeToStream(data);
+            byte[] bytes = data.toByteArray();
+            data.cleanup();
+            return bytes;
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
+    private static TLRPC.Message deserializeMessage(byte[] data) {
+        if (data == null || data.length == 0) {
+            return null;
+        }
+        SerializedData serializedData = null;
+        try {
+            serializedData = new SerializedData(data);
+            return TLRPC.Message.TLdeserialize(serializedData, serializedData.readInt32(true), true);
+        } catch (Exception ignore) {
+            return null;
+        } finally {
+            if (serializedData != null) {
+                serializedData.cleanup();
+            }
+        }
+    }
+
     public static final class Entry {
         public String text;
         public int savedAt;
@@ -396,6 +522,15 @@ public final class LocalMessageArchiveStore {
             db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_META + " (" +
                     META_KEY + " TEXT PRIMARY KEY, " +
                     META_VALUE + " TEXT)");
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_DELETED_SNAPSHOTS + " (" +
+                    COL_DIALOG_ID + " INTEGER NOT NULL, " +
+                    COL_MESSAGE_ID + " INTEGER NOT NULL, " +
+                    COL_TOPIC_ID + " INTEGER NOT NULL DEFAULT 0, " +
+                    COL_SAVED_AT + " INTEGER NOT NULL DEFAULT 0, " +
+                    COL_MESSAGE_DATA + " BLOB NOT NULL, " +
+                    "PRIMARY KEY (" + COL_DIALOG_ID + ", " + COL_MESSAGE_ID + "))");
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_deleted_snapshots_dialog_topic ON " + TABLE_DELETED_SNAPSHOTS +
+                    " (" + COL_DIALOG_ID + ", " + COL_TOPIC_ID + ", " + COL_SAVED_AT + " DESC)");
         }
 
         @Override
