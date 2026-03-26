@@ -15,6 +15,9 @@ public final class MessageTranslitMenuHook {
 
     public static void appendOption(ArrayList<CharSequence> items, ArrayList<Integer> options,
             ArrayList<Integer> icons, MessageObject selectedMessage) {
+        if (!MessageActionsHook.isMessageTranslitEnabled()) {
+            return;
+        }
         MessageTranslitMenuPatch.appendOptions(items, options, icons, selectedMessage, OPTION_TRANSLIT);
     }
 

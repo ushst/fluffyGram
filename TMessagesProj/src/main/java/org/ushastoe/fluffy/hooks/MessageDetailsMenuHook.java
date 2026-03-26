@@ -7,6 +7,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.ushastoe.fluffy.ui.FluffyMessageDetailsActivity;
+import org.ushastoe.fluffy.hooks.MessageActionsHook;
 
 public final class MessageDetailsMenuHook {
 
@@ -18,6 +19,9 @@ public final class MessageDetailsMenuHook {
     public static void appendOption(ArrayList<CharSequence> items, ArrayList<Integer> options,
             ArrayList<Integer> icons, MessageObject selectedMessage) {
         if (items == null || options == null || icons == null || selectedMessage == null || selectedMessage.messageOwner == null) {
+            return;
+        }
+        if (!MessageActionsHook.isMessageDetailsEnabled()) {
             return;
         }
         items.add(LocaleController.getString(R.string.MessageDetails));
