@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -235,12 +234,14 @@ public final class ChatHeaderCenteringPatch {
         if (!AppearanceSettingsPatch.isCenterChatHeaderEnabled() || parentFragment == null) {
             return false;
         }
-        if (parentFragment.getChatMode() == ChatActivity.MODE_SAVED || parentFragment.isReplyChatComment()) {
+        if (parentFragment.isReplyChatComment()) {
             return false;
         }
         long dialogId = parentFragment.getDialogId();
-        long selfId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
-        return dialogId != 0 && dialogId != selfId && dialogId != UserObject.REPLY_BOT;
+        if (dialogId == 0 || dialogId == UserObject.REPLY_BOT) {
+            return false;
+        }
+        return true;
     }
 
     private static ChatActivity getParentFragment(ChatAvatarContainer container) {
