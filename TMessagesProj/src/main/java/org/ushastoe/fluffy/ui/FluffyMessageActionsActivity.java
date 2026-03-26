@@ -20,6 +20,7 @@ import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.MessageActionsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 
@@ -43,9 +44,9 @@ public class FluffyMessageActionsActivity extends BaseFragment {
 
     private static final int ROW_ACTIONS_HEADER = 0;
     private static final int ROW_ACTIONS_INFO = 1;
-    // Add new message action rows here as they are implemented
-    // private static final int ROW_FEATURE_A = 1;
-    // private static final int ROW_FEATURE_B = 2;
+    private static final int ROW_MESSAGE_DETAILS = 2;
+    private static final int ROW_MESSAGE_TRANSLIT = 3;
+    private static final int ROW_LOCAL_MESSAGE_HISTORY = 4;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -93,11 +94,25 @@ public class FluffyMessageActionsActivity extends BaseFragment {
                 return;
             }
             ItemInner item = items.get(position);
-            // Handle individual feature toggles here
-            // Example:
-            // if (item.id == ROW_FEATURE_A) {
-            //     toggleFeatureA();
-            // }
+            if (item.id == ROW_MESSAGE_DETAILS) {
+                boolean enabled = !MessageActionsHook.isMessageDetailsEnabled();
+                MessageActionsHook.setMessageDetailsEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_MESSAGE_TRANSLIT) {
+                boolean enabled = !MessageActionsHook.isMessageTranslitEnabled();
+                MessageActionsHook.setMessageTranslitEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_LOCAL_MESSAGE_HISTORY) {
+                boolean enabled = !MessageActionsHook.isLocalMessageHistoryEnabled();
+                MessageActionsHook.setLocalMessageHistoryEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -112,14 +127,9 @@ public class FluffyMessageActionsActivity extends BaseFragment {
     private void updateItems() {
         items.clear();
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_ACTIONS_HEADER, LocaleController.getString(R.string.FluffyInteractionFunctions), false));
-        
-        // Add message action toggles here when implemented
-        // Example:
-        // items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_FEATURE_A, 
-        //     LocaleController.getString(R.string.FeatureAName), 
-        //     null, 
-        //     MessageActionsHook.isFeatureAEnabled() ? 1 : 0));
-        
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_MESSAGE_DETAILS, LocaleController.getString(R.string.MessageDetails), MessageActionsHook.isMessageDetailsEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_MESSAGE_TRANSLIT, LocaleController.getString(R.string.FluffyMessageTranslit), MessageActionsHook.isMessageTranslitEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_LOCAL_MESSAGE_HISTORY, LocaleController.getString(R.string.FluffyLocalMessageHistoryAction), MessageActionsHook.isLocalMessageHistoryEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_ACTIONS_INFO, LocaleController.getString(R.string.FluffyMessageActionsHelp), false));
         
         if (adapter != null) {
@@ -137,6 +147,16 @@ public class FluffyMessageActionsActivity extends BaseFragment {
     private boolean copyDeepLinkForPosition(int position) {
         if (position < 0 || position >= items.size()) {
             return false;
+        }
+        ItemInner item = items.get(position);
+        if (item.id == ROW_MESSAGE_DETAILS) {
+            return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions", "details"));
+        }
+        if (item.id == ROW_MESSAGE_TRANSLIT) {
+            return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions", "translit"));
+        }
+        if (item.id == ROW_LOCAL_MESSAGE_HISTORY) {
+            return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions", "local-history"));
         }
         return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions"));
     }
@@ -169,6 +189,15 @@ public class FluffyMessageActionsActivity extends BaseFragment {
         String target = args.getString(ARG_TARGET);
         if ("actions".equals(target) || "message_actions".equals(target)) {
             return ROW_ACTIONS_HEADER;
+        }
+        if ("details".equals(target)) {
+            return ROW_MESSAGE_DETAILS;
+        }
+        if ("translit".equals(target)) {
+            return ROW_MESSAGE_TRANSLIT;
+        }
+        if ("local-history".equals(target)) {
+            return ROW_LOCAL_MESSAGE_HISTORY;
         }
         return -1;
     }

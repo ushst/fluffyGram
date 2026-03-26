@@ -22,19 +22,28 @@ public final class MessageActionsHook {
     private MessageActionsHook() {
     }
 
-    // ============================================
-    // Template for new message action features
-    // ============================================
-    // Uncomment and customize for each new feature:
-    //
-    // public static boolean isMyFeatureEnabled() {
-    //     return MessageActionsPatch.isMyFeatureEnabled();
-    // }
-    //
-    // public static void setMyFeatureEnabled(boolean enabled) {
-    //     MessageActionsPatch.setMyFeatureEnabled(enabled);
-    // }
-    //
-    // ============================================
+    public static boolean isMessageDetailsEnabled() {
+        return MessageActionsPatch.isMessageDetailsEnabled();
+    }
+
+    public static void setMessageDetailsEnabled(boolean enabled) {
+        MessageActionsPatch.setMessageDetailsEnabled(enabled);
+    }
+
+    public static boolean isMessageTranslitEnabled() {
+        return MessageActionsPatch.isMessageTranslitEnabled();
+    }
+
+    public static void setMessageTranslitEnabled(boolean enabled) {
+        MessageActionsPatch.setMessageTranslitEnabled(enabled);
+    }
+
+    public static boolean isLocalMessageHistoryEnabled() {
+        return MessageActionsPatch.isLocalMessageHistoryEnabled();
+    }
+
+    public static void setLocalMessageHistoryEnabled(boolean enabled) {
+        MessageActionsPatch.setLocalMessageHistoryEnabled(enabled);
+    }
 
 }

@@ -1,7 +1,8 @@
 package org.ushastoe.fluffy.patches;
 
-import org.telegram.messenger.MessagesController;
 import android.content.SharedPreferences;
+
+import org.telegram.messenger.MessagesController;
 
 /**
  * Patch for message action settings storage and logic.
@@ -19,6 +20,10 @@ import android.content.SharedPreferences;
  */
 public final class MessageActionsPatch {
 
+    private static final String KEY_MESSAGE_DETAILS_ENABLED = "message_details_enabled";
+    private static final String KEY_MESSAGE_TRANSLIT_ENABLED = "message_translit_enabled";
+    private static final String KEY_LOCAL_MESSAGE_HISTORY_ENABLED = "local_message_history_enabled";
+
     private MessageActionsPatch() {
     }
 
@@ -27,28 +32,31 @@ public final class MessageActionsPatch {
     // ============================================
 
     private static SharedPreferences getPreferences() {
-        return MessagesController.getInstance(0).getMainSettings();
+        return MessagesController.getGlobalMainSettings();
     }
 
-    // ============================================
-    // Template for new message action features
-    // ============================================
-    // Uncomment and customize for each new feature:
-    //
-    // public static boolean isMyFeatureEnabled() {
-    //     return getPreferences().getBoolean("my_feature_enabled", true);
-    // }
-    //
-    // public static void setMyFeatureEnabled(boolean enabled) {
-    //     getPreferences().edit()
-    //         .putBoolean("my_feature_enabled", enabled)
-    //         .apply();
-    // }
-    //
-    // public static void applyMyFeatureLogic(Object... params) {
-    //     // Full feature implementation here
-    // }
-    //
-    // ============================================
+    public static boolean isMessageDetailsEnabled() {
+        return getPreferences().getBoolean(KEY_MESSAGE_DETAILS_ENABLED, true);
+    }
+
+    public static void setMessageDetailsEnabled(boolean enabled) {
+        getPreferences().edit().putBoolean(KEY_MESSAGE_DETAILS_ENABLED, enabled).apply();
+    }
+
+    public static boolean isMessageTranslitEnabled() {
+        return getPreferences().getBoolean(KEY_MESSAGE_TRANSLIT_ENABLED, true);
+    }
+
+    public static void setMessageTranslitEnabled(boolean enabled) {
+        getPreferences().edit().putBoolean(KEY_MESSAGE_TRANSLIT_ENABLED, enabled).apply();
+    }
+
+    public static boolean isLocalMessageHistoryEnabled() {
+        return getPreferences().getBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, true);
+    }
+
+    public static void setLocalMessageHistoryEnabled(boolean enabled) {
+        getPreferences().edit().putBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, enabled).apply();
+    }
 
 }

@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -36,6 +37,8 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.ushastoe.fluffy.hooks.UpdateCheckSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
+import org.ushastoe.fluffy.utils.LocalMessageArchiveStore;
+import org.ushastoe.fluffy.utils.LocalMessageFakeEditStore;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
@@ -53,11 +56,16 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int ROW_UPDATE_CHECK_MODE = 1;
     private static final int ROW_CHECK_VERSION = 2;
     private static final int ROW_SHARE_APK = 3;
-    private static final int ROW_SAVE_LOG = 4;
-    private static final int ROW_SAVE_LOG_INFO = 5;
-    private static final int ROW_GOOGLE_CLOUD_HEADER = 6;
-    private static final int ROW_GOOGLE_CLOUD_STATUS = 7;
-    private static final int ROW_GOOGLE_CLOUD_INFO = 8;
+    private static final int ROW_FIRST_INSTALL_TIME = 4;
+    private static final int ROW_LAST_UPDATE_TIME = 5;
+    private static final int ROW_LOCAL_STORAGE_HEADER = 6;
+    private static final int ROW_ARCHIVE_DB_SIZE = 7;
+    private static final int ROW_FAKE_EDIT_DB_SIZE = 8;
+    private static final int ROW_SAVE_LOG = 9;
+    private static final int ROW_SAVE_LOG_INFO = 10;
+    private static final int ROW_GOOGLE_CLOUD_HEADER = 11;
+    private static final int ROW_GOOGLE_CLOUD_STATUS = 12;
+    private static final int ROW_GOOGLE_CLOUD_INFO = 13;
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
@@ -141,6 +149,16 @@ public class FluffyDebugActivity extends BaseFragment {
             LocaleController.getString(R.string.FluffyCheckVersion), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SHARE_APK,
                 LocaleController.getString(R.string.FluffyShareApk), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FIRST_INSTALL_TIME,
+                LocaleController.getString(R.string.FluffyFirstInstallTime) + ": " + formatPackageTime(true), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_LAST_UPDATE_TIME,
+                LocaleController.getString(R.string.FluffyLastUpdateTime) + ": " + formatPackageTime(false), null));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_LOCAL_STORAGE_HEADER,
+                LocaleController.getString(R.string.FluffyLocalStorageSection), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_ARCHIVE_DB_SIZE,
+                LocaleController.getString(R.string.FluffyLocalMessageArchiveDatabaseSize) + ": " + formatDatabaseSize(LocalMessageArchiveStore.getDatabaseSizeBytes()), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FAKE_EDIT_DB_SIZE,
+                LocaleController.getString(R.string.FluffyLocalFakeEditDatabaseSize) + ": " + formatDatabaseSize(LocalMessageFakeEditStore.getDatabaseSizeBytes()), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
@@ -299,11 +317,34 @@ public class FluffyDebugActivity extends BaseFragment {
         }
     }
 
+    private CharSequence formatPackageTime(boolean firstInstall) {
+        Activity activity = getParentActivity();
+        if (activity == null) {
+            return LocaleController.getString(R.string.FluffyStatusUnavailable);
+        }
+        try {
+            PackageInfo packageInfo = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+            long timestamp = firstInstall ? packageInfo.firstInstallTime : packageInfo.lastUpdateTime;
+            return LocaleController.formatString(
+                    R.string.formatDateAtTime,
+                    LocaleController.getInstance().getFormatterYearMax().format(timestamp),
+                    LocaleController.getInstance().getFormatterDay().format(timestamp)
+            );
+        } catch (Exception e) {
+            FileLog.e(e);
+            return LocaleController.getString(R.string.FluffyStatusUnavailable);
+        }
+    }
+
     private String maskToken(String token) {
         if (TextUtils.isEmpty(token) || token.length() <= 8) {
             return token;
         }
         return token.substring(0, 4) + "..." + token.substring(token.length() - 4);
+    }
+
+    private CharSequence formatDatabaseSize(long size) {
+        return size > 0 ? AndroidUtilities.formatFileSize(size) : "0 B";
     }
 
     private boolean copyDeepLinkForPosition(int position) {
@@ -320,6 +361,8 @@ public class FluffyDebugActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "share-apk");
         } else if (item.id == ROW_SAVE_LOG || item.id == ROW_SAVE_LOG_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
+        } else if (item.id == ROW_LOCAL_STORAGE_HEADER || item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "local-storage");
         } else if (item.id == ROW_GOOGLE_CLOUD_HEADER || item.id == ROW_GOOGLE_CLOUD_STATUS || item.id == ROW_GOOGLE_CLOUD_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "google-cloud");
         } else {
@@ -364,6 +407,8 @@ public class FluffyDebugActivity extends BaseFragment {
                 return ROW_CHECK_VERSION;
             case "share-apk":
                 return ROW_SHARE_APK;
+            case "local-storage":
+                return ROW_ARCHIVE_DB_SIZE;
             case "save-log":
                 return ROW_SAVE_LOG;
             case "google-cloud":
@@ -404,8 +449,12 @@ public class FluffyDebugActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            int type = holder.getItemViewType();
-            return type == VIEW_TYPE_TEXT;
+            int position = holder.getAdapterPosition();
+            if (position < 0 || position >= items.size()) {
+                return false;
+            }
+            ItemInner item = items.get(position);
+            return item.viewType == VIEW_TYPE_TEXT;
         }
 
         @Override

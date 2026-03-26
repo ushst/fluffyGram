@@ -14,15 +14,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.PremiumSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
+import org.ushastoe.fluffy.patches.PremiumSettingsPatch;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 
 import java.util.ArrayList;
@@ -34,10 +37,18 @@ public class FluffyPremiumActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_INFO = 2;
+    private static final int VIEW_TYPE_SETTING = 3;
 
     private static final int ROW_PREMIUM_HEADER = 0;
     private static final int ROW_LOCAL_ANON_STORY_VIEW = 1;
     private static final int ROW_LOCAL_ANON_STORY_VIEW_INFO = 2;
+    private static final int ROW_LOCAL_MESSAGE_FAKE_EDIT = 3;
+    private static final int ROW_LOCAL_MESSAGE_FAKE_EDIT_INFO = 4;
+    private static final int ROW_LOCAL_MESSAGE_HISTORY = 5;
+    private static final int ROW_LOCAL_MESSAGE_HISTORY_INFO = 6;
+    private static final int ROW_SAVE_DELETED_MESSAGES = 7;
+    private static final int ROW_SAVE_DELETED_MESSAGES_INFO = 8;
+    private static final int ROW_DELETED_MESSAGE_MARKER_MODE = 9;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -91,6 +102,27 @@ public class FluffyPremiumActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_LOCAL_MESSAGE_FAKE_EDIT) {
+                boolean enabled = !PremiumSettingsHook.isLocalMessageFakeEditEnabled();
+                PremiumSettingsHook.setLocalMessageFakeEditEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_LOCAL_MESSAGE_HISTORY) {
+                boolean enabled = !PremiumSettingsHook.isLocalMessageHistoryEnabled();
+                PremiumSettingsHook.setLocalMessageHistoryEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_SAVE_DELETED_MESSAGES) {
+                boolean enabled = !PremiumSettingsHook.isSaveDeletedMessagesEnabled();
+                PremiumSettingsHook.setSaveDeletedMessagesEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                updateItems();
+            } else if (item.id == ROW_DELETED_MESSAGE_MARKER_MODE) {
+                showDeletedMessageMarkerModeDialog();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -115,6 +147,13 @@ public class FluffyPremiumActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_PREMIUM_HEADER, LocaleController.getString(R.string.FluffyPremiumSection), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_LOCAL_ANON_STORY_VIEW, LocaleController.getString(R.string.FluffyStoryViewAnonLocal), PremiumSettingsHook.useLocalAnonymousStoryView()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_LOCAL_ANON_STORY_VIEW_INFO, LocaleController.getString(R.string.FluffyStoryViewAnonLocalInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_LOCAL_MESSAGE_FAKE_EDIT, LocaleController.getString(R.string.FluffyLocalMessageFakeEditEnabled), PremiumSettingsHook.isLocalMessageFakeEditEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_LOCAL_MESSAGE_FAKE_EDIT_INFO, LocaleController.getString(R.string.FluffyLocalMessageFakeEditEnabledInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_LOCAL_MESSAGE_HISTORY, LocaleController.getString(R.string.FluffyLocalMessageHistoryEnabled), PremiumSettingsHook.isLocalMessageHistoryEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_LOCAL_MESSAGE_HISTORY_INFO, LocaleController.getString(R.string.FluffyLocalMessageHistoryEnabledInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SAVE_DELETED_MESSAGES, LocaleController.getString(R.string.FluffySaveDeletedMessagesEnabled), PremiumSettingsHook.isSaveDeletedMessagesEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_SETTING, ROW_DELETED_MESSAGE_MARKER_MODE, LocaleController.getString(R.string.FluffyDeletedMessageMarkerMode), false, getDeletedMessageMarkerModeValue()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_DELETED_MESSAGES_INFO, LocaleController.getString(R.string.FluffySaveDeletedMessagesEnabledInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -128,6 +167,14 @@ public class FluffyPremiumActivity extends BaseFragment {
         String link;
         if (item.id == ROW_LOCAL_ANON_STORY_VIEW || item.id == ROW_LOCAL_ANON_STORY_VIEW_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "local-anon-story-view");
+        } else if (item.id == ROW_LOCAL_MESSAGE_FAKE_EDIT || item.id == ROW_LOCAL_MESSAGE_FAKE_EDIT_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "local-message-fake-edit");
+        } else if (item.id == ROW_LOCAL_MESSAGE_HISTORY || item.id == ROW_LOCAL_MESSAGE_HISTORY_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "local-message-history");
+        } else if (item.id == ROW_SAVE_DELETED_MESSAGES || item.id == ROW_SAVE_DELETED_MESSAGES_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "save-deleted-messages");
+        } else if (item.id == ROW_DELETED_MESSAGE_MARKER_MODE) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "deleted-message-marker");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium");
         }
@@ -166,7 +213,43 @@ public class FluffyPremiumActivity extends BaseFragment {
         if ("local-anon-story-view".equals(target)) {
             return ROW_LOCAL_ANON_STORY_VIEW;
         }
+        if ("local-message-fake-edit".equals(target)) {
+            return ROW_LOCAL_MESSAGE_FAKE_EDIT;
+        }
+        if ("local-message-history".equals(target)) {
+            return ROW_LOCAL_MESSAGE_HISTORY;
+        }
+        if ("save-deleted-messages".equals(target)) {
+            return ROW_SAVE_DELETED_MESSAGES;
+        }
+        if ("deleted-message-marker".equals(target)) {
+            return ROW_DELETED_MESSAGE_MARKER_MODE;
+        }
         return -1;
+    }
+
+    private CharSequence getDeletedMessageMarkerModeValue() {
+        return PremiumSettingsHook.getDeletedMessageMarkerMode() == PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT
+                ? LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeText)
+                : LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon);
+    }
+
+    private void showDeletedMessageMarkerModeDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] items = new CharSequence[]{
+                LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeText),
+                LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyDeletedMessageMarkerMode));
+        builder.setItems(items, (dialog, which) -> {
+            int mode = which == 0 ? PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_TEXT : PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_ICON;
+            PremiumSettingsHook.setDeletedMessageMarkerMode(mode);
+            updateItems();
+        });
+        showDialog(builder.create());
     }
 
     private int findItemIndexById(int id) {
@@ -183,12 +266,18 @@ public class FluffyPremiumActivity extends BaseFragment {
         final int id;
         final CharSequence text;
         final boolean checked;
+        final CharSequence value;
 
         ItemInner(int viewType, int id, CharSequence text, boolean checked) {
+            this(viewType, id, text, checked, null);
+        }
+
+        ItemInner(int viewType, int id, CharSequence text, boolean checked, CharSequence value) {
             this.viewType = viewType;
             this.id = id;
             this.text = text;
             this.checked = checked;
+            this.value = value;
         }
     }
 
@@ -200,7 +289,8 @@ public class FluffyPremiumActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_CHECK;
+            int type = holder.getItemViewType();
+            return type == VIEW_TYPE_CHECK || type == VIEW_TYPE_SETTING;
         }
 
         @Override
@@ -217,6 +307,9 @@ public class FluffyPremiumActivity extends BaseFragment {
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_SETTING) {
+                view = new TextSettingsCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
             }
@@ -230,6 +323,8 @@ public class FluffyPremiumActivity extends BaseFragment {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.checked, false);
+            } else if (holder.getItemViewType() == VIEW_TYPE_SETTING) {
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, item.value, false);
             } else {
                 ((TextInfoPrivacyCell) holder.itemView).setText(item.text);
             }

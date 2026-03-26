@@ -10,6 +10,13 @@ import org.telegram.messenger.ApplicationLoader;
 public final class PremiumSettingsPatch {
     private static final String PREFS_NAME = "fluffy_premium_settings";
     private static final String KEY_LOCAL_ANON_STORY_VIEW = "local_anon_story_view";
+    private static final String KEY_LOCAL_MESSAGE_FAKE_EDIT_ENABLED = "local_message_fake_edit_enabled";
+    private static final String KEY_LOCAL_MESSAGE_HISTORY_ENABLED = "local_message_history_enabled";
+    private static final String KEY_SAVE_DELETED_MESSAGES_ENABLED = "save_deleted_messages_enabled";
+    private static final String KEY_DELETED_MESSAGE_MARKER_MODE = "deleted_message_marker_mode";
+
+    public static final int DELETED_MESSAGE_MARKER_MODE_TEXT = 0;
+    public static final int DELETED_MESSAGE_MARKER_MODE_ICON = 1;
 
     private PremiumSettingsPatch() {
     }
@@ -18,6 +25,9 @@ public final class PremiumSettingsPatch {
         JSONObject object = new JSONObject();
         try {
             object.put(KEY_LOCAL_ANON_STORY_VIEW, useLocalAnonymousStoryView());
+            object.put(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, isLocalMessageHistoryEnabled());
+            object.put(KEY_SAVE_DELETED_MESSAGES_ENABLED, isSaveDeletedMessagesEnabled());
+            object.put(KEY_DELETED_MESSAGE_MARKER_MODE, getDeletedMessageMarkerMode());
         } catch (Exception ignore) {
         }
         return object.toString();
@@ -27,6 +37,9 @@ public final class PremiumSettingsPatch {
         try {
             JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
             setUseLocalAnonymousStoryView(object.optBoolean(KEY_LOCAL_ANON_STORY_VIEW, false));
+            setLocalMessageHistoryEnabled(object.optBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, false));
+            setSaveDeletedMessagesEnabled(object.optBoolean(KEY_SAVE_DELETED_MESSAGES_ENABLED, false));
+            setDeletedMessageMarkerMode(object.optInt(KEY_DELETED_MESSAGE_MARKER_MODE, DELETED_MESSAGE_MARKER_MODE_ICON));
         } catch (Exception ignore) {
         }
     }
@@ -42,6 +55,62 @@ public final class PremiumSettingsPatch {
             return;
         }
         preferences.edit().putBoolean(KEY_LOCAL_ANON_STORY_VIEW, enabled).apply();
+    }
+
+    public static boolean isLocalMessageFakeEditEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_LOCAL_MESSAGE_FAKE_EDIT_ENABLED, false);
+    }
+
+    public static void setLocalMessageFakeEditEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_LOCAL_MESSAGE_FAKE_EDIT_ENABLED, enabled).apply();
+    }
+
+    public static boolean isLocalMessageHistoryEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, false);
+    }
+
+    public static void setLocalMessageHistoryEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, enabled).apply();
+    }
+
+    public static boolean isSaveDeletedMessagesEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_SAVE_DELETED_MESSAGES_ENABLED, false);
+    }
+
+    public static void setSaveDeletedMessagesEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_SAVE_DELETED_MESSAGES_ENABLED, enabled).apply();
+    }
+
+    public static int getDeletedMessageMarkerMode() {
+        SharedPreferences preferences = getPreferences();
+        return clampDeletedMessageMarkerMode(preferences != null ? preferences.getInt(KEY_DELETED_MESSAGE_MARKER_MODE, DELETED_MESSAGE_MARKER_MODE_ICON) : DELETED_MESSAGE_MARKER_MODE_ICON);
+    }
+
+    public static void setDeletedMessageMarkerMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_DELETED_MESSAGE_MARKER_MODE, clampDeletedMessageMarkerMode(mode)).apply();
+    }
+
+    private static int clampDeletedMessageMarkerMode(int mode) {
+        return mode == DELETED_MESSAGE_MARKER_MODE_TEXT ? DELETED_MESSAGE_MARKER_MODE_TEXT : DELETED_MESSAGE_MARKER_MODE_ICON;
     }
 
     private static SharedPreferences getPreferences() {

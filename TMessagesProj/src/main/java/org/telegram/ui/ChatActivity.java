@@ -307,6 +307,9 @@ import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.hooks.ChatHeaderCenteringHook;
+import org.ushastoe.fluffy.hooks.LocalMessageArchiveHook;
+import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
+import org.ushastoe.fluffy.hooks.LocalMessageHistoryMenuHook;
 import org.ushastoe.fluffy.hooks.MessageDetailsMenuHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
 
@@ -1175,6 +1178,9 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_ADD_TO_TODO = 110;
     private final static int OPTION_DETAILS = MessageDetailsMenuHook.OPTION_DETAILS;
     private final static int OPTION_TRANSLIT_LAYOUT = MessageTranslitMenuHook.OPTION_TRANSLIT;
+    private final static int OPTION_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_LOCAL_FAKE_EDIT;
+    private final static int OPTION_RESET_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_RESET_LOCAL_FAKE_EDIT;
+    private final static int OPTION_LOCAL_MESSAGE_HISTORY = LocalMessageHistoryMenuHook.OPTION_LOCAL_MESSAGE_HISTORY;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -25417,6 +25423,10 @@ public class ChatActivity extends BaseFragment implements
                 if (editingMessageObject == obj) {
                     hideFieldPanel(true);
                 }
+                if (LocalMessageArchiveHook.preserveDeletedMessage(this, obj)) {
+                    updateVisibleRows();
+                    continue;
+                }
                 int index = chatAdapter != null && chatAdapter.isFiltered && filteredMessagesDict != null ? chatAdapter.filteredMessages.indexOf(filteredMessagesDict.get(mid)) : messages.indexOf(obj);
                 if (index != -1) {
                     if (obj.scheduled) {
@@ -32925,6 +32935,15 @@ public class ChatActivity extends BaseFragment implements
             }
             case OPTION_DETAILS: {
                 MessageDetailsMenuHook.openDetails(this, selectedObject);
+                break;
+            }
+            case OPTION_LOCAL_FAKE_EDIT:
+            case OPTION_RESET_LOCAL_FAKE_EDIT: {
+                LocalMessageFakeEditHook.handleSelectedOption(this, selectedObject, option);
+                break;
+            }
+            case OPTION_LOCAL_MESSAGE_HISTORY: {
+                LocalMessageHistoryMenuHook.handleSelectedOption(this, selectedObject, option);
                 break;
             }
             case OPTION_SUGGESTION_ADD_OFFER:
@@ -44215,6 +44234,8 @@ public class ChatActivity extends BaseFragment implements
         if (message != null && message.messageOwner != null) {
             MessageTranslitMenuHook.appendOption(items, options, icons, message);
             MessageDetailsMenuHook.appendOption(items, options, icons, message);
+            LocalMessageFakeEditHook.appendOption(items, options, icons, message);
+            LocalMessageHistoryMenuHook.appendOption(items, options, icons, message);
         }
     }
 

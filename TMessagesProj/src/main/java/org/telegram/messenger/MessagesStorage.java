@@ -52,6 +52,7 @@ import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.EditWidgetActivity;
 import org.telegram.ui.Stories.StoriesController;
+import org.ushastoe.fluffy.hooks.LocalMessageArchiveHook;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15238,6 +15239,7 @@ public class MessagesStorage extends BaseController {
                                     TLRPC.Message oldMessage = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                                     oldMessage.readAttachPath(data, getUserConfig().clientUserId);
                                     data.reuse();
+                                    LocalMessageArchiveHook.captureServerEdit(oldMessage, message);
                                     if (reactionUpdates != null) {
                                         reactionUpdates.add(new SavedReactionsUpdate(selfId, oldMessage, message));
                                     }

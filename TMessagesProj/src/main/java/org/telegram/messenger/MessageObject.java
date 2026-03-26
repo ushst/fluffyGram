@@ -94,6 +94,7 @@ import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.web.BotWebViewContainer;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
+import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
 import org.ushastoe.fluffy.hooks.QuickShareMediaHook;
 
@@ -1863,6 +1864,7 @@ public class MessageObject {
         replyMessageObject = replyToMessage;
         eventId = eid;
         wasUnread = !messageOwner.out && messageOwner.unread;
+        LocalMessageFakeEditHook.applyStoredEdit(this);
 
         if (message.replyMessage != null) {
             replyMessageObject = new MessageObject(currentAccount, message.replyMessage, null, users, chats, sUsers, sChats, false, checkMediaExists, eid);

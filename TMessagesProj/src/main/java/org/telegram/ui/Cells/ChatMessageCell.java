@@ -208,6 +208,7 @@ import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.EditedMessageIndicatorHook;
+import org.ushastoe.fluffy.hooks.DeletedMessageIndicatorHook;
 import org.ushastoe.fluffy.hooks.MessageTimeLabelHook;
 import org.ushastoe.fluffy.hooks.ScheduledMessageIndicatorHook;
 import org.ushastoe.fluffy.hooks.SilentMessageIndicatorHook;
@@ -17546,6 +17547,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = "";
         } else if (currentMessageObject.scheduled) {
             timeString = ScheduledMessageIndicatorHook.buildScheduledTimeLabel(currentMessageObject);
+        } else if (DeletedMessageIndicatorHook.isLocallyDeleted(currentMessageObject)) {
+            timeString = DeletedMessageIndicatorHook.buildDeletedTimeLabel(currentMessageObject);
         } else if (currentMessageObject.messageOwner != null && currentMessageObject.messageOwner.silent) {
             timeString = MessageTimeLabelHook.buildSilentTimeLabel(currentMessageObject, edited);
         } else if (currentMessageObject.realDate != 0) {
