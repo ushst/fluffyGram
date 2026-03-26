@@ -155,10 +155,10 @@ public class FluffyDebugActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyLastUpdateTime) + ": " + formatPackageTime(false), null));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_LOCAL_STORAGE_HEADER,
                 LocaleController.getString(R.string.FluffyLocalStorageSection), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_ARCHIVE_DB_SIZE,
-                LocaleController.getString(R.string.FluffyLocalMessageArchiveDatabaseSize) + ": " + formatDatabaseSize(LocalMessageArchiveStore.getDatabaseSizeBytes()), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FAKE_EDIT_DB_SIZE,
-                LocaleController.getString(R.string.FluffyLocalFakeEditDatabaseSize) + ": " + formatDatabaseSize(LocalMessageFakeEditStore.getDatabaseSizeBytes()), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_ARCHIVE_DB_SIZE,
+                LocaleController.getString(R.string.FluffyLocalMessageArchiveDatabaseSize), formatDatabaseSize(LocalMessageArchiveStore.getDatabaseSizeBytes())));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_FAKE_EDIT_DB_SIZE,
+                LocaleController.getString(R.string.FluffyLocalFakeEditDatabaseSize), formatDatabaseSize(LocalMessageFakeEditStore.getDatabaseSizeBytes())));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
@@ -454,6 +454,9 @@ public class FluffyDebugActivity extends BaseFragment {
                 return false;
             }
             ItemInner item = items.get(position);
+            if (item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE) {
+                return false;
+            }
             return item.viewType == VIEW_TYPE_TEXT;
         }
 
