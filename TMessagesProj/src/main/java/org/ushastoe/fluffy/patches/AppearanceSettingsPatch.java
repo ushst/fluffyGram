@@ -44,6 +44,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE = "round_video_camera_default_mode";
     private static final String KEY_HIDE_STORIES = "hide_stories";
     private static final String KEY_SHOW_FORWARDED_ORIGINAL_DATE = "show_forwarded_original_date";
+    private static final String KEY_CHAT_ENTER_SPOILER_MENU_ENABLED = "chat_enter_spoiler_menu_enabled";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
@@ -107,7 +108,8 @@ public final class AppearanceSettingsPatch {
             KEY_ROUND_VIDEO_CAMERA_MODE,
             KEY_ROUND_VIDEO_CAMERA_DEFAULT_MODE,
             KEY_HIDE_STORIES,
-            KEY_SHOW_FORWARDED_ORIGINAL_DATE
+            KEY_SHOW_FORWARDED_ORIGINAL_DATE,
+            KEY_CHAT_ENTER_SPOILER_MENU_ENABLED
     )));
 
     public interface Listener {
@@ -529,6 +531,20 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static boolean isChatEnterSpoilerMenuEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences == null || preferences.getBoolean(KEY_CHAT_ENTER_SPOILER_MENU_ENABLED, true);
+    }
+
+    public static void setChatEnterSpoilerMenuEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_CHAT_ENTER_SPOILER_MENU_ENABLED, enabled).apply();
+        notifyListeners();
+    }
+
     public static String exportSettingsJson() {
         SharedPreferences preferences = getPreferences();
         if (preferences == null) {
@@ -710,6 +726,7 @@ public final class AppearanceSettingsPatch {
             case KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED:
             case KEY_HIDE_STORIES:
             case KEY_SHOW_FORWARDED_ORIGINAL_DATE:
+            case KEY_CHAT_ENTER_SPOILER_MENU_ENABLED:
                 return asBoolean(value);
             case KEY_DIALOGS_TITLE_MODE:
                 return clampDialogsTitleMode(asInt(value, DIALOGS_TITLE_MODE_DEFAULT));

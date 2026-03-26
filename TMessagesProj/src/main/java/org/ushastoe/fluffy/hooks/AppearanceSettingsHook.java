@@ -217,6 +217,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setForwardedOriginalDateShown(shown);
     }
 
+    public static boolean isChatEnterSpoilerMenuEnabled() {
+        return AppearanceSettingsPatch.isChatEnterSpoilerMenuEnabled();
+    }
+
+    public static void setChatEnterSpoilerMenuEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setChatEnterSpoilerMenuEnabled(enabled);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;

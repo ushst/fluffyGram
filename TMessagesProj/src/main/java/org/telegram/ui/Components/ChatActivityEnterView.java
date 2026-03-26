@@ -178,6 +178,7 @@ import org.telegram.ui.Components.inset.WindowInsetsInAppController;
 import org.telegram.ui.ContentPreviewViewer;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.Gifts.GiftSheet;
+import org.ushastoe.fluffy.hooks.ChatEnterSpoilerMenuHook;
 import org.ushastoe.fluffy.hooks.CloudGifCaptionHook;
 import org.telegram.ui.GroupStickersActivity;
 import org.telegram.ui.LaunchActivity;
@@ -2694,6 +2695,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 }
             }
         });
+        emojiButton.setOnLongClickListener(this::onFluffyEmojiButtonLongClick);
         messageEditTextContainer.addView(emojiButton, LayoutHelper.createFrame(DEFAULT_HEIGHT, DEFAULT_HEIGHT, Gravity.BOTTOM | Gravity.LEFT, 2, 0, 0, 0));
         setEmojiButtonImage(false, false);
 
@@ -4580,6 +4582,10 @@ public class ChatActivityEnterView extends FrameLayout implements
     @Override
     public boolean hasOverlappingRendering() {
         return false;
+    }
+
+    private boolean onFluffyEmojiButtonLongClick(View anchor) {
+        return ChatEnterSpoilerMenuHook.onEmojiButtonLongClick(this, anchor, getContext(), resourcesProvider, messageEditText);
     }
 
     private ActionBarMenuSubItem actionScheduleButton;

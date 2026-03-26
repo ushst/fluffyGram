@@ -85,19 +85,20 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_CHAT_UI_HEADER = 18;
     private static final int ROW_TABS = 19;
     private static final int ROW_CENTER_CHAT_HEADER = 20;
-    private static final int ROW_EDITED_MARKER_ICON = 21;
-    private static final int ROW_MAP_PROVIDER = 22;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 23;
-    private static final int ROW_NOTIFICATION_ICON = 24;
-    private static final int ROW_RECORDER_SECTION = 25;
-    private static final int ROW_RECORDER_HEADER = 26;
-    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 27;
-    private static final int ROW_ROUND_VIDEO_CAMERA = 28;
-    private static final int ROW_HIDE_STORIES = 29;
-    private static final int ROW_SCHEDULED_MARKER = 30;
-    private static final int ROW_SILENT_MARKER = 31;
-    private static final int ROW_MESSAGE_ACTIONS_SECTION = 32;
-    private static final int ROW_MESSAGE_ACTIONS = 33;
+    private static final int ROW_CHAT_ENTER_SPOILER_MENU = 21;
+    private static final int ROW_EDITED_MARKER_ICON = 22;
+    private static final int ROW_MAP_PROVIDER = 23;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 24;
+    private static final int ROW_NOTIFICATION_ICON = 25;
+    private static final int ROW_RECORDER_SECTION = 26;
+    private static final int ROW_RECORDER_HEADER = 27;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 28;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 29;
+    private static final int ROW_HIDE_STORIES = 30;
+    private static final int ROW_SCHEDULED_MARKER = 31;
+    private static final int ROW_SILENT_MARKER = 32;
+    private static final int ROW_MESSAGE_ACTIONS_SECTION = 33;
+    private static final int ROW_MESSAGE_ACTIONS = 34;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -183,6 +184,12 @@ public class FluffyAppearanceActivity extends BaseFragment {
             } else if (item.id == ROW_CENTER_CHAT_HEADER) {
                 boolean enabled = !AppearanceSettingsHook.isCenterChatHeaderEnabled();
                 AppearanceSettingsHook.setCenterChatHeaderEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_CHAT_ENTER_SPOILER_MENU) {
+                boolean enabled = !AppearanceSettingsHook.isChatEnterSpoilerMenuEnabled();
+                AppearanceSettingsHook.setChatEnterSpoilerMenuEnabled(enabled);
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
@@ -292,6 +299,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CENTER_CHAT_HEADER,
                 LocaleController.getString(R.string.FluffyCenterChatHeader),
                 AppearanceSettingsHook.isCenterChatHeaderEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_ENTER_SPOILER_MENU,
+                LocaleController.getString(R.string.FluffyChatEnterSpoilerMenu),
+                AppearanceSettingsHook.isChatEnterSpoilerMenuEnabled()));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_EDITED_MARKER_ICON,
             LocaleController.getString(R.string.FluffyEditedMarkerIcon),
             false));
@@ -808,6 +818,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "tabs");
             case ROW_CENTER_CHAT_HEADER:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "center-chat-header");
+            case ROW_CHAT_ENTER_SPOILER_MENU:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "chat-enter-spoiler-menu");
             case ROW_EDITED_MARKER_ICON:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "edited-marker-icon");
             case ROW_SCHEDULED_MARKER:
@@ -893,6 +905,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_CHAT_UI_HEADER;
             case "center-chat-header":
                 return ROW_CENTER_CHAT_HEADER;
+            case "chat-enter-spoiler-menu":
+                return ROW_CHAT_ENTER_SPOILER_MENU;
             case "edited-marker-icon":
                 return ROW_EDITED_MARKER_ICON;
             case "scheduled-marker":
