@@ -12828,6 +12828,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (mediaBackground) {
                 if (currentMessageObject.isOutOwner()) {
                     timeX = layoutWidth - timeWidth - dp(42.0f);
+                    timeX -= DeletedMessageIndicatorHook.getOutTimeRightInsetAdjustment(currentMessageObject);
                 } else {
                     timeX = backgroundWidth - dp(4) - timeWidth;
                     if (currentMessageObject.isAnyKindOfSticker()) {
@@ -12851,6 +12852,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             } else {
                 if (currentMessageObject.isOutOwner()) {
                     timeX = layoutWidth - timeWidth - dp(38.5f);
+                    timeX -= DeletedMessageIndicatorHook.getOutTimeRightInsetAdjustment(currentMessageObject);
                 } else {
                     timeX = backgroundWidth - dp(9) - timeWidth;
                     if (currentMessageObject.isAnyKindOfSticker()) {
@@ -17612,6 +17614,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
+        timeTextWidth += DeletedMessageIndicatorHook.getTimeWidthAdjustment(currentMessageObject);
+        timeWidth += DeletedMessageIndicatorHook.getTimeWidthAdjustment(currentMessageObject);
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {
             timeWidth -= dp(8);
         }

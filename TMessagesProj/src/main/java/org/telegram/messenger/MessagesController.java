@@ -9187,6 +9187,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 getMessagesStorage().markMessagesAsDeleted(dialogId, messages, true, false, ChatActivity.MODE_QUICK_REPLIES, topicId);
             } else {
+                LocalMessageArchiveHook.onDeleteRequest(dialogId, messages, forAll);
                 if (channelId == 0) {
                     for (int a = 0; a < messages.size(); a++) {
                         Integer id = messages.get(a);

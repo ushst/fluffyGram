@@ -3,10 +3,12 @@ package org.ushastoe.fluffy.patches;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.telegram.ui.ActionBar.Theme;
 import org.ushastoe.fluffy.utils.MessageTimeIconSpanFactory;
 
 public final class DeletedMessageIndicatorPatch {
@@ -36,5 +38,29 @@ public final class DeletedMessageIndicatorPatch {
         ColoredImageSpan span = MessageTimeIconSpanFactory.create(R.drawable.msg_delete);
         builder.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return builder;
+    }
+
+    public static int getTimeWidthAdjustment(MessageObject messageObject) {
+        if (messageObject == null || !PremiumSettingsPatch.isSaveDeletedMessagesEnabled() || !LocalMessageArchivePatch.isLocallyDeleted(messageObject)) {
+            return 0;
+        }
+        int mode = PremiumSettingsPatch.getDeletedMessageMarkerMode();
+        if (mode != PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_ICON) {
+            return 0;
+        }
+        float placeholderWidth = Theme.chat_timePaint != null ? Theme.chat_timePaint.measureText(ICON_PLACEHOLDER) : 0f;
+        float reserve = Math.max(AndroidUtilities.dp(8), Theme.chat_timePaint != null ? Theme.chat_timePaint.getTextSize() * 0.7f : AndroidUtilities.dp(8));
+        return Math.max(0, (int) Math.ceil(reserve - placeholderWidth));
+    }
+
+    public static int getOutTimeRightInsetAdjustment(MessageObject messageObject) {
+        if (messageObject == null || !PremiumSettingsPatch.isSaveDeletedMessagesEnabled() || !LocalMessageArchivePatch.isLocallyDeleted(messageObject)) {
+            return 0;
+        }
+        int mode = PremiumSettingsPatch.getDeletedMessageMarkerMode();
+        if (mode != PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_ICON) {
+            return 0;
+        }
+        return AndroidUtilities.dp(6);
     }
 }

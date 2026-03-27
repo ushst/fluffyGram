@@ -20,8 +20,20 @@ public final class LocalMessageArchiveHook {
         return LocalMessageArchivePatch.shouldCaptureDeletedMessages();
     }
 
+    public static boolean shouldPreserveDeletedMessages(long dialogId, ArrayList<Integer> messageIds) {
+        return LocalMessageArchivePatch.shouldPreserveDeletedMessages(dialogId, messageIds);
+    }
+
     public static boolean preserveDeletedMessage(ChatActivity fragment, MessageObject messageObject) {
         return LocalMessageArchivePatch.preserveDeletedMessage(fragment, messageObject);
+    }
+
+    public static void onDeleteRequest(long dialogId, ArrayList<Integer> messageIds, boolean deleteForAll) {
+        LocalMessageArchivePatch.onDeleteRequest(dialogId, messageIds, deleteForAll);
+    }
+
+    public static void onDeleteDialogChoice(long dialogId, ArrayList<Integer> messageIds, boolean preserveLocally) {
+        LocalMessageArchivePatch.onDeleteDialogChoice(dialogId, messageIds, preserveLocally);
     }
 
     public static void captureDeletedMessage(TLRPC.Message message, long topicId) {

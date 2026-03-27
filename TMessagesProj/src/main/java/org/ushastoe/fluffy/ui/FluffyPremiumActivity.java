@@ -23,6 +23,7 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.GoogleAiSettingsHook;
 import org.ushastoe.fluffy.hooks.PremiumSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.patches.PremiumSettingsPatch;
@@ -48,7 +49,10 @@ public class FluffyPremiumActivity extends BaseFragment {
     private static final int ROW_LOCAL_MESSAGE_HISTORY_INFO = 6;
     private static final int ROW_SAVE_DELETED_MESSAGES = 7;
     private static final int ROW_SAVE_DELETED_MESSAGES_INFO = 8;
-    private static final int ROW_DELETED_MESSAGE_MARKER_MODE = 9;
+    private static final int ROW_GOOGLE_AI_HEADER = 9;
+    private static final int ROW_GOOGLE_AI = 10;
+    private static final int ROW_GOOGLE_AI_INFO = 11;
+    private static final int ROW_DELETED_MESSAGE_MARKER_MODE = 12;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -121,6 +125,8 @@ public class FluffyPremiumActivity extends BaseFragment {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
                 updateItems();
+            } else if (item.id == ROW_GOOGLE_AI) {
+                presentFragment(new FluffyGoogleAiActivity());
             } else if (item.id == ROW_DELETED_MESSAGE_MARKER_MODE) {
                 showDeletedMessageMarkerModeDialog();
             }
@@ -154,9 +160,18 @@ public class FluffyPremiumActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SAVE_DELETED_MESSAGES, LocaleController.getString(R.string.FluffySaveDeletedMessagesEnabled), PremiumSettingsHook.isSaveDeletedMessagesEnabled()));
         items.add(new ItemInner(VIEW_TYPE_SETTING, ROW_DELETED_MESSAGE_MARKER_MODE, LocaleController.getString(R.string.FluffyDeletedMessageMarkerMode), false, getDeletedMessageMarkerModeValue()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_DELETED_MESSAGES_INFO, LocaleController.getString(R.string.FluffySaveDeletedMessagesEnabledInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GOOGLE_AI_HEADER, LocaleController.getString(R.string.FluffyGoogleAiSection), false));
+        items.add(new ItemInner(VIEW_TYPE_SETTING, ROW_GOOGLE_AI, LocaleController.getString(R.string.FluffyGoogleAi), false, getGoogleAiValue()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_GOOGLE_AI_INFO, LocaleController.getString(R.string.FluffyGoogleAiSettingsInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private CharSequence getGoogleAiValue() {
+        return GoogleAiSettingsHook.isApiKeyValidated()
+                ? LocaleController.getString(R.string.FluffyGoogleAiConfigured)
+                : LocaleController.getString(R.string.FluffyGoogleAiNotConfigured);
     }
 
     private boolean copyDeepLinkForPosition(int position) {
@@ -173,6 +188,8 @@ public class FluffyPremiumActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "local-message-history");
         } else if (item.id == ROW_SAVE_DELETED_MESSAGES || item.id == ROW_SAVE_DELETED_MESSAGES_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "save-deleted-messages");
+        } else if (item.id == ROW_GOOGLE_AI_HEADER || item.id == ROW_GOOGLE_AI || item.id == ROW_GOOGLE_AI_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "google-ai");
         } else if (item.id == ROW_DELETED_MESSAGE_MARKER_MODE) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "deleted-message-marker");
         } else {
@@ -221,6 +238,9 @@ public class FluffyPremiumActivity extends BaseFragment {
         }
         if ("save-deleted-messages".equals(target)) {
             return ROW_SAVE_DELETED_MESSAGES;
+        }
+        if ("google-ai".equals(target)) {
+            return ROW_GOOGLE_AI;
         }
         if ("deleted-message-marker".equals(target)) {
             return ROW_DELETED_MESSAGE_MARKER_MODE;

@@ -1400,6 +1400,17 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
     }
 
     private static final int TRANSLATE = 3;
+
+    protected void appendCustomSelectionActions(Menu menu) {
+    }
+
+    protected void prepareCustomSelectionActions(Menu menu) {
+    }
+
+    protected boolean onCustomSelectionAction(int itemId) {
+        return false;
+    }
+
     private ActionMode.Callback createActionCallback() {
         final ActionMode.Callback callback = new ActionMode.Callback() {
             @Override
@@ -1408,6 +1419,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                 menu.add(Menu.NONE, R.id.menu_quote, 1, LocaleController.getString(R.string.Quote));
                 menu.add(Menu.NONE, android.R.id.selectAll, 2, android.R.string.selectAll);
                 menu.add(Menu.NONE, TRANSLATE, 3, LocaleController.getString(R.string.TranslateMessage));
+                appendCustomSelectionActions(menu);
                 return true;
             }
 
@@ -1442,6 +1454,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     translateFromLanguage = null;
                     updateTranslateButton(menu);
                 }
+                prepareCustomSelectionActions(menu);
                 return true;
             }
 
@@ -1491,6 +1504,10 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     hideActions();
                     return true;
                 } else {
+                    if (onCustomSelectionAction(itemId)) {
+                        hideActions();
+                        return true;
+                    }
                     clear();
                 }
                 return true;

@@ -23,6 +23,7 @@ public final class MessageActionsPatch {
     private static final String KEY_MESSAGE_DETAILS_ENABLED = "message_details_enabled";
     private static final String KEY_MESSAGE_TRANSLIT_ENABLED = "message_translit_enabled";
     private static final String KEY_LOCAL_MESSAGE_HISTORY_ENABLED = "local_message_history_enabled";
+    private static final String KEY_MESSAGE_GOOGLE_AI_ENABLED = "message_google_ai_enabled";
 
     private MessageActionsPatch() {
     }
@@ -57,6 +58,14 @@ public final class MessageActionsPatch {
 
     public static void setLocalMessageHistoryEnabled(boolean enabled) {
         getPreferences().edit().putBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, enabled).apply();
+    }
+
+    public static boolean isMessageGoogleAiEnabled() {
+        return getPreferences().getBoolean(KEY_MESSAGE_GOOGLE_AI_ENABLED, true);
+    }
+
+    public static void setMessageGoogleAiEnabled(boolean enabled) {
+        getPreferences().edit().putBoolean(KEY_MESSAGE_GOOGLE_AI_ENABLED, enabled).apply();
     }
 
 }

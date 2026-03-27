@@ -312,6 +312,8 @@ import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
 import org.ushastoe.fluffy.hooks.LocalMessageHistoryMenuHook;
 import org.ushastoe.fluffy.hooks.MessageDetailsMenuHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
+import org.ushastoe.fluffy.hooks.GoogleAiMessageMenuHook;
+import org.ushastoe.fluffy.hooks.GoogleAiTextSelectionMenuHook;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -1181,6 +1183,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int OPTION_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_LOCAL_FAKE_EDIT;
     private final static int OPTION_RESET_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_RESET_LOCAL_FAKE_EDIT;
     private final static int OPTION_LOCAL_MESSAGE_HISTORY = LocalMessageHistoryMenuHook.OPTION_LOCAL_MESSAGE_HISTORY;
+    private final static int OPTION_GOOGLE_AI = GoogleAiMessageMenuHook.OPTION_GOOGLE_AI;
 
     public final static int OPTION_SUGGESTION_EDIT_PRICE = 111;
     public final static int OPTION_SUGGESTION_EDIT_TIME = 112;
@@ -3573,6 +3576,33 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
             }
+        }
+
+        @Override
+        protected void appendCustomSelectionActions(Menu menu) {
+            if (chatActivity == null || menu == null) {
+                return;
+            }
+            MessageObject messageObject = selectedView != null ? selectedView.getMessageObject() : null;
+            GoogleAiTextSelectionMenuHook.appendAction(menu, chatActivity, messageObject, getSelectedText());
+        }
+
+        @Override
+        protected void prepareCustomSelectionActions(Menu menu) {
+            if (chatActivity == null || menu == null) {
+                return;
+            }
+            MessageObject messageObject = selectedView != null ? selectedView.getMessageObject() : null;
+            GoogleAiTextSelectionMenuHook.prepareAction(menu, chatActivity, messageObject, getSelectedText());
+        }
+
+        @Override
+        protected boolean onCustomSelectionAction(int itemId) {
+            if (chatActivity == null) {
+                return false;
+            }
+            MessageObject messageObject = selectedView != null ? selectedView.getMessageObject() : null;
+            return GoogleAiTextSelectionMenuHook.handleAction(chatActivity, messageObject, getSelectedText(), itemId);
         }
     }
 
@@ -32946,6 +32976,10 @@ public class ChatActivity extends BaseFragment implements
                 LocalMessageHistoryMenuHook.handleSelectedOption(this, selectedObject, option);
                 break;
             }
+            case OPTION_GOOGLE_AI: {
+                GoogleAiMessageMenuHook.handleSelectedOption(this, selectedObject, option);
+                break;
+            }
             case OPTION_SUGGESTION_ADD_OFFER:
             case OPTION_SUGGESTION_EDIT_PRICE: {
                 final MessageObject msg = selectedObjectGroup != null ? selectedObjectGroup.findPrimaryMessageObject() : selectedObject;
@@ -44236,6 +44270,7 @@ public class ChatActivity extends BaseFragment implements
             MessageDetailsMenuHook.appendOption(items, options, icons, message);
             LocalMessageFakeEditHook.appendOption(items, options, icons, message);
             LocalMessageHistoryMenuHook.appendOption(items, options, icons, message);
+            GoogleAiMessageMenuHook.appendOption(items, options, icons, message);
         }
     }
 

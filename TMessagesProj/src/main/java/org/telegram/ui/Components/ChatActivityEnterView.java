@@ -4587,7 +4587,7 @@ public class ChatActivityEnterView extends FrameLayout implements
     }
 
     private boolean onFluffyEmojiButtonLongClick(View anchor) {
-        return ChatEnterSpoilerMenuHook.onEmojiButtonLongClick(this, anchor, getContext(), resourcesProvider, messageEditText);
+        return ChatEnterSpoilerMenuHook.onEmojiButtonLongClick(this, anchor, getContext(), resourcesProvider, messageEditText, parentFragment);
     }
 
     private void onFluffyPersistentAttachButtonReady() {

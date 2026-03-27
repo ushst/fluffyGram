@@ -13593,7 +13593,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<Pair<Long, Integer>> idsToDelete = new ArrayList<>();
                 ArrayList<TopicsController.TopicUpdate> topicUpdatesInUi = null;
                 ArrayList<TLRPC.Message> deletedMessages = currentUser == dialogId || dialogId == 0 ? new ArrayList<>() : null;
-                boolean preserveLocallyDeletedMessages = LocalMessageArchiveHook.shouldCaptureDeletedMessages();
+                boolean preserveLocallyDeletedMessages = LocalMessageArchiveHook.shouldPreserveDeletedMessages(dialogId, messages);
 
                 if (dialogId != 0) {
                     cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, data, read_state, out, mention, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));

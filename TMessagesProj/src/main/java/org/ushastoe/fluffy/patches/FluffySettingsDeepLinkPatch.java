@@ -153,6 +153,12 @@ public final class FluffySettingsDeepLinkPatch {
         if ("debug".equals(root)) {
             return FluffyDebugActivity.createForTarget(joinSegments(segments, 1));
         }
+        if ("google_ai".equals(root)) {
+            if (!PremiumAccessHook.hasPremiumAccess()) {
+                return new FluffySettingsActivity();
+            }
+            return FluffyPremiumActivity.createForTarget("google-ai");
+        }
         return FluffySettingsActivity.createForTarget(root);
     }
 

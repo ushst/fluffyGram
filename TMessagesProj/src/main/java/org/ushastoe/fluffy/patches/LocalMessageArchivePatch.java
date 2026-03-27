@@ -11,16 +11,51 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.ushastoe.fluffy.utils.LocalMessageArchiveStore;
 
+import java.util.HashSet;
 import java.util.HashMap;
 
 public final class LocalMessageArchivePatch {
     private static final String PARAM_HISTORY_DELETED_OVERRIDE = "fl_history_deleted_override";
+    private static final HashSet<String> PENDING_LOCAL_ONLY_DELETES = new HashSet<>();
+    private static final HashSet<String> PENDING_LOCAL_FULL_DELETES = new HashSet<>();
 
     private LocalMessageArchivePatch() {
     }
 
     public static boolean shouldCaptureDeletedMessages() {
         return PremiumSettingsPatch.isSaveDeletedMessagesEnabled();
+    }
+
+    public static boolean shouldPreserveDeletedMessages(long dialogId, java.util.List<Integer> messageIds) {
+        if (!PremiumSettingsPatch.isSaveDeletedMessagesEnabled()) {
+            return false;
+        }
+        if (dialogId == 0 || messageIds == null || messageIds.isEmpty()) {
+            return true;
+        }
+        boolean hasLocalOnlyDelete = false;
+        boolean hasLocalFullDelete = false;
+        synchronized (PENDING_LOCAL_ONLY_DELETES) {
+            for (int i = 0; i < messageIds.size(); i++) {
+                Integer messageId = messageIds.get(i);
+                if (messageId == null || messageId <= 0) {
+                    continue;
+                }
+                String key = buildPendingDeleteKey(dialogId, messageId);
+                if (PENDING_LOCAL_ONLY_DELETES.contains(key)) {
+                    hasLocalOnlyDelete = true;
+                } else if (PENDING_LOCAL_FULL_DELETES.contains(key)) {
+                    hasLocalFullDelete = true;
+                }
+            }
+        }
+        if (hasLocalOnlyDelete) {
+            return true;
+        }
+        if (hasLocalFullDelete) {
+            return false;
+        }
+        return true;
     }
 
     public static void captureServerEdit(TLRPC.Message oldMessage, TLRPC.Message newMessage) {
@@ -44,6 +79,16 @@ public final class LocalMessageArchivePatch {
         if (messageObject.scheduled || messageObject.messageOwner.id <= 0) {
             return false;
         }
+        String pendingKey = buildPendingDeleteKey(messageObject.messageOwner.dialog_id, messageObject.getId());
+        boolean localOnlyDelete;
+        boolean localFullDelete;
+        synchronized (PENDING_LOCAL_ONLY_DELETES) {
+            localOnlyDelete = PENDING_LOCAL_ONLY_DELETES.remove(pendingKey);
+            localFullDelete = PENDING_LOCAL_FULL_DELETES.remove(pendingKey);
+        }
+        if (localFullDelete) {
+            return false;
+        }
         String text = getArchivedText(messageObject);
         if (!TextUtils.isEmpty(text)) {
             LocalMessageArchiveStore.appendSnapshot(messageObject.messageOwner.dialog_id, messageObject.getId(),
@@ -54,11 +99,61 @@ public final class LocalMessageArchivePatch {
         messageObject.generateCaption();
         messageObject.updateMessageText();
         messageObject.resetLayout();
-        return true;
+        return localOnlyDelete || LocalMessageArchiveStore.hasDeletedSnapshot(messageObject.messageOwner.dialog_id, messageObject.getId());
+    }
+
+    public static void onDeleteRequest(long dialogId, java.util.ArrayList<Integer> messageIds, boolean deleteForAll) {
+        if (!PremiumSettingsPatch.isSaveDeletedMessagesEnabled() || dialogId == 0 || messageIds == null || messageIds.isEmpty()) {
+            return;
+        }
+        synchronized (PENDING_LOCAL_ONLY_DELETES) {
+            for (int i = 0; i < messageIds.size(); i++) {
+                Integer messageId = messageIds.get(i);
+                if (messageId == null || messageId <= 0) {
+                    continue;
+                }
+                String key = buildPendingDeleteKey(dialogId, messageId);
+                if (PENDING_LOCAL_ONLY_DELETES.contains(key) || PENDING_LOCAL_FULL_DELETES.contains(key)) {
+                    continue;
+                }
+                if (deleteForAll) {
+                    PENDING_LOCAL_ONLY_DELETES.remove(key);
+                    PENDING_LOCAL_FULL_DELETES.add(key);
+                } else {
+                    PENDING_LOCAL_FULL_DELETES.remove(key);
+                    PENDING_LOCAL_ONLY_DELETES.add(key);
+                }
+            }
+        }
+    }
+
+    public static void onDeleteDialogChoice(long dialogId, java.util.ArrayList<Integer> messageIds, boolean preserveLocally) {
+        if (!PremiumSettingsPatch.isSaveDeletedMessagesEnabled() || dialogId == 0 || messageIds == null || messageIds.isEmpty()) {
+            return;
+        }
+        synchronized (PENDING_LOCAL_ONLY_DELETES) {
+            for (int i = 0; i < messageIds.size(); i++) {
+                Integer messageId = messageIds.get(i);
+                if (messageId == null || messageId <= 0) {
+                    continue;
+                }
+                String key = buildPendingDeleteKey(dialogId, messageId);
+                if (preserveLocally) {
+                    PENDING_LOCAL_FULL_DELETES.remove(key);
+                    PENDING_LOCAL_ONLY_DELETES.add(key);
+                } else {
+                    PENDING_LOCAL_ONLY_DELETES.remove(key);
+                    PENDING_LOCAL_FULL_DELETES.add(key);
+                }
+            }
+        }
     }
 
     public static void captureDeletedMessage(TLRPC.Message message, long topicId) {
         if (!PremiumSettingsPatch.isSaveDeletedMessagesEnabled() || message == null || message.id <= 0) {
+            return;
+        }
+        if (!shouldPreserveDeletedMessages(message.dialog_id, java.util.Collections.singletonList(message.id))) {
             return;
         }
         if (BuildVars.LOGS_ENABLED) {
@@ -70,6 +165,10 @@ public final class LocalMessageArchivePatch {
                     text, Math.max(message.edit_date, message.date), LocalMessageArchiveStore.SOURCE_DELETED);
         }
         LocalMessageArchiveStore.putDeletedSnapshot(message, topicId);
+    }
+
+    private static String buildPendingDeleteKey(long dialogId, int messageId) {
+        return dialogId + "_" + messageId;
     }
 
     public static void restoreDeletedMessages(long dialogId, long topicId, int mode, java.util.ArrayList<TLRPC.Message> messages) {

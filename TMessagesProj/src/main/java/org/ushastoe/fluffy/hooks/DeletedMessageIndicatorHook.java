@@ -16,4 +16,12 @@ public final class DeletedMessageIndicatorHook {
     public static CharSequence buildDeletedTimeLabel(MessageObject messageObject) {
         return DeletedMessageIndicatorPatch.buildDeletedTimeLabel(messageObject);
     }
+
+    public static int getTimeWidthAdjustment(MessageObject messageObject) {
+        return DeletedMessageIndicatorPatch.getTimeWidthAdjustment(messageObject);
+    }
+
+    public static int getOutTimeRightInsetAdjustment(MessageObject messageObject) {
+        return DeletedMessageIndicatorPatch.getOutTimeRightInsetAdjustment(messageObject);
+    }
 }

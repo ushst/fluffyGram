@@ -14,6 +14,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.EditTextCaption;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.TextStyleSpan;
@@ -31,7 +32,7 @@ public final class ChatEnterSpoilerMenuPatch {
     private ChatEnterSpoilerMenuPatch() {
     }
 
-    public static boolean onEmojiButtonLongClick(Object owner, View anchor, Context context, Theme.ResourcesProvider resourcesProvider, EditTextCaption editText) {
+    public static boolean onEmojiButtonLongClick(Object owner, View anchor, Context context, Theme.ResourcesProvider resourcesProvider, EditTextCaption editText, ChatActivity parentFragment) {
         if (owner == null || anchor == null || context == null || editText == null) {
             return false;
         }
@@ -39,13 +40,11 @@ public final class ChatEnterSpoilerMenuPatch {
             return false;
         }
 
-        Editable text = editText.getText();
-        if (text == null || text.length() == 0) {
+        dismissPopup(owner);
+        ActionBarPopupWindow.ActionBarPopupWindowLayout layout = createLayout(owner, context, resourcesProvider, editText, parentFragment);
+        if (layout.getChildCount() == 0) {
             return false;
         }
-
-        dismissPopup(owner);
-        ActionBarPopupWindow.ActionBarPopupWindowLayout layout = createLayout(owner, context, resourcesProvider, editText);
         ActionBarPopupWindow popupWindow = createPopup(layout);
 
         layout.measure(
@@ -66,22 +65,47 @@ public final class ChatEnterSpoilerMenuPatch {
         return true;
     }
 
-    private static ActionBarPopupWindow.ActionBarPopupWindowLayout createLayout(Object owner, Context context, Theme.ResourcesProvider resourcesProvider, EditTextCaption editText) {
+    private static ActionBarPopupWindow.ActionBarPopupWindowLayout createLayout(Object owner, Context context, Theme.ResourcesProvider resourcesProvider, EditTextCaption editText, ChatActivity parentFragment) {
         ActionBarPopupWindow.ActionBarPopupWindowLayout layout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(context, resourcesProvider);
         layout.setAnimationEnabled(false);
         layout.setShownFromBottom(false);
         layout.setupRadialSelectors(Theme.getColor(Theme.key_dialogButtonSelector, resourcesProvider));
+        Editable text = editText.getText();
+        boolean hasText = text != null && text.length() > 0;
 
-        ActionBarMenuSubItem spoilerItem = new ActionBarMenuSubItem(context, false, true, resourcesProvider);
-        spoilerItem.setTextAndIcon(LocaleController.getString(R.string.Spoiler), R.drawable.msg_spoiler);
-        spoilerItem.setMinimumWidth(AndroidUtilities.dp(ITEM_MIN_WIDTH_DP));
-        spoilerItem.setOnClickListener(v -> {
-            dismissPopup(owner);
-            applySpoilerToWholeMessage(editText);
-        });
-        layout.addView(spoilerItem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, ITEM_HEIGHT_DP));
+        ChatEnterGoogleAiGeneratePatch.maybeAddMenuItem(
+                context,
+                resourcesProvider,
+                layout,
+                ITEM_HEIGHT_DP,
+                ITEM_MIN_WIDTH_DP,
+                owner,
+                () -> dismissPopup(owner),
+                editText,
+                parentFragment
+        );
+        ChatEnterTemplateFillPatch.maybeAddMenuItem(
+                context,
+                resourcesProvider,
+                layout,
+                ITEM_HEIGHT_DP,
+                ITEM_MIN_WIDTH_DP,
+                () -> dismissPopup(owner),
+                editText
+        );
 
-        if (hasSpoilerSpans(editText.getText())) {
+        if (hasText) {
+            ActionBarMenuSubItem spoilerItem = new ActionBarMenuSubItem(context, false, true, resourcesProvider);
+            spoilerItem.setTextAndIcon(LocaleController.getString(R.string.Spoiler), R.drawable.msg_spoiler);
+            spoilerItem.setMinimumWidth(AndroidUtilities.dp(ITEM_MIN_WIDTH_DP));
+            spoilerItem.setOnClickListener(v -> {
+                dismissPopup(owner);
+                applySpoilerToWholeMessage(editText);
+            });
+            layout.addView(spoilerItem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, ITEM_HEIGHT_DP));
+        }
+
+        if (hasText && hasSpoilerSpans(editText.getText())) {
             ActionBarMenuSubItem removeSpoilerItem = new ActionBarMenuSubItem(context, false, true, resourcesProvider);
             removeSpoilerItem.setTextAndIcon(LocaleController.getString(R.string.DisablePhotoSpoiler), R.drawable.msg_spoiler_off);
             removeSpoilerItem.setMinimumWidth(AndroidUtilities.dp(ITEM_MIN_WIDTH_DP));
