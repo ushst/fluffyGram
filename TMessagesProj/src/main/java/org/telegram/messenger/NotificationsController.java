@@ -82,6 +82,7 @@ import org.telegram.ui.PopupNotificationActivity;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.ushastoe.fluffy.hooks.NotificationIconHook;
 import org.ushastoe.fluffy.hooks.NotificationLaunchIntentHook;
+import org.ushastoe.fluffy.hooks.NotificationSenderMuteHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1071,6 +1072,12 @@ public class NotificationsController extends BaseController {
                     }
                     continue;
                 }
+                if (NotificationSenderMuteHook.shouldSuppressNotification(currentAccount, messageObject)) {
+                    if (BuildVars.LOGS_ENABLED) {
+                        FileLog.d("skipped message because sender notifications are muted");
+                    }
+                    continue;
+                }
                 if (messageObject.isStoryPush) {
                     long date = messageObject.messageOwner == null ? System.currentTimeMillis() : messageObject.messageOwner.date * 1000L;
                     long dialogId = messageObject.getDialogId();
@@ -1533,6 +1540,9 @@ public class NotificationsController extends BaseController {
                         continue;
                     }
                     MessageObject messageObject = new MessageObject(currentAccount, message, false, false);
+                    if (NotificationSenderMuteHook.shouldSuppressNotification(currentAccount, messageObject)) {
+                        continue;
+                    }
                     if (isPersonalMessage(messageObject)) {
                         personalCount++;
                     }
@@ -1601,6 +1611,9 @@ public class NotificationsController extends BaseController {
             if (push != null) {
                 for (int a = 0; a < push.size(); a++) {
                     MessageObject messageObject = push.get(a);
+                    if (NotificationSenderMuteHook.shouldSuppressNotification(currentAccount, messageObject)) {
+                        continue;
+                    }
                     int mid = messageObject.getId();
                     if (pushMessagesDict.indexOfKey(mid) >= 0) {
                         continue;
