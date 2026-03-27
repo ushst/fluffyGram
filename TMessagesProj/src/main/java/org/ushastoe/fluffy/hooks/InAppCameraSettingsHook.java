@@ -14,4 +14,8 @@ public final class InAppCameraSettingsHook {
     public static void setEnabled(boolean enabled) {
         InAppCameraSettingsPatch.setEnabled(enabled);
     }
+
+    public static boolean shouldUseInAppCamera() {
+        return InAppCameraSettingsPatch.shouldUseInAppCamera();
+    }
 }

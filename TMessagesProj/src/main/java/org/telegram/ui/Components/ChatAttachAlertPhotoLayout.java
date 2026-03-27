@@ -114,6 +114,7 @@ import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.AlbumButton;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.ushastoe.fluffy.hooks.InAppCameraSettingsHook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -1518,7 +1519,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
     }
 
     private void openCameraByClick() {
-        if (SharedConfig.inappCamera) {
+        if (InAppCameraSettingsHook.shouldUseInAppCamera()) {
             openCamera(true);
         } else {
             if (parentAlert.delegate != null) {
@@ -2384,7 +2385,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         if (fragment == null || fragment.getParentActivity() == null) {
             return;
         }
-        if (!SharedConfig.inappCamera) {
+        if (!InAppCameraSettingsHook.shouldUseInAppCamera()) {
             deviceHasGoodCamera = false;
         } else {
             if (Build.VERSION.SDK_INT >= 23) {
