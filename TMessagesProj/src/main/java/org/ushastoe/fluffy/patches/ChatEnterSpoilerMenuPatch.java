@@ -93,6 +93,16 @@ public final class ChatEnterSpoilerMenuPatch {
                 () -> dismissPopup(owner),
                 editText
         );
+        ChatEnterChannelSubscribePatch.maybeAddMenuItem(
+                context,
+                resourcesProvider,
+                layout,
+                ITEM_HEIGHT_DP,
+                ITEM_MIN_WIDTH_DP,
+                () -> dismissPopup(owner),
+                editText,
+                parentFragment
+        );
 
         if (hasText) {
             ActionBarMenuSubItem spoilerItem = new ActionBarMenuSubItem(context, false, true, resourcesProvider);

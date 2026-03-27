@@ -94,6 +94,8 @@
     <string name="FluffySenderNotificationsMutedNamed">Notifications from %1$s muted</string>
     <string name="FluffySenderNotificationsUnmuted">Sender notifications restored</string>
     <string name="FluffySenderNotificationsUnmutedNamed">Notifications from %1$s restored</string>
+    <string name="FluffyInsertSubscribeLinkAction">Insert “Subscribe” link</string>
+    <string name="FluffySubscribeLinkText">Subscribe</string>
     <string name="FluffyCloudSection">Cloud Settings</string>
     <string name="FluffyCloud">Cloud Settings</string>
     <string name="FluffyCloudInfo">Sync supported Fluffy and Telegram preferences across your devices.</string>

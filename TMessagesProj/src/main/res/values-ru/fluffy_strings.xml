@@ -94,6 +94,8 @@
     <string name="FluffySenderNotificationsMutedNamed">Уведомления от %1$s отключены</string>
     <string name="FluffySenderNotificationsUnmuted">Уведомления от автора включены</string>
     <string name="FluffySenderNotificationsUnmutedNamed">Уведомления от %1$s включены</string>
+    <string name="FluffyInsertSubscribeLinkAction">Вставить ссылку «Подписаться»</string>
+    <string name="FluffySubscribeLinkText">Подписаться</string>
     <string name="FluffyPremiumAccessGranted">Premium-доступ активирован.</string>
     <string name="FluffyPremiumAccessDenied">Недействительный токен premium-доступа.</string>
     <string name="FluffyPremiumGoToSettings">Открыть Fluffy-настройки</string>
