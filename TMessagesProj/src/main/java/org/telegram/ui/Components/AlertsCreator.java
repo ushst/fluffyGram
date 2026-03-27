@@ -7323,7 +7323,7 @@ public class AlertsCreator {
                 }
                 deleteMessagesBottomSheet.show();
                 return;
-            } else if (!hasNotOut && myMessagesCount > 0 && hasNonDiceMessages) {
+            } else if (!isSavedMessages && !hasNotOut && myMessagesCount > 0 && hasNonDiceMessages) {
                 hasDeleteForAllCheck = true;
                 FrameLayout frameLayout = new FrameLayout(activity);
                 CheckBoxCell cell = new CheckBoxCell(activity, 1, resourcesProvider);
@@ -7394,7 +7394,7 @@ public class AlertsCreator {
                     }
                 }
             }
-            if (myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
+            if (!isSavedMessages && myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
                 hasDeleteForAllCheck = true;
                 FrameLayout frameLayout = new FrameLayout(activity);
                 CheckBoxCell cell = new CheckBoxCell(activity, 1, resourcesProvider);
@@ -7462,6 +7462,29 @@ public class AlertsCreator {
                     cell2.setChecked(preserveLocally[0], true);
                 });
             }
+            builder.setView(frameLayout);
+            builder.setCustomViewOffset(9);
+        }
+        if (!hasDeleteForAllCheck
+                && LocalMessageArchiveHook.shouldCaptureDeletedMessages()
+                && !scheduled
+                && !isSavedMessages
+                && encryptedChat == null
+                && chat != null
+                && ChatObject.isChannel(chat)
+                && !chat.megagroup) {
+            FrameLayout frameLayout = new FrameLayout(activity);
+            CheckBoxCell preserveCell = new CheckBoxCell(activity, 1, resourcesProvider);
+            preserveCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
+            preserveCell.setText(LocaleController.getString(R.string.FluffyPreserveDeletedMessageLocally), "", false, false);
+            preserveCell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
+            frameLayout.addView(preserveCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+            preserveCell.setChecked(preserveLocally[0], false);
+            preserveCell.setOnClickListener(v -> {
+                CheckBoxCell cell1 = (CheckBoxCell) v;
+                preserveLocally[0] = !preserveLocally[0];
+                cell1.setChecked(preserveLocally[0], true);
+            });
             builder.setView(frameLayout);
             builder.setCustomViewOffset(9);
         }

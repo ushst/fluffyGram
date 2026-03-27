@@ -31,12 +31,13 @@ public final class DeletedMessageIndicatorPatch {
             return LocaleController.getString(R.string.FluffyDeletedMessageMarkerShortText) + " " + time;
         }
         SpannableStringBuilder builder = new SpannableStringBuilder();
+        builder.append(" ");
         builder.append(ICON_PLACEHOLDER);
         builder.append(" ");
         builder.append(time);
 
         ColoredImageSpan span = MessageTimeIconSpanFactory.create(R.drawable.msg_delete);
-        builder.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        builder.setSpan(span, 1, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return builder;
     }
 
@@ -49,7 +50,7 @@ public final class DeletedMessageIndicatorPatch {
             return 0;
         }
         float placeholderWidth = Theme.chat_timePaint != null ? Theme.chat_timePaint.measureText(ICON_PLACEHOLDER) : 0f;
-        float reserve = Math.max(AndroidUtilities.dp(8), Theme.chat_timePaint != null ? Theme.chat_timePaint.getTextSize() * 0.7f : AndroidUtilities.dp(8));
+        float reserve = Math.max(AndroidUtilities.dp(12), Theme.chat_timePaint != null ? Theme.chat_timePaint.getTextSize() * 0.95f : AndroidUtilities.dp(12));
         return Math.max(0, (int) Math.ceil(reserve - placeholderWidth));
     }
 
