@@ -1373,6 +1373,78 @@ public class NotificationsController extends BaseController {
         pushMessages.add(0, messageObject);
     }
 
+    public void removeQueuedMessagesForMutedSender(long dialogId, long senderId) {
+        ArrayList<MessageObject> popupArrayRemove = new ArrayList<>();
+        notificationsQueue.postRunnable(() -> {
+            int removedCount = 0;
+            boolean changed = false;
+            for (int a = 0; a < pushMessages.size(); a++) {
+                MessageObject messageObject = pushMessages.get(a);
+                if (!NotificationSenderMuteHook.isQueuedMessageForSender(currentAccount, messageObject, dialogId, senderId)) {
+                    continue;
+                }
+                if (isPersonalMessage(messageObject)) {
+                    personalCount--;
+                }
+                pushMessages.remove(a);
+                a--;
+                removedCount++;
+                changed = true;
+                delayedPushMessages.remove(messageObject);
+                long did;
+                if (messageObject.messageOwner != null && messageObject.messageOwner.peer_id != null && messageObject.messageOwner.peer_id.channel_id != 0) {
+                    did = -messageObject.messageOwner.peer_id.channel_id;
+                } else {
+                    did = 0;
+                }
+                SparseArray<MessageObject> sparseArray = pushMessagesDict.get(did);
+                if (sparseArray != null) {
+                    sparseArray.remove(messageObject.getId());
+                    if (sparseArray.size() == 0) {
+                        pushMessagesDict.remove(did);
+                    }
+                }
+                popupArrayRemove.add(messageObject);
+            }
+            if (removedCount > 0) {
+                Integer currentCount = pushDialogs.get(dialogId);
+                if (currentCount != null) {
+                    int newCount = Math.max(0, currentCount - removedCount);
+                    if (newCount == 0) {
+                        pushDialogs.remove(dialogId);
+                        pushDialogsOverrideMention.remove(dialogId);
+                        smartNotificationsDialogs.remove(dialogId);
+                    } else {
+                        pushDialogs.put(dialogId, newCount);
+                    }
+                    if (getMessagesController().isForum(dialogId)) {
+                        total_unread_count -= currentCount > 0 ? 1 : 0;
+                        total_unread_count += newCount > 0 ? 1 : 0;
+                    } else {
+                        total_unread_count = Math.max(0, total_unread_count - removedCount);
+                    }
+                }
+            }
+            if (!popupArrayRemove.isEmpty()) {
+                AndroidUtilities.runOnUIThread(() -> {
+                    popupMessages.removeAll(popupArrayRemove);
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.pushMessagesUpdated);
+                });
+            }
+            if (changed) {
+                showOrUpdateNotification(false);
+                int pushDialogsCount = pushDialogs.size();
+                AndroidUtilities.runOnUIThread(() -> {
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.notificationsCountUpdated, currentAccount);
+                    getNotificationCenter().postNotificationName(NotificationCenter.dialogsUnreadCounterChanged, pushDialogsCount);
+                });
+                if (showBadgeNumber) {
+                    setBadge(getTotalAllUnreadCount());
+                }
+            }
+        });
+    }
+
     public int getTotalUnreadCount() {
         return total_unread_count;
     }

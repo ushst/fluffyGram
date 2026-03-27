@@ -5,13 +5,12 @@ import android.text.TextUtils;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
-import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.BulletinFactory;
+import org.ushastoe.fluffy.hooks.NotificationSenderMuteHook;
 import org.ushastoe.fluffy.utils.NotificationMutedSenderStore;
 
 import java.util.ArrayList;
@@ -48,6 +47,9 @@ public final class NotificationSenderMutePatch {
         if (!NotificationMutedSenderStore.setMuted(currentAccount, dialogId, senderId, !muted)) {
             return true;
         }
+        if (!muted) {
+            NotificationSenderMuteHook.removeQueuedMessagesForMutedSender(currentAccount, dialogId, senderId);
+        }
 
         String senderName = getSenderName(currentAccount, senderId);
         String text;
@@ -69,6 +71,16 @@ public final class NotificationSenderMutePatch {
             return false;
         }
         return isMuted(currentAccount, messageObject);
+    }
+
+    public static boolean isQueuedMessageForSender(int currentAccount, MessageObject messageObject, long dialogId, long senderId) {
+        if (messageObject == null || messageObject.messageOwner == null) {
+            return false;
+        }
+        if (messageObject.getDialogId() != dialogId) {
+            return false;
+        }
+        return getSenderPeerId(messageObject) == senderId;
     }
 
     private static boolean canToggle(int currentAccount, MessageObject selectedMessage) {
