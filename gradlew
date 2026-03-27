@@ -67,6 +67,47 @@ cd "$SAVED" >&-
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
+is_java_21() {
+    [ -x "$1" ] || return 1
+    "$1" -version 2>&1 | grep -q 'version "21\.'
+}
+
+maybe_use_java21_home() {
+    [ -n "$1" ] || return 1
+    candidate="$1"
+    candidate_java="$candidate/bin/java"
+    if is_java_21 "$candidate_java" ; then
+        JAVA_HOME="$candidate"
+        JAVACMD="$candidate_java"
+        return 0
+    fi
+    return 1
+}
+
+find_java21_home() {
+    for candidate in \
+        "$JAVA21_HOME" \
+        "/usr/lib/jvm/java-21-openjdk-amd64" \
+        "/usr/lib/jvm/java-1.21.0-openjdk-amd64" \
+        "/usr/lib/jvm/openjdk-21" \
+        "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home" \
+        "/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
+    do
+        maybe_use_java21_home "$candidate" && return 0
+    done
+
+    for candidate_java in /usr/lib/jvm/*/bin/java /Library/Java/JavaVirtualMachines/*/Contents/Home/bin/java ; do
+        [ -e "$candidate_java" ] || continue
+        if is_java_21 "$candidate_java" ; then
+            JAVA_HOME=$(cd "$(dirname "$candidate_java")/.." && pwd -P)
+            JAVACMD="$candidate_java"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
@@ -87,6 +128,15 @@ else
 
 Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
+fi
+
+if ! is_java_21 "$JAVACMD" ; then
+    if find_java21_home ; then
+        export JAVA_HOME
+        warn "Using detected Java 21 at $JAVA_HOME"
+    else
+        warn "Java 21 was not detected automatically. Current Java: $("$JAVACMD" -version 2>&1 | head -n 1)"
+    fi
 fi
 
 # Increase the maximum file descriptors if we can.

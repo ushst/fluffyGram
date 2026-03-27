@@ -38,6 +38,8 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"
 
+call :resolveJava21
+
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 
@@ -92,3 +94,37 @@ exit /b %EXIT_CODE%
 if "%OS%"=="Windows_NT" endlocal
 
 :omega
+
+:resolveJava21
+if defined JAVA21_HOME (
+    call :trySetJavaHome "%JAVA21_HOME%"
+    if defined JAVA_HOME exit /b 0
+)
+if defined JAVA_HOME (
+    call :isJava21 "%JAVA_HOME%\bin\java.exe"
+    if %ERRORLEVEL% equ 0 exit /b 0
+)
+for %%D in (
+    "%ProgramFiles%\Eclipse Adoptium\jdk-21*"
+    "%ProgramFiles%\Java\jdk-21*"
+    "%ProgramFiles%\Android\Android Studio\jbr"
+    "%ProgramFiles%\Microsoft\jdk-21*"
+) do (
+    call :trySetJavaHome "%%~fD"
+    if defined JAVA_HOME exit /b 0
+)
+exit /b 0
+
+:trySetJavaHome
+set "CANDIDATE_HOME=%~1"
+if not defined CANDIDATE_HOME exit /b 1
+if not exist "%CANDIDATE_HOME%\bin\java.exe" exit /b 1
+call :isJava21 "%CANDIDATE_HOME%\bin\java.exe"
+if %ERRORLEVEL% neq 0 exit /b 1
+set "JAVA_HOME=%CANDIDATE_HOME%"
+exit /b 0
+
+:isJava21
+if not exist "%~1" exit /b 1
+"%~1" -version 2>&1 | findstr /c:"version \"21." >NUL
+exit /b %ERRORLEVEL%
