@@ -138,18 +138,13 @@ public final class DialogsCenteredTitlePatch {
 
     private static void centerTitleViews(ActionBar actionBar) {
         View customTitleView = findCustomTitleView(actionBar);
-        if (customTitleView instanceof ChatAvatarContainer) {
-            resetTitleView(actionBar.getTitleTextView());
-            resetTitleView(actionBar.getTitleTextView2());
-            resetTitleView(customTitleView);
-            return;
-        }
         int mode = AppearanceSettingsHook.getDialogsTitleMode();
         if (mode == AppearanceSettingsPatch.DIALOGS_TITLE_MODE_DEFAULT) {
             applyGravity(actionBar.getTitleTextView(), false);
             applyGravity(actionBar.getTitleTextView2(), false);
             resetTitleView(actionBar.getTitleTextView());
             resetTitleView(actionBar.getTitleTextView2());
+            resetTitleView(actionBar.getAdditionalSubTitleOverlayContainer());
             resetTitleView(customTitleView);
             return;
         }
@@ -157,6 +152,7 @@ public final class DialogsCenteredTitlePatch {
         if (isTitleTransitionInProgress(actionBar)) {
             resetTitleView(actionBar.getTitleTextView());
             resetTitleView(actionBar.getTitleTextView2());
+            resetTitleView(actionBar.getAdditionalSubTitleOverlayContainer());
             resetTitleView(customTitleView);
             return;
         }
@@ -178,6 +174,7 @@ public final class DialogsCenteredTitlePatch {
 
         centerTitleView(actionBar.getTitleTextView(), leftBound, rightBound);
         centerTitleView(actionBar.getTitleTextView2(), leftBound, rightBound);
+        centerCustomTitleView(actionBar.getAdditionalSubTitleOverlayContainer(), leftBound, rightBound);
         centerCustomTitleView(customTitleView, leftBound, rightBound);
     }
 
@@ -209,6 +206,7 @@ public final class DialogsCenteredTitlePatch {
         if (child == actionBar.getTitleTextView()
                 || child == actionBar.getTitleTextView2()
                 || child == actionBar.getTitlesContainer()
+                || child == actionBar.getAdditionalSubTitleOverlayContainer()
                 || child == excludedView) {
             return false;
         }
