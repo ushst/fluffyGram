@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy.hooks;
 
 import org.telegram.messenger.MessageObject;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.ushastoe.fluffy.patches.LocalMessageFakeEditPatch;
 
@@ -25,5 +26,15 @@ public final class LocalMessageFakeEditHook {
 
     public static void applyStoredEdit(MessageObject messageObject) {
         LocalMessageFakeEditPatch.applyStoredEdit(messageObject);
+    }
+
+    public static boolean handleComposerDoneEditing(ChatActivity fragment, MessageObject editingMessageObject,
+            CharSequence text, ArrayList<TLRPC.MessageEntity> entities) {
+        return LocalMessageFakeEditPatch.handleComposerDoneEditing(fragment, editingMessageObject, text, entities);
+    }
+
+    public static void onEditingSessionChanged(ChatActivity fragment, MessageObject previousEditingMessageObject,
+            MessageObject currentEditingMessageObject) {
+        LocalMessageFakeEditPatch.onEditingSessionChanged(fragment, previousEditingMessageObject, currentEditingMessageObject);
     }
 }

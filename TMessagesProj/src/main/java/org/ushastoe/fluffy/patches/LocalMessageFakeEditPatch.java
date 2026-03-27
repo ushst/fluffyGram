@@ -1,33 +1,30 @@
 package org.ushastoe.fluffy.patches;
 
 import android.content.Context;
-import android.text.InputType;
 import android.text.TextUtils;
-import android.view.Gravity;
-import android.widget.FrameLayout;
 
-import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.AlertDialog;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.EditTextBoldCursor;
-import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.AlertsCreator;
 import org.ushastoe.fluffy.hooks.LocalMessageArchiveHook;
 import org.ushastoe.fluffy.utils.LocalMessageFakeEditStore;
 
 import java.util.ArrayList;
+import java.util.WeakHashMap;
 
 public final class LocalMessageFakeEditPatch {
 
     public static final int OPTION_LOCAL_FAKE_EDIT = 9994;
     public static final int OPTION_RESET_LOCAL_FAKE_EDIT = 9995;
+
+    private static final WeakHashMap<ChatActivity, EditSession> ACTIVE_SESSIONS = new WeakHashMap<>();
 
     private LocalMessageFakeEditPatch() {
     }
@@ -57,7 +54,7 @@ public final class LocalMessageFakeEditPatch {
             return false;
         }
         if (option == OPTION_LOCAL_FAKE_EDIT) {
-            showFakeEditDialog(fragment, selectedMessage);
+            startFakeEditComposer(fragment, selectedMessage);
             return true;
         }
         if (option == OPTION_RESET_LOCAL_FAKE_EDIT) {
@@ -93,7 +90,7 @@ public final class LocalMessageFakeEditPatch {
         if (messageObject.messageOwner instanceof TLRPC.TL_messageService) {
             return false;
         }
-        if (!fakeEdited && messageObject.isEdited()) {
+        if (!fakeEdited && messageObject.isEdited() && !isBroadcastChannelMessage(messageObject)) {
             return false;
         }
         if (!fakeEdited && TextUtils.isEmpty(messageObject.messageOwner.message)) {
@@ -102,40 +99,56 @@ public final class LocalMessageFakeEditPatch {
         return !messageObject.isSponsored();
     }
 
-    private static void showFakeEditDialog(ChatActivity fragment, MessageObject messageObject) {
-        if (!PremiumSettingsPatch.isLocalMessageFakeEditEnabled() || !canFakeEdit(messageObject) || fragment.getParentActivity() == null) {
-            return;
+    private static boolean isBroadcastChannelMessage(MessageObject messageObject) {
+        if (messageObject == null) {
+            return false;
         }
-        Context context = fragment.getParentActivity();
-        EditTextBoldCursor editText = new EditTextBoldCursor(context);
-        editText.setText(messageObject.messageOwner.message != null ? messageObject.messageOwner.message : "");
-        editText.setSelection(editText.length());
-        editText.setGravity(Gravity.START | Gravity.TOP);
-        editText.setMinLines(1);
-        editText.setMaxLines(5);
-        editText.setPadding(0, 0, 0, AndroidUtilities.dp(6));
-        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
-        editText.setHintTextColor(Theme.getColor(Theme.key_dialogTextGray3));
-        editText.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
-
-        FrameLayout frameLayout = new FrameLayout(context);
-        frameLayout.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(16), AndroidUtilities.dp(24), AndroidUtilities.dp(12));
-        frameLayout.addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, fragment.getResourceProvider());
-        builder.setTitle(LocaleController.getString(R.string.FluffyLocalMessageEditTitle));
-        builder.setMessage(LocaleController.getString(R.string.FluffyLocalMessageEditHint));
-        builder.setView(frameLayout);
-        builder.setPositiveButton(LocaleController.getString(R.string.Save), (dialog, which) -> applyFakeEdit(fragment, messageObject, editText.getText().toString()));
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-        AlertDialog dialog = builder.create();
-        fragment.showDialog(dialog);
-        editText.requestFocus();
-        AndroidUtilities.runOnUIThread(() -> AndroidUtilities.showKeyboard(editText));
+        long dialogId = messageObject.getDialogId();
+        if (dialogId >= 0) {
+            return false;
+        }
+        TLRPC.Chat chat = MessagesController.getInstance(messageObject.currentAccount).getChat(-dialogId);
+        return chat != null && ChatObject.isChannel(chat) && !chat.megagroup;
     }
 
-    private static void applyFakeEdit(ChatActivity fragment, MessageObject messageObject, String newText) {
+    public static boolean handleComposerDoneEditing(ChatActivity fragment, MessageObject editingMessageObject,
+            CharSequence text, ArrayList<TLRPC.MessageEntity> entities) {
+        if (fragment == null || editingMessageObject == null) {
+            return false;
+        }
+        EditSession session = ACTIVE_SESSIONS.get(fragment);
+        if (!isSameMessage(session, editingMessageObject)) {
+            return false;
+        }
+        applyFakeEdit(fragment, editingMessageObject, text != null ? text.toString() : "", entities);
+        ACTIVE_SESSIONS.remove(fragment);
+        return true;
+    }
+
+    public static void onEditingSessionChanged(ChatActivity fragment, MessageObject previousEditingMessageObject,
+            MessageObject currentEditingMessageObject) {
+        if (fragment == null) {
+            return;
+        }
+        EditSession session = ACTIVE_SESSIONS.get(fragment);
+        if (session == null) {
+            return;
+        }
+        if (currentEditingMessageObject == null || !isSameMessage(session, currentEditingMessageObject)) {
+            ACTIVE_SESSIONS.remove(fragment);
+        }
+    }
+
+    private static void startFakeEditComposer(ChatActivity fragment, MessageObject messageObject) {
+        if (!PremiumSettingsPatch.isLocalMessageFakeEditEnabled() || !canFakeEdit(messageObject) || fragment == null) {
+            return;
+        }
+        ACTIVE_SESSIONS.put(fragment, new EditSession(messageObject));
+        fragment.startLocalFakeEditComposer(messageObject);
+    }
+
+    private static void applyFakeEdit(ChatActivity fragment, MessageObject messageObject, String newText,
+            ArrayList<TLRPC.MessageEntity> entities) {
         if (fragment == null || messageObject == null || messageObject.messageOwner == null || newText == null) {
             return;
         }
@@ -162,6 +175,7 @@ public final class LocalMessageFakeEditPatch {
         LocalMessageArchiveHook.captureLocalEdit(messageObject, originalText, false);
         record.fakeText = newText;
         record.fakeEditDate = fragment.getConnectionsManager().getCurrentTime();
+        record.fakeEntities = cloneEntities(entities);
         LocalMessageFakeEditStore.put(messageObject.messageOwner.dialog_id, messageObject.getId(), record);
 
         applyRecord(messageObject, record);
@@ -191,7 +205,7 @@ public final class LocalMessageFakeEditPatch {
         messageObject.messageOwner.flags = record.originalFlags;
         messageObject.messageOwner.edit_date = record.originalEditDate;
         messageObject.messageOwner.edit_hide = record.originalEditHide;
-        messageObject.messageOwner.entities = cloneEntities(record.originalEntities);
+        messageObject.messageOwner.entities = ensureEntitiesList(cloneEntities(record.originalEntities));
 
         LocalMessageFakeEditStore.remove(messageObject.messageOwner.dialog_id, messageObject.getId());
         refreshMessageObject(fragment, messageObject);
@@ -202,7 +216,7 @@ public final class LocalMessageFakeEditPatch {
         messageObject.messageOwner.flags |= TLRPC.MESSAGE_FLAG_EDITED;
         messageObject.messageOwner.edit_date = record.fakeEditDate;
         messageObject.messageOwner.edit_hide = false;
-        messageObject.messageOwner.entities = new ArrayList<>();
+        messageObject.messageOwner.entities = ensureEntitiesList(cloneEntities(record.fakeEntities));
     }
 
     private static void refreshMessageObject(ChatActivity fragment, MessageObject messageObject) {
@@ -237,5 +251,23 @@ public final class LocalMessageFakeEditPatch {
             }
         }
         return result.isEmpty() ? null : result;
+    }
+
+    private static boolean isSameMessage(EditSession session, MessageObject messageObject) {
+        return session != null && messageObject != null && session.dialogId == messageObject.getDialogId() && session.messageId == messageObject.getId();
+    }
+
+    private static ArrayList<TLRPC.MessageEntity> ensureEntitiesList(ArrayList<TLRPC.MessageEntity> entities) {
+        return entities != null ? entities : new ArrayList<>();
+    }
+
+    private static final class EditSession {
+        private final long dialogId;
+        private final int messageId;
+
+        private EditSession(MessageObject messageObject) {
+            dialogId = messageObject != null ? messageObject.getDialogId() : 0L;
+            messageId = messageObject != null ? messageObject.getId() : 0;
+        }
     }
 }

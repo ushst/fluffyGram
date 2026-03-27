@@ -181,6 +181,7 @@ import org.telegram.ui.Gifts.GiftSheet;
 import org.ushastoe.fluffy.hooks.ChatEnterSpoilerMenuHook;
 import org.ushastoe.fluffy.hooks.ChatPersistentAttachButtonHook;
 import org.ushastoe.fluffy.hooks.CloudGifCaptionHook;
+import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
 import org.telegram.ui.GroupStickersActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LinkManager;
@@ -7303,6 +7304,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsSendingNewEntities());
+        if (LocalMessageFakeEditHook.handleComposerDoneEditing(parentFragment, editingMessageObject, message[0], entities)) {
+            setEditingMessageObject(null, null, false);
+            return;
+        }
         if (!TextUtils.equals(message[0], editingMessageObject.messageText) || entities != null && !entities.isEmpty() || !editingMessageObject.messageOwner.entities.isEmpty() || editingMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage) {
             editingMessageObject.editingMessage = message[0];
             editingMessageObject.editingMessageEntities = entities;
@@ -9531,7 +9536,9 @@ public class ChatActivityEnterView extends FrameLayout implements
         }
         createMessageEditText();
         boolean hadEditingMessage = editingMessageObject != null;
+        MessageObject previousEditingMessageObject = editingMessageObject;
         editingMessageObject = messageObject;
+        LocalMessageFakeEditHook.onEditingSessionChanged(parentFragment, previousEditingMessageObject, editingMessageObject);
         editingCaption = caption;
         CharSequence textToSetWithKeyboard;
         if (editingMessageObject != null) {

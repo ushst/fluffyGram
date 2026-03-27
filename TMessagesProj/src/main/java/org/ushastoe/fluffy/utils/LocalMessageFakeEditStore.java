@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public final class LocalMessageFakeEditStore {
 
     private static final String DATABASE_NAME = "fluffy_local_fake_edit.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_RECORDS = "fake_edit_records";
     private static final String TABLE_META = "fake_edit_meta";
@@ -35,6 +35,7 @@ public final class LocalMessageFakeEditStore {
     private static final String COL_ORIGINAL_ENTITIES = "original_entities";
     private static final String COL_FAKE_TEXT = "fake_text";
     private static final String COL_FAKE_EDIT_DATE = "fake_edit_date";
+    private static final String COL_FAKE_ENTITIES = "fake_entities";
 
     private static final String META_KEY = "meta_key";
     private static final String META_VALUE = "meta_value";
@@ -50,6 +51,7 @@ public final class LocalMessageFakeEditStore {
     private static final String FIELD_ORIGINAL_ENTITIES = "original_entities";
     private static final String FIELD_FAKE_TEXT = "fake_text";
     private static final String FIELD_FAKE_EDIT_DATE = "fake_edit_date";
+    private static final String FIELD_FAKE_ENTITIES = "fake_entities";
 
     private static final Object LOCK = new Object();
 
@@ -81,6 +83,7 @@ public final class LocalMessageFakeEditStore {
                 record.originalEntities = deserializeEntities(cursor.getString(cursor.getColumnIndexOrThrow(COL_ORIGINAL_ENTITIES)));
                 record.fakeText = cursor.getString(cursor.getColumnIndexOrThrow(COL_FAKE_TEXT));
                 record.fakeEditDate = cursor.getInt(cursor.getColumnIndexOrThrow(COL_FAKE_EDIT_DATE));
+                record.fakeEntities = deserializeEntities(cursor.getString(cursor.getColumnIndexOrThrow(COL_FAKE_ENTITIES)));
                 return record;
             } finally {
                 closeCursor(cursor);
@@ -104,6 +107,7 @@ public final class LocalMessageFakeEditStore {
             values.put(COL_ORIGINAL_ENTITIES, serializeEntities(record.originalEntities));
             values.put(COL_FAKE_TEXT, valueOrEmpty(record.fakeText));
             values.put(COL_FAKE_EDIT_DATE, record.fakeEditDate);
+            values.put(COL_FAKE_ENTITIES, serializeEntities(record.fakeEntities));
             database.insertWithOnConflict(TABLE_RECORDS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         }
     }
@@ -186,6 +190,7 @@ public final class LocalMessageFakeEditStore {
                     values.put(COL_ORIGINAL_ENTITIES, serializeEntities(record.originalEntities));
                     values.put(COL_FAKE_TEXT, valueOrEmpty(record.fakeText));
                     values.put(COL_FAKE_EDIT_DATE, record.fakeEditDate);
+                    values.put(COL_FAKE_ENTITIES, serializeEntities(record.fakeEntities));
                     database.insertWithOnConflict(TABLE_RECORDS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
                 }
                 putMetaValueLocked(database, META_LEGACY_MIGRATED, "1");
@@ -300,6 +305,7 @@ public final class LocalMessageFakeEditStore {
         public ArrayList<TLRPC.MessageEntity> originalEntities;
         public String fakeText = "";
         public int fakeEditDate;
+        public ArrayList<TLRPC.MessageEntity> fakeEntities;
 
         private static Record fromJson(JSONObject object) {
             if (object == null) {
@@ -313,6 +319,7 @@ public final class LocalMessageFakeEditStore {
             record.originalEntities = deserializeEntities(object.optString(FIELD_ORIGINAL_ENTITIES, null));
             record.fakeText = object.optString(FIELD_FAKE_TEXT, "");
             record.fakeEditDate = object.optInt(FIELD_FAKE_EDIT_DATE, 0);
+            record.fakeEntities = deserializeEntities(object.optString(FIELD_FAKE_ENTITIES, null));
             return record;
         }
     }
@@ -335,6 +342,7 @@ public final class LocalMessageFakeEditStore {
                     COL_ORIGINAL_ENTITIES + " TEXT, " +
                     COL_FAKE_TEXT + " TEXT NOT NULL, " +
                     COL_FAKE_EDIT_DATE + " INTEGER NOT NULL DEFAULT 0, " +
+                    COL_FAKE_ENTITIES + " TEXT, " +
                     "PRIMARY KEY (" + COL_DIALOG_ID + ", " + COL_MESSAGE_ID + "))");
             db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_META + " (" +
                     META_KEY + " TEXT PRIMARY KEY, " +
@@ -344,6 +352,12 @@ public final class LocalMessageFakeEditStore {
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             onCreate(db);
+            if (oldVersion < 2) {
+                try {
+                    db.execSQL("ALTER TABLE " + TABLE_RECORDS + " ADD COLUMN " + COL_FAKE_ENTITIES + " TEXT");
+                } catch (Exception ignore) {
+                }
+            }
         }
     }
 }

@@ -31903,6 +31903,34 @@ public class ChatActivity extends BaseFragment implements
         startEditingMessageObject(messageObject, false);
     }
 
+    public void startLocalFakeEditComposer(MessageObject messageObject) {
+        if (messageObject == null || getParentActivity() == null) {
+            return;
+        }
+        if (selectionReactionsOverlay != null && selectionReactionsOverlay.isVisible()) {
+            selectionReactionsOverlay.setHiddenByScroll(true);
+        }
+        if (searchItem != null && actionBar.isSearchFieldVisible()) {
+            actionBar.closeSearchField();
+            chatActivityEnterView.setFieldFocused();
+        }
+        mentionContainer.getAdapter().setNeedBotContext(false);
+        chatActivityEnterView.setVisibility(View.VISIBLE);
+        showFieldPanelForEdit(true, messageObject);
+        updateBottomOverlay();
+        chatActivityEnterView.setAllowStickersAndGifs(true, false, false, true);
+        updatePinnedMessageView(true);
+        updateVisibleRows();
+        MessageDoubleTapActionHook.onStartEditingMessageObject(this, messageObject, chatListView, blurredViewBottomOffset, chatActivityEnterView);
+
+        editingMessageObject = messageObject;
+        final boolean mediaEmpty = messageObject.isMediaEmpty();
+        chatActivityEnterView.setEditingMessageObject(messageObject, getValidGroupedMessage(messageObject), !mediaEmpty);
+        chatActivityEnterView.setForceShowSendButton(false, false);
+        replyCloseImageView.setContentDescription(LocaleController.getString(R.string.AccDescrCancelEdit));
+        chatActivityEnterView.showEditDoneProgress(false, true);
+    }
+
     private void startEditingMessageObject(MessageObject messageObject, boolean asSuggestion) {
         if (messageObject == null || getParentActivity() == null) {
             return;
