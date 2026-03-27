@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedTextView;
+import org.telegram.ui.Components.TextStyleSpan;
 import org.ushastoe.fluffy.patches.AppFontPatch;
 
 public final class AppFontHook {
@@ -71,5 +72,13 @@ public final class AppFontHook {
 
     public static void applyBoldToTextView(TextView textView) {
         AppFontPatch.applyBoldToTextView(textView);
+    }
+
+    public static void applyCodeBackground(TextPaint textPaint, byte type) {
+        AppFontPatch.applyCodeBackground(textPaint, type);
+    }
+
+    public static Object createInlineCodeSpan(CharSequence message, int start, int end, byte type, TextStyleSpan.TextStyleRun run) {
+        return AppFontPatch.createInlineCodeSpan(message, start, end, type, run);
     }
 }

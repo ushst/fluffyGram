@@ -3,6 +3,7 @@ package org.ushastoe.fluffy.patches;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.provider.OpenableColumns;
@@ -10,12 +11,16 @@ import android.text.TextUtils;
 import android.text.TextPaint;
 import android.widget.TextView;
 
+import androidx.core.graphics.ColorUtils;
+
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedTextView;
+import org.telegram.ui.Components.TextStyleSpan;
+import org.telegram.ui.Components.URLSpanMono;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,6 +69,10 @@ public final class AppFontPatch {
     public static Typeface getRegularTypefaceOverride() {
         ensureGlobalTypefaceOverride();
         return getSelectedTypeface(Typeface.NORMAL);
+    }
+
+    public static boolean isCustomFontEnabled() {
+        return getSelectedTypeface(Typeface.NORMAL) != null;
     }
 
     public static void initializeGlobalOverride() {
@@ -151,6 +160,27 @@ public final class AppFontPatch {
 
     public static void applyToBoldPaints(TextPaint... textPaints) {
         applyTypefaceToPaints(getSelectedTypeface(Typeface.BOLD), textPaints);
+    }
+
+    public static void applyCodeBackground(TextPaint textPaint, byte type) {
+        if (textPaint == null || !AppearanceSettingsPatch.isInlineCodeChipEnabled()) {
+            return;
+        }
+        int colorKey = type == 1 ? Theme.key_chat_outCodeBackground : Theme.key_chat_inCodeBackground;
+        int background = Theme.getColor(colorKey);
+        if (Theme.isCurrentThemeDark()) {
+            background = ColorUtils.blendARGB(background, Color.BLACK, 0.66f);
+            background = Color.argb(0x44, Color.red(background), Color.green(background), Color.blue(background));
+        } else {
+            background = ColorUtils.blendARGB(background, Color.WHITE, 0.66f);
+            background = Color.argb(0x44, Color.red(background), Color.green(background), Color.blue(background));
+        }
+        textPaint.bgColor = background;
+        textPaint.setTypeface(Typeface.MONOSPACE);
+    }
+
+    public static Object createInlineCodeSpan(CharSequence message, int start, int end, byte type, TextStyleSpan.TextStyleRun run) {
+        return new URLSpanMono(message, start, end, type, run);
     }
 
     public static ArrayList<String> getAvailableFonts() {

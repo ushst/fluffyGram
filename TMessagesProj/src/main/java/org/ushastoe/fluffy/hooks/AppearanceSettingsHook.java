@@ -225,6 +225,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setChatEnterSpoilerMenuEnabled(enabled);
     }
 
+    public static boolean isInlineCodeChipEnabled() {
+        return AppearanceSettingsPatch.isInlineCodeChipEnabled();
+    }
+
+    public static void setInlineCodeChipEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setInlineCodeChipEnabled(enabled);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;

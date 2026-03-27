@@ -16,6 +16,7 @@ import android.text.style.MetricAffectingSpan;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.Theme;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 
 public class URLSpanMono extends MetricAffectingSpan {
 
@@ -68,5 +69,6 @@ public class URLSpanMono extends MetricAffectingSpan {
             p.setTypeface(Typeface.MONOSPACE);
             p.setUnderlineText(false);
         }
+        AppFontHook.applyCodeBackground(p, currentType);
     }
 }

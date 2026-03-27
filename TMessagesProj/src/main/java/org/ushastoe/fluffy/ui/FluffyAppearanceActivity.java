@@ -86,19 +86,20 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_TABS = 19;
     private static final int ROW_CENTER_CHAT_HEADER = 20;
     private static final int ROW_CHAT_ENTER_SPOILER_MENU = 21;
-    private static final int ROW_EDITED_MARKER_ICON = 22;
-    private static final int ROW_MAP_PROVIDER = 23;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 24;
-    private static final int ROW_NOTIFICATION_ICON = 25;
-    private static final int ROW_RECORDER_SECTION = 26;
-    private static final int ROW_RECORDER_HEADER = 27;
-    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 28;
-    private static final int ROW_ROUND_VIDEO_CAMERA = 29;
-    private static final int ROW_HIDE_STORIES = 30;
-    private static final int ROW_SCHEDULED_MARKER = 31;
-    private static final int ROW_SILENT_MARKER = 32;
-    private static final int ROW_MESSAGE_ACTIONS_SECTION = 33;
-    private static final int ROW_MESSAGE_ACTIONS = 34;
+    private static final int ROW_INLINE_CODE_CHIP = 22;
+    private static final int ROW_EDITED_MARKER_ICON = 23;
+    private static final int ROW_MAP_PROVIDER = 24;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 25;
+    private static final int ROW_NOTIFICATION_ICON = 26;
+    private static final int ROW_RECORDER_SECTION = 27;
+    private static final int ROW_RECORDER_HEADER = 28;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 29;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 30;
+    private static final int ROW_HIDE_STORIES = 31;
+    private static final int ROW_SCHEDULED_MARKER = 32;
+    private static final int ROW_SILENT_MARKER = 33;
+    private static final int ROW_MESSAGE_ACTIONS_SECTION = 34;
+    private static final int ROW_MESSAGE_ACTIONS = 35;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -190,6 +191,12 @@ public class FluffyAppearanceActivity extends BaseFragment {
             } else if (item.id == ROW_CHAT_ENTER_SPOILER_MENU) {
                 boolean enabled = !AppearanceSettingsHook.isChatEnterSpoilerMenuEnabled();
                 AppearanceSettingsHook.setChatEnterSpoilerMenuEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_INLINE_CODE_CHIP) {
+                boolean enabled = !AppearanceSettingsHook.isInlineCodeChipEnabled();
+                AppearanceSettingsHook.setInlineCodeChipEnabled(enabled);
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
@@ -302,6 +309,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_ENTER_SPOILER_MENU,
                 LocaleController.getString(R.string.FluffyChatEnterSpoilerMenu),
                 AppearanceSettingsHook.isChatEnterSpoilerMenuEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_INLINE_CODE_CHIP,
+                LocaleController.getString(R.string.FluffyInlineCodeChip),
+                AppearanceSettingsHook.isInlineCodeChipEnabled()));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_EDITED_MARKER_ICON,
             LocaleController.getString(R.string.FluffyEditedMarkerIcon),
             false));

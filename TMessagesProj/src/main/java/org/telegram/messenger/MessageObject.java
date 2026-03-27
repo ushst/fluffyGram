@@ -78,7 +78,6 @@ import org.telegram.ui.Components.TranscribeButton;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.URLSpanBotCommand;
 import org.telegram.ui.Components.URLSpanBrowser;
-import org.telegram.ui.Components.URLSpanMono;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.URLSpanNoUnderlineBold;
 import org.telegram.ui.Components.URLSpanReplacement;
@@ -93,6 +92,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.web.BotWebViewContainer;
+import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
@@ -7719,7 +7719,7 @@ public class MessageObject {
             } else if (run.urlEntity instanceof TLRPC.TL_inputMessageEntityMentionName) {
                 spannable.setSpan(new URLSpanUserMention("" + ((TLRPC.TL_inputMessageEntityMentionName) run.urlEntity).user_id.user_id, t, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if ((run.flags & TextStyleSpan.FLAG_STYLE_MONO) != 0) {
-                spannable.setSpan(new URLSpanMono(spannable, run.start, run.end, t, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannable.setSpan(AppFontHook.createInlineCodeSpan(spannable, run.start, run.end, t, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
                 setRun = true;
                 spannable.setSpan(new TextStyleSpan(run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
