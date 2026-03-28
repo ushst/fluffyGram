@@ -25,7 +25,7 @@ public final class DialogFilterSelectionPatch {
         try {
             long userId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
             if (userId != 0L) {
-                object.put("selected_filter_id", getPreferences().getLong(KEY_USER_PREFIX + userId, Long.MIN_VALUE));
+                object.put("selected_filter_id", readStoredFilterId(KEY_USER_PREFIX + userId));
             }
         } catch (Exception ignore) {
         }
@@ -58,7 +58,7 @@ public final class DialogFilterSelectionPatch {
             return currentSelectedType;
         }
 
-        long savedFilterId = getPreferences().getLong(getStorageKey(target), Long.MIN_VALUE);
+        long savedFilterId = readStoredFilterId(getStorageKey(target));
         if (savedFilterId == Long.MIN_VALUE) {
             return currentSelectedType;
         }
@@ -90,11 +90,31 @@ public final class DialogFilterSelectionPatch {
         if (target == null) {
             return Long.MIN_VALUE;
         }
-        return getPreferences().getLong(getStorageKey(target), Long.MIN_VALUE);
+        return readStoredFilterId(getStorageKey(target));
     }
 
     private static SharedPreferences getPreferences() {
         return ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    private static long readStoredFilterId(String key) {
+        if (TextUtils.isEmpty(key)) {
+            return Long.MIN_VALUE;
+        }
+        try {
+            Object value = getPreferences().getAll().get(key);
+            if (value instanceof Long) {
+                return (Long) value;
+            }
+            if (value instanceof Integer) {
+                return ((Integer) value).longValue();
+            }
+            if (value instanceof String && !TextUtils.isEmpty((String) value)) {
+                return Long.parseLong((String) value);
+            }
+        } catch (Exception ignore) {
+        }
+        return Long.MIN_VALUE;
     }
 
     private static String getStorageKey(DialogsActivity target) {
