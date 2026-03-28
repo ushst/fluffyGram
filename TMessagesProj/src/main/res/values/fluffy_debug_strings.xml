@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyExportConfig">Export config</string>
+    <string name="FluffyImportConfig">Import config</string>
+    <string name="FluffyConfigFileInfo">Exports all Fluffy SharedPreferences into one JSON file and restores them back from the same format.</string>
+    <string name="FluffyExportConfigDone">Config exported.</string>
+    <string name="FluffyExportConfigFailed">Failed to export config.</string>
+    <string name="FluffyImportConfigDone">Config imported.</string>
+    <string name="FluffyImportConfigFailed">Failed to import config.</string>
+</resources>

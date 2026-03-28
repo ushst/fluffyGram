@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyExportConfig">Экспорт конфига</string>
+    <string name="FluffyImportConfig">Импорт конфига</string>
+    <string name="FluffyConfigFileInfo">Экспортирует все Fluffy SharedPreferences в один JSON-файл и позволяет восстановить их обратно из этого же формата.</string>
+    <string name="FluffyExportConfigDone">Конфиг экспортирован.</string>
+    <string name="FluffyExportConfigFailed">Не удалось экспортировать конфиг.</string>
+    <string name="FluffyImportConfigDone">Конфиг импортирован.</string>
+    <string name="FluffyImportConfigFailed">Не удалось импортировать конфиг.</string>
+</resources>

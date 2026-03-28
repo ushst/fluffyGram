@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -39,6 +40,7 @@ import org.ushastoe.fluffy.hooks.UpdateCheckSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
 import org.ushastoe.fluffy.utils.LocalMessageArchiveStore;
 import org.ushastoe.fluffy.utils.LocalMessageFakeEditStore;
+import org.ushastoe.fluffy.utils.FluffyConfigFileStore;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
 
@@ -61,11 +63,16 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int ROW_LOCAL_STORAGE_HEADER = 6;
     private static final int ROW_ARCHIVE_DB_SIZE = 7;
     private static final int ROW_FAKE_EDIT_DB_SIZE = 8;
-    private static final int ROW_SAVE_LOG = 9;
-    private static final int ROW_SAVE_LOG_INFO = 10;
-    private static final int ROW_GOOGLE_CLOUD_HEADER = 11;
-    private static final int ROW_GOOGLE_CLOUD_STATUS = 12;
-    private static final int ROW_GOOGLE_CLOUD_INFO = 13;
+    private static final int ROW_EXPORT_CONFIG = 9;
+    private static final int ROW_IMPORT_CONFIG = 10;
+    private static final int ROW_CONFIG_FILE_INFO = 11;
+    private static final int ROW_SAVE_LOG = 12;
+    private static final int ROW_SAVE_LOG_INFO = 13;
+    private static final int ROW_GOOGLE_CLOUD_HEADER = 14;
+    private static final int ROW_GOOGLE_CLOUD_STATUS = 15;
+    private static final int ROW_GOOGLE_CLOUD_INFO = 16;
+    private static final int REQUEST_CODE_EXPORT_CONFIG = 510;
+    private static final int REQUEST_CODE_IMPORT_CONFIG = 511;
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
@@ -120,6 +127,10 @@ public class FluffyDebugActivity extends BaseFragment {
                 checkForUpdates();
             } else if (item.id == ROW_SHARE_APK) {
                 shareCurrentApk();
+            } else if (item.id == ROW_EXPORT_CONFIG) {
+                startConfigExport();
+            } else if (item.id == ROW_IMPORT_CONFIG) {
+                startConfigImport();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -159,6 +170,12 @@ public class FluffyDebugActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyLocalMessageArchiveDatabaseSize), formatDatabaseSize(LocalMessageArchiveStore.getDatabaseSizeBytes())));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_FAKE_EDIT_DB_SIZE,
                 LocaleController.getString(R.string.FluffyLocalFakeEditDatabaseSize), formatDatabaseSize(LocalMessageFakeEditStore.getDatabaseSizeBytes())));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_EXPORT_CONFIG,
+                LocaleController.getString(R.string.FluffyExportConfig), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_IMPORT_CONFIG,
+                LocaleController.getString(R.string.FluffyImportConfig), null));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CONFIG_FILE_INFO,
+                LocaleController.getString(R.string.FluffyConfigFileInfo), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SAVE_LOG,
                 LocaleController.getString(R.string.FluffySaveLog), null));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_LOG_INFO,
@@ -317,6 +334,63 @@ public class FluffyDebugActivity extends BaseFragment {
         }
     }
 
+    private void startConfigExport() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.putExtra(Intent.EXTRA_TITLE, FluffyConfigFileStore.buildDefaultFileName());
+        startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.FluffyExportConfig)), REQUEST_CODE_EXPORT_CONFIG);
+    }
+
+    private void startConfigImport() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.FluffyImportConfig)), REQUEST_CODE_IMPORT_CONFIG);
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_EXPORT_CONFIG) {
+            if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+                return;
+            }
+            Uri uri = data.getData();
+            if (FluffyConfigFileStore.exportToUri(getParentActivity(), uri)) {
+                BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffyExportConfigDone)).show();
+            } else {
+                BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyExportConfigFailed)).show();
+            }
+            return;
+        }
+        if (requestCode == REQUEST_CODE_IMPORT_CONFIG) {
+            if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+                return;
+            }
+            Uri uri = data.getData();
+            try {
+                data.getFlags();
+                getParentActivity().getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (Exception ignore) {
+            }
+            if (FluffyConfigFileStore.importFromUri(getParentActivity(), uri)) {
+                BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffyImportConfigDone)).show();
+                updateItems();
+                if (getParentLayout() != null) {
+                    getParentLayout().rebuildAllFragmentViews(true, true);
+                }
+            } else {
+                BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyImportConfigFailed)).show();
+            }
+            return;
+        }
+        super.onActivityResultFragment(requestCode, resultCode, data);
+    }
+
     private CharSequence formatPackageTime(boolean firstInstall) {
         Activity activity = getParentActivity();
         if (activity == null) {
@@ -359,6 +433,10 @@ public class FluffyDebugActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "check-updates");
         } else if (item.id == ROW_SHARE_APK) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "share-apk");
+        } else if (item.id == ROW_EXPORT_CONFIG) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "export-config");
+        } else if (item.id == ROW_IMPORT_CONFIG || item.id == ROW_CONFIG_FILE_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "import-config");
         } else if (item.id == ROW_SAVE_LOG || item.id == ROW_SAVE_LOG_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
         } else if (item.id == ROW_LOCAL_STORAGE_HEADER || item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE) {
@@ -407,6 +485,10 @@ public class FluffyDebugActivity extends BaseFragment {
                 return ROW_CHECK_VERSION;
             case "share-apk":
                 return ROW_SHARE_APK;
+            case "export-config":
+                return ROW_EXPORT_CONFIG;
+            case "import-config":
+                return ROW_IMPORT_CONFIG;
             case "local-storage":
                 return ROW_ARCHIVE_DB_SIZE;
             case "save-log":
