@@ -6,6 +6,8 @@ CLEAN=0
 LAUNCH=1
 JAVA_HOME_OVERRIDE=""
 ANDROID_SDK_ROOT_OVERRIDE=""
+GRADLE_MAX_HEAP="${GRADLE_MAX_HEAP:-4096m}"
+GRADLE_MAX_WORKERS="${GRADLE_MAX_WORKERS:-2}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -115,21 +117,45 @@ gradle_tasks=()
 if [[ "$CLEAN" -eq 1 ]]; then
   gradle_tasks+=("clean")
 fi
-gradle_tasks+=(":TMessagesProj_App:assembleAfatDebug" ":TMessagesProj_App:installAfatDebug")
+gradle_tasks+=(":TMessagesProj_App:assembleAfatDebug")
 
 printf 'Running Gradle tasks: %s\n' "${gradle_tasks[*]}"
-./gradlew "${gradle_tasks[@]}"
+printf 'Gradle heap: %s, max workers: %s\n' "$GRADLE_MAX_HEAP" "$GRADLE_MAX_WORKERS"
+./gradlew --no-daemon --console=plain --max-workers="$GRADLE_MAX_WORKERS" \
+  "-Dorg.gradle.jvmargs=-Xmx${GRADLE_MAX_HEAP} -Dfile.encoding=UTF-8" \
+  "${gradle_tasks[@]}"
+
+if ! command -v adb >/dev/null 2>&1; then
+  echo "adb was not found in PATH. Set ANDROID_SDK_ROOT/ANDROID_HOME or install platform-tools." >&2
+  exit 1
+fi
+
+apk_path="$script_root/TMessagesProj_App/build/outputs/apk/afat/debug/app.apk"
+if [[ ! -f "$apk_path" ]]; then
+  echo "APK not found: $apk_path" >&2
+  exit 1
+fi
+
+mapfile -t adb_devices < <(adb devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+if [[ "${#adb_devices[@]}" -eq 0 ]]; then
+  echo "No connected adb devices found." >&2
+  exit 1
+fi
+if [[ "${#adb_devices[@]}" -gt 1 ]]; then
+  echo "Multiple adb devices are connected. Disconnect extras or extend the script with device selection." >&2
+  printf 'Devices: %s\n' "${adb_devices[*]}" >&2
+  exit 1
+fi
+
+target_device="${adb_devices[0]}"
+printf 'Installing APK on %s...\n' "$target_device"
+adb -s "$target_device" install -r -d "$apk_path"
 
 echo "Debug build installed successfully."
 
 if [[ "$LAUNCH" -eq 1 ]]; then
-  if ! command -v adb >/dev/null 2>&1; then
-    echo "adb was not found in PATH. Set ANDROID_SDK_ROOT/ANDROID_HOME or install platform-tools." >&2
-    exit 1
-  fi
-
   echo "Launching app..."
-  adb shell am start -n org.ushastoe.fluffy.beta/org.telegram.ui.LaunchActivity >/dev/null
+  adb -s "$target_device" shell am start -n org.ushastoe.fluffy.beta/org.telegram.ui.LaunchActivity >/dev/null
   echo "App launched on device."
 else
   echo "Launch skipped."

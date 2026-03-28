@@ -90,11 +90,11 @@ android {
             jniDebuggable true
             signingConfig signingConfigs.debug
             applicationIdSuffix ".beta"
-            minifyEnabled false
+            minifyEnabled true
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = 'SYMBOL_TABLE'
         }
 
         standalone {
@@ -229,19 +229,11 @@ android {
     }
 }
 
-task syncLocalGoogleServices {
-    def destinationFile = file("$projectDir/google-services.json")
-    outputs.file(destinationFile)
-    doLast {
-        if (!localGoogleServices.exists()) {
-            return
-        }
-        copy {
-            from localGoogleServices
-            into projectDir
-            rename { "google-services.json" }
-        }
-    }
+def syncLocalGoogleServices = tasks.register("syncLocalGoogleServices", Copy) {
+    onlyIf { localGoogleServices.exists() }
+    from(localGoogleServices)
+    into(layout.projectDirectory)
+    rename { "google-services.json" }
 }
 
 preBuild.dependsOn syncLocalGoogleServices

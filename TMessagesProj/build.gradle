@@ -168,11 +168,11 @@ android {
     buildTypes {
         debug {
             jniDebuggable true
-            minifyEnabled false
+            minifyEnabled true
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = 'SYMBOL_TABLE'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
             buildConfigField "String", "BETA_URL", "\"" + getProps("BETA_PRIVATE_URL") + "\""
@@ -280,29 +280,23 @@ def getProps(String propName) {
     }
 }
 
-task syncLocalGoogleServices {
-    def destinationFile = file("$projectDir/google-services.json")
-    outputs.file(destinationFile)
-    doLast {
-        if (!localGoogleServices.exists()) {
-            return
-        }
-        copy {
-            from localGoogleServices
-            into projectDir
-            rename { "google-services.json" }
-        }
-    }
+def requestedTaskNames = gradle.startParameter.taskNames
+def isPublicAllowed = !hasProperty("IS_PRIVATE") || !property("IS_PRIVATE").toString().toBoolean()
+
+def syncLocalGoogleServices = tasks.register("syncLocalGoogleServices", Copy) {
+    onlyIf { localGoogleServices.exists() }
+    from(localGoogleServices)
+    into(layout.projectDirectory)
+    rename { "google-services.json" }
 }
 
 apply plugin: 'com.google.gms.google-services'
 
-task checkVisibility {
+def checkVisibility = tasks.register("checkVisibility") {
     doFirst {
-        def isPrivateBuild = project.gradle.startParameter.taskNames.find {
+        def isPrivateBuild = requestedTaskNames.find {
             it.contains("HA_private") || it.contains("HA_hardcore") || it.contains("Debug") || it.contains("Release")
         }
-        def isPublicAllowed = !project.hasProperty("IS_PRIVATE") || !project.property("IS_PRIVATE").toBoolean()
         if (!isPrivateBuild && !isPublicAllowed) {
             throw new GradleException("Building public version of private code!")
         }
