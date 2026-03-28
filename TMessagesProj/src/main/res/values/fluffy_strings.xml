@@ -341,8 +341,8 @@
     <string name="FluffyForwardedOriginalDateThirdLine">Original date in forwarded header</string>
     <string name="FluffyForwardedOriginalDateMenu">Forwarded original date</string>
     <string name="FluffyChatEnterSpoilerMenu">Show the spoiler menu on long press of the emoji button</string>
+    <string name="FluffyInlineCodeChip">Highlight inline code in messages</string>
     <string name="FluffyReactionTodayAt">reacted at %s</string>
     <string name="FluffyReactionYesterdayAt">reacted yesterday at %s</string>
-    <string name="FluffyInlineCodeChip">Highlight inline code in messages</string>
     <string name="FluffyReactionDateTimeAt">reacted %1$s at %2$s</string>
 </resources>
