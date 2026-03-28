@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
+import org.ushastoe.fluffy.patches.EmojiAssetPatch;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -46,6 +47,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_SHOW_FORWARDED_ORIGINAL_DATE = "show_forwarded_original_date";
     private static final String KEY_CHAT_ENTER_SPOILER_MENU_ENABLED = "chat_enter_spoiler_menu_enabled";
     private static final String KEY_INLINE_CODE_CHIP_ENABLED = "inline_code_chip_enabled";
+    private static final String KEY_EMOJI_SET = "emoji_set";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
     public static final int DIALOGS_TITLE_MODE_CENTERED = 1;
@@ -84,6 +86,8 @@ public final class AppearanceSettingsPatch {
     public static final int DOUBLE_TAP_ACTION_DELETE = 7;
     public static final int ROUND_VIDEO_CAMERA_FRONT = 0;
     public static final int ROUND_VIDEO_CAMERA_BACK = 1;
+    public static final int EMOJI_SET_APPLE = 0;
+    public static final int EMOJI_SET_NOTO = 1;
     private static final int MAX_SYNC_JSON_BYTES = 16 * 1024;
     private static final int MAX_CUSTOM_TITLE_LENGTH = 64;
     private static final int MAX_FONT_KEY_LENGTH = 128;
@@ -561,6 +565,24 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
+    public static int getEmojiSet() {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return EMOJI_SET_APPLE;
+        }
+        return clampEmojiSet(preferences.getInt(KEY_EMOJI_SET, EMOJI_SET_APPLE));
+    }
+
+    public static void setEmojiSet(int emojiSet) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_EMOJI_SET, clampEmojiSet(emojiSet)).apply();
+        EmojiAssetPatch.onEmojiSetChanged();
+        notifyListeners();
+    }
+
     public static String exportSettingsJson() {
         SharedPreferences preferences = getPreferences();
         if (preferences == null) {
@@ -698,6 +720,13 @@ public final class AppearanceSettingsPatch {
             return MAP_PROVIDER_OPENSTREETMAP;
         }
         return provider;
+    }
+
+    private static int clampEmojiSet(int emojiSet) {
+        if (emojiSet < EMOJI_SET_APPLE || emojiSet > EMOJI_SET_NOTO) {
+            return EMOJI_SET_APPLE;
+        }
+        return emojiSet;
     }
 
     private static Object wrapJsonValue(Object value) {

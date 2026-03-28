@@ -100,6 +100,17 @@ public class CompoundEmoji {
         return getCompoundEmojiDrawable(string) != null;
     }
 
+    public static void clearFluffyEmojiCache() {
+        for (int i = 0; i < DrawableInfo.bitmaps.size(); i++) {
+            Bitmap bitmap = DrawableInfo.bitmaps.valueAt(i);
+            if (bitmap != null && !bitmap.isRecycled()) {
+                bitmap.recycle();
+            }
+        }
+        DrawableInfo.bitmaps.clear();
+        DrawableInfo.loading.clear();
+    }
+
     private static class DrawableInfo {
 
         private static final SparseArray<Bitmap> bitmaps = new SparseArray<>();

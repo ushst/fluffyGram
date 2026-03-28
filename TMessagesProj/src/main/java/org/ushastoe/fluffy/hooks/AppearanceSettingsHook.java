@@ -233,6 +233,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setInlineCodeChipEnabled(enabled);
     }
 
+    public static int getEmojiSet() {
+        return AppearanceSettingsPatch.getEmojiSet();
+    }
+
+    public static void setEmojiSet(int emojiSet) {
+        AppearanceSettingsPatch.setEmojiSet(emojiSet);
+    }
+
     public static void addListener(Listener listener) {
         if (listener == null) {
             return;

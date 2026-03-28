@@ -68,38 +68,39 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_DIALOGS_TITLE_MODE = 1;
     private static final int ROW_DIALOGS_APP_TITLE = 2;
     private static final int ROW_APP_FONT = 3;
-    private static final int ROW_IMPORT_FONT = 4;
-    private static final int ROW_DOUBLE_TAP_SECTION = 5;
-    private static final int ROW_DOUBLE_TAP_HEADER = 6;
-    private static final int ROW_DOUBLE_TAP_EDIT_PREVIEW = 7;
-    private static final int ROW_FORMATTING_SECTION = 8;
-    private static final int ROW_FORMATTING_HEADER = 9;
-    private static final int ROW_TIME_WITH_SECONDS = 10;
-    private static final int ROW_DISABLE_ROUNDED_NUMBERS = 11;
-    private static final int ROW_THOUSANDS_SEPARATOR = 12;
-    private static final int ROW_CHAT_LIST_SECTION = 13;
-    private static final int ROW_CHAT_LIST_HEADER = 14;
-    private static final int ROW_DIALOGS_LIST_SIZE = 15;
-    private static final int ROW_DIALOGS_LIST_PREVIEW = 16;
-    private static final int ROW_CHAT_UI_SECTION = 17;
-    private static final int ROW_CHAT_UI_HEADER = 18;
-    private static final int ROW_TABS = 19;
-    private static final int ROW_CENTER_CHAT_HEADER = 20;
-    private static final int ROW_CHAT_ENTER_SPOILER_MENU = 21;
-    private static final int ROW_INLINE_CODE_CHIP = 22;
-    private static final int ROW_EDITED_MARKER_ICON = 23;
-    private static final int ROW_MAP_PROVIDER = 24;
-    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 25;
-    private static final int ROW_NOTIFICATION_ICON = 26;
-    private static final int ROW_RECORDER_SECTION = 27;
-    private static final int ROW_RECORDER_HEADER = 28;
-    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 29;
-    private static final int ROW_ROUND_VIDEO_CAMERA = 30;
-    private static final int ROW_HIDE_STORIES = 31;
-    private static final int ROW_SCHEDULED_MARKER = 32;
-    private static final int ROW_SILENT_MARKER = 33;
-    private static final int ROW_MESSAGE_ACTIONS_SECTION = 34;
-    private static final int ROW_MESSAGE_ACTIONS = 35;
+    private static final int ROW_EMOJI_SET = 4;
+    private static final int ROW_IMPORT_FONT = 5;
+    private static final int ROW_DOUBLE_TAP_SECTION = 6;
+    private static final int ROW_DOUBLE_TAP_HEADER = 7;
+    private static final int ROW_DOUBLE_TAP_EDIT_PREVIEW = 8;
+    private static final int ROW_FORMATTING_SECTION = 9;
+    private static final int ROW_FORMATTING_HEADER = 10;
+    private static final int ROW_TIME_WITH_SECONDS = 11;
+    private static final int ROW_DISABLE_ROUNDED_NUMBERS = 12;
+    private static final int ROW_THOUSANDS_SEPARATOR = 13;
+    private static final int ROW_CHAT_LIST_SECTION = 14;
+    private static final int ROW_CHAT_LIST_HEADER = 15;
+    private static final int ROW_DIALOGS_LIST_SIZE = 16;
+    private static final int ROW_DIALOGS_LIST_PREVIEW = 17;
+    private static final int ROW_CHAT_UI_SECTION = 18;
+    private static final int ROW_CHAT_UI_HEADER = 19;
+    private static final int ROW_TABS = 20;
+    private static final int ROW_CENTER_CHAT_HEADER = 21;
+    private static final int ROW_CHAT_ENTER_SPOILER_MENU = 22;
+    private static final int ROW_INLINE_CODE_CHIP = 23;
+    private static final int ROW_EDITED_MARKER_ICON = 24;
+    private static final int ROW_MAP_PROVIDER = 25;
+    private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 26;
+    private static final int ROW_NOTIFICATION_ICON = 27;
+    private static final int ROW_RECORDER_SECTION = 28;
+    private static final int ROW_RECORDER_HEADER = 29;
+    private static final int ROW_ROUND_VIDEO_CAMERA_FEATURE = 30;
+    private static final int ROW_ROUND_VIDEO_CAMERA = 31;
+    private static final int ROW_HIDE_STORIES = 32;
+    private static final int ROW_SCHEDULED_MARKER = 33;
+    private static final int ROW_SILENT_MARKER = 34;
+    private static final int ROW_MESSAGE_ACTIONS_SECTION = 35;
+    private static final int ROW_MESSAGE_ACTIONS = 36;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -225,6 +226,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 showRoundVideoCameraDialog();
             } else if (item.id == ROW_APP_FONT) {
                 showAppFontDialog();
+            } else if (item.id == ROW_EMOJI_SET) {
+                showEmojiSetDialog();
             } else if (item.id == ROW_IMPORT_FONT) {
                 startFontImport();
             } else if (item.id == ROW_TABS) {
@@ -266,6 +269,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_APP_FONT,
                 LocaleController.getString(R.string.FluffyAppFont),
+                false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_EMOJI_SET,
+                LocaleController.getString(R.string.FluffyEmojiSet),
                 false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_IMPORT_FONT,
                 LocaleController.getString(R.string.FluffyImportFont),
@@ -531,6 +537,31 @@ public class FluffyAppearanceActivity extends BaseFragment {
             default:
                 return LocaleController.getString(R.string.FluffyDoubleTapActionReaction);
         }
+    }
+
+    private void showEmojiSetDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] items = new CharSequence[] {
+                LocaleController.getString(R.string.FluffyEmojiSetApple),
+                LocaleController.getString(R.string.FluffyEmojiSetNoto)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyEmojiSet));
+        builder.setItems(items, (dialog, which) -> {
+            AppearanceSettingsHook.setEmojiSet(which == 1
+                    ? AppearanceSettingsPatch.EMOJI_SET_NOTO
+                    : AppearanceSettingsPatch.EMOJI_SET_APPLE);
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence getEmojiSetValue() {
+        return AppearanceSettingsHook.getEmojiSet() == AppearanceSettingsPatch.EMOJI_SET_NOTO
+                ? LocaleController.getString(R.string.FluffyEmojiSetNoto)
+                : LocaleController.getString(R.string.FluffyEmojiSetApple);
     }
 
     private void showRoundVideoCameraDialog() {
@@ -804,6 +835,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "dialogs-app-title");
             case ROW_APP_FONT:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "app-font");
+            case ROW_EMOJI_SET:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "emoji-set");
             case ROW_IMPORT_FONT:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "import-font");
             case ROW_DOUBLE_TAP_HEADER:
@@ -893,6 +926,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_DIALOGS_APP_TITLE;
             case "app-font":
                 return ROW_APP_FONT;
+            case "emoji-set":
+                return ROW_EMOJI_SET;
             case "import-font":
                 return ROW_IMPORT_FONT;
             case "double-tap":
@@ -1077,6 +1112,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     value = getDialogsAppTitleValue();
                 } else if (item.id == ROW_APP_FONT) {
                     value = getShortSelectedFontDisplayName();
+                } else if (item.id == ROW_EMOJI_SET) {
+                    value = getEmojiSetValue();
                 } else if (item.id == ROW_IMPORT_FONT) {
                     value = "";
                 } else if (item.id == ROW_EDITED_MARKER_ICON) {

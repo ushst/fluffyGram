@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyEmojiSet">Набор эмодзи</string>
+    <string name="FluffyEmojiSetApple">Apple</string>
+    <string name="FluffyEmojiSetNoto">Noto</string>
+</resources>
