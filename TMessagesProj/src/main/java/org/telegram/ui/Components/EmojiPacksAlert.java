@@ -78,6 +78,7 @@ import org.telegram.ui.ContentPreviewViewer;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.ProfileActivity;
+import org.ushastoe.fluffy.patches.StickerOwnerProfilePatch;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -1513,6 +1514,8 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
             } catch (Exception e) {
                 FileLog.e(e);
             }
+        } else if (StickerOwnerProfilePatch.handleMenuClick(id, stickerSet, fragment, containerView, resourcesProvider, currentAccount)) {
+            return;
         }
     }
 
@@ -1728,6 +1731,7 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
                 addView(optionsButton, LayoutHelper.createFrame(40, 40, Gravity.TOP | Gravity.RIGHT, 0, 5, 5 - backgroundPaddingLeft / AndroidUtilities.density, 0));
                 optionsButton.addSubItem(1, R.drawable.msg_share, LocaleController.getString(R.string.StickersShare));
                 optionsButton.addSubItem(2, R.drawable.msg_link, LocaleController.getString(R.string.CopyLink));
+                StickerOwnerProfilePatch.addMenuItem(optionsButton);
                 optionsButton.setOnClickListener(v -> optionsButton.toggleSubMenu());
                 optionsButton.setDelegate(EmojiPacksAlert.this::onSubItemClick);
                 optionsButton.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));

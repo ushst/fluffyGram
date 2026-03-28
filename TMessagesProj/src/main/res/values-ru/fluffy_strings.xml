@@ -350,4 +350,5 @@
     <string name="FluffySyncAuthRequired">Откройте Mini App вспомогательного бота один раз, чтобы авторизовать синхронизацию.</string>
     <string name="FluffySyncAuthTimedOut">Истекло время ожидания авторизации через Mini App.</string>
     <string name="FluffySyncWrongAccount">Mini App авторизовал другой Telegram-аккаунт.</string>
+    <string name="FluffyStickerPackOwner">Владелец стикерпака</string>
 </resources>

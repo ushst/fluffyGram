@@ -101,6 +101,7 @@ import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.patches.StickerOwnerProfilePatch;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1128,6 +1129,7 @@ public class StickersAlert extends BottomSheet implements NotificationCenter.Not
         containerView.addView(optionsButton, LayoutHelper.createFrame(40, 40, Gravity.TOP | Gravity.RIGHT, 0, 5, 5, 0));
         optionsButton.addSubItem(1, R.drawable.msg_share, LocaleController.getString(R.string.StickersShare));
         optionsButton.addSubItem(2, R.drawable.msg_link, LocaleController.getString(R.string.CopyLink));
+        StickerOwnerProfilePatch.addMenuItem(optionsButton);
 
         optionsButton.setOnClickListener(v -> {
             checkOptions();
@@ -1399,6 +1401,8 @@ public class StickersAlert extends BottomSheet implements NotificationCenter.Not
             } catch (Exception e) {
                 FileLog.e(e);
             }
+        } else if (StickerOwnerProfilePatch.handleMenuClick(id, stickerSet, parentFragment, containerView, resourcesProvider, currentAccount)) {
+            return;
         } else if (id == 3) {
             if (isEditModeEnabled) {
                 disableEditMode();
