@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyCombineMessages">Combine selected messages</string>
+    <string name="FluffyCombineMessagesInfo">Adds an action in message selection mode that combines selected message text into one new message and removes the original messages sent by this account.</string>
+    <string name="FluffyForceCopy">Force copy</string>
+    <string name="FluffyForceCopyInfo">Allows copy and save actions for protected chats with Restrict Saving Content enabled. Paid media and secret chats stay protected.</string>
+    <string name="FluffyTextUndoRedo">Undo/Redo in text field</string>
+    <string name="FluffyTextUndoRedoInfo">Adds Undo and Redo actions to the text selection menu of the message input when the Android text field reports that those actions are available.</string>
+    <string name="FluffyTextUndo">Undo</string>
+    <string name="FluffyTextRedo">Redo</string>
+</resources>

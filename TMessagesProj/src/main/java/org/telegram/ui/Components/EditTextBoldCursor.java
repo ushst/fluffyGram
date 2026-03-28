@@ -70,6 +70,7 @@ import org.telegram.messenger.XiaomiUtilities;
 import org.telegram.ui.ActionBar.FloatingActionMode;
 import org.telegram.ui.ActionBar.FloatingToolbar;
 import org.telegram.ui.ActionBar.Theme;
+import org.ushastoe.fluffy.hooks.TextUndoRedoHook;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -1162,6 +1163,7 @@ public class EditTextBoldCursor extends EditTextEffects {
             };
             callback.onCreateActionMode(floatingActionMode, floatingActionMode.getMenu());
             extendActionMode(floatingActionMode, floatingActionMode.getMenu());
+            TextUndoRedoHook.extendActionMode(this, floatingActionMode.getMenu());
             floatingActionMode.invalidate();
             getViewTreeObserver().addOnPreDrawListener(floatingToolbarPreDrawListener);
             invalidate();
