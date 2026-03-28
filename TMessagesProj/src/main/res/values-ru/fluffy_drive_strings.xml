@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyDriveSection">Google Drive</string>
+    <string name="FluffyDriveStatus">Статус</string>
+    <string name="FluffyDriveConnect">Подключить Google Drive</string>
+    <string name="FluffyDriveConnected">Подключено</string>
+    <string name="FluffyDriveNotConnected">Не подключено</string>
+    <string name="FluffyDriveBackupNow">Сделать резервную копию конфига</string>
+    <string name="FluffyDriveRestore">Восстановить конфиг из Drive</string>
+    <string name="FluffyDriveManageBackups">Управление backup-ами</string>
+    <string name="FluffyDriveHistoryLimit">Лимит истории backup-ов</string>
+    <string name="FluffyDriveInfo">Хранит скрытые резервные копии конфига в папке app data вашего Google Drive. Доступ запрашивается только для ручного backup и restore.</string>
+    <string name="FluffyDriveAuthorizing">Авторизация Google Drive…</string>
+    <string name="FluffyDriveAuthorizationFailed">Не удалось авторизовать Google Drive.</string>
+    <string name="FluffyDriveAuthorizationCancelled">Авторизация Google Drive была отменена.</string>
+    <string name="FluffyDriveRequestFailed">Запрос к Google Drive завершился ошибкой.</string>
+    <string name="FluffyDriveBackupProgress">Загрузка конфига в Google Drive…</string>
+    <string name="FluffyDriveBackupDone">Конфиг загружен в Google Drive.</string>
+    <string name="FluffyDriveRestoreProgress">Восстановление конфига из Google Drive…</string>
+    <string name="FluffyDriveRestoreDone">Конфиг восстановлен из Google Drive.</string>
+    <string name="FluffyDriveFileMissing">В Google Drive не найден файл резервной копии конфига.</string>
+    <string name="FluffyDriveLastBackupValue">Последний backup: %1$s %2$s</string>
+    <string name="FluffyDriveChooseBackup">Выберите резервную копию</string>
+    <string name="FluffyDriveLegacyBackup">Старый backup</string>
+    <string name="FluffyDriveRefreshBackups">Обновить список backup-ов</string>
+    <string name="FluffyDriveLoadingBackups">Загрузка backup-ов из Google Drive…</string>
+    <string name="FluffyDriveNoBackups">Backup-ов пока нет.</string>
+    <string name="FluffyDriveManageBackupsInfo">Нажмите на backup, чтобы восстановить его или удалить из Google Drive.</string>
+    <string name="FluffyDriveDeleteBackup">Удалить backup</string>
+    <string name="FluffyDriveDeleteBackupConfirm">Удалить этот backup из Google Drive?</string>
+    <string name="FluffyDriveBackupDeleted">Backup удалён.</string>
+    <string name="FluffyDriveBackupsRefreshed">Список backup-ов обновлён.</string>
+</resources>

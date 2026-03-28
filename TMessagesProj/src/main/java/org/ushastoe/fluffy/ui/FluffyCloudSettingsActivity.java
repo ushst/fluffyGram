@@ -1,6 +1,8 @@
 package org.ushastoe.fluffy.ui;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -25,10 +27,12 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
+import org.ushastoe.fluffy.sync.FluffyDriveSyncManager;
 import org.ushastoe.fluffy.sync.FluffySyncManager;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FluffyCloudSettingsActivity extends BaseFragment {
 
@@ -47,10 +51,24 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
     private static final int ROW_SYNC_PUSH = 5;
     private static final int ROW_SYNC_PULL = 6;
     private static final int ROW_SYNC_INFO = 7;
+    private static final int ROW_DRIVE_HEADER = 8;
+    private static final int ROW_DRIVE_STATUS = 9;
+    private static final int ROW_DRIVE_CONNECT = 10;
+    private static final int ROW_DRIVE_BACKUP = 11;
+    private static final int ROW_DRIVE_RESTORE = 12;
+    private static final int ROW_DRIVE_MANAGE = 13;
+    private static final int ROW_DRIVE_HISTORY_LIMIT = 14;
+    private static final int ROW_DRIVE_INFO = 15;
+
+    private static final int DRIVE_ACTION_CONNECT = 1;
+    private static final int DRIVE_ACTION_BACKUP = 2;
+    private static final int DRIVE_ACTION_RESTORE = 3;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<ItemInner> items = new ArrayList<>();
+    private int pendingDriveAction;
+    private boolean driveBusy;
     private final Runnable cooldownTicker = new Runnable() {
         @Override
         public void run() {
@@ -123,6 +141,16 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
                 pushFluffySettings();
             } else if (item.id == ROW_SYNC_PULL) {
                 pullFluffySettings();
+            } else if (item.id == ROW_DRIVE_CONNECT) {
+                startDriveAction(DRIVE_ACTION_CONNECT);
+            } else if (item.id == ROW_DRIVE_BACKUP) {
+                startDriveAction(DRIVE_ACTION_BACKUP);
+            } else if (item.id == ROW_DRIVE_RESTORE) {
+                startDriveAction(DRIVE_ACTION_RESTORE);
+            } else if (item.id == ROW_DRIVE_MANAGE) {
+                presentFragment(new FluffyDriveBackupsActivity());
+            } else if (item.id == ROW_DRIVE_HISTORY_LIMIT) {
+                showDriveHistoryLimitDialog();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -152,6 +180,24 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DRIVE_HEADER,
+                LocaleController.getString(R.string.FluffyDriveSection), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_STATUS,
+                LocaleController.getString(R.string.FluffyDriveStatus),
+                FluffyDriveSyncManager.getInstance().getStatusText(getParentActivity())));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_CONNECT,
+                LocaleController.getString(R.string.FluffyDriveConnect), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_BACKUP,
+                LocaleController.getString(R.string.FluffyDriveBackupNow), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_RESTORE,
+                LocaleController.getString(R.string.FluffyDriveRestore), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_MANAGE,
+                LocaleController.getString(R.string.FluffyDriveManageBackups), null));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_HISTORY_LIMIT,
+                LocaleController.getString(R.string.FluffyDriveHistoryLimit),
+                String.valueOf(FluffyDriveSyncManager.getInstance().getBackupHistoryLimit(getParentActivity()))));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DRIVE_INFO,
+                LocaleController.getString(R.string.FluffyDriveInfo), null));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_CLOUD_HEADER,
                 LocaleController.getString(R.string.FluffyCloudSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_ROLE,
@@ -279,6 +325,75 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
         });
     }
 
+    private void startDriveAction(int action) {
+        if (driveBusy) {
+            return;
+        }
+        pendingDriveAction = action;
+        driveBusy = true;
+        updateItems();
+        BulletinFactory.of(this)
+                .createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.FluffyDriveAuthorizing))
+                .show();
+        FluffyDriveSyncManager.getInstance().authorize(this, new FluffyDriveSyncManager.AuthorizationCallback() {
+            @Override
+            public void onAuthorized(@NonNull com.google.android.gms.auth.api.identity.AuthorizationResult result) {
+                onDriveAuthorizationReady(result);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                driveBusy = false;
+                updateItems();
+                BulletinFactory.of(FluffyCloudSettingsActivity.this)
+                        .createErrorBulletin(formatDriveError(errorMessage))
+                        .show();
+            }
+        });
+    }
+
+    private void onDriveAuthorizationReady(@NonNull com.google.android.gms.auth.api.identity.AuthorizationResult result) {
+        if (pendingDriveAction == DRIVE_ACTION_CONNECT) {
+            driveBusy = false;
+            updateItems();
+            BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffyDriveConnected)).show();
+            return;
+        }
+        if (pendingDriveAction == DRIVE_ACTION_BACKUP) {
+            BulletinFactory.of(this)
+                    .createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.FluffyDriveBackupProgress))
+                    .show();
+            FluffyDriveSyncManager.getInstance().backupConfig(getParentActivity(), result, (success, errorMessage) -> {
+                driveBusy = false;
+                updateItems();
+                if (success) {
+                    BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffyDriveBackupDone)).show();
+                } else {
+                    BulletinFactory.of(this).createErrorBulletin(formatDriveError(errorMessage)).show();
+                }
+            });
+            return;
+        }
+        if (pendingDriveAction == DRIVE_ACTION_RESTORE) {
+            FluffyDriveSyncManager.getInstance().listBackups(getParentActivity(), result, (backups, errorMessage) -> {
+                driveBusy = false;
+                updateItems();
+                if (!TextUtils.isEmpty(errorMessage)) {
+                    BulletinFactory.of(this).createErrorBulletin(formatDriveError(errorMessage)).show();
+                    return;
+                }
+                if (backups == null || backups.isEmpty()) {
+                    BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyDriveFileMissing)).show();
+                    return;
+                }
+                showDriveRestorePicker(result, backups);
+            });
+            return;
+        }
+        driveBusy = false;
+        updateItems();
+    }
+
     private boolean isQueuedMessage(String errorMessage) {
         return TextUtils.equals(errorMessage, LocaleController.getString(R.string.FluffySyncQueued));
     }
@@ -288,6 +403,82 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             return LocaleController.getString(R.string.FluffySyncFailed);
         }
         return LocaleController.formatString("FluffySyncStatusError", R.string.FluffySyncStatusError, errorMessage);
+    }
+
+    private CharSequence formatDriveError(String errorMessage) {
+        if (TextUtils.isEmpty(errorMessage)) {
+            return LocaleController.getString(R.string.FluffyDriveRequestFailed);
+        }
+        return errorMessage;
+    }
+
+    private void showDriveHistoryLimitDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final int[] limits = new int[]{5, 10, 20, 50};
+        CharSequence[] items = new CharSequence[limits.length];
+        for (int i = 0; i < limits.length; i++) {
+            items[i] = String.valueOf(limits[i]);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyDriveHistoryLimit));
+        builder.setItems(items, (dialog, which) -> {
+            if (which < 0 || which >= limits.length) {
+                return;
+            }
+            FluffyDriveSyncManager.getInstance().setBackupHistoryLimit(getParentActivity(), limits[which]);
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private void showDriveRestorePicker(@NonNull com.google.android.gms.auth.api.identity.AuthorizationResult result,
+                                        @NonNull List<FluffyDriveSyncManager.BackupEntry> backups) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        ArrayList<FluffyDriveSyncManager.BackupEntry> entries = new ArrayList<>(backups);
+        CharSequence[] labels = new CharSequence[entries.size()];
+        for (int i = 0; i < entries.size(); i++) {
+            labels[i] = formatDriveBackupLabel(entries.get(i));
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyDriveChooseBackup));
+        builder.setItems(labels, (dialog, which) -> {
+            if (which < 0 || which >= entries.size()) {
+                return;
+            }
+            FluffyDriveSyncManager.BackupEntry selected = entries.get(which);
+            driveBusy = true;
+            updateItems();
+            BulletinFactory.of(this)
+                    .createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.FluffyDriveRestoreProgress))
+                    .show();
+            FluffyDriveSyncManager.getInstance().restoreConfig(getParentActivity(), result, selected.id, (success, errorMessage) -> {
+                driveBusy = false;
+                updateItems();
+                if (success) {
+                    if (getParentLayout() != null) {
+                        getParentLayout().rebuildAllFragmentViews(true, true);
+                    }
+                    BulletinFactory.of(this).createSuccessBulletin(LocaleController.getString(R.string.FluffyDriveRestoreDone)).show();
+                } else {
+                    BulletinFactory.of(this).createErrorBulletin(formatDriveError(errorMessage)).show();
+                }
+            });
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence formatDriveBackupLabel(@NonNull FluffyDriveSyncManager.BackupEntry backup) {
+        if (backup.legacy || backup.backupAt <= 0L) {
+            return LocaleController.getString(R.string.FluffyDriveLegacyBackup);
+        }
+        String date = LocaleController.getInstance().getFormatterYearMax().format(backup.backupAt);
+        String time = LocaleController.getInstance().getFormatterDay().format(backup.backupAt);
+        String size = org.telegram.messenger.AndroidUtilities.formatFileSize(Math.max(backup.sizeBytes, 0L));
+        return date + " " + time + " • " + size;
     }
 
     private boolean copyDeepLinkForPosition(int position) {
@@ -308,6 +499,16 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "sync-push");
         } else if (item.id == ROW_SYNC_PULL) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "sync-pull");
+        } else if (item.id == ROW_DRIVE_STATUS || item.id == ROW_DRIVE_CONNECT) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "drive-connect");
+        } else if (item.id == ROW_DRIVE_BACKUP) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "drive-backup");
+        } else if (item.id == ROW_DRIVE_RESTORE) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "drive-restore");
+        } else if (item.id == ROW_DRIVE_MANAGE) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "drive-manage");
+        } else if (item.id == ROW_DRIVE_HISTORY_LIMIT) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud", "drive-history-limit");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("cloud");
         }
@@ -356,9 +557,48 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
                 return ROW_SYNC_PUSH;
             case "sync-pull":
                 return ROW_SYNC_PULL;
+            case "drive-connect":
+                return ROW_DRIVE_CONNECT;
+            case "drive-backup":
+                return ROW_DRIVE_BACKUP;
+            case "drive-restore":
+                return ROW_DRIVE_RESTORE;
+            case "drive-manage":
+                return ROW_DRIVE_MANAGE;
+            case "drive-history-limit":
+                return ROW_DRIVE_HISTORY_LIMIT;
             default:
                 return -1;
         }
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FluffyDriveSyncManager.REQUEST_CODE_AUTHORIZE_DRIVE) {
+            if (resultCode != Activity.RESULT_OK || data == null) {
+                driveBusy = false;
+                updateItems();
+                BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.FluffyDriveAuthorizationCancelled)).show();
+                return;
+            }
+            FluffyDriveSyncManager.getInstance().handleAuthorizationResult(getParentActivity(), data, new FluffyDriveSyncManager.AuthorizationCallback() {
+                @Override
+                public void onAuthorized(@NonNull com.google.android.gms.auth.api.identity.AuthorizationResult result) {
+                    onDriveAuthorizationReady(result);
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    driveBusy = false;
+                    updateItems();
+                    BulletinFactory.of(FluffyCloudSettingsActivity.this)
+                            .createErrorBulletin(formatDriveError(errorMessage))
+                            .show();
+                }
+            });
+            return;
+        }
+        super.onActivityResultFragment(requestCode, resultCode, data);
     }
 
     private int findItemIndexById(int id) {
@@ -399,6 +639,12 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if ((item.id == ROW_SYNC_PUSH || item.id == ROW_SYNC_PULL)
                     && (FluffySyncManager.getInstance().isCooldownActive() || FluffySyncManager.getInstance().isSyncing())) {
+                return false;
+            }
+            if (item.id == ROW_DRIVE_STATUS || item.id == ROW_DRIVE_INFO) {
+                return false;
+            }
+            if ((item.id == ROW_DRIVE_CONNECT || item.id == ROW_DRIVE_BACKUP || item.id == ROW_DRIVE_RESTORE) && driveBusy) {
                 return false;
             }
             int type = holder.getItemViewType();

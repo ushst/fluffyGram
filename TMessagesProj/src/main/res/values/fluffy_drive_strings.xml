@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyDriveSection">Google Drive</string>
+    <string name="FluffyDriveStatus">Status</string>
+    <string name="FluffyDriveConnect">Connect Google Drive</string>
+    <string name="FluffyDriveConnected">Connected</string>
+    <string name="FluffyDriveNotConnected">Not connected</string>
+    <string name="FluffyDriveBackupNow">Backup config now</string>
+    <string name="FluffyDriveRestore">Restore config from Drive</string>
+    <string name="FluffyDriveManageBackups">Manage backups</string>
+    <string name="FluffyDriveHistoryLimit">Backup history limit</string>
+    <string name="FluffyDriveInfo">Stores hidden config backups in the Google Drive app data folder. Access is requested only for manual backup and restore.</string>
+    <string name="FluffyDriveAuthorizing">Authorizing Google Drive…</string>
+    <string name="FluffyDriveAuthorizationFailed">Google Drive authorization failed.</string>
+    <string name="FluffyDriveAuthorizationCancelled">Google Drive authorization was cancelled.</string>
+    <string name="FluffyDriveRequestFailed">Google Drive request failed.</string>
+    <string name="FluffyDriveBackupProgress">Uploading config to Google Drive…</string>
+    <string name="FluffyDriveBackupDone">Config uploaded to Google Drive.</string>
+    <string name="FluffyDriveRestoreProgress">Restoring config from Google Drive…</string>
+    <string name="FluffyDriveRestoreDone">Config restored from Google Drive.</string>
+    <string name="FluffyDriveFileMissing">No config backup file was found in Google Drive.</string>
+    <string name="FluffyDriveLastBackupValue">Last backup: %1$s %2$s</string>
+    <string name="FluffyDriveChooseBackup">Choose backup</string>
+    <string name="FluffyDriveLegacyBackup">Legacy backup</string>
+    <string name="FluffyDriveRefreshBackups">Refresh backups</string>
+    <string name="FluffyDriveLoadingBackups">Loading backups from Google Drive…</string>
+    <string name="FluffyDriveNoBackups">No backups yet.</string>
+    <string name="FluffyDriveManageBackupsInfo">Tap a backup to restore it or delete it from Google Drive.</string>
+    <string name="FluffyDriveDeleteBackup">Delete backup</string>
+    <string name="FluffyDriveDeleteBackupConfirm">Delete this backup from Google Drive?</string>
+    <string name="FluffyDriveBackupDeleted">Backup deleted.</string>
+    <string name="FluffyDriveBackupsRefreshed">Backup list updated.</string>
+</resources>
