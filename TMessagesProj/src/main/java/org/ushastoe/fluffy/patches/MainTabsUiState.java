@@ -9,5 +9,9 @@ public final class MainTabsUiState {
     public long[] quickDialogIds;
     public String appliedTabsSignature;
     public boolean appliedShowCallsTab;
+    public int lastRetappedTabType = -1;
+    public long lastRetapUptimeMs;
+    public long pendingQuickDialogTapId;
+    public Runnable pendingQuickDialogTapRunnable;
     public final LongSparseArray<GlassTabView> quickDialogTabs = new LongSparseArray<>();
 }

@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.DialogObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +17,27 @@ public final class MainTabsConfigPatch {
     public static final int TAB_CONTACTS = 1;
     public static final int TAB_SETTINGS = 2;
     public static final int TAB_PROFILE = 3;
+    public static final int TAB_ACTION_NONE = 0;
+    public static final int TAB_ACTION_OPEN_SAVED_MESSAGES = 1;
+    public static final int TAB_ACTION_OPEN_ACCOUNT_SELECTOR = 2;
+    public static final int TAB_ACTION_OPEN_TABS_MENU = 3;
+    public static final int TAB_ACTION_OPEN_CUSTOM_CHAT = 4;
+    public static final int TAB_ACTION_MARK_CUSTOM_CHAT_READ = 5;
 
     private static final String PREFS_NAME = "fluffy_main_tabs_settings";
     private static final String KEY_OPTIONAL_ORDER = "optional_order";
     private static final String KEY_QUICK_DIALOGS = "quick_dialogs";
     private static final String KEY_QUICK_CONTACTS = "quick_contacts";
     private static final String KEY_QUICK_DIALOG_LABEL_PREFIX = "quick_dialog_label_";
+    private static final String KEY_QUICK_DIALOG_ACTION_DOUBLE_TAP_PREFIX = "quick_dialog_action_double_tap_";
+    private static final String KEY_QUICK_DIALOG_ACTION_LONG_PRESS_PREFIX = "quick_dialog_action_long_press_";
+    private static final String KEY_OPEN_SAVED_MESSAGES_ON_DOUBLE_TAP = "open_saved_messages_on_double_tap";
+    private static final String KEY_TAB_ACTION_DOUBLE_TAP_PREFIX = "tab_action_double_tap_";
+    private static final String KEY_TAB_ACTION_LONG_PRESS_PREFIX = "tab_action_long_press_";
+    private static final String KEY_TAB_ACTION_TARGET_DOUBLE_TAP_PREFIX = "tab_action_target_double_tap_";
+    private static final String KEY_TAB_ACTION_TARGET_LONG_PRESS_PREFIX = "tab_action_target_long_press_";
+    private static final String KEY_QUICK_DIALOG_ACTION_TARGET_DOUBLE_TAP_PREFIX = "quick_dialog_action_target_double_tap_";
+    private static final String KEY_QUICK_DIALOG_ACTION_TARGET_LONG_PRESS_PREFIX = "quick_dialog_action_target_long_press_";
     private static final int[] DEFAULT_OPTIONAL_TYPES = new int[] {
             TAB_CONTACTS,
             TAB_SETTINGS,
@@ -215,6 +231,71 @@ public final class MainTabsConfigPatch {
                 + serializeDialogLabels(getQuickDialogIds());
     }
 
+    public static boolean isOpenSavedMessagesOnDoubleTapEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_OPEN_SAVED_MESSAGES_ON_DOUBLE_TAP, false);
+    }
+
+    public static void setOpenSavedMessagesOnDoubleTapEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_OPEN_SAVED_MESSAGES_ON_DOUBLE_TAP, enabled).apply();
+    }
+
+    public static int getDoubleTapAction(int tabType) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return getDefaultDoubleTapAction(tabType);
+        }
+        String key = getTabActionKey(KEY_TAB_ACTION_DOUBLE_TAP_PREFIX, tabType);
+        if (!preferences.contains(key)) {
+            if (tabType == TAB_CHATS && preferences.contains(KEY_OPEN_SAVED_MESSAGES_ON_DOUBLE_TAP)) {
+                return preferences.getBoolean(KEY_OPEN_SAVED_MESSAGES_ON_DOUBLE_TAP, false)
+                        ? TAB_ACTION_OPEN_SAVED_MESSAGES
+                        : TAB_ACTION_NONE;
+            }
+            return getDefaultDoubleTapAction(tabType);
+        }
+        return sanitizeTabAction(preferences.getInt(key, getDefaultDoubleTapAction(tabType)));
+    }
+
+    public static void setDoubleTapAction(int tabType, int action) {
+        setTabAction(KEY_TAB_ACTION_DOUBLE_TAP_PREFIX, tabType, action);
+    }
+
+    public static int getLongPressAction(int tabType) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return getDefaultLongPressAction(tabType);
+        }
+        return sanitizeTabAction(preferences.getInt(
+                getTabActionKey(KEY_TAB_ACTION_LONG_PRESS_PREFIX, tabType),
+                getDefaultLongPressAction(tabType)
+        ));
+    }
+
+    public static void setLongPressAction(int tabType, int action) {
+        setTabAction(KEY_TAB_ACTION_LONG_PRESS_PREFIX, tabType, action);
+    }
+
+    public static long getDoubleTapTargetDialogId(int tabType) {
+        return getTabActionTargetDialogId(KEY_TAB_ACTION_TARGET_DOUBLE_TAP_PREFIX, tabType);
+    }
+
+    public static long getLongPressTargetDialogId(int tabType) {
+        return getTabActionTargetDialogId(KEY_TAB_ACTION_TARGET_LONG_PRESS_PREFIX, tabType);
+    }
+
+    public static void setDoubleTapTargetDialogId(int tabType, long dialogId) {
+        setTabActionTargetDialogId(KEY_TAB_ACTION_TARGET_DOUBLE_TAP_PREFIX, tabType, dialogId);
+    }
+
+    public static void setLongPressTargetDialogId(int tabType, long dialogId) {
+        setTabActionTargetDialogId(KEY_TAB_ACTION_TARGET_LONG_PRESS_PREFIX, tabType, dialogId);
+    }
+
     public static long[] getQuickDialogIds() {
         SharedPreferences preferences = getPreferences();
         String raw = null;
@@ -267,6 +348,10 @@ public final class MainTabsConfigPatch {
             }
         }
         clearQuickDialogCustomLabel(dialogId);
+        clearQuickDialogDoubleTapAction(dialogId);
+        clearQuickDialogLongPressAction(dialogId);
+        clearQuickDialogDoubleTapTargetDialogId(dialogId);
+        clearQuickDialogLongPressTargetDialogId(dialogId);
         saveQuickDialogIds(toLongArray(updated));
     }
 
@@ -353,6 +438,54 @@ public final class MainTabsConfigPatch {
         }
     }
 
+    public static int getQuickDialogLongPressAction(long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return TAB_ACTION_NONE;
+        }
+        return sanitizeTabAction(preferences.getInt(getQuickDialogLongPressActionKey(dialogId), TAB_ACTION_NONE));
+    }
+
+    public static int getQuickDialogDoubleTapAction(long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return TAB_ACTION_NONE;
+        }
+        return sanitizeTabAction(preferences.getInt(getQuickDialogDoubleTapActionKey(dialogId), TAB_ACTION_NONE));
+    }
+
+    public static long getQuickDialogLongPressTargetDialogId(long dialogId) {
+        return getQuickDialogActionTargetDialogId(KEY_QUICK_DIALOG_ACTION_TARGET_LONG_PRESS_PREFIX, dialogId);
+    }
+
+    public static long getQuickDialogDoubleTapTargetDialogId(long dialogId) {
+        return getQuickDialogActionTargetDialogId(KEY_QUICK_DIALOG_ACTION_TARGET_DOUBLE_TAP_PREFIX, dialogId);
+    }
+
+    public static void setQuickDialogLongPressAction(long dialogId, int action) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        preferences.edit().putInt(getQuickDialogLongPressActionKey(dialogId), sanitizeTabAction(action)).apply();
+    }
+
+    public static void setQuickDialogDoubleTapAction(long dialogId, int action) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        preferences.edit().putInt(getQuickDialogDoubleTapActionKey(dialogId), sanitizeTabAction(action)).apply();
+    }
+
+    public static void setQuickDialogLongPressTargetDialogId(long dialogId, long targetDialogId) {
+        setQuickDialogActionTargetDialogId(KEY_QUICK_DIALOG_ACTION_TARGET_LONG_PRESS_PREFIX, dialogId, targetDialogId);
+    }
+
+    public static void setQuickDialogDoubleTapTargetDialogId(long dialogId, long targetDialogId) {
+        setQuickDialogActionTargetDialogId(KEY_QUICK_DIALOG_ACTION_TARGET_DOUBLE_TAP_PREFIX, dialogId, targetDialogId);
+    }
+
     private static void saveQuickDialogIds(long[] dialogIds) {
         SharedPreferences preferences = getPreferences();
         if (preferences == null) {
@@ -372,8 +505,113 @@ public final class MainTabsConfigPatch {
         preferences.edit().putString(KEY_OPTIONAL_ORDER, serialize(types)).apply();
     }
 
+    private static void setTabAction(String prefix, int tabType, int action) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(getTabActionKey(prefix, tabType), sanitizeTabAction(action)).apply();
+    }
+
+    private static long getTabActionTargetDialogId(String prefix, int tabType) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return 0L;
+        }
+        return sanitizeTargetDialogId(preferences.getLong(getTabActionKey(prefix, tabType), 0L));
+    }
+
+    private static void setTabActionTargetDialogId(String prefix, int tabType, long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        String key = getTabActionKey(prefix, tabType);
+        SharedPreferences.Editor editor = preferences.edit();
+        long normalizedDialogId = sanitizeTargetDialogId(dialogId);
+        if (normalizedDialogId == 0L) {
+            editor.remove(key);
+        } else {
+            editor.putLong(key, normalizedDialogId);
+        }
+        editor.apply();
+    }
+
     private static boolean isOptionalType(int type) {
         return type == TAB_CONTACTS || type == TAB_SETTINGS || type == TAB_PROFILE;
+    }
+
+    private static String getTabActionKey(String prefix, int tabType) {
+        return prefix + getTabName(tabType);
+    }
+
+    private static String getTabName(int tabType) {
+        switch (tabType) {
+            case TAB_CONTACTS:
+                return "contacts";
+            case TAB_SETTINGS:
+                return "settings";
+            case TAB_PROFILE:
+                return "profile";
+            case TAB_CHATS:
+            default:
+                return "chats";
+        }
+    }
+
+    private static int getDefaultDoubleTapAction(int tabType) {
+        return TAB_ACTION_NONE;
+    }
+
+    private static int getDefaultLongPressAction(int tabType) {
+        if (tabType == TAB_SETTINGS) {
+            return TAB_ACTION_OPEN_TABS_MENU;
+        }
+        if (tabType == TAB_PROFILE) {
+            return TAB_ACTION_OPEN_ACCOUNT_SELECTOR;
+        }
+        return TAB_ACTION_NONE;
+    }
+
+    private static int sanitizeTabAction(int action) {
+        if (action < TAB_ACTION_NONE || action > TAB_ACTION_MARK_CUSTOM_CHAT_READ) {
+            return TAB_ACTION_NONE;
+        }
+        return action;
+    }
+
+    private static long getQuickDialogActionTargetDialogId(String prefix, long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return 0L;
+        }
+        return sanitizeTargetDialogId(preferences.getLong(prefix + dialogId, 0L));
+    }
+
+    private static void setQuickDialogActionTargetDialogId(String prefix, long dialogId, long targetDialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        String key = prefix + dialogId;
+        SharedPreferences.Editor editor = preferences.edit();
+        long normalizedDialogId = sanitizeTargetDialogId(targetDialogId);
+        if (normalizedDialogId == 0L) {
+            editor.remove(key);
+        } else {
+            editor.putLong(key, normalizedDialogId);
+        }
+        editor.apply();
+    }
+
+    private static long sanitizeTargetDialogId(long dialogId) {
+        if (dialogId == 0L || DialogObject.isEncryptedDialog(dialogId)) {
+            return 0L;
+        }
+        if (DialogObject.isUserDialog(dialogId) || DialogObject.isChatDialog(dialogId)) {
+            return dialogId;
+        }
+        return 0L;
     }
 
     private static int parseType(String raw) {
@@ -501,8 +739,48 @@ public final class MainTabsConfigPatch {
         preferences.edit().remove(getQuickDialogLabelKey(dialogId)).apply();
     }
 
+    private static void clearQuickDialogLongPressAction(long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        preferences.edit().remove(getQuickDialogLongPressActionKey(dialogId)).apply();
+    }
+
+    private static void clearQuickDialogDoubleTapAction(long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        preferences.edit().remove(getQuickDialogDoubleTapActionKey(dialogId)).apply();
+    }
+
+    private static void clearQuickDialogLongPressTargetDialogId(long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        preferences.edit().remove(KEY_QUICK_DIALOG_ACTION_TARGET_LONG_PRESS_PREFIX + dialogId).apply();
+    }
+
+    private static void clearQuickDialogDoubleTapTargetDialogId(long dialogId) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null || dialogId == 0L) {
+            return;
+        }
+        preferences.edit().remove(KEY_QUICK_DIALOG_ACTION_TARGET_DOUBLE_TAP_PREFIX + dialogId).apply();
+    }
+
     private static String getQuickDialogLabelKey(long dialogId) {
         return KEY_QUICK_DIALOG_LABEL_PREFIX + dialogId;
+    }
+
+    private static String getQuickDialogLongPressActionKey(long dialogId) {
+        return KEY_QUICK_DIALOG_ACTION_LONG_PRESS_PREFIX + dialogId;
+    }
+
+    private static String getQuickDialogDoubleTapActionKey(long dialogId) {
+        return KEY_QUICK_DIALOG_ACTION_DOUBLE_TAP_PREFIX + dialogId;
     }
 
     private static SharedPreferences getPreferences() {

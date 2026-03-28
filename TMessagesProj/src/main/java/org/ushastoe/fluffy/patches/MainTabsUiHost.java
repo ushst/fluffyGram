@@ -1,5 +1,7 @@
 package org.ushastoe.fluffy.patches;
 
+import android.content.Context;
+
 import org.telegram.ui.MainTabsActivity;
 import org.telegram.ui.MainTabsLayout;
 import org.telegram.ui.Components.glass.GlassTabView;
@@ -9,6 +11,12 @@ import java.util.ArrayList;
 
 public interface MainTabsUiHost {
     MainTabsActivity getActivity();
+
+    Context getContext();
+
+    int getCurrentAccount();
+
+    boolean isCallsTabEnabled();
 
     MainTabsLayout getTabsView();
 

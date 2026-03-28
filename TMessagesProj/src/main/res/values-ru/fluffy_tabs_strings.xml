@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyTabsOpenSavedMessagesOnDoubleTap">Открывать Избранное по двойному нажатию</string>
+    <string name="FluffyTabsGesturesSection">Жесты вкладок</string>
+    <string name="FluffyTabsDoubleTap">Двойное нажатие</string>
+    <string name="FluffyTabsLongPress">Долгое нажатие</string>
+    <string name="FluffyTabsActionNone">Нет действия</string>
+    <string name="FluffyTabsActionSavedMessages">Открыть Избранное</string>
+    <string name="FluffyTabsActionAccountSelector">Открыть выбор аккаунта</string>
+    <string name="FluffyTabsActionTabsMenu">Открыть меню вкладок</string>
+    <string name="FluffyTabsActionOpenChatWith">Открыть чат с...</string>
+    <string name="FluffyTabsActionOpenChatWithValue">Открыть чат с %1$s</string>
+    <string name="FluffyTabsActionMarkReadWith">Пометить чат как прочитанный...</string>
+    <string name="FluffyTabsActionMarkReadWithValue">Пометить %1$s как прочитанный</string>
+</resources>

@@ -60,10 +60,22 @@ public class FluffyTabsActivity extends BaseFragment {
     private static final int ROW_HIDDEN_HEADER = 1;
     private static final int ROW_QUICK_CHATS_HEADER = 2;
     private static final int ROW_ADD_CHAT = 3;
+    private static final int ROW_GESTURES_HEADER = 4;
+    private static final int ROW_GESTURE_CHATS_DOUBLE_TAP = 5;
+    private static final int ROW_GESTURE_CHATS_LONG_PRESS = 6;
+    private static final int ROW_GESTURE_CONTACTS_DOUBLE_TAP = 7;
+    private static final int ROW_GESTURE_CONTACTS_LONG_PRESS = 8;
+    private static final int ROW_GESTURE_SETTINGS_DOUBLE_TAP = 9;
+    private static final int ROW_GESTURE_SETTINGS_LONG_PRESS = 10;
+    private static final int ROW_GESTURE_PROFILE_DOUBLE_TAP = 11;
+    private static final int ROW_GESTURE_PROFILE_LONG_PRESS = 12;
+    private static final int ROW_GESTURE_QUICK_CHAT_DOUBLE_TAP_BASE = 1000;
+    private static final int ROW_GESTURE_QUICK_CHAT_LONG_PRESS_BASE = 2000;
 
     private static final int ITEM_KIND_BASE = 0;
     private static final int ITEM_KIND_QUICK_CHAT = 1;
     private static final int ITEM_KIND_EMPTY = 2;
+    private static final int ITEM_KIND_GESTURE = 3;
 
     private final ArrayList<ItemInner> items = new ArrayList<>();
     private RecyclerListView listView;
@@ -109,6 +121,14 @@ public class FluffyTabsActivity extends BaseFragment {
             }
             if (item.kind == ITEM_KIND_QUICK_CHAT) {
                 showQuickChatOptions(item.dialogId);
+                return;
+            }
+            if (item.kind == ITEM_KIND_GESTURE) {
+                if (item.dialogId != 0L) {
+                    showQuickChatGestureActionDialog(item.dialogId, item.gestureLongPress);
+                } else {
+                    showGestureActionDialog(item.baseType, item.gestureLongPress);
+                }
                 return;
             }
             if (item.kind != ITEM_KIND_BASE || item.baseType == MainTabsConfigPatch.TAB_CHATS) {
@@ -196,12 +216,100 @@ public class FluffyTabsActivity extends BaseFragment {
         }
         items.add(new ItemInner(VIEW_TYPE_ADD, ROW_ADD_CHAT, ITEM_KIND_QUICK_CHAT,
                 -1, 0, false, LocaleController.getString(R.string.FluffyTabsAddChat), null));
+        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GESTURES_HEADER, ITEM_KIND_GESTURE,
+                -1, 0, false, LocaleController.getString(R.string.FluffyTabsGesturesSection), null));
+        addGestureItemsForActiveTabs();
+        addGestureItemsForQuickDialogs(quickDialogs);
 
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
         if (navbarPreviewView != null) {
             navbarPreviewView.updatePreview();
+        }
+    }
+
+    private void addGestureItem(int rowId, int tabType, boolean longPress) {
+        items.add(new ItemInner(
+                VIEW_TYPE_TEXT,
+                rowId,
+                ITEM_KIND_GESTURE,
+                tabType,
+                0,
+                false,
+                getGestureRowTitle(tabType, longPress),
+                getGestureActionValue(tabType, longPress),
+                false,
+                longPress
+        ));
+    }
+
+    private void addGestureItemsForActiveTabs() {
+        int[] visibleTypes = MainTabsConfigHook.getVisibleTabTypes();
+        for (int type : visibleTypes) {
+            switch (type) {
+                case MainTabsConfigPatch.TAB_CHATS:
+                    addGestureItem(ROW_GESTURE_CHATS_DOUBLE_TAP, type, false);
+                    addGestureItem(ROW_GESTURE_CHATS_LONG_PRESS, type, true);
+                    break;
+                case MainTabsConfigPatch.TAB_CONTACTS:
+                    addGestureItem(ROW_GESTURE_CONTACTS_DOUBLE_TAP, type, false);
+                    addGestureItem(ROW_GESTURE_CONTACTS_LONG_PRESS, type, true);
+                    break;
+                case MainTabsConfigPatch.TAB_SETTINGS:
+                    addGestureItem(ROW_GESTURE_SETTINGS_DOUBLE_TAP, type, false);
+                    addGestureItem(ROW_GESTURE_SETTINGS_LONG_PRESS, type, true);
+                    break;
+                case MainTabsConfigPatch.TAB_PROFILE:
+                    addGestureItem(ROW_GESTURE_PROFILE_DOUBLE_TAP, type, false);
+                    addGestureItem(ROW_GESTURE_PROFILE_LONG_PRESS, type, true);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void addGestureItemsForQuickDialogs(long[] quickDialogs) {
+        if (quickDialogs == null) {
+            return;
+        }
+        for (int i = 0; i < quickDialogs.length; i++) {
+            long dialogId = quickDialogs[i];
+            items.add(new ItemInner(
+                    VIEW_TYPE_TEXT,
+                    ROW_GESTURE_QUICK_CHAT_DOUBLE_TAP_BASE + i,
+                    ITEM_KIND_GESTURE,
+                    -1,
+                    dialogId,
+                    false,
+                    String.format("%s: %s",
+                            getQuickDialogDisplayTitle(dialogId),
+                            LocaleController.getString(R.string.FluffyTabsDoubleTap)),
+                    getTabActionLabel(
+                            MainTabsConfigHook.getQuickDialogDoubleTapAction(dialogId),
+                            MainTabsConfigHook.getQuickDialogDoubleTapTargetDialogId(dialogId)
+                    ),
+                    false,
+                    false
+            ));
+            items.add(new ItemInner(
+                    VIEW_TYPE_TEXT,
+                    ROW_GESTURE_QUICK_CHAT_LONG_PRESS_BASE + i,
+                    ITEM_KIND_GESTURE,
+                    -1,
+                    dialogId,
+                    false,
+                    String.format("%s: %s",
+                            getQuickDialogDisplayTitle(dialogId),
+                            LocaleController.getString(R.string.FluffyTabsLongPress)),
+                    getTabActionLabel(
+                            MainTabsConfigHook.getQuickDialogLongPressAction(dialogId),
+                            MainTabsConfigHook.getQuickDialogLongPressTargetDialogId(dialogId)
+                    ),
+                    false,
+                    true
+            ));
         }
     }
 
@@ -297,6 +405,128 @@ public class FluffyTabsActivity extends BaseFragment {
         showDialog(builder.create());
     }
 
+    private void showGestureActionDialog(int tabType, boolean longPress) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        int[] actions = new int[] {
+                MainTabsConfigPatch.TAB_ACTION_NONE,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_SAVED_MESSAGES,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_ACCOUNT_SELECTOR,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_TABS_MENU,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_CUSTOM_CHAT,
+                MainTabsConfigPatch.TAB_ACTION_MARK_CUSTOM_CHAT_READ
+        };
+        CharSequence[] labels = new CharSequence[actions.length];
+        int currentAction = longPress
+                ? MainTabsConfigHook.getLongPressAction(tabType)
+                : MainTabsConfigHook.getDoubleTapAction(tabType);
+        long currentTargetDialogId = longPress
+                ? MainTabsConfigHook.getLongPressTargetDialogId(tabType)
+                : MainTabsConfigHook.getDoubleTapTargetDialogId(tabType);
+        for (int i = 0; i < actions.length; i++) {
+            CharSequence label = getTabActionLabel(actions[i], currentTargetDialogId);
+            labels[i] = actions[i] == currentAction ? "\u2713 " + label : label;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(getGestureRowTitle(tabType, longPress));
+        builder.setItems(labels, (dialog, which) -> {
+            int action = actions[which];
+            if (requiresTargetDialog(action)) {
+                showTargetDialogPicker(targetDialogId -> {
+                    if (longPress) {
+                        MainTabsConfigHook.setLongPressAction(tabType, action);
+                        MainTabsConfigHook.setLongPressTargetDialogId(tabType, targetDialogId);
+                    } else {
+                        MainTabsConfigHook.setDoubleTapAction(tabType, action);
+                        MainTabsConfigHook.setDoubleTapTargetDialogId(tabType, targetDialogId);
+                    }
+                    updateItems();
+                });
+                return;
+            }
+            if (longPress) {
+                MainTabsConfigHook.setLongPressAction(tabType, action);
+            } else {
+                MainTabsConfigHook.setDoubleTapAction(tabType, action);
+            }
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private void showQuickChatGestureActionDialog(long dialogId, boolean longPress) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        int[] actions = new int[] {
+                MainTabsConfigPatch.TAB_ACTION_NONE,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_SAVED_MESSAGES,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_ACCOUNT_SELECTOR,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_TABS_MENU,
+                MainTabsConfigPatch.TAB_ACTION_OPEN_CUSTOM_CHAT,
+                MainTabsConfigPatch.TAB_ACTION_MARK_CUSTOM_CHAT_READ
+        };
+        CharSequence[] labels = new CharSequence[actions.length];
+        int currentAction = longPress
+                ? MainTabsConfigHook.getQuickDialogLongPressAction(dialogId)
+                : MainTabsConfigHook.getQuickDialogDoubleTapAction(dialogId);
+        long currentTargetDialogId = longPress
+                ? MainTabsConfigHook.getQuickDialogLongPressTargetDialogId(dialogId)
+                : MainTabsConfigHook.getQuickDialogDoubleTapTargetDialogId(dialogId);
+        for (int i = 0; i < actions.length; i++) {
+            CharSequence label = getTabActionLabel(actions[i], currentTargetDialogId);
+            labels[i] = actions[i] == currentAction ? "\u2713 " + label : label;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(String.format("%s: %s",
+                getQuickDialogDisplayTitle(dialogId),
+                LocaleController.getString(longPress ? R.string.FluffyTabsLongPress : R.string.FluffyTabsDoubleTap)));
+        builder.setItems(labels, (dialog, which) -> {
+            int action = actions[which];
+            if (requiresTargetDialog(action)) {
+                showTargetDialogPicker(targetDialogId -> {
+                    if (longPress) {
+                        MainTabsConfigHook.setQuickDialogLongPressAction(dialogId, action);
+                        MainTabsConfigHook.setQuickDialogLongPressTargetDialogId(dialogId, targetDialogId);
+                    } else {
+                        MainTabsConfigHook.setQuickDialogDoubleTapAction(dialogId, action);
+                        MainTabsConfigHook.setQuickDialogDoubleTapTargetDialogId(dialogId, targetDialogId);
+                    }
+                    updateItems();
+                });
+                return;
+            }
+            if (longPress) {
+                MainTabsConfigHook.setQuickDialogLongPressAction(dialogId, action);
+            } else {
+                MainTabsConfigHook.setQuickDialogDoubleTapAction(dialogId, action);
+            }
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private void showTargetDialogPicker(TargetDialogSelectionCallback callback) {
+        Bundle args = new Bundle();
+        args.putBoolean("onlySelect", true);
+        args.putBoolean("resetDelegate", false);
+        DialogsActivity activity = new DialogsActivity(args);
+        activity.setDelegate((fragment, dids, message, param, notify, scheduleDate, scheduleRepeatPeriod, topicsFragment) -> {
+            if (callback == null || dids == null || dids.isEmpty()) {
+                return false;
+            }
+            long dialogId = dids.get(0).dialogId;
+            if (dialogId == 0L || DialogObject.isEncryptedDialog(dialogId)) {
+                return false;
+            }
+            callback.onSelected(dialogId);
+            fragment.finishFragment();
+            return true;
+        });
+        presentFragment(activity);
+    }
+
     private void showQuickChatPicker() {
         Bundle args = new Bundle();
         args.putBoolean("onlySelect", true);
@@ -330,6 +560,53 @@ public class FluffyTabsActivity extends BaseFragment {
             default:
                 return LocaleController.getString(R.string.MainTabsChats);
         }
+    }
+
+    private CharSequence getGestureRowTitle(int tabType, boolean longPress) {
+        return String.format("%s: %s",
+                getBaseTypeTitle(tabType),
+                LocaleController.getString(longPress ? R.string.FluffyTabsLongPress : R.string.FluffyTabsDoubleTap));
+    }
+
+    private CharSequence getGestureActionValue(int tabType, boolean longPress) {
+        int action = longPress
+                ? MainTabsConfigHook.getLongPressAction(tabType)
+                : MainTabsConfigHook.getDoubleTapAction(tabType);
+        long targetDialogId = longPress
+                ? MainTabsConfigHook.getLongPressTargetDialogId(tabType)
+                : MainTabsConfigHook.getDoubleTapTargetDialogId(tabType);
+        return getTabActionLabel(action, targetDialogId);
+    }
+
+    private CharSequence getTabActionLabel(int action) {
+        return getTabActionLabel(action, 0L);
+    }
+
+    private CharSequence getTabActionLabel(int action, long targetDialogId) {
+        switch (action) {
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_SAVED_MESSAGES:
+                return LocaleController.getString(R.string.FluffyTabsActionSavedMessages);
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_ACCOUNT_SELECTOR:
+                return LocaleController.getString(R.string.FluffyTabsActionAccountSelector);
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_TABS_MENU:
+                return LocaleController.getString(R.string.FluffyTabsActionTabsMenu);
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_CUSTOM_CHAT:
+                return targetDialogId != 0L
+                        ? LocaleController.formatString(R.string.FluffyTabsActionOpenChatWithValue, getQuickDialogTitle(targetDialogId))
+                        : LocaleController.getString(R.string.FluffyTabsActionOpenChatWith);
+            case MainTabsConfigPatch.TAB_ACTION_MARK_CUSTOM_CHAT_READ:
+                return targetDialogId != 0L
+                        ? LocaleController.formatString(R.string.FluffyTabsActionMarkReadWithValue, getQuickDialogTitle(targetDialogId))
+                        : LocaleController.getString(R.string.FluffyTabsActionMarkReadWith);
+            case MainTabsConfigPatch.TAB_ACTION_NONE:
+            default:
+                return LocaleController.getString(R.string.FluffyTabsActionNone);
+        }
+    }
+
+    private boolean requiresTargetDialog(int action) {
+        return action == MainTabsConfigPatch.TAB_ACTION_OPEN_CUSTOM_CHAT
+                || action == MainTabsConfigPatch.TAB_ACTION_MARK_CUSTOM_CHAT_READ;
     }
 
     private void showRenameQuickChatDialog(long dialogId) {
@@ -537,8 +814,18 @@ public class FluffyTabsActivity extends BaseFragment {
         final boolean hidden;
         final CharSequence text;
         final CharSequence value;
+        final boolean checked;
+        final boolean gestureLongPress;
 
         ItemInner(int viewType, int id, int kind, int baseType, long dialogId, boolean hidden, CharSequence text, CharSequence value) {
+            this(viewType, id, kind, baseType, dialogId, hidden, text, value, false, false);
+        }
+
+        ItemInner(int viewType, int id, int kind, int baseType, long dialogId, boolean hidden, CharSequence text, CharSequence value, boolean checked) {
+            this(viewType, id, kind, baseType, dialogId, hidden, text, value, checked, false);
+        }
+
+        ItemInner(int viewType, int id, int kind, int baseType, long dialogId, boolean hidden, CharSequence text, CharSequence value, boolean checked, boolean gestureLongPress) {
             this.viewType = viewType;
             this.id = id;
             this.kind = kind;
@@ -547,7 +834,13 @@ public class FluffyTabsActivity extends BaseFragment {
             this.hidden = hidden;
             this.text = text;
             this.value = value;
+            this.checked = checked;
+            this.gestureLongPress = gestureLongPress;
         }
+    }
+
+    private interface TargetDialogSelectionCallback {
+        void onSelected(long dialogId);
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -568,6 +861,9 @@ public class FluffyTabsActivity extends BaseFragment {
             }
             if (item.viewType != VIEW_TYPE_TEXT) {
                 return false;
+            }
+            if (item.kind == ITEM_KIND_GESTURE) {
+                return true;
             }
             return item.kind != ITEM_KIND_EMPTY && item.baseType != MainTabsConfigPatch.TAB_CHATS;
         }

@@ -56,8 +56,12 @@ public final class MainTabsUiHook {
         MainTabsUiPatch.applyMainTabsConfigIfNeeded(host, state, force);
     }
 
-    public static void onTabClicked(MainTabsUiHost host, MainTabsUiState state, int tabType) {
-        MainTabsUiPatch.onTabClicked(host, state, tabType);
+    public static void onTabClicked(MainTabsUiHost host, MainTabsUiState state, int tabType, android.view.View anchor) {
+        MainTabsUiPatch.onTabClicked(host, state, tabType, anchor);
+    }
+
+    public static boolean onTabLongClicked(MainTabsUiHost host, MainTabsUiState state, int tabType, android.view.View anchor) {
+        return MainTabsUiPatch.onTabLongClicked(host, state, tabType, anchor);
     }
 
     public static boolean showNavbarSettingsMenu(MainTabsUiHost host, android.view.View anchor) {

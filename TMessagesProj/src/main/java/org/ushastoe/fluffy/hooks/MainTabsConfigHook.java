@@ -72,8 +72,80 @@ public final class MainTabsConfigHook {
         MainTabsConfigPatch.setQuickDialogCustomLabel(dialogId, label);
     }
 
+    public static int getQuickDialogLongPressAction(long dialogId) {
+        return MainTabsConfigPatch.getQuickDialogLongPressAction(dialogId);
+    }
+
+    public static int getQuickDialogDoubleTapAction(long dialogId) {
+        return MainTabsConfigPatch.getQuickDialogDoubleTapAction(dialogId);
+    }
+
+    public static void setQuickDialogDoubleTapAction(long dialogId, int action) {
+        MainTabsConfigPatch.setQuickDialogDoubleTapAction(dialogId, action);
+    }
+
+    public static void setQuickDialogLongPressAction(long dialogId, int action) {
+        MainTabsConfigPatch.setQuickDialogLongPressAction(dialogId, action);
+    }
+
+    public static long getQuickDialogLongPressTargetDialogId(long dialogId) {
+        return MainTabsConfigPatch.getQuickDialogLongPressTargetDialogId(dialogId);
+    }
+
+    public static long getQuickDialogDoubleTapTargetDialogId(long dialogId) {
+        return MainTabsConfigPatch.getQuickDialogDoubleTapTargetDialogId(dialogId);
+    }
+
+    public static void setQuickDialogLongPressTargetDialogId(long dialogId, long targetDialogId) {
+        MainTabsConfigPatch.setQuickDialogLongPressTargetDialogId(dialogId, targetDialogId);
+    }
+
+    public static void setQuickDialogDoubleTapTargetDialogId(long dialogId, long targetDialogId) {
+        MainTabsConfigPatch.setQuickDialogDoubleTapTargetDialogId(dialogId, targetDialogId);
+    }
+
     public static String getConfigSignature() {
         return MainTabsConfigPatch.getConfigSignature();
+    }
+
+    public static boolean isOpenSavedMessagesOnDoubleTapEnabled() {
+        return MainTabsConfigPatch.isOpenSavedMessagesOnDoubleTapEnabled();
+    }
+
+    public static void setOpenSavedMessagesOnDoubleTapEnabled(boolean enabled) {
+        MainTabsConfigPatch.setOpenSavedMessagesOnDoubleTapEnabled(enabled);
+    }
+
+    public static int getDoubleTapAction(int tabType) {
+        return MainTabsConfigPatch.getDoubleTapAction(tabType);
+    }
+
+    public static void setDoubleTapAction(int tabType, int action) {
+        MainTabsConfigPatch.setDoubleTapAction(tabType, action);
+    }
+
+    public static int getLongPressAction(int tabType) {
+        return MainTabsConfigPatch.getLongPressAction(tabType);
+    }
+
+    public static void setLongPressAction(int tabType, int action) {
+        MainTabsConfigPatch.setLongPressAction(tabType, action);
+    }
+
+    public static long getDoubleTapTargetDialogId(int tabType) {
+        return MainTabsConfigPatch.getDoubleTapTargetDialogId(tabType);
+    }
+
+    public static long getLongPressTargetDialogId(int tabType) {
+        return MainTabsConfigPatch.getLongPressTargetDialogId(tabType);
+    }
+
+    public static void setDoubleTapTargetDialogId(int tabType, long dialogId) {
+        MainTabsConfigPatch.setDoubleTapTargetDialogId(tabType, dialogId);
+    }
+
+    public static void setLongPressTargetDialogId(int tabType, long dialogId) {
+        MainTabsConfigPatch.setLongPressTargetDialogId(tabType, dialogId);
     }
 
     public static long[] getQuickContactUserIds() {

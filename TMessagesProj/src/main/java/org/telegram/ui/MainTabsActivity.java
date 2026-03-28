@@ -258,18 +258,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                 tab.setCounterBelowIcon(true);
             }
         }
-        tabs[INDEX_PROFILE].setOnLongClickListener(v -> {
-            openAccountSelector(v);
-            return true;
-        });
-
-        tabs[INDEX_CHATS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_CHATS));
-        tabs[INDEX_CONTACTS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_CONTACTS));
-        tabs[INDEX_SETTINGS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_SETTINGS));
-        tabs[INDEX_CALLS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_SETTINGS));
-        tabs[INDEX_PROFILE].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_PROFILE));
-        tabs[INDEX_SETTINGS].setOnLongClickListener(v -> MainTabsUiHook.showNavbarSettingsMenu(fluffyTabsHost, v));
-        tabs[INDEX_CALLS].setOnLongClickListener(v -> MainTabsUiHook.showNavbarSettingsMenu(fluffyTabsHost, v));
+        tabs[INDEX_CHATS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_CHATS, v));
+        tabs[INDEX_CONTACTS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_CONTACTS, v));
+        tabs[INDEX_SETTINGS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_SETTINGS, v));
+        tabs[INDEX_CALLS].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_SETTINGS, v));
+        tabs[INDEX_PROFILE].setOnClickListener(v -> MainTabsUiHook.onTabClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_PROFILE, v));
+        tabs[INDEX_CHATS].setOnLongClickListener(v -> MainTabsUiHook.onTabLongClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_CHATS, v));
+        tabs[INDEX_CONTACTS].setOnLongClickListener(v -> MainTabsUiHook.onTabLongClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_CONTACTS, v));
+        tabs[INDEX_SETTINGS].setOnLongClickListener(v -> MainTabsUiHook.onTabLongClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_SETTINGS, v));
+        tabs[INDEX_CALLS].setOnLongClickListener(v -> MainTabsUiHook.onTabLongClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_SETTINGS, v));
+        tabs[INDEX_PROFILE].setOnLongClickListener(v -> MainTabsUiHook.onTabLongClicked(fluffyTabsHost, fluffyTabsState, MainTabsConfigPatch.TAB_PROFILE, v));
         MainTabsUiHook.rebuildTabsBar(fluffyTabsHost, fluffyTabsState);
 
         selectTab(viewPager.getCurrentPosition(), false);
@@ -605,6 +603,21 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         @Override
         public MainTabsActivity getActivity() {
             return MainTabsActivity.this;
+        }
+
+        @Override
+        public Context getContext() {
+            return MainTabsActivity.this.getContext();
+        }
+
+        @Override
+        public int getCurrentAccount() {
+            return currentAccount;
+        }
+
+        @Override
+        public boolean isCallsTabEnabled() {
+            return getUserConfig().showCallsTab;
         }
 
         @Override

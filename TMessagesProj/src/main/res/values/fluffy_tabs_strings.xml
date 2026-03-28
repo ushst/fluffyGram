@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyTabsOpenSavedMessagesOnDoubleTap">Open Saved Messages on double tap</string>
+    <string name="FluffyTabsGesturesSection">Tab Gestures</string>
+    <string name="FluffyTabsDoubleTap">Double tap</string>
+    <string name="FluffyTabsLongPress">Long press</string>
+    <string name="FluffyTabsActionNone">None</string>
+    <string name="FluffyTabsActionSavedMessages">Open Saved Messages</string>
+    <string name="FluffyTabsActionAccountSelector">Open account selector</string>
+    <string name="FluffyTabsActionTabsMenu">Open tabs menu</string>
+    <string name="FluffyTabsActionOpenChatWith">Open chat with...</string>
+    <string name="FluffyTabsActionOpenChatWithValue">Open chat with %1$s</string>
+    <string name="FluffyTabsActionMarkReadWith">Mark chat as read...</string>
+    <string name="FluffyTabsActionMarkReadWithValue">Mark %1$s as read</string>
+</resources>

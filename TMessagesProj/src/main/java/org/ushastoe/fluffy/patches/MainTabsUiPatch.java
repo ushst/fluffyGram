@@ -1,8 +1,10 @@
 package org.ushastoe.fluffy.patches;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
@@ -16,6 +18,7 @@ import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.glass.GlassTabView;
 import org.telegram.ui.MainTabsActivity;
+import org.telegram.ui.TopicsFragment;
 import org.ushastoe.fluffy.ui.FluffySettingsActivity;
 import org.ushastoe.fluffy.ui.FluffyTabsActivity;
 import org.ushastoe.fluffy.utils.FluffyTextUtils;
@@ -23,6 +26,7 @@ import org.ushastoe.fluffy.utils.FluffyTextUtils;
 import java.util.ArrayList;
 
 public final class MainTabsUiPatch {
+    private static final long TAB_DOUBLE_TAP_TIMEOUT_MS = 350L;
 
     private MainTabsUiPatch() {
     }
@@ -39,11 +43,18 @@ public final class MainTabsUiPatch {
         if (tabs == null || activity == null) {
             return null;
         }
+        return getTabViewForType(activity.getUserConfig().showCallsTab, tabs, type);
+    }
+
+    public static GlassTabView getTabViewForType(boolean showCallsTab, GlassTabView[] tabs, int type) {
+        if (tabs == null) {
+            return null;
+        }
         if (type == MainTabsConfigPatch.TAB_CONTACTS) {
             return tabs[1];
         }
         if (type == MainTabsConfigPatch.TAB_SETTINGS) {
-            return activity.getUserConfig().showCallsTab ? tabs[3] : tabs[2];
+            return showCallsTab ? tabs[3] : tabs[2];
         }
         if (type == MainTabsConfigPatch.TAB_PROFILE) {
             return tabs[4];
@@ -68,11 +79,15 @@ public final class MainTabsUiPatch {
         if (activity == null) {
             return false;
         }
+        return isTabIndexActive(activity.getUserConfig().showCallsTab, state, index);
+    }
+
+    public static boolean isTabIndexActive(boolean showCallsTab, MainTabsUiState state, int index) {
         if (index == 2) {
-            return !activity.getUserConfig().showCallsTab && MainTabsConfigPatch.getPositionForType(state.visibleTabTypes, MainTabsConfigPatch.TAB_SETTINGS) >= 0;
+            return !showCallsTab && MainTabsConfigPatch.getPositionForType(state.visibleTabTypes, MainTabsConfigPatch.TAB_SETTINGS) >= 0;
         }
         if (index == 3) {
-            return activity.getUserConfig().showCallsTab && MainTabsConfigPatch.getPositionForType(state.visibleTabTypes, MainTabsConfigPatch.TAB_SETTINGS) >= 0;
+            return showCallsTab && MainTabsConfigPatch.getPositionForType(state.visibleTabTypes, MainTabsConfigPatch.TAB_SETTINGS) >= 0;
         }
         return MainTabsConfigPatch.getPositionForType(state.visibleTabTypes, getTabTypeForIndex(index)) >= 0;
     }
@@ -88,14 +103,7 @@ public final class MainTabsUiPatch {
         if (activity == null || view == null) {
             return;
         }
-        String customLabel = MainTabsConfigPatch.getQuickDialogCustomLabel(dialogId);
-        if (DialogObject.isUserDialog(dialogId)) {
-            bindUserDialogTab(activity, view, dialogId, customLabel);
-            return;
-        }
-        if (DialogObject.isChatDialog(dialogId)) {
-            bindChatDialogTab(activity, view, dialogId, customLabel);
-        }
+        bindQuickDialogTab(activity.getCurrentAccount(), view, dialogId);
     }
 
     public static void updateQuickDialogCounter(MainTabsActivity activity, GlassTabView view, long dialogId, boolean animated) {
@@ -103,7 +111,7 @@ public final class MainTabsUiPatch {
             return;
         }
         TLRPC.Dialog dialog = activity.getMessagesController().getDialog(dialogId);
-        int unreadCount = dialog != null ? dialog.unread_count : 0;
+        int unreadCount = getQuickDialogUnreadCount(activity, dialogId, dialog);
         if (unreadCount > 0) {
             view.setCounter(LocaleController.formatNumber(unreadCount, ','), false, animated);
         } else {
@@ -126,6 +134,14 @@ public final class MainTabsUiPatch {
         if (!activity.getMessagesController().checkCanOpenChat(args, activity)) {
             return;
         }
+        if (DialogObject.isChatDialog(dialogId)) {
+            TLRPC.Chat chat = activity.getMessagesController().getChat(-dialogId);
+            TLRPC.Dialog dialog = activity.getMessagesController().getDialog(dialogId);
+            if (chat != null && chat.forum && !chat.monoforum && (dialog == null || !dialog.view_forum_as_messages) && !ChatObject.areTabsEnabled(chat)) {
+                activity.presentFragment(new TopicsFragment(args));
+                return;
+            }
+        }
         activity.presentFragment(new ChatActivity(args));
     }
 
@@ -138,15 +154,14 @@ public final class MainTabsUiPatch {
     }
 
     public static void rebuildTabsBar(MainTabsUiHost host, MainTabsUiState state) {
-        if (host == null || state == null || host.getActivity() == null || host.getTabsView() == null || host.getTabs() == null) {
+        if (host == null || state == null || host.getTabsView() == null || host.getTabs() == null) {
             return;
         }
-        MainTabsActivity activity = host.getActivity();
         state.visibleTabTypes = MainTabsConfigPatch.getVisibleTabTypes();
         state.quickDialogIds = MainTabsConfigPatch.getQuickDialogIds();
         host.getTabsView().removeAllViews();
         for (int type : state.visibleTabTypes) {
-            GlassTabView view = getTabViewForType(activity, host.getTabs(), type);
+            GlassTabView view = getTabViewForType(host.isCallsTabEnabled(), host.getTabs(), type);
             if (view != null) {
                 AndroidUtilities.removeFromParent(view);
                 host.getTabsView().addView(view);
@@ -185,16 +200,16 @@ public final class MainTabsUiPatch {
     }
 
     public static GlassTabView getQuickDialogTabView(MainTabsUiHost host, MainTabsUiState state, long dialogId) {
-        MainTabsActivity activity = host.getActivity();
         GlassTabView view = state.quickDialogTabs.get(dialogId);
         if (view == null) {
-            view = GlassTabView.createAvatar(activity.getContext(), host.getResourceProvider(), activity.getCurrentAccount(), R.string.MainTabsProfile);
+            view = GlassTabView.createAvatar(host.getContext(), host.getResourceProvider(), host.getCurrentAccount(), R.string.MainTabsProfile);
             view.setCounterBelowIcon(true);
             final long quickDialogId = dialogId;
-            view.setOnClickListener(v -> openQuickDialog(activity, quickDialogId));
+            view.setOnClickListener(v -> onQuickDialogClicked(host, state, quickDialogId, v));
+            view.setOnLongClickListener(v -> onQuickDialogLongClicked(host, state, quickDialogId, v));
             state.quickDialogTabs.put(dialogId, view);
         }
-        bindQuickDialogTab(activity, view, dialogId);
+        bindQuickDialogTab(host.getCurrentAccount(), view, dialogId);
         return view;
     }
 
@@ -242,7 +257,7 @@ public final class MainTabsUiPatch {
         host.checkFadeView();
     }
 
-    public static void onTabClicked(MainTabsUiHost host, MainTabsUiState state, int tabType) {
+    public static void onTabClicked(MainTabsUiHost host, MainTabsUiState state, int tabType, android.view.View anchor) {
         if (host == null || host.getActivity() == null || state == null || !host.canHandleTabClick()) {
             return;
         }
@@ -252,11 +267,182 @@ public final class MainTabsUiPatch {
             return;
         }
         if (host.getCurrentViewPagerPosition() == position) {
+            if (handleTabDoubleTap(host, activity, state, tabType, anchor)) {
+                return;
+            }
             host.scrollCurrentTabToTop();
             return;
         }
+        resetRetapState(state);
         activity.selectTab(position, true);
         host.scrollViewPagerToPosition(position);
+    }
+
+    public static boolean onTabLongClicked(MainTabsUiHost host, MainTabsUiState state, int tabType, android.view.View anchor) {
+        if (host == null || host.getActivity() == null) {
+            return false;
+        }
+        resetRetapState(state);
+        MainTabsActivity activity = host.getActivity();
+        return executeConfiguredBaseTabAction(host, activity, tabType, true, anchor);
+    }
+
+    public static boolean onQuickDialogLongClicked(MainTabsUiHost host, MainTabsUiState state, long dialogId, android.view.View anchor) {
+        if (host == null || host.getActivity() == null) {
+            return false;
+        }
+        cancelPendingQuickDialogTap(state);
+        resetRetapState(state);
+        return executeConfiguredQuickDialogAction(host, host.getActivity(), dialogId, true, anchor);
+    }
+
+    public static void onQuickDialogClicked(MainTabsUiHost host, MainTabsUiState state, long dialogId, android.view.View anchor) {
+        if (host == null || host.getActivity() == null || state == null) {
+            return;
+        }
+        int doubleTapAction = MainTabsConfigPatch.getQuickDialogDoubleTapAction(dialogId);
+        if (doubleTapAction == MainTabsConfigPatch.TAB_ACTION_NONE) {
+            cancelPendingQuickDialogTap(state);
+            openQuickDialog(host.getActivity(), dialogId);
+            return;
+        }
+        if (state.pendingQuickDialogTapId == dialogId && state.pendingQuickDialogTapRunnable != null) {
+            cancelPendingQuickDialogTap(state);
+            executeConfiguredQuickDialogAction(host, host.getActivity(), dialogId, false, anchor);
+            return;
+        }
+        cancelPendingQuickDialogTap(state);
+        Runnable openRunnable = () -> {
+            if (state.pendingQuickDialogTapId != dialogId) {
+                return;
+            }
+            state.pendingQuickDialogTapId = 0L;
+            state.pendingQuickDialogTapRunnable = null;
+            openQuickDialog(host.getActivity(), dialogId);
+        };
+        state.pendingQuickDialogTapId = dialogId;
+        state.pendingQuickDialogTapRunnable = openRunnable;
+        AndroidUtilities.runOnUIThread(openRunnable, TAB_DOUBLE_TAP_TIMEOUT_MS);
+    }
+
+    private static boolean handleTabDoubleTap(MainTabsUiHost host, MainTabsActivity activity, MainTabsUiState state, int tabType, android.view.View anchor) {
+        if (activity == null || state == null) {
+            return false;
+        }
+        long now = SystemClock.elapsedRealtime();
+        boolean isDoubleTap = state.lastRetappedTabType == tabType
+                && state.lastRetapUptimeMs > 0L
+                && now - state.lastRetapUptimeMs <= TAB_DOUBLE_TAP_TIMEOUT_MS;
+        state.lastRetappedTabType = tabType;
+        state.lastRetapUptimeMs = now;
+        if (!isDoubleTap) {
+            return false;
+        }
+        if (executeConfiguredBaseTabAction(host, activity, tabType, false, anchor)) {
+            resetRetapState(state);
+            return true;
+        }
+        return false;
+    }
+
+    private static void openSavedMessages(MainTabsActivity activity) {
+        if (activity == null) {
+            return;
+        }
+        openQuickDialog(activity, activity.getUserConfig().getClientUserId());
+    }
+
+    private static void resetRetapState(MainTabsUiState state) {
+        if (state == null) {
+            return;
+        }
+        state.lastRetappedTabType = -1;
+        state.lastRetapUptimeMs = 0L;
+    }
+
+    private static void cancelPendingQuickDialogTap(MainTabsUiState state) {
+        if (state == null || state.pendingQuickDialogTapRunnable == null) {
+            return;
+        }
+        AndroidUtilities.cancelRunOnUIThread(state.pendingQuickDialogTapRunnable);
+        state.pendingQuickDialogTapRunnable = null;
+        state.pendingQuickDialogTapId = 0L;
+    }
+
+    private static boolean executeConfiguredBaseTabAction(MainTabsUiHost host, MainTabsActivity activity, int tabType, boolean longPress, android.view.View anchor) {
+        int action = longPress ? MainTabsConfigPatch.getLongPressAction(tabType) : MainTabsConfigPatch.getDoubleTapAction(tabType);
+        long targetDialogId = longPress ? MainTabsConfigPatch.getLongPressTargetDialogId(tabType) : MainTabsConfigPatch.getDoubleTapTargetDialogId(tabType);
+        return executeTabAction(host, activity, action, targetDialogId, anchor);
+    }
+
+    private static boolean executeConfiguredQuickDialogAction(MainTabsUiHost host, MainTabsActivity activity, long dialogId, boolean longPress, android.view.View anchor) {
+        int action = longPress ? MainTabsConfigPatch.getQuickDialogLongPressAction(dialogId) : MainTabsConfigPatch.getQuickDialogDoubleTapAction(dialogId);
+        long targetDialogId = longPress ? MainTabsConfigPatch.getQuickDialogLongPressTargetDialogId(dialogId) : MainTabsConfigPatch.getQuickDialogDoubleTapTargetDialogId(dialogId);
+        return executeTabAction(host, activity, action, targetDialogId, anchor);
+    }
+
+    private static boolean executeTabAction(MainTabsUiHost host, MainTabsActivity activity, int action, long targetDialogId, android.view.View anchor) {
+        if (activity == null) {
+            return false;
+        }
+        switch (action) {
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_SAVED_MESSAGES:
+                openSavedMessages(activity);
+                return true;
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_CUSTOM_CHAT:
+                if (targetDialogId == 0L) {
+                    return false;
+                }
+                openQuickDialog(activity, targetDialogId);
+                return true;
+            case MainTabsConfigPatch.TAB_ACTION_MARK_CUSTOM_CHAT_READ:
+                return markDialogAsRead(activity, targetDialogId);
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_ACCOUNT_SELECTOR:
+                if (anchor == null) {
+                    return false;
+                }
+                activity.openAccountSelector(anchor);
+                return true;
+            case MainTabsConfigPatch.TAB_ACTION_OPEN_TABS_MENU:
+                return showNavbarSettingsMenu(host, anchor);
+            case MainTabsConfigPatch.TAB_ACTION_NONE:
+            default:
+                return false;
+        }
+    }
+
+    private static boolean markDialogAsRead(MainTabsActivity activity, long dialogId) {
+        if (activity == null || dialogId == 0L) {
+            return false;
+        }
+        MessagesController messagesController = activity.getMessagesController();
+        TLRPC.Dialog dialog = messagesController.getDialog(dialogId);
+        if (dialog == null) {
+            return false;
+        }
+        if (messagesController.isForum(dialogId) || messagesController.isMonoForumWithManageRights(dialogId)) {
+            messagesController.markAllTopicsAsRead(dialogId);
+        }
+        messagesController.markMentionsAsRead(dialogId, 0);
+        messagesController.markDialogAsRead(dialogId, dialog.top_message, dialog.top_message, dialog.last_message_date, false, 0, 0, true, 0);
+        return true;
+    }
+
+    private static int getQuickDialogUnreadCount(MainTabsActivity activity, long dialogId, TLRPC.Dialog dialog) {
+        if (activity == null || dialog == null) {
+            return 0;
+        }
+        if (!DialogObject.isChatDialog(dialogId)) {
+            return dialog.unread_count;
+        }
+        TLRPC.Chat chat = activity.getMessagesController().getChat(-dialogId);
+        if (chat == null) {
+            return dialog.unread_count;
+        }
+        if (chat.forum && !chat.monoforum && !dialog.view_forum_as_messages && !ChatObject.areTabsEnabled(chat)) {
+            return dialog.unread_count > 0 ? 1 : 0;
+        }
+        return dialog.unread_count;
     }
 
     public static boolean showNavbarSettingsMenu(MainTabsUiHost host, android.view.View anchor) {
@@ -302,10 +488,10 @@ public final class MainTabsUiPatch {
         }
     }
 
-    private static void bindUserDialogTab(MainTabsActivity activity, GlassTabView view, long dialogId, String customLabel) {
-        TLRPC.User user = MessagesController.getInstance(activity.getCurrentAccount()).getUser(dialogId);
+    private static void bindUserDialogTab(int currentAccount, GlassTabView view, long dialogId, String customLabel) {
+        TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialogId);
         if (user == null) {
-            user = MessagesStorage.getInstance(activity.getCurrentAccount()).getUserSync(dialogId);
+            user = MessagesStorage.getInstance(currentAccount).getUserSync(dialogId);
         }
         if (user == null) {
             view.setText(getDisplayText(customLabel, String.valueOf(dialogId)));
@@ -324,7 +510,7 @@ public final class MainTabsUiPatch {
                 view.getBackupImageView().setImageDrawable(avatarDrawable);
             }
         } else {
-            view.setAttachBotUser(user, activity.getCurrentAccount());
+            view.setAttachBotUser(user, currentAccount);
             if (isBlank(title)) {
                 title = ContactsController.formatName(user.first_name, user.last_name);
             }
@@ -335,11 +521,11 @@ public final class MainTabsUiPatch {
         view.setText(getDisplayText(title, String.valueOf(dialogId)));
     }
 
-    private static void bindChatDialogTab(MainTabsActivity activity, GlassTabView view, long dialogId, String customLabel) {
+    private static void bindChatDialogTab(int currentAccount, GlassTabView view, long dialogId, String customLabel) {
         long chatId = -dialogId;
-        TLRPC.Chat chat = MessagesController.getInstance(activity.getCurrentAccount()).getChat(chatId);
+        TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(chatId);
         if (chat == null) {
-            chat = MessagesStorage.getInstance(activity.getCurrentAccount()).getChatSync(chatId);
+            chat = MessagesStorage.getInstance(currentAccount).getChatSync(chatId);
         }
         if (chat == null) {
             view.setText(getDisplayText(customLabel, String.valueOf(dialogId)));
@@ -349,9 +535,23 @@ public final class MainTabsUiPatch {
         String title = isBlank(customLabel) ? chat.title : customLabel;
         view.setText(getDisplayText(title, String.valueOf(dialogId)));
         AvatarDrawable avatarDrawable = new AvatarDrawable();
-        avatarDrawable.setInfo(activity.getCurrentAccount(), chat);
+        avatarDrawable.setInfo(currentAccount, chat);
         if (view.getBackupImageView() != null) {
             view.getBackupImageView().setForUserOrChat(chat, avatarDrawable);
+        }
+    }
+
+    public static void bindQuickDialogTab(int currentAccount, GlassTabView view, long dialogId) {
+        if (view == null) {
+            return;
+        }
+        String customLabel = MainTabsConfigPatch.getQuickDialogCustomLabel(dialogId);
+        if (DialogObject.isUserDialog(dialogId)) {
+            bindUserDialogTab(currentAccount, view, dialogId, customLabel);
+            return;
+        }
+        if (DialogObject.isChatDialog(dialogId)) {
+            bindChatDialogTab(currentAccount, view, dialogId, customLabel);
         }
     }
 
