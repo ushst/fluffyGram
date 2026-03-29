@@ -195,7 +195,7 @@ function Get-TelegramStatusText {
 
     $elapsed = Format-Duration -Duration ((Get-Date) - $Notifier.BuildStart)
     $lines = [System.Collections.Generic.List[string]]::new()
-    $lines.Add('fluffyGram debug build')
+    $lines.Add('fluffyGram release build')
     $lines.Add("State: $State")
     $lines.Add("Elapsed: $elapsed")
     $lines.Add("Tasks: $($Notifier.GradleTasksLabel)")
@@ -395,16 +395,16 @@ try {
         Write-Warning 'Android SDK root was not found in common locations. Gradle may rely on local.properties.'
     }
 
-    Write-Host '== FluffyGram Debug Build & Deploy ==' -ForegroundColor Cyan
+    Write-Host '== FluffyGram Release Build & Deploy ==' -ForegroundColor Cyan
     & java -version
 
     $gradleTasks = @()
     if ($Clean) {
         $gradleTasks += 'clean'
     }
-    $gradleTasks += ':TMessagesProj_App:assembleAfatDebug'
+    $gradleTasks += ':TMessagesProj_App:assembleAfatRelease'
     if ($Install) {
-        $gradleTasks += ':TMessagesProj_App:installAfatDebug'
+        $gradleTasks += ':TMessagesProj_App:installAfatRelease'
     }
 
     $envFilePath = Join-Path $scriptRoot '.env'
@@ -454,11 +454,11 @@ try {
     Update-TelegramStatus -Notifier $script:buildNotifier -State 'completed' -Summary 'Gradle build finished successfully.' -Force
 
     if (-not $Install) {
-        Write-Host 'Debug build completed successfully.' -ForegroundColor Green
-        Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'completed' -Summary 'Build completed without install.'
+        Write-Host 'Release build completed successfully.' -ForegroundColor Green
+        Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'completed' -Summary 'Release build completed without install.'
         Write-Host 'Install skipped.' -ForegroundColor Yellow
     } elseif ($Launch) {
-        Write-Host 'Debug build installed successfully.' -ForegroundColor Green
+        Write-Host 'Release build installed successfully.' -ForegroundColor Green
         $adbCommand = Get-Command adb -ErrorAction SilentlyContinue
         if (-not $adbCommand) {
             Update-TelegramStatus -Notifier $script:buildNotifier -State 'failed' -Summary 'adb was not found in PATH.' -Force
@@ -467,18 +467,17 @@ try {
         }
 
         Write-Host 'Launching app...' -ForegroundColor Cyan
-        & $adbCommand.Source shell am start -n 'org.ushastoe.fluffy.beta/org.telegram.ui.LaunchActivity' | Out-Null
+        & $adbCommand.Source shell am start -n 'org.ushastoe.fluffy/org.telegram.ui.LaunchActivity' | Out-Null
         if ($LASTEXITCODE -ne 0) {
             Update-TelegramStatus -Notifier $script:buildNotifier -State 'failed' -Summary "adb launch failed with exit code $LASTEXITCODE" -Force
             Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'failed' -Summary "adb launch failed with exit code $LASTEXITCODE"
             throw "adb launch failed with exit code $LASTEXITCODE"
         }
-        Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'completed' -Summary 'Build installed and app launched on device.'
+        Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'completed' -Summary 'Release build installed and app launched on device.'
         Write-Host 'App launched on device.' -ForegroundColor Green
     } else {
-        Write-Host 'Debug build installed successfully.' -ForegroundColor Green
-        $postBuildSummary = if ($Install) { 'Build installed successfully.' } else { 'Build completed without install.' }
-        Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'completed' -Summary $postBuildSummary
+        Write-Host 'Release build installed successfully.' -ForegroundColor Green
+        Send-TelegramFinalMessage -Notifier $script:buildNotifier -State 'completed' -Summary 'Release build installed successfully.'
         Write-Host 'Launch skipped.' -ForegroundColor Yellow
     }
 }

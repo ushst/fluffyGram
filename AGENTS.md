@@ -82,6 +82,13 @@ public final class FluffyFeaturePatch {
 3. Prefer the project script over ad-hoc Gradle install commands so device selection and Java setup stay consistent.
 4. If a change is docs-only or the user forbids builds, state that the build was not run.
 
+## Command Execution Style
+1. For user-requested terminal actions, execute commands sequentially, not as a bundled batch of unrelated steps.
+2. After each completed command or clearly separated step, send a short status update before moving to the next command.
+3. Do not combine simple requests like `adb connect`, `adb install`, `logcat -c`, `monkey`, or a single file read into one opaque multi-step action unless the user explicitly asks for a combined workflow.
+4. If a task requires multiple commands, make the step boundaries explicit, for example: build, install, launch, collect logs.
+5. When a long-running command is still in progress, state that explicitly instead of waiting silently for the whole chain to finish.
+
 ## Release / Update Workflow
 1. The main delivery branch is `main`. Keep local and remote work aligned to `origin/main`.
 2. Release builds are published through `.github/workflows/build-release.yml`. This workflow is the single source of truth for GitHub APK releases and app update metadata.
