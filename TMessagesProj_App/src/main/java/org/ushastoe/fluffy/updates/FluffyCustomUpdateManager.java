@@ -118,7 +118,7 @@ public final class FluffyCustomUpdateManager {
             final boolean finalFailed = failed;
             AndroidUtilities.runOnUIThread(() -> {
                 if (finalParsed != null) {
-                    applyParsedUpdate(finalParsed);
+                    applyParsedUpdate(finalParsed, force);
                 } else if (!finalFailed) {
                     clearStoredUpdate(true);
                 }
@@ -306,13 +306,14 @@ public final class FluffyCustomUpdateManager {
         }
     }
 
-    private void applyParsedUpdate(ParsedUpdate parsed) {
+    private void applyParsedUpdate(ParsedUpdate parsed, boolean force) {
         if (!parsed.update.higherThan(getCurrentInstalledUpdate())) {
             clearStoredUpdate(true);
             return;
         }
+        boolean sameUpdate;
         synchronized (lock) {
-            boolean sameUpdate = update != null
+            sameUpdate = update != null
                 && update.versionCode == parsed.update.versionCode
                 && TextUtils.equals(update.version, parsed.update.version)
                 && TextUtils.equals(apkUrl, parsed.apkUrl);
@@ -326,6 +327,9 @@ public final class FluffyCustomUpdateManager {
                 downloadedFile = null;
             }
             persistState();
+        }
+        if (!force && !sameUpdate) {
+            FluffyUpdateNotificationHelper.showUpdateAvailable(parsed.update, getResolvedPageUrl());
         }
         postGlobalNotification(NotificationCenter.appUpdateAvailable);
     }
@@ -343,6 +347,7 @@ public final class FluffyCustomUpdateManager {
             downloadedFile = null;
             persistState();
         }
+        FluffyUpdateNotificationHelper.cancel();
         postGlobalNotification(NotificationCenter.appUpdateAvailable);
     }
 
