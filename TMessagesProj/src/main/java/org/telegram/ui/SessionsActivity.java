@@ -79,6 +79,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.voip.CellFlickerDrawable;
+import org.ushastoe.fluffy.hooks.QrAcceptLoginHook;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -1136,6 +1137,9 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                     listAdapter.notifyDataSetChanged();
                     undoView.showWithAction(0, UndoView.ACTION_QR_SESSION_ACCEPTED, response);
                 } else if (error != null) {
+                    if (QrAcceptLoginHook.handleError(SessionsActivity.this, error)) {
+                        return;
+                    }
                     AndroidUtilities.runOnUIThread(() -> {
                         final String text;
                         if (error.text != null && error.text.equals("AUTH_TOKEN_EXCEPTION")) {

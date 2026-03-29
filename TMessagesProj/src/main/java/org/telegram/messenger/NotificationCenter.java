@@ -221,6 +221,7 @@ public class NotificationCenter {
     public static final int dialogFiltersUpdated = totalEvents++;
     public static final int filterSettingsUpdated = totalEvents++;
     public static final int suggestedFiltersLoaded = totalEvents++;
+    public static final int updateLoginToken = totalEvents++;
 
     public static final int updateBotMenuButton = totalEvents++;
 

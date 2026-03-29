@@ -5,10 +5,14 @@ import android.text.TextUtils;
 
 import org.json.JSONObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public final class MediaOnlyProxyPatch {
@@ -16,8 +20,9 @@ public final class MediaOnlyProxyPatch {
 
     private static final Object LOCK = new Object();
     private static final Set<Object> ACTIVE_OPERATIONS = Collections.newSetFromMap(new IdentityHashMap<>());
-
-    private static boolean runtimeProxyEnabledByPatch;
+    private static final Map<Object, Integer> OPERATION_ACCOUNTS = new IdentityHashMap<>();
+    private static final Map<Integer, Integer> ACTIVE_ACCOUNT_COUNTS = new HashMap<>();
+    private static final Set<Integer> RUNTIME_PROXY_ACCOUNTS = new HashSet<>();
 
     private MediaOnlyProxyPatch() {
     }
@@ -48,10 +53,16 @@ public final class MediaOnlyProxyPatch {
         preferences.edit().putBoolean(PREF_MEDIA_ONLY_PROXY, enabled).apply();
         if (!enabled) {
             synchronized (LOCK) {
-                if (runtimeProxyEnabledByPatch) {
-                    disableRuntimeProxy();
+                if (!RUNTIME_PROXY_ACCOUNTS.isEmpty()) {
+                    for (Integer account : new HashSet<>(RUNTIME_PROXY_ACCOUNTS)) {
+                        if (account != null) {
+                            disableRuntimeProxy(account);
+                        }
+                    }
                 }
                 ACTIVE_OPERATIONS.clear();
+                OPERATION_ACCOUNTS.clear();
+                ACTIVE_ACCOUNT_COUNTS.clear();
             }
         }
     }
@@ -64,12 +75,22 @@ public final class MediaOnlyProxyPatch {
         if (preferences.getBoolean("proxy_enabled", false)) {
             return;
         }
+        int account = resolveAccount(operation);
+        if (account < 0) {
+            return;
+        }
+        if (account != UserConfig.selectedAccount) {
+            return;
+        }
         synchronized (LOCK) {
             if (!ACTIVE_OPERATIONS.add(operation)) {
                 return;
             }
-            if (!runtimeProxyEnabledByPatch) {
-                enableRuntimeProxy(preferences);
+            OPERATION_ACCOUNTS.put(operation, account);
+            int activeCount = ACTIVE_ACCOUNT_COUNTS.containsKey(account) ? ACTIVE_ACCOUNT_COUNTS.get(account) : 0;
+            ACTIVE_ACCOUNT_COUNTS.put(account, activeCount + 1);
+            if (!RUNTIME_PROXY_ACCOUNTS.contains(account)) {
+                enableRuntimeProxy(preferences, account);
             }
         }
     }
@@ -82,27 +103,56 @@ public final class MediaOnlyProxyPatch {
             if (!ACTIVE_OPERATIONS.remove(operation)) {
                 return;
             }
-            if (ACTIVE_OPERATIONS.isEmpty() && runtimeProxyEnabledByPatch) {
-                disableRuntimeProxy();
+            Integer account = OPERATION_ACCOUNTS.remove(operation);
+            if (account == null) {
+                return;
+            }
+            Integer activeCount = ACTIVE_ACCOUNT_COUNTS.get(account);
+            if (activeCount == null || activeCount <= 1) {
+                ACTIVE_ACCOUNT_COUNTS.remove(account);
+                if (RUNTIME_PROXY_ACCOUNTS.contains(account)) {
+                    disableRuntimeProxy(account);
+                }
+            } else {
+                ACTIVE_ACCOUNT_COUNTS.put(account, activeCount - 1);
             }
         }
     }
 
-    private static void enableRuntimeProxy(SharedPreferences preferences) {
+    private static int resolveAccount(Object operation) {
+        try {
+            java.lang.reflect.Field field = operation.getClass().getDeclaredField("currentAccount");
+            field.setAccessible(true);
+            Object value = field.get(operation);
+            if (value instanceof Integer) {
+                int account = (Integer) value;
+                if (account >= 0 && account < UserConfig.MAX_ACCOUNT_COUNT) {
+                    return account;
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        return -1;
+    }
+
+    private static void enableRuntimeProxy(SharedPreferences preferences, int account) {
         String address = preferences.getString("proxy_ip", "");
         int port = preferences.getInt("proxy_port", 1080);
         String user = preferences.getString("proxy_user", "");
         String pass = preferences.getString("proxy_pass", "");
         String secret = preferences.getString("proxy_secret", "");
-        if (TextUtils.isEmpty(address)) {
+        if (TextUtils.isEmpty(address) || account < 0 || account >= UserConfig.MAX_ACCOUNT_COUNT) {
             return;
         }
-        ConnectionsManager.setProxySettings(true, address, port, user, pass, secret);
-        runtimeProxyEnabledByPatch = true;
+        ConnectionsManager.native_setProxySettings(account, address, port, user, pass, secret);
+        RUNTIME_PROXY_ACCOUNTS.add(account);
     }
 
-    private static void disableRuntimeProxy() {
-        ConnectionsManager.setProxySettings(false, "", 1080, "", "", "");
-        runtimeProxyEnabledByPatch = false;
+    private static void disableRuntimeProxy(int account) {
+        if (account < 0 || account >= UserConfig.MAX_ACCOUNT_COUNT) {
+            return;
+        }
+        ConnectionsManager.native_setProxySettings(account, "", 1080, "", "", "");
+        RUNTIME_PROXY_ACCOUNTS.remove(account);
     }
 }

@@ -198,6 +198,7 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.FluffyPasskeysUnsupportedHook;
+import org.ushastoe.fluffy.hooks.LoginQrHook;
 import org.ushastoe.fluffy.hooks.LoginSmsWarningHook;
 
 import java.io.BufferedReader;
@@ -510,6 +511,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+        LoginQrHook.onFragmentDestroy(this);
         for (int a = 0; a < views.length; a++) {
             if (views[a] != null) {
                 views[a].onDestroyActivity();
@@ -548,6 +550,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
+                if (LoginQrHook.onMenuItemClick(LoginActivity.this, id)) {
+                    return;
+                }
                 if (id == done_button) {
                     onDoneButtonPressed();
                 } else if (id == -1) {
@@ -557,6 +562,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 }
             }
         });
+        LoginQrHook.onCreateView(this);
 
         currentDoneType = DONE_TYPE_FLOATING;
         doneButtonVisible[DONE_TYPE_FLOATING] = true;
@@ -1682,6 +1688,30 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         needFinishActivity(afterSignup, res.setup_password_required, res.otherwise_relogin_days);
     }
 
+    public void applyFluffyQrLoginAuthorization(TLRPC.auth_Authorization authorization) {
+        if (authorization instanceof TLRPC.TL_auth_authorizationSignUpRequired) {
+            TLRPC.TL_auth_authorizationSignUpRequired signUpRequired = (TLRPC.TL_auth_authorizationSignUpRequired) authorization;
+            if (signUpRequired.terms_of_service != null) {
+                currentTermsOfService = signUpRequired.terms_of_service;
+            }
+            setPage(VIEW_REGISTER, true, new Bundle(), false);
+        } else if (authorization instanceof TLRPC.TL_auth_authorization) {
+            onAuthSuccess((TLRPC.TL_auth_authorization) authorization);
+        }
+    }
+
+    public void applyFluffyQrLoginPassword(TL_account.Password password) {
+        if (!TwoStepVerificationActivity.canHandleCurrentPassword(password, true)) {
+            AlertsCreator.showUpdateAppAlert(getParentActivity(), getString("UpdateAppAlert", R.string.UpdateAppAlert), true);
+            return;
+        }
+        Bundle bundle = new Bundle();
+        SerializedData data = new SerializedData(password.getObjectSize());
+        password.serializeToStream(data);
+        bundle.putString("password", Utilities.bytesToHex(data.toByteArray()));
+        setPage(VIEW_PASSWORD, true, bundle, false);
+    }
+
     private void fillNextCodeParams(Bundle params, TL_account.sentEmailCode res) {
         params.putString("emailPattern", res.email_pattern);
         params.putInt("length", res.length);
@@ -2495,6 +2525,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     loadCountries();
                 });
             }
+            LoginQrHook.onPhoneViewOptionsBuilt(LoginActivity.this, this, allowTestBackend && activityMode == MODE_LOGIN);
 
             if (bottomMargin > 0 && !AndroidUtilities.isSmallScreen()) {
                 Space bottomSpacer = new Space(context);

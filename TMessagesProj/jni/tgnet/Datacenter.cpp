@@ -898,6 +898,9 @@ bool Datacenter::isHandshaking(bool media) {
     }
     for (auto & iter : handshakes) {
         Handshake *handshake = iter.get();
+        if (handshake == nullptr) {
+            continue;
+        }
         if (handshake->getType() == HandshakeTypePerm || (media && handshake->getType() == HandshakeTypeMediaTemp) || (!media && handshake->getType() != HandshakeTypeMediaTemp)) {
             return true;
         }
@@ -911,6 +914,9 @@ bool Datacenter::isHandshaking(HandshakeType type) {
     }
     for (auto & iter : handshakes) {
         Handshake *handshake = iter.get();
+        if (handshake == nullptr) {
+            continue;
+        }
         if (handshake->getType() == type) {
             return true;
         }
@@ -922,6 +928,9 @@ void Datacenter::beginHandshake(HandshakeType handshakeType, bool reconnect) {
     if (handshakeType == HandshakeTypeCurrent) {
         for (auto & iter : handshakes) {
             Handshake *handshake = iter.get();
+            if (handshake == nullptr) {
+                continue;
+            }
             handshake->beginHandshake(reconnect);
         }
     } else {
@@ -957,6 +966,9 @@ void Datacenter::onHandshakeConnectionClosed(Connection *connection) {
     bool media = connection->getConnectionType() == ConnectionTypeGenericMedia;
     for (auto & iter : handshakes) {
         Handshake *handshake = iter.get();
+        if (handshake == nullptr) {
+            continue;
+        }
         if ((media && handshake->getType() == HandshakeTypeMediaTemp) || (!media && handshake->getType() != HandshakeTypeMediaTemp)) {
             handshake->onHandshakeConnectionClosed();
         }
@@ -970,6 +982,9 @@ void Datacenter::onHandshakeConnectionConnected(Connection *connection) {
     bool media = connection->getConnectionType() == ConnectionTypeGenericMedia;
     for (auto & iter : handshakes) {
         Handshake *handshake = iter.get();
+        if (handshake == nullptr) {
+            continue;
+        }
         if ((media && handshake->getType() == HandshakeTypeMediaTemp) || (!media && handshake->getType() != HandshakeTypeMediaTemp)) {
             handshake->onHandshakeConnectionConnected();
         }
@@ -1001,6 +1016,9 @@ void Datacenter::processHandshakeResponse(bool media, TLObject *message, int64_t
     }
     for (auto & iter : handshakes) {
         Handshake *handshake = iter.get();
+        if (handshake == nullptr) {
+            continue;
+        }
         if ((media && handshake->getType() == HandshakeTypeMediaTemp) || (!media && handshake->getType() != HandshakeTypeMediaTemp)) {
             handshake->processHandshakeResponse(message, messageId);
         }
@@ -1013,6 +1031,9 @@ TLObject *Datacenter::getCurrentHandshakeRequest(bool media) {
     }
     for (auto & iter : handshakes) {
         Handshake *handshake = iter.get();
+        if (handshake == nullptr) {
+            continue;
+        }
         if ((media && handshake->getType() == HandshakeTypeMediaTemp) || (!media && handshake->getType() != HandshakeTypeMediaTemp)) {
             return handshake->getCurrentHandshakeRequest();
         }
@@ -1084,6 +1105,9 @@ ByteArray *Datacenter::getAuthKey(ConnectionType connectionType, bool perm, int6
         int64_t authKeyPendingId = 0;
         for (auto & iter : handshakes) {
             Handshake *handshake = iter.get();
+            if (handshake == nullptr) {
+                continue;
+            }
             if ((media && handshake->getType() == HandshakeTypeMediaTemp) || (!media && handshake->getType() == HandshakeTypeTemp)) {
                 authKeyPending = handshake->getPendingAuthKey();
                 authKeyPendingId = handshake->getPendingAuthKeyId();
@@ -1412,6 +1436,9 @@ Connection *Datacenter::getConnectionByType(uint32_t connectionType, bool create
 }
 
 void Datacenter::onHandshakeComplete(Handshake *handshake, int64_t keyId, ByteArray *authKey, int32_t timeDifference) {
+    if (handshake == nullptr) {
+        return;
+    }
     HandshakeType type = handshake->getType();
     for (auto iter = handshakes.begin(); iter != handshakes.end(); iter++) {
         if (iter->get() == handshake) {

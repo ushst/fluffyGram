@@ -184,6 +184,9 @@
     <string name="FluffyUpdateDownloadFailed">Не удалось загрузить обновление.</string>
     <string name="FluffyUpdateCheckFailed">Не удалось проверить наличие обновлений.</string>
     <string name="FluffyUpdateOpenRelease">Открыть страницу релиза</string>
+    <string name="FluffyUpdateNotificationChannel">Обновления приложения</string>
+    <string name="FluffyUpdateNotificationTitle">Доступно %1$s</string>
+    <string name="FluffyUpdateNotificationText">Нажмите, чтобы открыть страницу обновления.</string>
     <string name="FluffyRoundVideoCameraFeature">Запоминать выбранную камеру для видеосообщений</string>
     <string name="FluffyRoundVideoCamera">Предпочитаемая камера для видеосообщений</string>
     <string name="FluffyRoundVideoCameraFront">Фронтальная</string>
@@ -353,4 +356,8 @@
     <string name="FluffySyncAuthTimedOut">Истекло время ожидания авторизации через Mini App.</string>
     <string name="FluffySyncWrongAccount">Mini App авторизовал другой Telegram-аккаунт.</string>
     <string name="FluffyStickerPackOwner">Владелец стикерпака</string>
+    <string name="FluffyQrLoginMenu">Вход по QR</string>
+    <string name="FluffyQrLoginSheetTitle">Вход на это устройство</string>
+    <string name="FluffyQrLoginSheetHelp">Отсканируйте этот QR-код в Telegram на другом устройстве, чтобы войти здесь.</string>
+    <string name="FluffyQrLoginExportFailed">Не удалось создать QR-код для входа.</string>
 </resources>

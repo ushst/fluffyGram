@@ -217,6 +217,7 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stars.SuperRipple;
 import org.telegram.ui.Stories.StoriesController;
+import org.ushastoe.fluffy.hooks.QrAcceptLoginHook;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.StoryViewer;
 import org.telegram.ui.Stories.recorder.StoryEntry;
@@ -3185,6 +3186,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         } catch (Exception ignore) {
                         }
                         if (!(response instanceof TLRPC.TL_authorization)) {
+                            if (QrAcceptLoginHook.handleError(fragment, error)) {
+                                return;
+                            }
                             AndroidUtilities.runOnUIThread(() -> AlertsCreator.showSimpleAlert(fragment, LocaleController.getString(R.string.AuthAnotherClient), LocaleController.getString(R.string.ErrorOccurred) + "\n" + error.text));
                         }
                     }));

@@ -105,6 +105,7 @@ private:
     void clearRequestsForDatacenter(Datacenter *datacenter, HandshakeType type);
     void registerForInternalPushUpdates();
     void processRequestQueue(uint32_t connectionType, uint32_t datacenterId);
+    void processRequestQueueInternal(uint32_t connectionType, uint32_t datacenterId);
     void authorizeOnMovingDatacenter();
     void authorizedOnMovingDatacenter();
     Datacenter *getDatacenterWithId(uint32_t datacenterId);
@@ -196,7 +197,12 @@ private:
 
     pthread_t networkThread;
     pthread_mutex_t mutex;
+    pthread_mutex_t eventsMutex;
     std::queue<std::function<void()>> pendingTasks;
+    bool processingRequestQueue = false;
+    bool processRequestQueuePending = false;
+    uint32_t pendingRequestQueueConnectionTypes = 0;
+    uint32_t pendingRequestQueueDatacenterId = 0;
     struct epoll_event *epollEvents;
     timespec timeSpec;
     timespec timeSpecMonotonic;
@@ -271,6 +277,7 @@ private:
 #ifdef ANDROID
 extern JavaVM *javaVm;
 extern JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
+JNIEnv *getThreadLocalJNIEnv();
 extern jclass jclass_ByteBuffer;
 extern jmethodID jclass_ByteBuffer_allocateDirect;
 #endif

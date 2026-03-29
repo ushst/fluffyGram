@@ -187,6 +187,9 @@
     <string name="FluffyUpdateDownloadFailed">Failed to download the update.</string>
     <string name="FluffyUpdateCheckFailed">Failed to check for updates.</string>
     <string name="FluffyUpdateOpenRelease">Open release page</string>
+    <string name="FluffyUpdateNotificationChannel">App updates</string>
+    <string name="FluffyUpdateNotificationTitle">%1$s available</string>
+    <string name="FluffyUpdateNotificationText">Tap to open the update page.</string>
     <string name="FluffyRoundVideoCameraFeature">Remember the selected camera for video messages</string>
     <string name="FluffyRoundVideoCamera">Preferred camera for video messages</string>
     <string name="FluffyRoundVideoCameraFront">Front</string>
@@ -348,4 +351,8 @@
     <string name="FluffyReactionYesterdayAt">reacted yesterday at %s</string>
     <string name="FluffyReactionDateTimeAt">reacted %1$s at %2$s</string>
     <string name="FluffyStickerPackOwner">Sticker Pack Owner</string>
+    <string name="FluffyQrLoginMenu">Login via QR</string>
+    <string name="FluffyQrLoginSheetTitle">Login on this device</string>
+    <string name="FluffyQrLoginSheetHelp">Scan this QR code from Telegram on another device to sign in here.</string>
+    <string name="FluffyQrLoginExportFailed">Failed to create a QR login code.</string>
 </resources>
