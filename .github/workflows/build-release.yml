@@ -476,50 +476,86 @@ jobs:
           set -euo pipefail
 
           if [[ -z "${TELEGRAM_BOT_TOKEN}" || -z "${TELEGRAM_CHANNEL_ID}" ]]; then
-            echo "TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID is missing."
-            echo "Set both in repository or organization GitHub Actions secrets."
-            exit 1
+            echo "::warning::Skipping Telegram post because TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID is missing."
+            echo "Set both in repository or organization GitHub Actions secrets if Telegram posting is required."
+            exit 0
           fi
 
           if [[ "${TELEGRAM_CHANNEL_ID}" =~ ^[0-9]+$ ]]; then
-            echo "Warning: TELEGRAM_CHANNEL_ID looks like a positive numeric ID. For channels/supergroups it usually must start with -100..."
+            echo "::warning::TELEGRAM_CHANNEL_ID looks like a positive numeric ID. For channels/supergroups it usually must start with -100..."
           fi
 
           CAPTION="🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
 
           📋 Changelog: ${COMPARE_URL}"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG}"
+          APK_PATH="artifacts/${{ steps.meta.outputs.apk_name }}"
+          MAX_TELEGRAM_DOCUMENT_SIZE=$((50 * 1024 * 1024))
 
           RESPONSE_FILE="artifacts/telegram-send-response.json"
-          HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
-            -F "chat_id=${TELEGRAM_CHANNEL_ID}" \
-            -F "document=@artifacts/${{ steps.meta.outputs.apk_name }}" \
-            -F "caption=${CAPTION}")"
+          MESSAGE_ID=""
+          APK_SIZE=$(stat -c%s "$APK_PATH")
 
-          if [[ "$HTTP_CODE" -ge 400 ]]; then
-            echo "Telegram sendDocument HTTP $HTTP_CODE"
-            cat "$RESPONSE_FILE" || true
-            exit 1
+          if [[ "$APK_SIZE" -gt "$MAX_TELEGRAM_DOCUMENT_SIZE" ]]; then
+            echo "::warning::APK is ${APK_SIZE} bytes, which exceeds Telegram Bot API upload limit ${MAX_TELEGRAM_DOCUMENT_SIZE}. Posting release link instead."
+            MESSAGE_TEXT="🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
+
+📦 APK is too large for direct Telegram upload.
+🔗 Release: ${RELEASE_URL}
+📋 Changelog: ${COMPARE_URL}"
+
+            if ! HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHANNEL_ID}" \
+              --data-urlencode "text=${MESSAGE_TEXT}" \
+              --data-urlencode "disable_web_page_preview=true")"; then
+              echo "::warning::Telegram sendMessage request failed at transport level."
+              cat "$RESPONSE_FILE" 2>/dev/null || true
+              exit 0
+            fi
+          else
+            if ! HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+              -F "chat_id=${TELEGRAM_CHANNEL_ID}" \
+              -F "document=@${APK_PATH}" \
+              -F "caption=${CAPTION}")"; then
+              echo "::warning::Telegram sendDocument request failed at transport level."
+              cat "$RESPONSE_FILE" 2>/dev/null || true
+              exit 0
+            fi
           fi
 
-          MESSAGE_ID="$(python - <<'PY'
+          if [[ "$HTTP_CODE" -ge 400 ]]; then
+            echo "::warning::Telegram API returned HTTP $HTTP_CODE"
+            cat "$RESPONSE_FILE" || true
+            exit 0
+          fi
+
+          if ! MESSAGE_ID="$(python - <<'PY'
           import json
           from pathlib import Path
 
           data = json.loads(Path("artifacts/telegram-send-response.json").read_text(encoding="utf-8"))
           if not data.get("ok"):
-            raise SystemExit(f"Telegram sendDocument failed: {data}")
+            raise SystemExit(f"Telegram API request failed: {data}")
           print(data["result"]["message_id"])
           PY
-          )"
+          )"; then
+            echo "::warning::Telegram API returned an unexpected payload."
+            cat "$RESPONSE_FILE" || true
+            exit 0
+          fi
 
           PIN_RESPONSE_FILE="artifacts/telegram-pin-response.json"
-          PIN_HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$PIN_RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
+          if ! PIN_HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$PIN_RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/pinChatMessage" \
             -d "chat_id=${TELEGRAM_CHANNEL_ID}" \
             -d "message_id=${MESSAGE_ID}" \
-            -d "disable_notification=true")"
+            -d "disable_notification=true")"; then
+            echo "::warning::Telegram pinChatMessage request failed at transport level."
+            cat "$PIN_RESPONSE_FILE" 2>/dev/null || true
+            exit 0
+          fi
 
           if [[ "$PIN_HTTP_CODE" -ge 400 ]]; then
-            echo "Warning: pinChatMessage failed with HTTP $PIN_HTTP_CODE"
+            echo "::warning::pinChatMessage failed with HTTP $PIN_HTTP_CODE"
             cat "$PIN_RESPONSE_FILE" || true
             echo "Continuing because APK upload already succeeded."
           fi
