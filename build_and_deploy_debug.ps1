@@ -3,6 +3,7 @@
 [CmdletBinding()]
 param(
     [switch]$Clean,
+    [switch]$Install = $true,
     [switch]$Launch = $true,
     [string]$JavaHome = '',
     [string]$AndroidSdkRoot = ''
@@ -45,8 +46,8 @@ function Resolve-FirstExistingPath {
 $scriptRoot = Split-Path -Parent $PSCommandPath
 Push-Location $scriptRoot
 try {
-    $isWindows = $PSVersionTable.Platform -eq 'Win32NT' -or $env:OS -eq 'Windows_NT'
-    $gradleWrapper = if ($isWindows) { '.\gradlew.bat' } else { './gradlew' }
+    $isWindowsPlatform = $PSVersionTable.Platform -eq 'Win32NT' -or $env:OS -eq 'Windows_NT'
+    $gradleWrapper = if ($isWindowsPlatform) { '.\gradlew.bat' } else { './gradlew' }
 
     $javaCandidates = @(
         $JavaHome,
@@ -59,13 +60,12 @@ try {
         "$HOME/.jdks/temurin-21",
         'C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot',
         'C:\Program Files\Android\Android Studio\jbr'
-    ) | Select-Object -Unique
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 
     $resolvedJavaHome = Resolve-FirstExistingPath -Candidates $javaCandidates
     if ($resolvedJavaHome) {
         $env:JAVA_HOME = $resolvedJavaHome
         Add-ToPath (Join-Path $resolvedJavaHome 'bin')
-        $env:GRADLE_OPTS = "-Dorg.gradle.java.home=`"$resolvedJavaHome`""
         Write-Host "Using JAVA_HOME: $resolvedJavaHome" -ForegroundColor Yellow
     } else {
         Write-Warning 'No configured JAVA_HOME candidate was found. Falling back to existing environment.'
@@ -80,7 +80,7 @@ try {
         '/opt/android-sdk',
         '/usr/lib/android-sdk',
         'C:\Users\krol\AppData\Local\Android\Sdk'
-    ) | Select-Object -Unique
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 
     $resolvedSdkRoot = Resolve-FirstExistingPath -Candidates $sdkCandidates
     if ($resolvedSdkRoot) {
@@ -104,7 +104,9 @@ try {
         $gradleTasks += 'clean'
     }
     $gradleTasks += ':TMessagesProj_App:assembleAfatDebug'
-    $gradleTasks += ':TMessagesProj_App:installAfatDebug'
+    if ($Install) {
+        $gradleTasks += ':TMessagesProj_App:installAfatDebug'
+    }
 
     Write-Host "Running Gradle tasks: $($gradleTasks -join ', ')" -ForegroundColor Cyan
     & $gradleWrapper @gradleTasks
@@ -114,7 +116,9 @@ try {
 
     Write-Host 'Debug build installed successfully.' -ForegroundColor Green
 
-    if ($Launch) {
+    if (-not $Install) {
+        Write-Host 'Install skipped.' -ForegroundColor Yellow
+    } elseif ($Launch) {
         $adbCommand = Get-Command adb -ErrorAction SilentlyContinue
         if (-not $adbCommand) {
             throw 'adb was not found in PATH. Set ANDROID_SDK_ROOT/ANDROID_HOME or install platform-tools.'
