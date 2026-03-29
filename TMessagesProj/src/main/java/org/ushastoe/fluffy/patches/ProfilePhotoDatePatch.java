@@ -12,6 +12,10 @@ public final class ProfilePhotoDatePatch {
         if (imageLocation == null || imageLocation.photo == null || imageLocation.photo.date <= 0) {
             return "";
         }
-        return LocaleController.formatDateTime(imageLocation.photo.date, true);
+        String subtitle = LocaleController.formatDateTime(imageLocation.photo.date, true);
+        if (imageLocation.photo.dc_id > 0) {
+            subtitle += ", DC" + imageLocation.photo.dc_id;
+        }
+        return subtitle;
     }
 }
