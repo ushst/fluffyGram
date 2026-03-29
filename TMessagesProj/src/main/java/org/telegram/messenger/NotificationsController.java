@@ -4616,6 +4616,7 @@ public class NotificationsController extends BaseController {
                     intent.putExtra("encId", DialogObject.getEncryptedChatId(dialog_id));
                 }
             }
+            NotificationLaunchIntentHook.applyTopicExtra(intent, topicId);
             intent.putExtra("currentAccount", currentAccount);
             PendingIntent contentIntent = NotificationLaunchIntentHook.createContentIntent(
                     ApplicationLoader.applicationContext,

@@ -18,6 +18,13 @@ public final class NotificationLaunchIntentPatch {
         );
     }
 
+    public static void applyTopicExtra(Intent intent, long topicId) {
+        if (intent == null || topicId == 0) {
+            return;
+        }
+        intent.putExtra("topicId", topicId);
+    }
+
     private static int sanitizeRequestCode(Intent intent, int requestCode) {
         int resolved = requestCode;
         if (resolved == 0 && intent != null && intent.getAction() != null) {

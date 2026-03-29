@@ -14,4 +14,8 @@ public final class NotificationLaunchIntentHook {
     public static PendingIntent createContentIntent(Context context, Intent intent, int requestCode) {
         return NotificationLaunchIntentPatch.createContentIntent(context, intent, requestCode);
     }
+
+    public static void applyTopicExtra(Intent intent, long topicId) {
+        NotificationLaunchIntentPatch.applyTopicExtra(intent, topicId);
+    }
 }
