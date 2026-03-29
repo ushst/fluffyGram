@@ -283,6 +283,8 @@ public class ChatActivityEnterView extends FrameLayout implements
 
         default void onContextMenuClose() {}
 
+        default void beforeMessageSend(CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {}
+
         void onMessageSend(CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars);
 
         void needSendTyping();
@@ -7007,6 +7009,9 @@ public class ChatActivityEnterView extends FrameLayout implements
             if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
                 return;
             }
+            if (TextUtils.getTrimmedLength(message) > 0 && delegate != null) {
+                delegate.beforeMessageSend(message, notify, scheduleDate, scheduleRepeatPeriod, payStars);
+            }
             if (processSendingText(message, notify, scheduleDate, scheduleRepeatPeriod, payStars)) {
                 if (delegate.hasForwardingMessages() || (scheduleDate != 0 && !isInScheduleMode()) || isInScheduleMode()) {
                     if (messageEditText != null) {
@@ -7031,6 +7036,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 lastTypingTimeSend = 0;
             } else if (forceShowSendButton) {
                 if (delegate != null) {
+                    delegate.beforeMessageSend(null, notify, scheduleDate, scheduleRepeatPeriod, payStars);
                     delegate.onMessageSend(null, notify, scheduleDate, scheduleRepeatPeriod, payStars);
                 }
             }

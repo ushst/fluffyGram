@@ -1,0 +1,66 @@
+package org.ushastoe.fluffy.patches;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.text.TextUtils;
+
+import org.json.JSONObject;
+import org.telegram.messenger.ApplicationLoader;
+import org.telegram.ui.ChatActivity;
+
+public final class ForwardCommentOrderPatch {
+
+    private static final String PREFS_NAME = "fluffy_general_settings";
+    private static final String KEY_ENABLED = "send_comment_after_forward_enabled";
+
+    private ForwardCommentOrderPatch() {
+    }
+
+    public static String exportSettingsJson() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put(KEY_ENABLED, isEnabled());
+        } catch (Exception ignore) {
+        }
+        return object.toString();
+    }
+
+    public static void importSettingsJson(String json) {
+        try {
+            JSONObject object = TextUtils.isEmpty(json) ? new JSONObject() : new JSONObject(json);
+            setEnabled(object.optBoolean(KEY_ENABLED, false));
+        } catch (Exception ignore) {
+        }
+    }
+
+    public static boolean isEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_ENABLED, false);
+    }
+
+    public static void setEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_ENABLED, enabled).apply();
+    }
+
+    public static void beforeMessageSend(ChatActivity chatActivity, CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {
+        if (!isEnabled() || chatActivity == null || TextUtils.getTrimmedLength(message) == 0) {
+            return;
+        }
+        if (!chatActivity.canFluffySendForwardMessagesBeforeComment(payStars)) {
+            return;
+        }
+        chatActivity.sendFluffyForwardMessagesBeforeComment(notify, scheduleDate, payStars);
+    }
+
+    private static SharedPreferences getPreferences() {
+        Context context = ApplicationLoader.applicationContext;
+        if (context == null) {
+            return null;
+        }
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+}

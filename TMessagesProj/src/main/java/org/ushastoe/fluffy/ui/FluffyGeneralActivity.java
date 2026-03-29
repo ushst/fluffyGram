@@ -24,6 +24,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.CombineMessagesHook;
 import org.ushastoe.fluffy.hooks.ForceCopyHook;
+import org.ushastoe.fluffy.hooks.ForwardCommentOrderHook;
 import org.ushastoe.fluffy.hooks.InAppCameraSettingsHook;
 import org.ushastoe.fluffy.hooks.QuickShareMediaHook;
 import org.ushastoe.fluffy.hooks.TextUndoRedoHook;
@@ -52,10 +53,12 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_FORCE_COPY_INFO = 8;
     private static final int ROW_TEXT_UNDO_REDO = 9;
     private static final int ROW_TEXT_UNDO_REDO_INFO = 10;
-    private static final int ROW_QUICK_SHARE_MEDIA = 11;
-    private static final int ROW_QUICK_SHARE_MEDIA_INFO = 12;
-    private static final int ROW_UNLIMITED_PINS = 13;
-    private static final int ROW_UNLIMITED_PINS_INFO = 14;
+    private static final int ROW_FORWARD_COMMENT_ORDER = 11;
+    private static final int ROW_FORWARD_COMMENT_ORDER_INFO = 12;
+    private static final int ROW_QUICK_SHARE_MEDIA = 13;
+    private static final int ROW_QUICK_SHARE_MEDIA_INFO = 14;
+    private static final int ROW_UNLIMITED_PINS = 15;
+    private static final int ROW_UNLIMITED_PINS_INFO = 16;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -133,6 +136,12 @@ public class FluffyGeneralActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_FORWARD_COMMENT_ORDER) {
+                boolean enabled = !ForwardCommentOrderHook.isEnabled();
+                ForwardCommentOrderHook.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             } else if (item.id == ROW_QUICK_SHARE_MEDIA) {
                 boolean enabled = !QuickShareMediaHook.isEnabled();
                 QuickShareMediaHook.setEnabled(enabled);
@@ -177,6 +186,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FORCE_COPY_INFO, LocaleController.getString(R.string.FluffyForceCopyInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_TEXT_UNDO_REDO, LocaleController.getString(R.string.FluffyTextUndoRedo), TextUndoRedoHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_TEXT_UNDO_REDO_INFO, LocaleController.getString(R.string.FluffyTextUndoRedoInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_FORWARD_COMMENT_ORDER, LocaleController.getString(R.string.FluffySendCommentAfterForward), ForwardCommentOrderHook.isEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FORWARD_COMMENT_ORDER_INFO, LocaleController.getString(R.string.FluffySendCommentAfterForwardInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_QUICK_SHARE_MEDIA, LocaleController.getString(R.string.FluffyQuickSharePrivateMedia), QuickShareMediaHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_QUICK_SHARE_MEDIA_INFO, LocaleController.getString(R.string.FluffyQuickSharePrivateMediaInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_UNLIMITED_PINS, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPins), UnlimitedPinsHook.isEnabled()));
@@ -202,6 +213,8 @@ public class FluffyGeneralActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "force-copy");
         } else if (item.id == ROW_TEXT_UNDO_REDO || item.id == ROW_TEXT_UNDO_REDO_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "text-undo-redo");
+        } else if (item.id == ROW_FORWARD_COMMENT_ORDER || item.id == ROW_FORWARD_COMMENT_ORDER_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "send-comment-after-forward");
         } else if (item.id == ROW_QUICK_SHARE_MEDIA || item.id == ROW_QUICK_SHARE_MEDIA_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "quick-share-private-media");
         } else if (item.id == ROW_UNLIMITED_PINS || item.id == ROW_UNLIMITED_PINS_INFO) {
@@ -255,6 +268,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("text-undo-redo".equals(target)) {
             return ROW_TEXT_UNDO_REDO;
+        }
+        if ("send-comment-after-forward".equals(target)) {
+            return ROW_FORWARD_COMMENT_ORDER;
         }
         if ("quick-share-private-media".equals(target)) {
             return ROW_QUICK_SHARE_MEDIA;

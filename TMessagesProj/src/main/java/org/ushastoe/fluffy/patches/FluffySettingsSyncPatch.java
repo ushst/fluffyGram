@@ -13,6 +13,7 @@ public final class FluffySettingsSyncPatch {
     private static final String KEY_DIALOG_FILTER = "dialog_filter";
     private static final String KEY_MEDIA_ONLY_PROXY = "media_only_proxy";
     private static final String KEY_CHAT_FIRST_MESSAGE = "chat_first_message";
+    private static final String KEY_FORWARD_COMMENT_ORDER = "forward_comment_order";
     private static final String KEY_QUICK_SHARE_MEDIA = "quick_share_media";
     private static final String KEY_UNLIMITED_PINS = "unlimited_pins";
     private static final String KEY_TELEGRAM_SETTINGS = "telegram_settings";
@@ -30,6 +31,7 @@ public final class FluffySettingsSyncPatch {
             putSection(root, KEY_DIALOG_FILTER, DialogFilterSelectionPatch.exportSettingsJson());
             putSection(root, KEY_MEDIA_ONLY_PROXY, MediaOnlyProxyPatch.exportSettingsJson());
             putSection(root, KEY_CHAT_FIRST_MESSAGE, ChatFirstMessagePatch.exportSettingsJson());
+            putSection(root, KEY_FORWARD_COMMENT_ORDER, ForwardCommentOrderPatch.exportSettingsJson());
             putSection(root, KEY_QUICK_SHARE_MEDIA, QuickShareMediaPatch.exportSettingsJson());
             putSection(root, KEY_UNLIMITED_PINS, UnlimitedPinsPatch.exportSettingsJson());
             putSection(root, KEY_TELEGRAM_SETTINGS, TelegramSettingsSyncPatch.exportSettingsJson());
@@ -48,6 +50,7 @@ public final class FluffySettingsSyncPatch {
             importSection(root, KEY_DIALOG_FILTER, DialogFilterSelectionPatch::importSettingsJson);
             importSection(root, KEY_MEDIA_ONLY_PROXY, MediaOnlyProxyPatch::importSettingsJson);
             importSection(root, KEY_CHAT_FIRST_MESSAGE, ChatFirstMessagePatch::importSettingsJson);
+            importSection(root, KEY_FORWARD_COMMENT_ORDER, ForwardCommentOrderPatch::importSettingsJson);
             importSection(root, KEY_QUICK_SHARE_MEDIA, QuickShareMediaPatch::importSettingsJson);
             importSection(root, KEY_UNLIMITED_PINS, UnlimitedPinsPatch::importSettingsJson);
             importSection(root, KEY_TELEGRAM_SETTINGS, TelegramSettingsSyncPatch::importSettingsJson);

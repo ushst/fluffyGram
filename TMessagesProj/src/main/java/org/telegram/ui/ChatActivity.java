@@ -288,6 +288,7 @@ import org.telegram.ui.Stars.MessageSuggestionOfferSheet;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
+import org.ushastoe.fluffy.hooks.ForwardCommentOrderHook;
 import org.ushastoe.fluffy.hooks.MessageDoubleTapActionHook;
 import org.ushastoe.fluffy.hooks.InlineCallbackDataHook;
 import org.ushastoe.fluffy.hooks.PrivateReactionTimestampHook;
@@ -313,6 +314,7 @@ import org.ushastoe.fluffy.hooks.LocalMessageArchiveHook;
 import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
 import org.ushastoe.fluffy.hooks.LocalMessageHistoryMenuHook;
 import org.ushastoe.fluffy.hooks.MessageDetailsMenuHook;
+import org.ushastoe.fluffy.hooks.MessageStatsMenuHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
 import org.ushastoe.fluffy.hooks.NotificationSenderMuteMenuHook;
 import org.ushastoe.fluffy.hooks.GoogleAiMessageMenuHook;
@@ -674,6 +676,7 @@ public class ChatActivity extends BaseFragment implements
     public String quickReplyShortcut;
     private int chatMode;
     private int scheduledMessagesCount = -1;
+    private int fluffyForwardMessagesSentBeforeCommentCount;
     public boolean isSubscriberSuggestions;
 
     private String reportTitle;
@@ -1924,6 +1927,11 @@ public class ChatActivity extends BaseFragment implements
         }
 
         @Override
+        public void beforeMessageSend(CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {
+            ForwardCommentOrderHook.beforeMessageSend(ChatActivity.this, message, notify, scheduleDate, scheduleRepeatPeriod, payStars);
+        }
+
+        @Override
         public void onMessageSend(CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {
             if (chatListItemAnimator != null) {
                 chatActivityEnterViewAnimateFromTop = chatActivityEnterView.getBackgroundTop();
@@ -1941,7 +1949,10 @@ public class ChatActivity extends BaseFragment implements
                 if (message != null) {
                     scheduledMessagesCount++;
                 }
-                if (messagePreviewParams != null && messagePreviewParams.forwardMessages != null && !messagePreviewParams.forwardMessages.messages.isEmpty()) {
+                if (fluffyForwardMessagesSentBeforeCommentCount > 0) {
+                    scheduledMessagesCount += fluffyForwardMessagesSentBeforeCommentCount;
+                    fluffyForwardMessagesSentBeforeCommentCount = 0;
+                } else if (messagePreviewParams != null && messagePreviewParams.forwardMessages != null && !messagePreviewParams.forwardMessages.messages.isEmpty()) {
                     scheduledMessagesCount += messagePreviewParams.forwardMessages.messages.size();
                 }
                 updateScheduledInterface(false);
@@ -14365,6 +14376,30 @@ public class ChatActivity extends BaseFragment implements
 
     public void hideFieldPanel(boolean notify, int scheduleDate, long payStars, boolean animated) {
         showFieldPanel(false, null, null, null, null, notify, scheduleDate, null, false, payStars, animated);
+    }
+
+    public boolean canFluffySendForwardMessagesBeforeComment(long payStars) {
+        return messagePreviewParams != null
+                && messagePreviewParams.forwardMessages != null
+                && !messagePreviewParams.forwardMessages.messages.isEmpty()
+                && messagePreviewParams.quote == null
+                && payStars <= 0;
+    }
+
+    public void sendFluffyForwardMessagesBeforeComment(boolean notify, int scheduleDate, long payStars) {
+        if (!canFluffySendForwardMessagesBeforeComment(payStars)) {
+            return;
+        }
+        final ArrayList<MessageObject> messagesToForward = new ArrayList<>();
+        messagePreviewParams.forwardMessages.getSelectedMessages(messagesToForward);
+        final boolean hideForwardSendersName = messagePreviewParams.hideForwardSendersName;
+        final boolean hideCaption = messagePreviewParams.hideCaption;
+        fluffyForwardMessagesSentBeforeCommentCount = scheduleDate != 0 ? messagesToForward.size() : 0;
+        messagePreviewParams.updateForward(null, dialog_id);
+        if (messagePreviewParams.isEmpty()) {
+            messagePreviewParams = null;
+        }
+        forwardMessages(messagesToForward, hideForwardSendersName, hideCaption, notify, scheduleDate != 0 && scheduleDate != 0x7ffffffe ? scheduleDate + 1 : scheduleDate, payStars);
     }
 
     public void showFieldPanelForWebPage(boolean show, TLRPC.WebPage webPage, boolean cancel) {
@@ -44317,6 +44352,7 @@ public class ChatActivity extends BaseFragment implements
         if (message != null && message.messageOwner != null) {
             MessageTranslitMenuHook.appendOption(items, options, icons, message);
             MessageDetailsMenuHook.appendOption(items, options, icons, message);
+            MessageStatsMenuHook.appendOption(this, items, options, icons, message);
             LocalMessageFakeEditHook.appendOption(items, options, icons, message);
             LocalMessageHistoryMenuHook.appendOption(items, options, icons, message);
             NotificationSenderMuteMenuHook.appendOption(items, options, icons, currentAccount, message);

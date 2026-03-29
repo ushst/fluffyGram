@@ -54,4 +54,12 @@ public final class MessageActionsHook {
         MessageActionsPatch.setMessageGoogleAiEnabled(enabled);
     }
 
+    public static boolean isMessageStatsEnabled() {
+        return MessageActionsPatch.isMessageStatsEnabled();
+    }
+
+    public static void setMessageStatsEnabled(boolean enabled) {
+        MessageActionsPatch.setMessageStatsEnabled(enabled);
+    }
+
 }

@@ -8,4 +8,5 @@
     <string name="FluffyTextUndoRedoInfo">Добавляет действия Undo и Redo в меню редактирования текста у поля ввода сообщения, если Android сообщает, что эти действия доступны для текущего текстового поля.</string>
     <string name="FluffyTextUndo">Undo</string>
     <string name="FluffyTextRedo">Redo</string>
+    <string name="FluffyMessageStatsAction">Пункт статистики сообщения</string>
 </resources>

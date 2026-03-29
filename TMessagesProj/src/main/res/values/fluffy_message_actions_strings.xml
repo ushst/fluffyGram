@@ -8,4 +8,5 @@
     <string name="FluffyTextUndoRedoInfo">Adds Undo and Redo actions to the text selection menu of the message input when the Android text field reports that those actions are available.</string>
     <string name="FluffyTextUndo">Undo</string>
     <string name="FluffyTextRedo">Redo</string>
+    <string name="FluffyMessageStatsAction">View stats option</string>
 </resources>

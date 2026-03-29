@@ -48,6 +48,7 @@ public class FluffyMessageActionsActivity extends BaseFragment {
     private static final int ROW_MESSAGE_TRANSLIT = 3;
     private static final int ROW_LOCAL_MESSAGE_HISTORY = 4;
     private static final int ROW_MESSAGE_GOOGLE_AI = 5;
+    private static final int ROW_MESSAGE_STATS = 6;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -119,6 +120,12 @@ public class FluffyMessageActionsActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_MESSAGE_STATS) {
+                boolean enabled = !MessageActionsHook.isMessageStatsEnabled();
+                MessageActionsHook.setMessageStatsEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -138,6 +145,7 @@ public class FluffyMessageActionsActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_MESSAGE_TRANSLIT, LocaleController.getString(R.string.FluffyMessageTranslit), MessageActionsHook.isMessageTranslitEnabled()));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_LOCAL_MESSAGE_HISTORY, LocaleController.getString(R.string.FluffyLocalMessageHistoryAction), MessageActionsHook.isLocalMessageHistoryEnabled()));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_MESSAGE_GOOGLE_AI, LocaleController.getString(R.string.FluffyGoogleAiMessageAction), MessageActionsHook.isMessageGoogleAiEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_MESSAGE_STATS, LocaleController.getString(R.string.FluffyMessageStatsAction), MessageActionsHook.isMessageStatsEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_ACTIONS_INFO, LocaleController.getString(R.string.FluffyMessageActionsHelp), false));
         
         if (adapter != null) {
@@ -168,6 +176,9 @@ public class FluffyMessageActionsActivity extends BaseFragment {
         }
         if (item.id == ROW_MESSAGE_GOOGLE_AI) {
             return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions", "google-ai"));
+        }
+        if (item.id == ROW_MESSAGE_STATS) {
+            return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions", "stats"));
         }
         return FluffySettingsDeepLinkPatch.copyLink(this, FluffySettingsDeepLinkPatch.buildSettingsLink("message_actions"));
     }
@@ -212,6 +223,9 @@ public class FluffyMessageActionsActivity extends BaseFragment {
         }
         if ("google-ai".equals(target)) {
             return ROW_MESSAGE_GOOGLE_AI;
+        }
+        if ("stats".equals(target)) {
+            return ROW_MESSAGE_STATS;
         }
         return -1;
     }

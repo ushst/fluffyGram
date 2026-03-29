@@ -231,6 +231,8 @@
     <string name="FluffyGoToFirstMessageInfo">Adds a chat menu action that jumps to the beginning of the current chat history.</string>
     <string name="FluffyQuickSharePrivateMedia">Quick share on private media</string>
     <string name="FluffyQuickSharePrivateMediaInfo">Shows the quick share button on media messages in private chats.</string>
+    <string name="FluffySendCommentAfterForward">Send comment after forwarding</string>
+    <string name="FluffySendCommentAfterForwardInfo">When forwarding messages with a typed comment, send the forwarded messages first and the comment after them.</string>
     <string name="FluffyUnlimitedUnarchivedPins">Unlimited unarchived pins</string>
     <string name="FluffyUnlimitedUnarchivedPinsInfo">Allows up to 100 pinned chats in the main list and turns off pinned chats sync for that list, so extra pins and order stay local to this device.</string>
     <string name="FluffySaveLog">Save Log</string>

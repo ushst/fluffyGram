@@ -300,6 +300,8 @@
     <string name="FluffyGoToFirstMessageInfo">Добавляет действие в меню чата для перехода к началу истории текущего чата.</string>
     <string name="FluffyQuickSharePrivateMedia">Быстрый шэринг медиа в личках</string>
     <string name="FluffyQuickSharePrivateMediaInfo">Показывает кнопку быстрого шэринга на медиа-сообщениях в личных чатах.</string>
+    <string name="FluffySendCommentAfterForward">Отправлять комментарий после пересылки</string>
+    <string name="FluffySendCommentAfterForwardInfo">При пересылке сообщений с набранным комментарием сначала отправляет пересланные сообщения, а затем комментарий.</string>
     <string name="FluffyUnlimitedUnarchivedPins">Безлимитные закрепы вне архива</string>
     <string name="FluffyUnlimitedUnarchivedPinsInfo">Разрешает до 100 закрепленных чатов в основном списке и отключает синхронизацию закрепов для этого списка, поэтому лишние закрепы и их порядок остаются только на этом устройстве.</string>
     <string name="FluffyPasskeysUnsupportedTitle">Passkeys недоступны</string>
