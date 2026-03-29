@@ -111,6 +111,7 @@ import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.telegram.ui.web.SearchEngine;
 import org.telegram.ui.web.WebBrowserSettings;
+import org.ushastoe.fluffy.hooks.ThemeResetHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -993,6 +994,9 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 } else if (id == edit_theme) {
                     editTheme();
                 } else if (id == reset_settings) {
+                    if (ThemeResetHook.openSystemAppSettings(ThemeActivity.this)) {
+                        return;
+                    }
                     if (getParentActivity() == null) {
                         return;
                     }
