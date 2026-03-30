@@ -450,7 +450,7 @@ public final class MainTabsUiPatch {
             return false;
         }
         ItemOptions options = ItemOptions.makeOptions(host.getActivity(), anchor);
-        options.add(R.drawable.fluffy_settings_icon, LocaleController.getString(R.string.FluffySettings), () ->
+        options.add(R.drawable.fluffy_settings_icon_popup, LocaleController.getString(R.string.FluffySettings), () ->
                 host.getActivity().presentFragment(new FluffySettingsActivity()));
         options.add(R.drawable.msg_settings, LocaleController.getString(R.string.FluffyTabs), () ->
                 host.getActivity().presentFragment(new FluffyTabsActivity()));
