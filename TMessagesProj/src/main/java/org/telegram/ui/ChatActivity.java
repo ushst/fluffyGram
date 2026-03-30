@@ -293,6 +293,7 @@ import org.ushastoe.fluffy.hooks.MessageDoubleTapActionHook;
 import org.ushastoe.fluffy.hooks.InlineCallbackDataHook;
 import org.ushastoe.fluffy.hooks.PrivateReactionTimestampHook;
 import org.ushastoe.fluffy.hooks.RoundVideoCameraMenuHook;
+import org.ushastoe.fluffy.hooks.DocumentMetadataMenuHook;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.StoriesUtilities;
@@ -1185,6 +1186,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_EDIT_TODO = 109;
     public final static int OPTION_ADD_TO_TODO = 110;
     private final static int OPTION_DETAILS = MessageDetailsMenuHook.OPTION_DETAILS;
+    private final static int OPTION_DOCUMENT_METADATA = DocumentMetadataMenuHook.OPTION_DOCUMENT_METADATA;
     private final static int OPTION_TRANSLIT_LAYOUT = MessageTranslitMenuHook.OPTION_TRANSLIT;
     private final static int OPTION_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_LOCAL_FAKE_EDIT;
     private final static int OPTION_RESET_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_RESET_LOCAL_FAKE_EDIT;
@@ -33046,6 +33048,10 @@ public class ChatActivity extends BaseFragment implements
                 MessageDetailsMenuHook.openDetails(this, selectedObject);
                 break;
             }
+            case OPTION_DOCUMENT_METADATA: {
+                DocumentMetadataMenuHook.openDocumentMetadata(this, selectedObject);
+                break;
+            }
             case OPTION_LOCAL_FAKE_EDIT:
             case OPTION_RESET_LOCAL_FAKE_EDIT: {
                 LocalMessageFakeEditHook.handleSelectedOption(this, selectedObject, option);
@@ -44352,6 +44358,7 @@ public class ChatActivity extends BaseFragment implements
         if (message != null && message.messageOwner != null) {
             MessageTranslitMenuHook.appendOption(items, options, icons, message);
             MessageDetailsMenuHook.appendOption(items, options, icons, message);
+            DocumentMetadataMenuHook.appendOption(items, options, icons, message);
             MessageStatsMenuHook.appendOption(this, items, options, icons, message);
             LocalMessageFakeEditHook.appendOption(items, options, icons, message);
             LocalMessageHistoryMenuHook.appendOption(items, options, icons, message);

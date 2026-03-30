@@ -17543,6 +17543,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         }
+        CharSequence customTimeString = MessageTimeLabelHook.buildCustomTimeLabel(currentMessageObject, edited);
         if (currentMessageObject.notime || currentMessageObject.isSponsored() || currentMessageObject.isQuickReply()) {
             timeString = "";
         } else if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {
@@ -17551,6 +17552,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = ScheduledMessageIndicatorHook.buildScheduledTimeLabel(currentMessageObject);
         } else if (DeletedMessageIndicatorHook.isLocallyDeleted(currentMessageObject)) {
             timeString = DeletedMessageIndicatorHook.buildDeletedTimeLabel(currentMessageObject);
+        } else if (!TextUtils.isEmpty(customTimeString)) {
+            timeString = customTimeString;
         } else if (currentMessageObject.messageOwner != null && currentMessageObject.messageOwner.silent) {
             timeString = MessageTimeLabelHook.buildSilentTimeLabel(currentMessageObject, edited);
         } else if (currentMessageObject.realDate != 0) {

@@ -14,10 +14,14 @@ public final class PremiumSettingsPatch {
     private static final String KEY_LOCAL_MESSAGE_HISTORY_ENABLED = "local_message_history_enabled";
     private static final String KEY_SAVE_DELETED_MESSAGES_ENABLED = "save_deleted_messages_enabled";
     private static final String KEY_DELETED_MESSAGE_MARKER_MODE = "deleted_message_marker_mode";
+    private static final String KEY_DOCUMENT_AUTHOR_MARKER_MODE = "document_author_marker_mode";
 
     public static final int DELETED_MESSAGE_MARKER_MODE_TEXT = 0;
     public static final int DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT = 1;
     public static final int DELETED_MESSAGE_MARKER_MODE_ICON = 2;
+    public static final int DOCUMENT_AUTHOR_MARKER_MODE_TEXT = 0;
+    public static final int DOCUMENT_AUTHOR_MARKER_MODE_SHORT_TEXT = 1;
+    public static final int DOCUMENT_AUTHOR_MARKER_MODE_ICON = 2;
 
     private PremiumSettingsPatch() {
     }
@@ -29,6 +33,7 @@ public final class PremiumSettingsPatch {
             object.put(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, isLocalMessageHistoryEnabled());
             object.put(KEY_SAVE_DELETED_MESSAGES_ENABLED, isSaveDeletedMessagesEnabled());
             object.put(KEY_DELETED_MESSAGE_MARKER_MODE, getDeletedMessageMarkerMode());
+            object.put(KEY_DOCUMENT_AUTHOR_MARKER_MODE, getDocumentAuthorMarkerMode());
         } catch (Exception ignore) {
         }
         return object.toString();
@@ -41,6 +46,7 @@ public final class PremiumSettingsPatch {
             setLocalMessageHistoryEnabled(object.optBoolean(KEY_LOCAL_MESSAGE_HISTORY_ENABLED, false));
             setSaveDeletedMessagesEnabled(object.optBoolean(KEY_SAVE_DELETED_MESSAGES_ENABLED, false));
             setDeletedMessageMarkerMode(object.optInt(KEY_DELETED_MESSAGE_MARKER_MODE, DELETED_MESSAGE_MARKER_MODE_ICON));
+            setDocumentAuthorMarkerMode(object.optInt(KEY_DOCUMENT_AUTHOR_MARKER_MODE, DOCUMENT_AUTHOR_MARKER_MODE_ICON));
         } catch (Exception ignore) {
         }
     }
@@ -110,6 +116,19 @@ public final class PremiumSettingsPatch {
         preferences.edit().putInt(KEY_DELETED_MESSAGE_MARKER_MODE, clampDeletedMessageMarkerMode(mode)).apply();
     }
 
+    public static int getDocumentAuthorMarkerMode() {
+        SharedPreferences preferences = getPreferences();
+        return clampDocumentAuthorMarkerMode(preferences != null ? preferences.getInt(KEY_DOCUMENT_AUTHOR_MARKER_MODE, DOCUMENT_AUTHOR_MARKER_MODE_ICON) : DOCUMENT_AUTHOR_MARKER_MODE_ICON);
+    }
+
+    public static void setDocumentAuthorMarkerMode(int mode) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putInt(KEY_DOCUMENT_AUTHOR_MARKER_MODE, clampDocumentAuthorMarkerMode(mode)).apply();
+    }
+
     private static int clampDeletedMessageMarkerMode(int mode) {
         if (mode == DELETED_MESSAGE_MARKER_MODE_TEXT
                 || mode == DELETED_MESSAGE_MARKER_MODE_SHORT_TEXT
@@ -117,6 +136,15 @@ public final class PremiumSettingsPatch {
             return mode;
         }
         return DELETED_MESSAGE_MARKER_MODE_ICON;
+    }
+
+    private static int clampDocumentAuthorMarkerMode(int mode) {
+        if (mode == DOCUMENT_AUTHOR_MARKER_MODE_TEXT
+                || mode == DOCUMENT_AUTHOR_MARKER_MODE_SHORT_TEXT
+                || mode == DOCUMENT_AUTHOR_MARKER_MODE_ICON) {
+            return mode;
+        }
+        return DOCUMENT_AUTHOR_MARKER_MODE_ICON;
     }
 
     private static SharedPreferences getPreferences() {

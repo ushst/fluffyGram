@@ -46,4 +46,12 @@ public final class PremiumSettingsHook {
     public static void setDeletedMessageMarkerMode(int mode) {
         PremiumSettingsPatch.setDeletedMessageMarkerMode(mode);
     }
+
+    public static int getDocumentAuthorMarkerMode() {
+        return PremiumSettingsPatch.getDocumentAuthorMarkerMode();
+    }
+
+    public static void setDocumentAuthorMarkerMode(int mode) {
+        PremiumSettingsPatch.setDocumentAuthorMarkerMode(mode);
+    }
 }

@@ -10,4 +10,8 @@ public final class MessageTimeLabelHook {
     public static CharSequence buildSilentTimeLabel(MessageObject messageObject, boolean edited) {
         return MessageTimeLabelPatch.buildSilentTimeLabel(messageObject, edited);
     }
+
+    public static CharSequence buildCustomTimeLabel(MessageObject messageObject, boolean edited) {
+        return MessageTimeLabelPatch.buildCustomTimeLabel(messageObject, edited);
+    }
 }

@@ -39,7 +39,11 @@ public final class MessageTimeLabelPatch {
         return builder;
     }
 
-    private static void appendSilentMarker(SpannableStringBuilder builder) {
+    public static CharSequence buildCustomTimeLabel(MessageObject messageObject, boolean edited) {
+        return DocumentAuthorIndicatorPatch.buildTimeLabel(messageObject, edited);
+    }
+
+    static void appendSilentMarker(SpannableStringBuilder builder) {
         int mode = AppearanceSettingsPatch.getSilentMarkerMode();
         if (builder.length() > 0) {
             builder.append(" ");
@@ -58,7 +62,7 @@ public final class MessageTimeLabelPatch {
         builder.append(SilentMessageIndicatorPatch.getSilentPrefix());
     }
 
-    private static void appendEditedMarker(SpannableStringBuilder builder) {
+    static void appendEditedMarker(SpannableStringBuilder builder) {
         int mode = AppearanceSettingsPatch.getEditedMarkerMode();
         if (builder.length() > 0) {
             builder.append(" ");

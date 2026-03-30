@@ -53,6 +53,7 @@ public class FluffyPremiumActivity extends BaseFragment {
     private static final int ROW_GOOGLE_AI = 10;
     private static final int ROW_GOOGLE_AI_INFO = 11;
     private static final int ROW_DELETED_MESSAGE_MARKER_MODE = 12;
+    private static final int ROW_DOCUMENT_AUTHOR_MARKER_MODE = 13;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -129,6 +130,8 @@ public class FluffyPremiumActivity extends BaseFragment {
                 presentFragment(new FluffyGoogleAiActivity());
             } else if (item.id == ROW_DELETED_MESSAGE_MARKER_MODE) {
                 showDeletedMessageMarkerModeDialog();
+            } else if (item.id == ROW_DOCUMENT_AUTHOR_MARKER_MODE) {
+                showDocumentAuthorMarkerModeDialog();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -159,6 +162,7 @@ public class FluffyPremiumActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_LOCAL_MESSAGE_HISTORY_INFO, LocaleController.getString(R.string.FluffyLocalMessageHistoryEnabledInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SAVE_DELETED_MESSAGES, LocaleController.getString(R.string.FluffySaveDeletedMessagesEnabled), PremiumSettingsHook.isSaveDeletedMessagesEnabled()));
         items.add(new ItemInner(VIEW_TYPE_SETTING, ROW_DELETED_MESSAGE_MARKER_MODE, LocaleController.getString(R.string.FluffyDeletedMessageMarkerMode), false, getDeletedMessageMarkerModeValue()));
+        items.add(new ItemInner(VIEW_TYPE_SETTING, ROW_DOCUMENT_AUTHOR_MARKER_MODE, LocaleController.getString(R.string.FluffyDocumentAuthorMarkerMode), false, getDocumentAuthorMarkerModeValue()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SAVE_DELETED_MESSAGES_INFO, LocaleController.getString(R.string.FluffySaveDeletedMessagesEnabledInfo), false));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GOOGLE_AI_HEADER, LocaleController.getString(R.string.FluffyGoogleAiSection), false));
         items.add(new ItemInner(VIEW_TYPE_SETTING, ROW_GOOGLE_AI, LocaleController.getString(R.string.FluffyGoogleAi), false, getGoogleAiValue()));
@@ -192,6 +196,8 @@ public class FluffyPremiumActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "google-ai");
         } else if (item.id == ROW_DELETED_MESSAGE_MARKER_MODE) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "deleted-message-marker");
+        } else if (item.id == ROW_DOCUMENT_AUTHOR_MARKER_MODE) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium", "document-author-marker");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("premium");
         }
@@ -245,6 +251,9 @@ public class FluffyPremiumActivity extends BaseFragment {
         if ("deleted-message-marker".equals(target)) {
             return ROW_DELETED_MESSAGE_MARKER_MODE;
         }
+        if ("document-author-marker".equals(target)) {
+            return ROW_DOCUMENT_AUTHOR_MARKER_MODE;
+        }
         return -1;
     }
 
@@ -280,6 +289,43 @@ public class FluffyPremiumActivity extends BaseFragment {
                 mode = PremiumSettingsPatch.DELETED_MESSAGE_MARKER_MODE_ICON;
             }
             PremiumSettingsHook.setDeletedMessageMarkerMode(mode);
+            updateItems();
+        });
+        showDialog(builder.create());
+    }
+
+    private CharSequence getDocumentAuthorMarkerModeValue() {
+        int mode = PremiumSettingsHook.getDocumentAuthorMarkerMode();
+        if (mode == PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_TEXT) {
+            return LocaleController.getString(R.string.FluffyDocumentAuthorMarkerText);
+        }
+        if (mode == PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_SHORT_TEXT) {
+            return LocaleController.getString(R.string.FluffyDocumentAuthorMarkerShortText);
+        }
+        return LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon);
+    }
+
+    private void showDocumentAuthorMarkerModeDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] items = new CharSequence[]{
+                LocaleController.getString(R.string.FluffyDocumentAuthorMarkerText),
+                LocaleController.getString(R.string.FluffyDocumentAuthorMarkerShortText),
+                LocaleController.getString(R.string.FluffyDeletedMessageMarkerModeIcon)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(LocaleController.getString(R.string.FluffyDocumentAuthorMarkerMode));
+        builder.setItems(items, (dialog, which) -> {
+            int mode;
+            if (which == 0) {
+                mode = PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_TEXT;
+            } else if (which == 1) {
+                mode = PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_SHORT_TEXT;
+            } else {
+                mode = PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_ICON;
+            }
+            PremiumSettingsHook.setDocumentAuthorMarkerMode(mode);
             updateItems();
         });
         showDialog(builder.create());

@@ -62,4 +62,12 @@ public final class MessageActionsHook {
         MessageActionsPatch.setMessageStatsEnabled(enabled);
     }
 
+    public static boolean isDocumentMetadataEnabled() {
+        return MessageActionsPatch.isDocumentMetadataEnabled();
+    }
+
+    public static void setDocumentMetadataEnabled(boolean enabled) {
+        MessageActionsPatch.setDocumentMetadataEnabled(enabled);
+    }
+
 }
