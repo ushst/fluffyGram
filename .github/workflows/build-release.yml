@@ -486,10 +486,10 @@ jobs:
           fi
 
           CAPTION=$(cat <<EOF
-          🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
+🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
 
-          📋 Changelog: ${COMPARE_URL}
-          EOF
+📋 Changelog: ${COMPARE_URL}
+EOF
           )
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG}"
           APK_PATH="artifacts/${{ steps.meta.outputs.apk_name }}"
@@ -502,12 +502,12 @@ jobs:
           if [[ "$APK_SIZE" -gt "$MAX_TELEGRAM_DOCUMENT_SIZE" ]]; then
             echo "::warning::APK is ${APK_SIZE} bytes, which exceeds Telegram Bot API upload limit ${MAX_TELEGRAM_DOCUMENT_SIZE}. Posting release link instead."
             MESSAGE_TEXT=$(cat <<EOF
-            🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
+🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
 
-            📦 APK is too large for direct Telegram upload.
-            🔗 Release: ${RELEASE_URL}
-            📋 Changelog: ${COMPARE_URL}
-            EOF
+📦 APK is too large for direct Telegram upload.
+🔗 Release: ${RELEASE_URL}
+📋 Changelog: ${COMPARE_URL}
+EOF
             )
 
             if ! HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
