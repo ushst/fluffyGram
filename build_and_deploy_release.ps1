@@ -103,13 +103,15 @@ function New-TelegramNotifier {
 
     Load-DotEnv -Path $EnvFilePath
 
+    $apiBase = [Environment]::GetEnvironmentVariable('FLUFFY_BUILD_TG_API_BASE')
     $botToken = [Environment]::GetEnvironmentVariable('FLUFFY_BUILD_TG_BOT_TOKEN')
     $chatId = [Environment]::GetEnvironmentVariable('FLUFFY_BUILD_TG_CHAT_ID')
     $topicId = [Environment]::GetEnvironmentVariable('FLUFFY_BUILD_TG_TOPIC_ID')
-    $enabled = -not [string]::IsNullOrWhiteSpace($botToken) -and -not [string]::IsNullOrWhiteSpace($chatId)
+    $enabled = -not [string]::IsNullOrWhiteSpace($apiBase) -and -not [string]::IsNullOrWhiteSpace($botToken) -and -not [string]::IsNullOrWhiteSpace($chatId)
 
     $notifier = [pscustomobject]@{
         Enabled          = $enabled
+        ApiBase          = $apiBase.TrimEnd('/')
         BotToken         = $botToken
         ChatId           = $chatId
         TopicId          = $topicId
@@ -161,7 +163,7 @@ function Invoke-TelegramApi {
     try {
         return Invoke-RestMethod `
             -Method Post `
-            -Uri "https://api.telegram.org/bot$($Notifier.BotToken)/$Method" `
+            -Uri "$($Notifier.ApiBase)/bot$($Notifier.BotToken)/$Method" `
             -Body $Body `
             -ContentType 'application/x-www-form-urlencoded' `
             -TimeoutSec 5
