@@ -485,12 +485,7 @@ jobs:
             echo "::warning::TELEGRAM_CHANNEL_ID looks like a positive numeric ID. For channels/supergroups it usually must start with -100..."
           fi
 
-          CAPTION=$(cat <<EOF
-🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
-
-📋 Changelog: ${COMPARE_URL}
-EOF
-          )
+          CAPTION="$(printf '🚀 fluffyGram %s (%s)\n\n📋 Changelog: %s' "${VERSION_NAME}" "${VERSION_CODE}" "${COMPARE_URL}")"
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG}"
           APK_PATH="artifacts/${{ steps.meta.outputs.apk_name }}"
           MAX_TELEGRAM_DOCUMENT_SIZE=$((50 * 1024 * 1024))
@@ -501,14 +496,7 @@ EOF
 
           if [[ "$APK_SIZE" -gt "$MAX_TELEGRAM_DOCUMENT_SIZE" ]]; then
             echo "::warning::APK is ${APK_SIZE} bytes, which exceeds Telegram Bot API upload limit ${MAX_TELEGRAM_DOCUMENT_SIZE}. Posting release link instead."
-            MESSAGE_TEXT=$(cat <<EOF
-🚀 fluffyGram ${VERSION_NAME} (${VERSION_CODE})
-
-📦 APK is too large for direct Telegram upload.
-🔗 Release: ${RELEASE_URL}
-📋 Changelog: ${COMPARE_URL}
-EOF
-            )
+            MESSAGE_TEXT="$(printf '🚀 fluffyGram %s (%s)\n\n📦 APK is too large for direct Telegram upload.\n🔗 Release: %s\n📋 Changelog: %s' "${VERSION_NAME}" "${VERSION_CODE}" "${RELEASE_URL}" "${COMPARE_URL}")"
 
             if ! HTTP_CODE="$(curl -sS -w '%{http_code}' -o "$RESPONSE_FILE" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
               --data-urlencode "chat_id=${TELEGRAM_CHANNEL_ID}" \
