@@ -81,6 +81,13 @@ public final class FluffyFeaturePatch {
 2. After code changes, run the debug build/deploy script unless the user explicitly says not to build.
 3. Prefer the project script over ad-hoc Gradle install commands so device selection and Java setup stay consistent.
 4. If a change is docs-only or the user forbids builds, state that the build was not run.
+5. For remote devices over ADB/VPN, prefer the dedicated staged installer:
+`.\build_and_install_debug_remote.ps1 -Serial <host:port>`
+6. The remote installer should keep upload and install separate:
+- `gradlew assemble`
+- `adb push`
+- package session `install-create / install-write / install-commit`
+7. For slow or unstable remote ADB links, prefer the staged remote installer over `gradlew install...` because it exposes where time is spent and where failures occur.
 
 ## Command Execution Style
 1. For user-requested terminal actions, execute commands sequentially, not as a bundled batch of unrelated steps.
