@@ -62,6 +62,7 @@ import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.LoadingDrawable;
 import org.telegram.ui.Components.StaticLayoutEx;
 import org.telegram.ui.Components.URLSpanNoUnderline;
+import org.ushastoe.fluffy.hooks.AboutLinkCellHook;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -184,6 +185,7 @@ public class AboutLinkCell extends FrameLayout {
         );
         showMoreTextBackgroundView.addView(showMoreTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
         addView(showMoreTextBackgroundView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.RIGHT | Gravity.BOTTOM, 18 - showMoreTextBackgroundView.getPaddingLeft() / AndroidUtilities.density, 0, 18 - showMoreTextBackgroundView.getPaddingRight() / AndroidUtilities.density, 6));
+        AboutLinkCellHook.setupShowMoreControl(this, showMoreTextBackgroundView, showMoreTextView);
         backgroundPaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
 
         setWillNotDraw(false);
@@ -198,16 +200,20 @@ public class AboutLinkCell extends FrameLayout {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (AboutLinkCellHook.handleShowMoreDispatchTouch(this, event, showMoreTextBackgroundView, showMoreTextView)) {
+            return true;
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         int x = (int) event.getX();
         int y = (int) event.getY();
 
-        if (showMoreTextView.getVisibility() == View.VISIBLE &&
-            x >= showMoreTextBackgroundView.getLeft() && x <= showMoreTextBackgroundView.getRight() &&
-            y >= showMoreTextBackgroundView.getTop() && y <= showMoreTextBackgroundView.getBottom()
-        ) {
-//            event.offsetLocation(showMoreTextBackgroundView.getLeft(), showMoreTextBackgroundView.getTop());
-            return false;
+        if (AboutLinkCellHook.handleShowMoreTouch(this, event, x, y, showMoreTextBackgroundView, showMoreTextView)) {
+            return true;
         }
 
         boolean result = false;
@@ -605,7 +611,7 @@ public class AboutLinkCell extends FrameLayout {
             final float duration = Math.abs(fromValue - toValue) * 1250 * 2f;
             final SpringInterpolator spring = new SpringInterpolator(380f, 20.17f);
             final AtomicReference<Float> lastValue = new AtomicReference<>(fromValue);
-            collapseAnimator.addUpdateListener(a -> {
+                collapseAnimator.addUpdateListener(a -> {
                 float now = (float) a.getAnimatedValue();
                 float deltaTime = (now - lastValue.getAndSet(now)) * 1000 * 8f;
 
@@ -616,6 +622,7 @@ public class AboutLinkCell extends FrameLayout {
                 }
                 showMoreTextBackgroundView.setAlpha(1f - expandT);
                 bottomShadow.setAlpha((float) Math.pow(1f - expandT, 2f));
+                AboutLinkCellHook.updateShowMoreText(this, showMoreTextView, rawCollapseT >= 0.5f);
 
                 updateHeight();
                 container.invalidate();
@@ -639,6 +646,8 @@ public class AboutLinkCell extends FrameLayout {
             collapseAnimator.start();
         } else {
             expandT = toValue;
+            rawCollapseT = toValue;
+            AboutLinkCellHook.updateShowMoreText(this, showMoreTextView, toValue >= 0.5f);
             forceLayout();
         }
     }
@@ -754,6 +763,7 @@ public class AboutLinkCell extends FrameLayout {
             }
         }
         showMoreTextView.setVisibility(shouldExpand ? View.VISIBLE : View.GONE);
+        AboutLinkCellHook.updateShowMoreText(this, showMoreTextView, rawCollapseT >= 0.5f);
         if (!shouldExpand && container.getBackground() == null) {
             container.setBackground(rippleBackground);
         }

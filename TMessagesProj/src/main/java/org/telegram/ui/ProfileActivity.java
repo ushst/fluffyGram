@@ -188,6 +188,7 @@ import org.telegram.ui.Business.OpeningHoursActivity;
 import org.telegram.ui.Business.ProfileHoursCell;
 import org.telegram.ui.Business.ProfileLocationCell;
 import org.telegram.ui.Cells.AboutLinkCell;
+import org.ushastoe.fluffy.hooks.AboutLinkCellHook;
 import org.telegram.ui.Cells.AnimatedStatusView;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.DividerCell;
@@ -13420,7 +13421,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             aboutLinkCell.setTextAndValue(LocaleController.getString(R.string.UserBio), LocaleController.getString(R.string.UserBioDetail), false);
                             currentBio = null;
                         }
-                        aboutLinkCell.setMoreButtonDisabled(true);
+                        aboutLinkCell.setMoreButtonDisabled(AboutLinkCellHook.shouldDisableMoreButtonInProfile(position, bioRow));
                     }
                     break;
                 case VIEW_TYPE_PREMIUM_TEXT_CELL:
