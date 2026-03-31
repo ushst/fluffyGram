@@ -1,6 +1,7 @@
 package org.ushastoe.fluffy.patches;
 
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.util.Base64;
@@ -64,9 +65,14 @@ public final class LoginQrPatch {
         link.setText(LocaleController.getString(R.string.FluffyQrLoginMenu));
         link.setTextSize(16);
         link.setGravity(Gravity.CENTER_VERTICAL);
-        link.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+        int linkColor = Theme.getColor(Theme.key_windowBackgroundWhiteLinkText);
+        link.setTextColor(linkColor);
         link.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
         link.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.msg_qrcode, 0, 0, 0);
+        Drawable[] drawables = link.getCompoundDrawablesRelative();
+        if (drawables[0] != null) {
+            drawables[0].mutate().setColorFilter(new PorterDuffColorFilter(linkColor, PorterDuff.Mode.SRC_IN));
+        }
         link.setCompoundDrawablePadding(AndroidUtilities.dp(8));
         int horizontalPadding = AndroidUtilities.dp(12);
         int verticalPadding = AndroidUtilities.dp(8);
