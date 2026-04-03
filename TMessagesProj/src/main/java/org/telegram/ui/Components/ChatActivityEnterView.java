@@ -182,6 +182,7 @@ import org.ushastoe.fluffy.hooks.ChatEnterSpoilerMenuHook;
 import org.ushastoe.fluffy.hooks.ChatPersistentAttachButtonHook;
 import org.ushastoe.fluffy.hooks.CloudGifCaptionHook;
 import org.ushastoe.fluffy.hooks.LocalMessageFakeEditHook;
+import org.ushastoe.fluffy.hooks.PendingSendMessageEditHook;
 import org.telegram.ui.GroupStickersActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LinkManager;
@@ -7310,6 +7311,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsSendingNewEntities());
+        if (PendingSendMessageEditHook.handleComposerDoneEditing(parentFragment, editingMessageObject, message[0], entities)) {
+            setEditingMessageObject(null, null, false);
+            return;
+        }
         if (LocalMessageFakeEditHook.handleComposerDoneEditing(parentFragment, editingMessageObject, message[0], entities)) {
             setEditingMessageObject(null, null, false);
             return;
@@ -9544,6 +9549,7 @@ public class ChatActivityEnterView extends FrameLayout implements
         boolean hadEditingMessage = editingMessageObject != null;
         MessageObject previousEditingMessageObject = editingMessageObject;
         editingMessageObject = messageObject;
+        PendingSendMessageEditHook.onEditingSessionChanged(parentFragment, previousEditingMessageObject, editingMessageObject);
         LocalMessageFakeEditHook.onEditingSessionChanged(parentFragment, previousEditingMessageObject, editingMessageObject);
         editingCaption = caption;
         CharSequence textToSetWithKeyboard;

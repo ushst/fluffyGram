@@ -317,6 +317,7 @@ import org.ushastoe.fluffy.hooks.LocalMessageHistoryMenuHook;
 import org.ushastoe.fluffy.hooks.MessageDetailsMenuHook;
 import org.ushastoe.fluffy.hooks.MessageStatsMenuHook;
 import org.ushastoe.fluffy.hooks.MessageTranslitMenuHook;
+import org.ushastoe.fluffy.hooks.PendingSendMessageEditHook;
 import org.ushastoe.fluffy.hooks.NotificationSenderMuteMenuHook;
 import org.ushastoe.fluffy.hooks.GoogleAiMessageMenuHook;
 import org.ushastoe.fluffy.hooks.GoogleAiTextSelectionMenuHook;
@@ -1191,6 +1192,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int OPTION_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_LOCAL_FAKE_EDIT;
     private final static int OPTION_RESET_LOCAL_FAKE_EDIT = LocalMessageFakeEditHook.OPTION_RESET_LOCAL_FAKE_EDIT;
     private final static int OPTION_LOCAL_MESSAGE_HISTORY = LocalMessageHistoryMenuHook.OPTION_LOCAL_MESSAGE_HISTORY;
+    private final static int OPTION_EDIT_PENDING_SEND = PendingSendMessageEditHook.OPTION_EDIT_PENDING_SEND;
     private final static int OPTION_TOGGLE_SENDER_NOTIFICATIONS = NotificationSenderMuteMenuHook.OPTION_TOGGLE_SENDER_NOTIFICATIONS;
     private final static int OPTION_GOOGLE_AI = GoogleAiMessageMenuHook.OPTION_GOOGLE_AI;
 
@@ -31984,6 +31986,10 @@ public class ChatActivity extends BaseFragment implements
         chatActivityEnterView.showEditDoneProgress(false, true);
     }
 
+    public void startLocalPendingEditComposer(MessageObject messageObject) {
+        startLocalFakeEditComposer(messageObject);
+    }
+
     private void startEditingMessageObject(MessageObject messageObject, boolean asSuggestion) {
         if (messageObject == null || getParentActivity() == null) {
             return;
@@ -33059,6 +33065,10 @@ public class ChatActivity extends BaseFragment implements
             }
             case OPTION_LOCAL_MESSAGE_HISTORY: {
                 LocalMessageHistoryMenuHook.handleSelectedOption(this, selectedObject, option);
+                break;
+            }
+            case OPTION_EDIT_PENDING_SEND: {
+                PendingSendMessageEditHook.handleSelectedOption(this, selectedObject, option);
                 break;
             }
             case OPTION_TOGGLE_SENDER_NOTIFICATIONS: {
@@ -44362,6 +44372,7 @@ public class ChatActivity extends BaseFragment implements
             MessageStatsMenuHook.appendOption(this, items, options, icons, message);
             LocalMessageFakeEditHook.appendOption(items, options, icons, message);
             LocalMessageHistoryMenuHook.appendOption(items, options, icons, message);
+            PendingSendMessageEditHook.appendOption(items, options, icons, message);
             NotificationSenderMuteMenuHook.appendOption(items, options, icons, currentAccount, message);
             GoogleAiMessageMenuHook.appendOption(items, options, icons, message);
         }
