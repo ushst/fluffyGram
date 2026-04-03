@@ -258,6 +258,7 @@ import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
+import org.ushastoe.fluffy.hooks.DialogsProxyMenuHook;
 import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsFolderTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
@@ -10026,7 +10027,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
         boolean proxyEnabled = preferences.getBoolean("proxy_enabled", false);
         final boolean connected = currentConnectionState == ConnectionsManager.ConnectionStateConnected || currentConnectionState == ConnectionsManager.ConnectionStateUpdating;
-        proxyMenuSubItem.setSubtext(getString(connected ? R.string.MenuProxyConnected : R.string.MenuProxyConnecting));
+        proxyMenuSubItem.setSubtext(DialogsProxyMenuHook.getProxyMenuSubtext(currentConnectionState));
         proxyDrawable.setConnected(proxyEnabled, connected, animated);
     }
 
@@ -13249,7 +13250,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 final boolean proxyVisible = proxyEnabled && !TextUtils.isEmpty(proxyAddress)
                         || getMessagesController().blockedCountry && !SharedConfig.proxyList.isEmpty();
 
-                if (proxyVisible) {
+                if (DialogsProxyMenuHook.shouldShowProxyMenuItem(proxyVisible)) {
                     io.addGap();
                     io.add(proxyMenuSubItem);
                 }
