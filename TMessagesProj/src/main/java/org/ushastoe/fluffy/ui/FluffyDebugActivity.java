@@ -31,10 +31,12 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.patches.CloudDebugSettingsPatch;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.ushastoe.fluffy.hooks.UpdateCheckSettingsHook;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
@@ -54,6 +56,7 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
     private static final int VIEW_TYPE_INFO = 2;
+    private static final int VIEW_TYPE_CHECK = 3;
     private static final int ROW_DEBUG_HEADER = 0;
     private static final int ROW_UPDATE_CHECK_MODE = 1;
     private static final int ROW_CHECK_VERSION = 2;
@@ -71,6 +74,7 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int ROW_GOOGLE_CLOUD_HEADER = 14;
     private static final int ROW_GOOGLE_CLOUD_STATUS = 15;
     private static final int ROW_GOOGLE_CLOUD_INFO = 16;
+    private static final int ROW_SELFHOSTED_CLOUD_ENABLED = 17;
     private static final int REQUEST_CODE_EXPORT_CONFIG = 510;
     private static final int REQUEST_CODE_IMPORT_CONFIG = 511;
     private RecyclerListView listView;
@@ -131,6 +135,13 @@ public class FluffyDebugActivity extends BaseFragment {
                 startConfigExport();
             } else if (item.id == ROW_IMPORT_CONFIG) {
                 startConfigImport();
+            } else if (item.id == ROW_SELFHOSTED_CLOUD_ENABLED) {
+                boolean enabled = !CloudDebugSettingsPatch.isSelfhostedCloudEnabled();
+                CloudDebugSettingsPatch.setSelfhostedCloudEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                updateItems();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -186,6 +197,9 @@ public class FluffyDebugActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyGoogleCloudStatus), getGoogleCloudStatusValue()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_GOOGLE_CLOUD_INFO,
                 getGoogleCloudStatusDetails(), null));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SELFHOSTED_CLOUD_ENABLED,
+                LocaleController.getString(R.string.FluffySelfhostedCloudEnabled),
+                CloudDebugSettingsPatch.isSelfhostedCloudEnabled()));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -441,7 +455,7 @@ public class FluffyDebugActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
         } else if (item.id == ROW_LOCAL_STORAGE_HEADER || item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "local-storage");
-        } else if (item.id == ROW_GOOGLE_CLOUD_HEADER || item.id == ROW_GOOGLE_CLOUD_STATUS || item.id == ROW_GOOGLE_CLOUD_INFO) {
+        } else if (item.id == ROW_GOOGLE_CLOUD_HEADER || item.id == ROW_GOOGLE_CLOUD_STATUS || item.id == ROW_GOOGLE_CLOUD_INFO || item.id == ROW_SELFHOSTED_CLOUD_ENABLED) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "google-cloud");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug");
@@ -539,7 +553,7 @@ public class FluffyDebugActivity extends BaseFragment {
             if (item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE) {
                 return false;
             }
-            return item.viewType == VIEW_TYPE_TEXT;
+            return item.viewType == VIEW_TYPE_TEXT || item.viewType == VIEW_TYPE_CHECK;
         }
 
         @Override
@@ -556,6 +570,9 @@ public class FluffyDebugActivity extends BaseFragment {
             } else if (viewType == VIEW_TYPE_TEXT) {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_CHECK) {
+                view = new TextCheckCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
             }
@@ -569,6 +586,8 @@ public class FluffyDebugActivity extends BaseFragment {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (holder.getItemViewType() == VIEW_TYPE_TEXT) {
                 ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue((CharSequence) item.value), false);
+            } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
+                ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.value instanceof Boolean && (Boolean) item.value, false);
             } else {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                 cell.setFixedSize(0);

@@ -251,6 +251,7 @@
     <string name="FluffyLocalLogsSaved">Local log saved to:</string>
     <string name="FluffyLocalLogsSaveFailed">Failed to save the local log file.</string>
     <string name="FluffyGoogleCloudSection">Google Cloud</string>
+    <string name="FluffySelfhostedCloudEnabled">Enable self-hosted cloud features</string>
     <string name="FluffyGoogleCloudStatus">Connection status</string>
     <string name="FluffyGoogleCloudServices">Google Play Services</string>
     <string name="FluffyGoogleCloudPushType">Push type</string>

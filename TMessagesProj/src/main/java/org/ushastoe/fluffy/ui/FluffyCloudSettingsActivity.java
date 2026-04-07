@@ -26,7 +26,9 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.patches.CloudDebugSettingsPatch;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
+import org.ushastoe.fluffy.utils.FluffyTextUtils;
 import org.ushastoe.fluffy.sync.FluffyDriveSyncManager;
 import org.ushastoe.fluffy.sync.FluffySyncManager;
 import org.ushastoe.fluffy.utils.FluffySettingsTargetAnimator;
@@ -134,21 +136,21 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
                 }
                 updateItems();
             } else if (item.id == ROW_SYNC_REFRESH_ACCESS) {
-                refreshAccessRole(true);
+                runWithConsent(() -> refreshAccessRole(true));
             } else if (item.id == ROW_SYNC_LOG) {
-                presentFragment(new FluffyCloudActivityLogActivity());
+                runWithConsent(() -> presentFragment(new FluffyCloudActivityLogActivity()));
             } else if (item.id == ROW_SYNC_PUSH) {
-                pushFluffySettings();
+                runWithConsent(this::pushFluffySettings);
             } else if (item.id == ROW_SYNC_PULL) {
-                pullFluffySettings();
+                runWithConsent(this::pullFluffySettings);
             } else if (item.id == ROW_DRIVE_CONNECT) {
-                startDriveAction(DRIVE_ACTION_CONNECT);
+                runWithConsent(() -> startDriveAction(DRIVE_ACTION_CONNECT));
             } else if (item.id == ROW_DRIVE_BACKUP) {
-                startDriveAction(DRIVE_ACTION_BACKUP);
+                runWithConsent(() -> startDriveAction(DRIVE_ACTION_BACKUP));
             } else if (item.id == ROW_DRIVE_RESTORE) {
-                startDriveAction(DRIVE_ACTION_RESTORE);
+                runWithConsent(() -> startDriveAction(DRIVE_ACTION_RESTORE));
             } else if (item.id == ROW_DRIVE_MANAGE) {
-                presentFragment(new FluffyDriveBackupsActivity());
+                runWithConsent(() -> presentFragment(new FluffyDriveBackupsActivity()));
             } else if (item.id == ROW_DRIVE_HISTORY_LIMIT) {
                 showDriveHistoryLimitDialog();
             }
@@ -180,6 +182,7 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
+        boolean selfhostedCloudEnabled = CloudDebugSettingsPatch.isSelfhostedCloudEnabled();
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_DRIVE_HEADER,
                 LocaleController.getString(R.string.FluffyDriveSection), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_DRIVE_STATUS,
@@ -198,23 +201,25 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
                 String.valueOf(FluffyDriveSyncManager.getInstance().getBackupHistoryLimit(getParentActivity()))));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DRIVE_INFO,
                 LocaleController.getString(R.string.FluffyDriveInfo), null));
-        items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_CLOUD_HEADER,
-                LocaleController.getString(R.string.FluffyCloudSection), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_ROLE,
-                LocaleController.getString(R.string.FluffySyncRole), FluffySyncManager.getInstance().getRoleText()));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_REFRESH_ACCESS,
-                LocaleController.getString(R.string.FluffySyncRefreshAccess), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_LOG,
-                LocaleController.getString(R.string.FluffySyncActivity), null));
-        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SYNC_AUTO,
-                LocaleController.getString(R.string.FluffySyncAutoSync), FluffySyncManager.getInstance().isAutoSyncEnabled()));
-        long cooldownSeconds = FluffySyncManager.getInstance().getCooldownRemainingSeconds();
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_PUSH,
-                getActionLabel(R.string.FluffySyncPushAppearance, cooldownSeconds), null));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_PULL,
-                getActionLabel(R.string.FluffySyncPullAppearance, cooldownSeconds), null));
-        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SYNC_INFO,
-                getSyncInfoText(cooldownSeconds), null));
+        if (selfhostedCloudEnabled) {
+            items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_CLOUD_HEADER,
+                    LocaleController.getString(R.string.FluffyCloudSection), null));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_ROLE,
+                    LocaleController.getString(R.string.FluffySyncRole), FluffySyncManager.getInstance().getRoleText()));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_REFRESH_ACCESS,
+                    LocaleController.getString(R.string.FluffySyncRefreshAccess), null));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_LOG,
+                    LocaleController.getString(R.string.FluffySyncActivity), null));
+            items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SYNC_AUTO,
+                    LocaleController.getString(R.string.FluffySyncAutoSync), FluffySyncManager.getInstance().isAutoSyncEnabled()));
+            long cooldownSeconds = FluffySyncManager.getInstance().getCooldownRemainingSeconds();
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_PUSH,
+                    getActionLabel(R.string.FluffySyncPushAppearance, cooldownSeconds), null));
+            items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_SYNC_PULL,
+                    getActionLabel(R.string.FluffySyncPullAppearance, cooldownSeconds), null));
+            items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SYNC_INFO,
+                    getSyncInfoText(cooldownSeconds), null));
+        }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -248,16 +253,28 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
     }
 
     private void ensureConsentAndRefresh() {
+        if (!CloudDebugSettingsPatch.isSelfhostedCloudEnabled()) {
+            return;
+        }
         if (!FluffySyncManager.getInstance().hasNetworkConsent()) {
-            showConsentDialog();
             return;
         }
         refreshAccessRole(false);
     }
 
-    private void showConsentDialog() {
+    private void runWithConsent(Runnable action) {
+        if (action == null) {
+            return;
+        }
+        if (FluffySyncManager.getInstance().hasNetworkConsent()) {
+            action.run();
+            return;
+        }
+        showConsentDialog(action);
+    }
+
+    private void showConsentDialog(Runnable afterConsent) {
         if (getParentActivity() == null) {
-            finishFragment();
             return;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
@@ -267,9 +284,11 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             FluffySyncManager.getInstance().setNetworkConsent(true);
             updateItems();
             refreshAccessRole(false);
+            if (afterConsent != null) {
+                afterConsent.run();
+            }
         });
-        builder.setNegativeButton(LocaleController.getString(R.string.FluffySyncConsentExit), (dialog, which) -> finishFragment());
-        builder.setOnCancelListener(dialog -> finishFragment());
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
     }
 
@@ -684,7 +703,7 @@ public class FluffyCloudSettingsActivity extends BaseFragment {
             } else if (holder.itemView instanceof TextSettingsCell) {
                 TextSettingsCell cell = (TextSettingsCell) holder.itemView;
                 if (item.value instanceof CharSequence && !TextUtils.isEmpty((CharSequence) item.value)) {
-                    cell.setTextAndValue(item.text, (CharSequence) item.value, false);
+                    cell.setTextAndValue(item.text, FluffyTextUtils.truncateParameterValue((CharSequence) item.value), false);
                 } else {
                     cell.setText(item.text, false);
                 }

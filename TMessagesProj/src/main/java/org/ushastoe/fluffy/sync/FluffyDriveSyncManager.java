@@ -105,9 +105,8 @@ public final class FluffyDriveSyncManager {
         }
         long backupAt = preferences.getLong(KEY_DRIVE_LAST_BACKUP_AT, 0L);
         if (backupAt > 0L) {
-            return LocaleController.formatString("FluffyDriveLastBackupValue", R.string.FluffyDriveLastBackupValue,
-                    LocaleController.getInstance().getFormatterYearMax().format(backupAt),
-                    LocaleController.getInstance().getFormatterDay().format(backupAt));
+            return LocaleController.getInstance().getFormatterYearMax().format(backupAt)
+                    + " " + LocaleController.getInstance().getFormatterDay().format(backupAt);
         }
         return LocaleController.getString(R.string.FluffyDriveConnected);
     }
