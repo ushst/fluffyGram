@@ -161,6 +161,7 @@
     <string name="FluffyThousandsSeparator">Использовать разделитель тысяч</string>
     <string name="FluffyDialogsListSize">Масштаб списка чатов</string>
     <string name="FluffyCenterChatHeader">Выравнивать заголовок чата по центру</string>
+    <string name="FluffyChatAiButtonShortText">Показывать AI в меню чата</string>
     <string name="FluffyEditedMarkerIcon">Стиль пометки «изменено»</string>
     <string name="FluffyEditedMarkerModeFull">изменено</string>
     <string name="FluffyEditedMarkerModeShort">изм</string>

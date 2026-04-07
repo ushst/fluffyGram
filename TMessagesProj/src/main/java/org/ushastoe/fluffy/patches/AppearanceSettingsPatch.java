@@ -47,6 +47,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_SHOW_FORWARDED_ORIGINAL_DATE = "show_forwarded_original_date";
     private static final String KEY_CHAT_ENTER_SPOILER_MENU_ENABLED = "chat_enter_spoiler_menu_enabled";
     private static final String KEY_INLINE_CODE_CHIP_ENABLED = "inline_code_chip_enabled";
+    private static final String KEY_CHAT_AI_BUTTON_SHORT_TEXT_ENABLED = "chat_ai_button_short_text_enabled";
     private static final String KEY_EMOJI_SET = "emoji_set";
 
     public static final int DIALOGS_TITLE_MODE_DEFAULT = 0;
@@ -115,7 +116,8 @@ public final class AppearanceSettingsPatch {
             KEY_HIDE_STORIES,
             KEY_SHOW_FORWARDED_ORIGINAL_DATE,
             KEY_CHAT_ENTER_SPOILER_MENU_ENABLED,
-            KEY_INLINE_CODE_CHIP_ENABLED
+            KEY_INLINE_CODE_CHIP_ENABLED,
+            KEY_CHAT_AI_BUTTON_SHORT_TEXT_ENABLED
     )));
 
     public interface Listener {
@@ -562,6 +564,20 @@ public final class AppearanceSettingsPatch {
             return;
         }
         preferences.edit().putBoolean(KEY_INLINE_CODE_CHIP_ENABLED, enabled).apply();
+        notifyListeners();
+    }
+
+    public static boolean isChatAiButtonShortTextEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_CHAT_AI_BUTTON_SHORT_TEXT_ENABLED, false);
+    }
+
+    public static void setChatAiButtonShortTextEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_CHAT_AI_BUTTON_SHORT_TEXT_ENABLED, enabled).apply();
         notifyListeners();
     }
 

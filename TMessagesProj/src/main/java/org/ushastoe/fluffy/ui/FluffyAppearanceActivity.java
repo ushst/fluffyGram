@@ -88,6 +88,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_CENTER_CHAT_HEADER = 21;
     private static final int ROW_CHAT_ENTER_SPOILER_MENU = 22;
     private static final int ROW_INLINE_CODE_CHIP = 23;
+    private static final int ROW_CHAT_AI_BUTTON_SHORT_TEXT = 37;
     private static final int ROW_EDITED_MARKER_ICON = 24;
     private static final int ROW_MAP_PROVIDER = 25;
     private static final int ROW_HIDE_CHANNEL_POST_STARS_OFFER = 26;
@@ -198,6 +199,12 @@ public class FluffyAppearanceActivity extends BaseFragment {
             } else if (item.id == ROW_INLINE_CODE_CHIP) {
                 boolean enabled = !AppearanceSettingsHook.isInlineCodeChipEnabled();
                 AppearanceSettingsHook.setInlineCodeChipEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_CHAT_AI_BUTTON_SHORT_TEXT) {
+                boolean enabled = !AppearanceSettingsHook.isChatAiButtonShortTextEnabled();
+                AppearanceSettingsHook.setChatAiButtonShortTextEnabled(enabled);
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
@@ -318,6 +325,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_INLINE_CODE_CHIP,
                 LocaleController.getString(R.string.FluffyInlineCodeChip),
                 AppearanceSettingsHook.isInlineCodeChipEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_AI_BUTTON_SHORT_TEXT,
+                LocaleController.getString(R.string.FluffyChatAiButtonShortText),
+                AppearanceSettingsHook.isChatAiButtonShortTextEnabled()));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_EDITED_MARKER_ICON,
             LocaleController.getString(R.string.FluffyEditedMarkerIcon),
             false));
@@ -863,6 +873,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "center-chat-header");
             case ROW_CHAT_ENTER_SPOILER_MENU:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "chat-enter-spoiler-menu");
+            case ROW_CHAT_AI_BUTTON_SHORT_TEXT:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "chat-ai-button");
             case ROW_EDITED_MARKER_ICON:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "edited-marker-icon");
             case ROW_SCHEDULED_MARKER:
@@ -952,6 +964,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_CENTER_CHAT_HEADER;
             case "chat-enter-spoiler-menu":
                 return ROW_CHAT_ENTER_SPOILER_MENU;
+            case "chat-ai-button":
+                return ROW_CHAT_AI_BUTTON_SHORT_TEXT;
             case "edited-marker-icon":
                 return ROW_EDITED_MARKER_ICON;
             case "scheduled-marker":

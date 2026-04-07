@@ -258,6 +258,7 @@ import org.telegram.ui.Components.Reactions.ChatSelectionReactionMenuOverlay;
 import org.telegram.ui.Components.Reactions.ReactionsEffectOverlay;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
+import org.ushastoe.fluffy.hooks.AiEditorButtonHook;
 import org.telegram.ui.Components.blur3.BlurredBackgroundWithFadeDrawable;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
@@ -4108,6 +4109,29 @@ public class ChatActivity extends BaseFragment implements
                         chatActivityEnterView.getEditField().setSelectionOverride(editTextStart, editTextEnd);
                         chatActivityEnterView.getEditField().makeSelectedRegular();
                     }
+                } else if (id == R.id.menu_ai_editor) {
+                    if (chatActivityEnterView != null && chatActivityEnterView.getEditField() != null) {
+                        CharSequence currentText = chatActivityEnterView.getEditField().getText();
+                        new AIEditorAlert(getContext(), themeDelegate)
+                            .setText(currentText)
+                            .setOnUse(text -> {
+                                chatActivityEnterView.getEditField().setText(text);
+                                chatActivityEnterView.getEditField().setSelection(text.length());
+                            })
+                            .setOnSend(getDialogId(), editingMessageObject != null, (text, scheduleDate, scheduleRepeatPeriod, notify) -> {
+                                chatActivityEnterView.setFieldText(text);
+                                if (editingMessageObject != null) {
+                                    chatActivityEnterView.doneEditingMessage();
+                                } else if (scheduleDate != 0 || !notify) {
+                                    if (chatActivityEnterView.processSendingText(text, notify, scheduleDate, scheduleRepeatPeriod, 0)) {
+                                        chatActivityEnterView.setFieldText("");
+                                    }
+                                } else {
+                                    chatActivityEnterView.sendMessage();
+                                }
+                            })
+                            .show();
+                    }
                 } else if (id == change_colors) {
                     showChatThemeBottomSheet();
                 } else if (id == topic_close) {
@@ -4468,6 +4492,9 @@ public class ChatActivity extends BaseFragment implements
 
             if (searchItem != null) {
                 headerItem.lazilyAddSubItem(search, R.drawable.msg_search, LocaleController.getString(R.string.Search));
+            }
+            if (AiEditorButtonHook.useActionModeEntry() && getMessagesController().aiEditorAvailable()) {
+                headerItem.lazilyAddSubItem(R.id.menu_ai_editor, R.drawable.msg_translate, LocaleController.getString(R.string.AIEditor));
             }
             if (ChatObject.isBoostSupported(currentChat) && (getUserConfig().isPremium() || ChatObject.isBoosted(chatInfo) || ChatObject.hasAdminRights(currentChat))) {
                 RLottieDrawable drawable = new RLottieDrawable(R.raw.boosts, "" + R.raw.boosts, dp(24), dp(24));

@@ -164,6 +164,7 @@
     <string name="FluffyThousandsSeparator">Use a thousands separator</string>
     <string name="FluffyDialogsListSize">Scale of the chat list</string>
     <string name="FluffyCenterChatHeader">Center the title in chats</string>
+    <string name="FluffyChatAiButtonShortText">Show AI in the chat menu</string>
     <string name="FluffyEditedMarkerIcon">Style of the “edited” label</string>
     <string name="FluffyEditedMarkerModeFull">edited</string>
     <string name="FluffyEditedMarkerModeShort">ed</string>

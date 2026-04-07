@@ -207,6 +207,7 @@ import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.ChatActivityBotWebViewButton;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.ushastoe.fluffy.hooks.AiEditorButtonHook;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.RoundVideoCameraHook;
 
@@ -2782,6 +2783,7 @@ public class ChatActivityEnterView extends FrameLayout implements
         aiButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_glass_defaultIcon), PorterDuff.Mode.MULTIPLY));
         aiButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP, dp(16)));
         textFieldContainer.addView(aiButton, LayoutHelper.createFrame(DEFAULT_HEIGHT, DEFAULT_HEIGHT, Gravity.TOP | Gravity.RIGHT, 0, 1, 0, 0));
+        AiEditorButtonHook.applyEnterViewLayout(aiButton);
         aiButton.setContentDescription(getString(R.string.AIEditor));
         ScaleStateListAnimator.apply(aiButton);
         aiButton.setOnClickListener(v -> {
@@ -5339,7 +5341,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             if (isInitLineCount) {
                 lineCount = getLineCount();
-                showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && lineCount > 2 && !TextUtils.isEmpty(getText().toString().trim()));
+                showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), lineCount, getText()));
             }
             isInitLineCount = false;
         }
@@ -5579,7 +5581,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
                 if (lineCount != messageEditText.getLineCount()) {
-                    showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && messageEditText.getLineCount() > 2 && messageEditText.getText() != null && !TextUtils.isEmpty(messageEditText.getText().toString().trim()));
+                    showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), messageEditText.getLineCount(), messageEditText.getText()));
                 }
             }
         };
@@ -5734,7 +5736,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                         onLineCountChanged(lineCount, messageEditText.getLineCount());
                     }
                     lineCount = messageEditText.getLineCount();
-                    showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && lineCount > 2 && charSequence != null && !TextUtils.isEmpty(charSequence.toString().trim()));
+                    showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), lineCount, charSequence));
                 } else {
                     heightShouldBeChanged = false;
                 }
@@ -5847,7 +5849,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     }
                 }
 
-                showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && lineCount > 2 && editable != null && !TextUtils.isEmpty(editable.toString().trim()));
+                showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), lineCount, editable));
             }
         });
         messageEditText.addTextChangedListener(new EditTextSuggestionsFix());
@@ -5869,6 +5871,7 @@ public class ChatActivityEnterView extends FrameLayout implements
     private boolean shownAiButton;
     private void showAiButton(boolean show_) {
         final boolean show = show_ && parentFragment != null && !parentFragment.isSecretChat();
+        AiEditorButtonHook.applyEnterViewLayout(aiButton);
 
         if (shownAiButton == show) return;
         shownAiButton = show;
@@ -5894,6 +5897,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
 
             if (
+                AiEditorButtonHook.shouldShowEnterViewHint() &&
                 MessagesController.getGlobalMainSettings().getInt("aihintshown", 0) < 3
             ) {
                 final HintView2 thisHint = aiHint = new HintView2(getContext(), HintView2.DIRECTION_BOTTOM);
@@ -8524,6 +8528,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 layoutParams.rightMargin = dp(2);
             }
         }
+        layoutParams.rightMargin = AiEditorButtonHook.adjustEnterViewTextRightMargin(layoutParams.rightMargin);
         layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, sendButton.width() - dp(DEFAULT_HEIGHT)));
         if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
             layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));

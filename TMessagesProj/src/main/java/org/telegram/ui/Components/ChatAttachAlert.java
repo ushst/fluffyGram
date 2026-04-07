@@ -162,6 +162,7 @@ import org.telegram.ui.WebAppDisclaimerAlert;
 import org.telegram.ui.web.BotWebViewContainer;
 import org.telegram.ui.bots.BotWebViewMenuContainer;
 import org.telegram.ui.bots.ChatAttachAlertBotWebViewLayout;
+import org.ushastoe.fluffy.hooks.AiEditorButtonHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -3103,7 +3104,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     shouldAnimateEditTextWithBounds = false;
                 }
                 if (!captionAbove) {
-                    showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && newLineCount > 2 && !TextUtils.isEmpty(getEditText().getText().toString().trim()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), newLineCount, getEditText().getText()));
                 }
                 chatActivityEnterViewAnimateFromTop = frameLayout2.getTop() + captionEditTextTopOffset;
                 frameLayout2.invalidate();
@@ -3236,7 +3237,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 }
 
                 if (!captionAbove) {
-                    showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && commentTextView.getEditText().getLineCount() > 2 && !TextUtils.isEmpty(commentTextView.getText().toString().trim()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), commentTextView.getEditText().getLineCount(), commentTextView.getText()));
                 }
             }
         });
@@ -3266,7 +3267,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 super.onLineCountChanged(oldLineCount, newLineCount);
                 updatedTopCaptionHeight();
                 if (captionAbove) {
-                    showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && newLineCount > 2 && !TextUtils.isEmpty(getEditText().getText().toString().trim()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), newLineCount, getEditText().getText()));
                 }
             }
 
@@ -3384,7 +3385,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 }
 
                 if (captionAbove) {
-                    showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && topCommentTextView.getEditText().getLineCount() > 2 && !TextUtils.isEmpty(topCommentTextView.getText().toString().trim()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), topCommentTextView.getEditText().getLineCount(), topCommentTextView.getText()));
                 }
             }
         });
@@ -6730,7 +6731,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
         AndroidUtilities.runOnUIThread(() -> {
             final EditTextEmoji editText = captionAbove ? topCommentTextView : commentTextView;
-            showAiButton(MessagesController.getInstance(currentAccount).aiEditorAvailable() && editText.getEditText().getLineCount() > 2 && !TextUtils.isEmpty(editText.getText().toString().trim()));
+            showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), editText.getEditText().getLineCount(), editText.getText()));
         });
     }
 

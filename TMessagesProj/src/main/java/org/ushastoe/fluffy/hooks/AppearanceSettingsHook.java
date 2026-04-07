@@ -233,6 +233,14 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setInlineCodeChipEnabled(enabled);
     }
 
+    public static boolean isChatAiButtonShortTextEnabled() {
+        return AppearanceSettingsPatch.isChatAiButtonShortTextEnabled();
+    }
+
+    public static void setChatAiButtonShortTextEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setChatAiButtonShortTextEnabled(enabled);
+    }
+
     public static int getEmojiSet() {
         return AppearanceSettingsPatch.getEmojiSet();
     }
