@@ -518,7 +518,7 @@ public final class MainTabsConfigPatch {
         if (preferences == null) {
             return 0L;
         }
-        return sanitizeTargetDialogId(preferences.getLong(getTabActionKey(prefix, tabType), 0L));
+        return sanitizeTargetDialogId(readTargetDialogId(preferences, getTabActionKey(prefix, tabType)));
     }
 
     private static void setTabActionTargetDialogId(String prefix, int tabType, long dialogId) {
@@ -585,7 +585,7 @@ public final class MainTabsConfigPatch {
         if (preferences == null || dialogId == 0L) {
             return 0L;
         }
-        return sanitizeTargetDialogId(preferences.getLong(prefix + dialogId, 0L));
+        return sanitizeTargetDialogId(readTargetDialogId(preferences, prefix + dialogId));
     }
 
     private static void setQuickDialogActionTargetDialogId(String prefix, long dialogId, long targetDialogId) {
@@ -612,6 +612,26 @@ public final class MainTabsConfigPatch {
             return dialogId;
         }
         return 0L;
+    }
+
+    private static long readTargetDialogId(SharedPreferences preferences, String key) {
+        if (preferences == null || TextUtils.isEmpty(key) || !preferences.contains(key)) {
+            return 0L;
+        }
+        try {
+            return preferences.getLong(key, 0L);
+        } catch (ClassCastException ignore) {
+            int legacyDialogId = preferences.getInt(key, 0);
+            long normalizedDialogId = sanitizeTargetDialogId(legacyDialogId);
+            SharedPreferences.Editor editor = preferences.edit();
+            if (normalizedDialogId == 0L) {
+                editor.remove(key);
+            } else {
+                editor.putLong(key, normalizedDialogId);
+            }
+            editor.apply();
+            return normalizedDialogId;
+        }
     }
 
     private static int parseType(String raw) {
