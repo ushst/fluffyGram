@@ -234,6 +234,8 @@
     <string name="FluffyShareApkFailed">Failed to prepare APK for sharing.</string>
     <string name="FluffyInAppCamera">In-app camera</string>
     <string name="FluffyInAppCameraInfo">Turn off to use the system camera instead of the built-in camera from the chat attachment panel.</string>
+    <string name="FluffyChatVideoVolumeButtons">Volume buttons unmute chat videos</string>
+    <string name="FluffyChatVideoVolumeButtonsInfo">Lets the volume buttons turn the sound on while viewing videos from chats. Turn off to keep chat videos muted when pressing the hardware volume keys.</string>
     <string name="FluffyGoToFirstMessage">Go to first message</string>
     <string name="FluffyGoToFirstMessageInfo">Adds a chat menu action that jumps to the beginning of the current chat history.</string>
     <string name="FluffyQuickSharePrivateMedia">Quick share on private media</string>

@@ -321,6 +321,7 @@ import org.telegram.ui.Stories.recorder.KeyboardNotifier;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.ushastoe.fluffy.hooks.ProfilePhotoDateHook;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.ForceCopyHook;
 
 import java.io.ByteArrayInputStream;
@@ -4689,7 +4690,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             @Override
             public boolean dispatchKeyEvent(KeyEvent event) {
                 int keyCode = event.getKeyCode();
-                if (!muteVideo && sendPhotoType != SELECT_TYPE_AVATAR && isCurrentVideo && videoPlayer != null && event.getRepeatCount() == 0 && event.getAction() == KeyEvent.ACTION_DOWN && (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP || event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)) {
+                if (ChatVideoVolumeButtonsHook.shouldHandleVolumeButtonsForChatVideo()
+                        && !muteVideo && sendPhotoType != SELECT_TYPE_AVATAR && isCurrentVideo && videoPlayer != null
+                        && event.getRepeatCount() == 0 && event.getAction() == KeyEvent.ACTION_DOWN
+                        && (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP || event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)) {
                     videoPlayer.setVolume(1.0f);
                 }
                 return super.dispatchKeyEvent(event);

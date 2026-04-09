@@ -21,6 +21,7 @@ import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.CombineMessagesHook;
 import org.ushastoe.fluffy.hooks.ForceCopyHook;
@@ -45,20 +46,22 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_GENERAL_HEADER = 0;
     private static final int ROW_IN_APP_CAMERA = 1;
     private static final int ROW_IN_APP_CAMERA_INFO = 2;
-    private static final int ROW_CHAT_FIRST_MESSAGE = 3;
-    private static final int ROW_CHAT_FIRST_MESSAGE_INFO = 4;
-    private static final int ROW_COMBINE_MESSAGES = 5;
-    private static final int ROW_COMBINE_MESSAGES_INFO = 6;
-    private static final int ROW_FORCE_COPY = 7;
-    private static final int ROW_FORCE_COPY_INFO = 8;
-    private static final int ROW_TEXT_UNDO_REDO = 9;
-    private static final int ROW_TEXT_UNDO_REDO_INFO = 10;
-    private static final int ROW_FORWARD_COMMENT_ORDER = 11;
-    private static final int ROW_FORWARD_COMMENT_ORDER_INFO = 12;
-    private static final int ROW_QUICK_SHARE_MEDIA = 13;
-    private static final int ROW_QUICK_SHARE_MEDIA_INFO = 14;
-    private static final int ROW_UNLIMITED_PINS = 15;
-    private static final int ROW_UNLIMITED_PINS_INFO = 16;
+    private static final int ROW_CHAT_VIDEO_VOLUME_BUTTONS = 3;
+    private static final int ROW_CHAT_VIDEO_VOLUME_BUTTONS_INFO = 4;
+    private static final int ROW_CHAT_FIRST_MESSAGE = 5;
+    private static final int ROW_CHAT_FIRST_MESSAGE_INFO = 6;
+    private static final int ROW_COMBINE_MESSAGES = 7;
+    private static final int ROW_COMBINE_MESSAGES_INFO = 8;
+    private static final int ROW_FORCE_COPY = 9;
+    private static final int ROW_FORCE_COPY_INFO = 10;
+    private static final int ROW_TEXT_UNDO_REDO = 11;
+    private static final int ROW_TEXT_UNDO_REDO_INFO = 12;
+    private static final int ROW_FORWARD_COMMENT_ORDER = 13;
+    private static final int ROW_FORWARD_COMMENT_ORDER_INFO = 14;
+    private static final int ROW_QUICK_SHARE_MEDIA = 15;
+    private static final int ROW_QUICK_SHARE_MEDIA_INFO = 16;
+    private static final int ROW_UNLIMITED_PINS = 17;
+    private static final int ROW_UNLIMITED_PINS_INFO = 18;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -109,6 +112,12 @@ public class FluffyGeneralActivity extends BaseFragment {
             if (item.id == ROW_IN_APP_CAMERA) {
                 boolean enabled = !InAppCameraSettingsHook.isEnabled();
                 InAppCameraSettingsHook.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_CHAT_VIDEO_VOLUME_BUTTONS) {
+                boolean enabled = !ChatVideoVolumeButtonsHook.isEnabled();
+                ChatVideoVolumeButtonsHook.setEnabled(enabled);
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
@@ -178,6 +187,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_GENERAL_HEADER, LocaleController.getString(R.string.FluffyGeneralSection), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_IN_APP_CAMERA, LocaleController.getString(R.string.FluffyInAppCamera), InAppCameraSettingsHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_IN_APP_CAMERA_INFO, LocaleController.getString(R.string.FluffyInAppCameraInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_VIDEO_VOLUME_BUTTONS, LocaleController.getString(R.string.FluffyChatVideoVolumeButtons), ChatVideoVolumeButtonsHook.isEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHAT_VIDEO_VOLUME_BUTTONS_INFO, LocaleController.getString(R.string.FluffyChatVideoVolumeButtonsInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_FIRST_MESSAGE, LocaleController.getString(R.string.FluffyGoToFirstMessage), ChatFirstMessageHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHAT_FIRST_MESSAGE_INFO, LocaleController.getString(R.string.FluffyGoToFirstMessageInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_COMBINE_MESSAGES, LocaleController.getString(R.string.FluffyCombineMessages), CombineMessagesHook.isEnabled()));
@@ -205,6 +216,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         String link;
         if (item.id == ROW_IN_APP_CAMERA || item.id == ROW_IN_APP_CAMERA_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "in-app-camera");
+        } else if (item.id == ROW_CHAT_VIDEO_VOLUME_BUTTONS || item.id == ROW_CHAT_VIDEO_VOLUME_BUTTONS_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "chat-video-volume-buttons");
         } else if (item.id == ROW_CHAT_FIRST_MESSAGE || item.id == ROW_CHAT_FIRST_MESSAGE_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "go-to-first-message");
         } else if (item.id == ROW_COMBINE_MESSAGES || item.id == ROW_COMBINE_MESSAGES_INFO) {
@@ -256,6 +269,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("in-app-camera".equals(target)) {
             return ROW_IN_APP_CAMERA;
+        }
+        if ("chat-video-volume-buttons".equals(target)) {
+            return ROW_CHAT_VIDEO_VOLUME_BUTTONS;
         }
         if ("go-to-first-message".equals(target)) {
             return ROW_CHAT_FIRST_MESSAGE;

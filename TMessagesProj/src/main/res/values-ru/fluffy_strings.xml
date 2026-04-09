@@ -304,6 +304,8 @@
     <string name="FluffyShareApkFailed">Не удалось подготовить APK для отправки.</string>
     <string name="FluffyInAppCamera">Встроенная камера</string>
     <string name="FluffyInAppCameraInfo">Выключите, чтобы использовать системную камеру вместо встроенной камеры из панели вложений чата.</string>
+    <string name="FluffyChatVideoVolumeButtons">Кнопки громкости включают звук видео</string>
+    <string name="FluffyChatVideoVolumeButtonsInfo">Позволяет кнопкам громкости включать звук при просмотре видео из чатов. Выключите, чтобы видео в чате оставались без звука при нажатии аппаратных клавиш громкости.</string>
     <string name="FluffyGoToFirstMessage">Перейти к первому сообщению</string>
     <string name="FluffyGoToFirstMessageInfo">Добавляет действие в меню чата для перехода к началу истории текущего чата.</string>
     <string name="FluffyQuickSharePrivateMedia">Быстрый шэринг медиа в личках</string>

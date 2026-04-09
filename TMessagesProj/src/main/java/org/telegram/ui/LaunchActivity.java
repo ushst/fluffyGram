@@ -226,6 +226,7 @@ import org.telegram.ui.bots.BotWebViewAttachedSheet;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
 import org.ushastoe.fluffy.hooks.CustomUpdateHook;
+import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.ushastoe.fluffy.hooks.LegacyLaunchTaskRootHook;
@@ -8258,14 +8259,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 }
             } else if (!mainFragmentsStack.isEmpty() && (!PhotoViewer.hasInstance() || !PhotoViewer.getInstance().isVisible()) && event.getRepeatCount() == 0) {
                 BaseFragment fragment = mainFragmentsStack.get(mainFragmentsStack.size() - 1);
-                if (fragment instanceof ChatActivity && !BaseFragment.hasSheets(fragment)) {
+                if (ChatVideoVolumeButtonsHook.shouldHandleVolumeButtonsForChatVideo() && fragment instanceof ChatActivity && !BaseFragment.hasSheets(fragment)) {
                     if (((ChatActivity) fragment).maybePlayVisibleVideo()) {
                         return true;
                     }
                 }
                 if (AndroidUtilities.isTablet() && !rightFragmentsStack.isEmpty()) {
                     fragment = rightFragmentsStack.get(rightFragmentsStack.size() - 1);
-                    if (fragment instanceof ChatActivity && !BaseFragment.hasSheets(fragment)) {
+                    if (ChatVideoVolumeButtonsHook.shouldHandleVolumeButtonsForChatVideo() && fragment instanceof ChatActivity && !BaseFragment.hasSheets(fragment)) {
                         if (((ChatActivity) fragment).maybePlayVisibleVideo()) {
                             return true;
                         }
