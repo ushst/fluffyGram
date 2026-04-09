@@ -223,6 +223,8 @@
     <string name="FluffyNoUpdatesFound">Обновления не найдены.</string>
     <string name="FluffySaveLog">Сохранить лог</string>
     <string name="FluffySaveLogInfo">Сохраняет текущий локальный лог сессии вместе с последними логами приложения Telegram и MTProto.</string>
+    <string name="FluffyGlobalLogsEnabled">Включить все логи приложения</string>
+    <string name="FluffyNotificationDiagnosticsEnabled">Диагностическое логирование уведомлений</string>
     <string name="FluffyLocalLogsTitle">Локальные логи</string>
     <string name="FluffyLocalLogsUnavailable">Этот аккаунт еще не полностью авторизован, поэтому локальный лог создать нельзя.</string>
     <string name="FluffyLocalLogsConsentMessage">Fluffy может сохранять локальные отладочные логи на этом устройстве, чтобы помогать диагностировать вылеты и проблемы, связанные с конкретным аккаунтом.\n\nФормат хранения: один локальный файл на сессию или ручное сохранение, включая id аккаунта и дату создания в имени файла.\n\nЕсли приложение вылетает, информация о вылете записывается в текущий лог сессии, а при следующем запуске создается новый файл лога.\n\nНажмите OK, чтобы включить сохранение локальных логов для этого аккаунта. Отмена оставит сохранение локальных логов выключенным.</string>

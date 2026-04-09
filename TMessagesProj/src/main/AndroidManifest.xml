@@ -604,6 +604,8 @@
 
         <receiver android:name=".PopupReplyReceiver" android:enabled="true"/>
 
+        <receiver android:name="org.ushastoe.fluffy.receivers.NotificationReactionReceiver" android:enabled="true" android:exported="false"/>
+
         <receiver android:name=".NotificationCallbackReceiver" android:enabled="true" android:exported="false"/>
 
         <receiver android:name=".ShareBroadcastReceiver" android:enabled="true"/>

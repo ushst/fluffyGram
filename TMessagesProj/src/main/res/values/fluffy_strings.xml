@@ -246,6 +246,8 @@
     <string name="FluffyUnlimitedUnarchivedPinsInfo">Allows up to 100 pinned chats in the main list and turns off pinned chats sync for that list, so extra pins and order stay local to this device.</string>
     <string name="FluffySaveLog">Save Log</string>
     <string name="FluffySaveLogInfo">Saves the current local session log together with the latest Telegram app and MTProto logs.</string>
+    <string name="FluffyGlobalLogsEnabled">Enable all app logs</string>
+    <string name="FluffyNotificationDiagnosticsEnabled">Notification diagnostic logging</string>
     <string name="FluffyPasskeysUnsupportedTitle">Passkeys are unavailable</string>
     <string name="FluffyPasskeysUnsupportedText">Passkey login and passkey management are not supported in fluffyGram. Use the official Telegram app if you need this feature.</string>
     <string name="FluffyLocalLogsTitle">Local Logs</string>

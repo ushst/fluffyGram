@@ -4,12 +4,14 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 import org.ushastoe.fluffy.patches.FluffyLocalLogPatch;
+import org.ushastoe.fluffy.patches.GlobalLogsPatch;
 
 public final class FluffyLocalLogHook {
     private FluffyLocalLogHook() {
     }
 
     public static void onApplicationCreated(ApplicationLoader applicationLoader) {
+        GlobalLogsPatch.onApplicationCreated();
         FluffyLocalLogPatch.onApplicationCreated(applicationLoader);
     }
 

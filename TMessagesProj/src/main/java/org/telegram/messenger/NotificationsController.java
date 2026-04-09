@@ -80,8 +80,10 @@ import org.telegram.ui.Components.spoilers.SpoilerEffect;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PopupNotificationActivity;
 import org.telegram.ui.Stories.recorder.StoryEntry;
+import org.ushastoe.fluffy.hooks.NotificationDiagnosticsHook;
 import org.ushastoe.fluffy.hooks.NotificationIconHook;
 import org.ushastoe.fluffy.hooks.NotificationLaunchIntentHook;
+import org.ushastoe.fluffy.hooks.NotificationReactionHook;
 import org.ushastoe.fluffy.hooks.NotificationSenderMuteHook;
 
 import java.io.File;
@@ -1015,6 +1017,7 @@ public class NotificationsController extends BaseController {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("NotificationsController: processNewMessages msgs.size()=" + (messageObjects == null ? "null" : messageObjects.size()) + " isLast=" + isLast + " isFcm=" + isFcm + ")");
         }
+        NotificationDiagnosticsHook.onProcessNewMessages(currentAccount, messageObjects, isLast, isFcm);
 
         if (messageObjects != null) {
             for (int i = 0; i < messageObjects.size(); ++i) {
@@ -4136,7 +4139,15 @@ public class NotificationsController extends BaseController {
     }
 
     private void showOrUpdateNotification(boolean notifyAboutLast) {
+        NotificationDiagnosticsHook.onShowOrUpdateNotificationStart(currentAccount, notifyAboutLast, pushMessages.size(), storyPushMessages.size());
         if (!getUserConfig().isClientActivated() || pushMessages.isEmpty() && storyPushMessages.isEmpty() || !SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) {
+            NotificationDiagnosticsHook.onShowOrUpdateNotificationSkipped(
+                    currentAccount,
+                    !getUserConfig().isClientActivated() ? "client_not_activated" :
+                            pushMessages.isEmpty() && storyPushMessages.isEmpty() ? "no_push_messages" : "account_not_selected",
+                    pushMessages.size(),
+                    storyPushMessages.size()
+            );
             dismissNotification();
             return;
         }
@@ -4160,13 +4171,20 @@ public class NotificationsController extends BaseController {
                 }
             }
             if (lastNotification == null) {
+                NotificationDiagnosticsHook.onShowOrUpdateNotificationSkipped(currentAccount, "last_notification_null", pushMessages.size(), storyPushMessages.size());
                 return;
             }
 
             Bitmap largeBitmap = null;
             MessageObject lastMessageObject;
+            long resolvedDialogId;
+            int resolvedMessageId;
+            boolean resolvedStory;
             if (lastNotification instanceof StoryNotification) {
                 StoryNotification lastStoryNotification = (StoryNotification) lastNotification;
+                resolvedDialogId = lastStoryNotification.dialogId;
+                resolvedMessageId = 0;
+                resolvedStory = true;
                 TLRPC.TL_message msg = new TLRPC.TL_message();
                 msg.date = (int) (System.currentTimeMillis() / 1000L);
                 int storiesCount = 0;
@@ -4212,7 +4230,11 @@ public class NotificationsController extends BaseController {
                 lastMessageObject.isStoryPush = true;
             } else {
                 lastMessageObject = pushMessages.get(0);
+                resolvedDialogId = lastMessageObject.getDialogId();
+                resolvedMessageId = lastMessageObject.getId();
+                resolvedStory = false;
             }
+            NotificationDiagnosticsHook.onShowOrUpdateNotificationResolved(currentAccount, resolvedDialogId, resolvedMessageId, resolvedStory, maxDate);
             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
             int dismissDate = preferences.getInt("dismissDate", 0);
             if (!lastMessageObject.isStoryPush && lastMessageObject.messageOwner.date <= dismissDate) {
@@ -4858,6 +4880,7 @@ public class NotificationsController extends BaseController {
             editor.commit();
             sound = Settings.System.DEFAULT_RINGTONE_URI;
             notificationBuilder.setChannelId(validateChannelId(dialogId, topicId, chatName, vibrationPattern, ledColor, sound, importance, isDefault, isInApp, isSilent, chatType));
+            NotificationDiagnosticsHook.onSummaryNotify(currentAccount, notificationId, dialogId, topicId, pushMessages.size(), storyPushMessages.size());
             notificationManager.notify(notificationId, notificationBuilder.build());
         }
     }
@@ -4870,6 +4893,7 @@ public class NotificationsController extends BaseController {
         }
         Notification mainNotification = notificationBuilder.build();
         if (Build.VERSION.SDK_INT <= 19) {
+            NotificationDiagnosticsHook.onSummaryNotify(currentAccount, notificationId, lastDialogId, lastTopicId, pushMessages.size(), storyPushMessages.size());
             notificationManager.notify(notificationId, mainNotification);
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("show summary notification by SDK check");
@@ -4936,6 +4960,7 @@ public class NotificationsController extends BaseController {
                     FileLog.w("show dialog notification with id " + id + " " + dialogId +  " user=" + user + " chat=" + chat);
                 }
                 try {
+                    NotificationDiagnosticsHook.onDialogNotify(currentAccount, id, dialogId, topicId, story);
                     notificationManager.notify(id, notification.build());
                 } catch (SecurityException e) {
                     FileLog.e(e);
@@ -5573,6 +5598,7 @@ public class NotificationsController extends BaseController {
                     .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
                     .setShowsUserInterface(false)
                     .build();
+            NotificationCompat.Action heartReactionAction = NotificationReactionHook.createHeartReactionAction(lastMessageObject, dialogId, maxId, topicId, currentAccount, internalId + 100000, waitingForPasscode, dialogKey.story);
 
             String dismissalID;
             if (!DialogObject.isEncryptedDialog(dialogId)) {
@@ -5670,6 +5696,9 @@ public class NotificationsController extends BaseController {
                 if (wearReplyAction != null) {
                     builder.addAction(wearReplyAction);
                 }
+                if (heartReactionAction != null) {
+                    builder.addAction(heartReactionAction);
+                }
                 if (!waitingForPasscode && !dialogKey.story && (lastMessageObject == null || !lastMessageObject.isStoryReactionPush)) {
                     builder.addAction(readAction);
                 }
@@ -5722,6 +5751,7 @@ public class NotificationsController extends BaseController {
                 FileLog.d("show summary with id " + notificationId);
             }
             try {
+                NotificationDiagnosticsHook.onSummaryNotify(currentAccount, notificationId, lastDialogId, lastTopicId, pushMessages.size(), storyPushMessages.size());
                 notificationManager.notify(notificationId, mainNotification);
             } catch (SecurityException e) {
                 FileLog.e(e);
