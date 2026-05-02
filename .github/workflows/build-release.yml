@@ -376,11 +376,12 @@ jobs:
                     --pattern "${PREV_APK_NAME}" \
                     --output "$PREV_APK_PATH" \
                     --clobber 2>/dev/null; then
-                sudo apt-get install -y bsdiff >/dev/null 2>&1 || true
+                sudo apt-get install -y bsdiff >/dev/null 2>&1
+                command -v bsdiff || { echo "::warning::bsdiff not available, skipping delta patch"; rm -f "$PREV_APK_PATH"; continue 2>/dev/null || true; }
                 PATCH_NAME="patch-${PREV_RELEASE_TAG}-to-${{ steps.meta.outputs.release_tag }}.bsdiff"
                 PATCH_PATH="artifacts/${PATCH_NAME}"
                 if bsdiff "$PREV_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}" "$PATCH_PATH"; then
-                  PATCH_SHA256="$(sha256sum "$PATCH_PATH" | cut -d ' ' -f 1)"
+                  PATCH_SHA256="$(sha256sum "$PATCH_PATH" | cut -d ' ' -f 1 | tr 'a-f' 'A-F')"
                   PATCH_SIZE="$(stat -c%s "$PATCH_PATH")"
                   PATCH_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.meta.outputs.release_tag }}/${PATCH_NAME}"
 
@@ -390,6 +391,8 @@ import subprocess, sys
 result = subprocess.run(
     ["git", "show", "${{ steps.notes.outputs.previous_tag }}:gradle.properties"],
     capture_output=True, text=True)
+if result.returncode != 0:
+    sys.exit(1)
 props = {}
 for line in result.stdout.splitlines():
     line = line.strip()
@@ -401,10 +404,12 @@ patch = int(props.get("FLUFFY_PATCH_VERSION", 0))
 # versionCode = (base * 1000 + patch) * 10 + abiCode(9)
 print((base * 1000 + patch) * 10 + 9)
 PY
-                  )"
+                  )" || { echo "::warning::Could not determine previous versionCode, skipping delta patch"; PREV_VERSION_CODE=""; }
 
-                  DELTA_JSON_ARG="[{\"fromVersionCode\":${PREV_VERSION_CODE},\"url\":\"${PATCH_URL}\",\"sha256\":\"${PATCH_SHA256^^}\",\"size\":${PATCH_SIZE}}]"
-                  echo "Delta patch generated: ${PATCH_PATH} (${PATCH_SIZE} bytes)"
+                  if [[ -n "$PREV_VERSION_CODE" ]]; then
+                    DELTA_JSON_ARG="[{\"fromVersionCode\":${PREV_VERSION_CODE},\"url\":\"${PATCH_URL}\",\"sha256\":\"${PATCH_SHA256}\",\"size\":${PATCH_SIZE}}]"
+                    echo "Delta patch generated: ${PATCH_PATH} (${PATCH_SIZE} bytes)"
+                  fi
                 else
                   echo "::warning::bsdiff failed, skipping delta patch"
                 fi

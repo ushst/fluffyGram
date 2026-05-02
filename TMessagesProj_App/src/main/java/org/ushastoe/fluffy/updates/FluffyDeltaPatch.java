@@ -71,7 +71,7 @@ public final class FluffyDeltaPatch {
 
             long ctrlLen = readInt64LE(header, 8);
             long diffLen = readInt64LE(header, 16);
-            int newSize = (int) readInt64LE(header, 24);
+            long newSize = readInt64LE(header, 24);
 
             if (ctrlLen < 0 || diffLen < 0 || newSize < 0) {
                 throw new IOException("Corrupt patch header: negative field");
@@ -80,75 +80,73 @@ public final class FluffyDeltaPatch {
             LimitedInputStream ctrlRaw = new LimitedInputStream(patchIn, ctrlLen);
             LimitedInputStream diffRaw = new LimitedInputStream(patchIn, diffLen);
 
-            BZip2CompressorInputStream ctrlBz = new BZip2CompressorInputStream(ctrlRaw);
-            BZip2CompressorInputStream diffBz = new BZip2CompressorInputStream(diffRaw);
-            BZip2CompressorInputStream extraBz = new BZip2CompressorInputStream(
-                    new BufferedInputStream(patchIn));
+            try (BZip2CompressorInputStream ctrlBz = new BZip2CompressorInputStream(ctrlRaw);
+                 BZip2CompressorInputStream diffBz = new BZip2CompressorInputStream(diffRaw);
+                 BZip2CompressorInputStream extraBz = new BZip2CompressorInputStream(
+                         new BufferedInputStream(patchIn))) {
 
-            // Reusable chunk buffers — avoids any full-file allocation
-            byte[] diffBuf = new byte[CHUNK];
-            byte[] oldBuf = new byte[CHUNK];
-            byte[] extraBuf = new byte[CHUNK];
+                // Reusable chunk buffers — avoids any full-file allocation
+                byte[] diffBuf = new byte[CHUNK];
+                byte[] oldBuf = new byte[CHUNK];
+                byte[] extraBuf = new byte[CHUNK];
 
-            long newPos = 0;
-            long oldPos = 0;
+                long newPos = 0;
+                long oldPos = 0;
 
-            while (newPos < newSize) {
-                long x = readInt64BZ(ctrlBz);
-                long y = readInt64BZ(ctrlBz);
-                long z = readInt64BZ(ctrlBz);
+                while (newPos < newSize) {
+                    long x = readInt64BZ(ctrlBz);
+                    long y = readInt64BZ(ctrlBz);
+                    long z = readInt64BZ(ctrlBz);
 
-                if (x < 0 || y < 0 || newPos + x > newSize || newPos + x + y > newSize) {
-                    throw new IOException("Corrupt patch ctrl block at newPos=" + newPos);
-                }
-
-                // Diff block: read x bytes from diffBz, XOR with old[oldPos..oldPos+x)
-                long remaining = x;
-                long readOldPos = oldPos;
-                while (remaining > 0) {
-                    int chunk = (int) Math.min(remaining, CHUNK);
-                    readFully(diffBz, diffBuf, 0, chunk);
-
-                    // Compute which part of this chunk overlaps with the valid old-file range
-                    long overlapStart = Math.max(0L, readOldPos);
-                    long overlapEnd = Math.min(oldLen, readOldPos + chunk);
-                    int overlapLen = (int) Math.max(0L, overlapEnd - overlapStart);
-                    // Offset within diffBuf where old data begins
-                    int overlapBufOff = (int) Math.max(0L, -readOldPos);
-
-                    if (overlapLen > 0) {
-                        oldRaf.seek(overlapStart);
-                        readFullyRaf(oldRaf, oldBuf, 0, overlapLen);
-                        for (int i = 0; i < overlapLen; i++) {
-                            diffBuf[overlapBufOff + i] ^= oldBuf[i];
-                        }
+                    if (x < 0 || y < 0 || newPos + x > newSize || newPos + x + y > newSize) {
+                        throw new IOException("Corrupt patch ctrl block at newPos=" + newPos);
                     }
 
-                    newOut.write(diffBuf, 0, chunk);
-                    remaining -= chunk;
-                    readOldPos += chunk;
-                }
-                newPos += x;
-                oldPos += x;
+                    // Diff block: read x bytes from diffBz, XOR with old[oldPos..oldPos+x)
+                    long remaining = x;
+                    long readOldPos = oldPos;
+                    while (remaining > 0) {
+                        int chunk = (int) Math.min(remaining, CHUNK);
+                        readFully(diffBz, diffBuf, 0, chunk);
 
-                // Extra block: copy y raw new bytes directly to output
-                remaining = y;
-                while (remaining > 0) {
-                    int chunk = (int) Math.min(remaining, CHUNK);
-                    readFully(extraBz, extraBuf, 0, chunk);
-                    newOut.write(extraBuf, 0, chunk);
-                    remaining -= chunk;
-                }
-                newPos += y;
+                        // Compute which part of this chunk overlaps with the valid old-file range
+                        long overlapStart = Math.max(0L, readOldPos);
+                        long overlapEnd = Math.min(oldLen, readOldPos + chunk);
+                        int overlapLen = (int) Math.max(0L, overlapEnd - overlapStart);
+                        // Offset within diffBuf where old data begins
+                        int overlapBufOff = (int) Math.max(0L, -readOldPos);
 
-                // Adjust old position
-                oldPos += z;
+                        if (overlapLen > 0) {
+                            oldRaf.seek(overlapStart);
+                            readFullyRaf(oldRaf, oldBuf, 0, overlapLen);
+                            for (int i = 0; i < overlapLen; i++) {
+                                diffBuf[overlapBufOff + i] ^= oldBuf[i];
+                            }
+                        }
+
+                        newOut.write(diffBuf, 0, chunk);
+                        remaining -= chunk;
+                        readOldPos += chunk;
+                    }
+                    newPos += x;
+                    oldPos += x;
+
+                    // Extra block: copy y raw new bytes directly to output
+                    remaining = y;
+                    while (remaining > 0) {
+                        int chunk = (int) Math.min(remaining, CHUNK);
+                        readFully(extraBz, extraBuf, 0, chunk);
+                        newOut.write(extraBuf, 0, chunk);
+                        remaining -= chunk;
+                    }
+                    newPos += y;
+
+                    // Adjust old position
+                    oldPos += z;
+                }
+
+                newOut.getFD().sync();
             }
-
-            ctrlBz.close();
-            diffBz.close();
-            extraBz.close();
-            newOut.getFD().sync();
         }
     }
 
