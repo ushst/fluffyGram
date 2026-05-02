@@ -355,6 +355,8 @@ jobs:
 
       - name: Generate update manifests
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
         run: |
           set -euo pipefail
           BUILD_RELEASE="${{ steps.build_type.outputs.build_release }}"
@@ -362,14 +364,76 @@ jobs:
 
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             RELEASE_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
-            python scripts/generate_update_manifest.py \
-              --gradle-properties gradle.properties \
-              --apk-url "${{ steps.meta.outputs.apk_url }}" \
-              --page-url "${{ steps.meta.outputs.page_url }}" \
-              --sha256 "$RELEASE_SHA256" \
-              --file-name "${{ steps.meta.outputs.apk_name }}" \
-              --changelog-file artifacts/changelog.txt \
-              --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
+
+            # --- delta patch generation ---
+            DELTA_JSON_ARG=""
+            PREV_RELEASE_TAG="${{ steps.notes.outputs.previous_tag }}"
+            if [[ -n "$PREV_RELEASE_TAG" ]]; then
+              PREV_APK_NAME="${{ steps.meta.outputs.apk_name }}"
+              PREV_APK_PATH="artifacts/prev-${PREV_APK_NAME}"
+              if gh release download "$PREV_RELEASE_TAG" \
+                    -R "${{ github.repository }}" \
+                    --pattern "${PREV_APK_NAME}" \
+                    --output "$PREV_APK_PATH" \
+                    --clobber 2>/dev/null; then
+                sudo apt-get install -y bsdiff >/dev/null 2>&1 || true
+                PATCH_NAME="patch-${PREV_RELEASE_TAG}-to-${{ steps.meta.outputs.release_tag }}.bsdiff"
+                PATCH_PATH="artifacts/${PATCH_NAME}"
+                if bsdiff "$PREV_APK_PATH" "artifacts/${{ steps.meta.outputs.apk_name }}" "$PATCH_PATH"; then
+                  PATCH_SHA256="$(sha256sum "$PATCH_PATH" | cut -d ' ' -f 1)"
+                  PATCH_SIZE="$(stat -c%s "$PATCH_PATH")"
+                  PATCH_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.meta.outputs.release_tag }}/${PATCH_NAME}"
+
+                  # Derive the fromVersionCode from gradle.properties in the previous tag
+                  PREV_VERSION_CODE="$(python - <<'PY'
+import subprocess, sys
+result = subprocess.run(
+    ["git", "show", "${{ steps.notes.outputs.previous_tag }}:gradle.properties"],
+    capture_output=True, text=True)
+props = {}
+for line in result.stdout.splitlines():
+    line = line.strip()
+    if "=" in line and not line.startswith("#"):
+        k, v = line.split("=", 1)
+        props[k.strip()] = v.strip()
+base = int(props.get("APP_VERSION_CODE", 0))
+patch = int(props.get("FLUFFY_PATCH_VERSION", 0))
+# versionCode = (base * 1000 + patch) * 10 + abiCode(9)
+print((base * 1000 + patch) * 10 + 9)
+PY
+                  )"
+
+                  DELTA_JSON_ARG="[{\"fromVersionCode\":${PREV_VERSION_CODE},\"url\":\"${PATCH_URL}\",\"sha256\":\"${PATCH_SHA256^^}\",\"size\":${PATCH_SIZE}}]"
+                  echo "Delta patch generated: ${PATCH_PATH} (${PATCH_SIZE} bytes)"
+                else
+                  echo "::warning::bsdiff failed, skipping delta patch"
+                fi
+              else
+                echo "Previous release APK not found, skipping delta patch"
+              fi
+              rm -f "$PREV_APK_PATH"
+            fi
+
+            if [[ -n "$DELTA_JSON_ARG" ]]; then
+              python scripts/generate_update_manifest.py \
+                --gradle-properties gradle.properties \
+                --apk-url "${{ steps.meta.outputs.apk_url }}" \
+                --page-url "${{ steps.meta.outputs.page_url }}" \
+                --sha256 "$RELEASE_SHA256" \
+                --file-name "${{ steps.meta.outputs.apk_name }}" \
+                --changelog-file artifacts/changelog.txt \
+                --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}" \
+                --delta-json "$DELTA_JSON_ARG"
+            else
+              python scripts/generate_update_manifest.py \
+                --gradle-properties gradle.properties \
+                --apk-url "${{ steps.meta.outputs.apk_url }}" \
+                --page-url "${{ steps.meta.outputs.page_url }}" \
+                --sha256 "$RELEASE_SHA256" \
+                --file-name "${{ steps.meta.outputs.apk_name }}" \
+                --changelog-file artifacts/changelog.txt \
+                --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
+            fi
           fi
 
           if [[ "$BUILD_DEBUG" == "true" ]]; then
@@ -438,6 +502,10 @@ jobs:
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             FILES+=("artifacts/${{ steps.meta.outputs.apk_name }}")
             FILES+=("artifacts/${{ steps.meta.outputs.update_manifest_name }}")
+            # Include delta patch if it was generated
+            shopt -s nullglob
+            for f in artifacts/patch-*.bsdiff; do FILES+=("$f"); done
+            shopt -u nullglob
           fi
           if [[ "$BUILD_DEBUG" == "true" ]]; then
             FILES+=("artifacts/${{ steps.meta.outputs.debug_apk_name }}")

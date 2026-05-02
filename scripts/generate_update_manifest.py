@@ -25,6 +25,14 @@ def main() -> None:
     parser.add_argument("--file-name", default="app.apk")
     parser.add_argument("--abi-code", type=int, default=9)
     parser.add_argument("--changelog-file")
+    # Delta patch support: pass a JSON array of delta entries.
+    # Each entry must contain at minimum: fromVersionCode (int), url (str), sha256 (str).
+    # Example: '[{"fromVersionCode":66661890,"url":"https://...","sha256":"ABC...","size":4500000}]'
+    parser.add_argument(
+        "--delta-json",
+        default=None,
+        help="JSON array of delta patch entries to embed in the manifest",
+    )
     args = parser.parse_args()
 
     props = load_properties(Path(args.gradle_properties))
@@ -39,7 +47,7 @@ def main() -> None:
     if args.changelog_file:
         changelog = Path(args.changelog_file).read_text(encoding="utf-8").strip()
 
-    payload = {
+    payload: dict = {
         "version": version_name,
         "versionCode": version_code,
         "apkUrl": args.apk_url,
@@ -48,6 +56,14 @@ def main() -> None:
         "fileName": args.file_name,
         "changelog": changelog,
     }
+
+    if args.delta_json:
+        try:
+            deltas = json.loads(args.delta_json)
+            if isinstance(deltas, list) and deltas:
+                payload["deltas"] = deltas
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"--delta-json is not valid JSON: {exc}") from exc
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
