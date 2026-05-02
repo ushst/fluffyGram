@@ -162,7 +162,7 @@ public class FluffySettingsActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_DEBUG_INFO, LocaleController.getString(R.string.FluffyDebugInfo), null, 0));
         items.add(new ItemInner(VIEW_TYPE_HEADER, ROW_LINKS_SECTION, LocaleController.getString(R.string.FluffyLinksSection), null, 0));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_CHANNEL, LocaleController.getString(R.string.ProfileChannel), "t.me/fluffyGram", R.drawable.msg_channel));
-        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GITHUB, LocaleController.getString(R.string.FluffyGitHub), "github.com/ushst/fluffyGram", R.drawable.msg_link2));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_GITHUB, LocaleController.getString(R.string.FluffyGitHub), "github.com/ushst/fluffyGram (v20)", R.drawable.msg_link2));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }

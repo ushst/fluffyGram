@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 from pathlib import Path
 
 
@@ -25,6 +26,7 @@ def main() -> None:
     parser.add_argument("--file-name", default="app.apk")
     parser.add_argument("--abi-code", type=int, default=9)
     parser.add_argument("--changelog-file")
+    parser.add_argument("--deltas-json")
     args = parser.parse_args()
 
     props = load_properties(Path(args.gradle_properties))
@@ -39,6 +41,11 @@ def main() -> None:
     if args.changelog_file:
         changelog = Path(args.changelog_file).read_text(encoding="utf-8").strip()
 
+    deltas = []
+    if args.deltas_json and os.path.exists(args.deltas_json):
+        with open(args.deltas_json, "r") as f:
+            deltas = json.load(f)
+
     payload = {
         "version": version_name,
         "versionCode": version_code,
@@ -47,6 +54,7 @@ def main() -> None:
         "sha256": args.sha256.upper(),
         "fileName": args.file_name,
         "changelog": changelog,
+        "deltas": deltas
     }
 
     output_path = Path(args.output)

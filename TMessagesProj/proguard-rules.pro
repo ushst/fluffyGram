@@ -108,3 +108,6 @@
 # Use -keep to explicitly keep any other classes shrinking would remove
 -dontoptimize
 -dontobfuscate
+
+# Fluffy Delta Update System
+-keep class org.ushastoe.fluffy.utils.** { *; }

@@ -186,6 +186,7 @@
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>
     <string name="FluffyNotificationIcon">Use the fluffyGram notification icon</string>
     <string name="FluffyUpdateReadyToInstall">The update has been downloaded and is ready to install.</string>
+    <string name="FluffyUpdateDeltaInfo">Delta patch available (%1$s download).</string>
     <string name="FluffyUpdateDownloadedInstall">Downloaded. Install?</string>
     <string name="FluffyUpdateDownloadStarted">Downloading update...</string>
     <string name="FluffyUpdateDownloadFailed">Failed to download the update.</string>

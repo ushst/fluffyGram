@@ -355,13 +355,45 @@ jobs:
 
       - name: Generate update manifests
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           BUILD_RELEASE="${{ steps.build_type.outputs.build_release }}"
           BUILD_DEBUG="${{ steps.build_type.outputs.build_debug }}"
+          PREV_TAG="${{ steps.notes.outputs.previous_tag }}"
+
+          sudo apt-get update && sudo apt-get install -y bsdiff
 
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             RELEASE_SHA256="$(sha256sum "artifacts/${{ steps.meta.outputs.apk_name }}" | cut -d ' ' -f 1)"
+            
+            # Generate deltas if previous release exists
+            if [ -n "$PREV_TAG" ]; then
+              mkdir -p previous_release
+              if gh release download "$PREV_TAG" -R "$GH_REPO" -p "fluffyGram-*.apk" -D previous_release --clobber; then
+                OLD_APK=$(ls previous_release/fluffyGram-*.apk | head -n 1)
+                if [ -f "$OLD_APK" ]; then
+                  PATCH_NAME="fluffyGram-${{ steps.meta.outputs.version_name }}.patch"
+                  python scripts/generate_delta.py "$OLD_APK" "artifacts/${{ steps.meta.outputs.apk_name }}" "artifacts/$PATCH_NAME"
+                  
+                  # Extract OLD_VERSION_CODE from OLD_APK filename or assume it's hard to get.
+                  # Better: Extract from previous update.json
+                  gh release download "$PREV_TAG" -R "$GH_REPO" -p "update.json" -D previous_release --clobber
+                  OLD_VERSION_CODE=$(python -c "import json; print(json.load(open('previous_release/update.json'))['versionCode'])" || echo "0")
+                  
+                  if [ "$OLD_VERSION_CODE" != "0" ]; then
+                    PATCH_SHA256="$(sha256sum "artifacts/$PATCH_NAME" | cut -d ' ' -f 1)"
+                    PATCH_SIZE=$(stat -c%s "artifacts/$PATCH_NAME")
+                    PATCH_URL="https://github.com/${GH_REPO}/releases/download/${{ steps.meta.outputs.release_tag }}/$PATCH_NAME"
+                    
+                    echo "[{\"from\": $OLD_VERSION_CODE, \"url\": \"$PATCH_URL\", \"sha256\": \"$PATCH_SHA256\", \"size\": $PATCH_SIZE}]" > artifacts/deltas.json
+                  fi
+                fi
+              fi
+            fi
+
             python scripts/generate_update_manifest.py \
               --gradle-properties gradle.properties \
               --apk-url "${{ steps.meta.outputs.apk_url }}" \
@@ -369,6 +401,7 @@ jobs:
               --sha256 "$RELEASE_SHA256" \
               --file-name "${{ steps.meta.outputs.apk_name }}" \
               --changelog-file artifacts/changelog.txt \
+              --deltas-json artifacts/deltas.json \
               --output "artifacts/${{ steps.meta.outputs.update_manifest_name }}"
           fi
 
@@ -438,6 +471,9 @@ jobs:
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             FILES+=("artifacts/${{ steps.meta.outputs.apk_name }}")
             FILES+=("artifacts/${{ steps.meta.outputs.update_manifest_name }}")
+            if [ -f "artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.patch" ]; then
+              FILES+=("artifacts/fluffyGram-${{ steps.meta.outputs.version_name }}.patch")
+            fi
           fi
           if [[ "$BUILD_DEBUG" == "true" ]]; then
             FILES+=("artifacts/${{ steps.meta.outputs.debug_apk_name }}")

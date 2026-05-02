@@ -385,6 +385,7 @@ add_library(${NATIVE_LIB} SHARED
         genann.c
         secureid_ocr.cpp
         tde2e/bridge.cpp
+        fluffy_patch_utils.cpp
 )
 
 target_compile_options(${NATIVE_LIB} PUBLIC

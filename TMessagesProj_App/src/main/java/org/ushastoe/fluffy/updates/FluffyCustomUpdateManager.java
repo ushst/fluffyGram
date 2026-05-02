@@ -29,6 +29,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.AlertsCreator;
 import org.ushastoe.fluffy.hooks.UpdateCheckSettingsHook;
 import org.telegram.messenger.regular.BuildConfig;
+import org.ushastoe.fluffy.utils.FluffyPatchUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -39,6 +40,8 @@ import java.io.InterruptedIOException;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class FluffyCustomUpdateManager {
 
@@ -73,6 +76,8 @@ public final class FluffyCustomUpdateManager {
     private WeakReference<AlertDialog> currentDialogRef;
     private long lastProgressDispatchUptime;
 
+    private List<DeltaUpdate> deltas = new ArrayList<>();
+
     public void init(Context context) {
         preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         loadState();
@@ -86,7 +91,6 @@ public final class FluffyCustomUpdateManager {
         if (!isEnabled()) {
             return false;
         }
-        // Keep updates enabled for the public release channel, while preserving beta/standalone support.
         return !isDebugBuild || isStandalone || isBeta;
     }
 
@@ -122,7 +126,9 @@ public final class FluffyCustomUpdateManager {
                 } else if (!finalFailed) {
                     clearStoredUpdate(true);
                 }
-                whenDone.run();
+                if (whenDone != null) {
+                    whenDone.run();
+                }
             });
         });
     }
@@ -145,6 +151,12 @@ public final class FluffyCustomUpdateManager {
         if (readyToInstall) {
             message.append("\n\n").append(LocaleController.getString(R.string.FluffyUpdateReadyToInstall));
         }
+        
+        DeltaUpdate delta = findApplicableDelta();
+        if (delta != null && !readyToInstall) {
+             message.append("\n\n").append(LocaleController.formatString("FluffyUpdateDeltaInfo", R.string.FluffyUpdateDeltaInfo, AndroidUtilities.formatFileSize(delta.size)));
+        }
+
         if (!TextUtils.isEmpty(betaUpdate.changelog)) {
             message.append("\n\n").append(betaUpdate.changelog.trim());
         }
@@ -193,7 +205,13 @@ public final class FluffyCustomUpdateManager {
             downloadedBytes = 0;
             totalBytes = 0;
             lastProgressDispatchUptime = 0L;
-            snapshot = new DownloadSnapshot(update.version, update.versionCode, apkUrl, sha256, buildFileName(fileName, update.version));
+            
+            DeltaUpdate delta = findApplicableDelta();
+            if (delta != null) {
+                snapshot = new DownloadSnapshot(update.version, update.versionCode, delta.url, delta.sha256, buildFileName(fileName, update.version) + ".patch", true);
+            } else {
+                snapshot = new DownloadSnapshot(update.version, update.versionCode, apkUrl, sha256, buildFileName(fileName, update.version), false);
+            }
         }
         postGlobalNotification(NotificationCenter.appUpdateLoading);
         Thread thread = new Thread(() -> performDownload(snapshot), "fluffy-update-download");
@@ -201,6 +219,18 @@ public final class FluffyCustomUpdateManager {
             downloadThread = thread;
         }
         thread.start();
+    }
+
+    private DeltaUpdate findApplicableDelta() {
+        int currentVersionCode = getCurrentInstalledUpdate().versionCode;
+        synchronized (lock) {
+            for (DeltaUpdate delta : deltas) {
+                if (delta.from == currentVersionCode) {
+                    return delta;
+                }
+            }
+        }
+        return null;
     }
 
     public void cancelDownloadingUpdate() {
@@ -322,6 +352,7 @@ public final class FluffyCustomUpdateManager {
             pageUrl = parsed.pageUrl;
             sha256 = parsed.sha256;
             fileName = parsed.fileName;
+            deltas = parsed.deltas;
             if (!sameUpdate && downloadedFile != null) {
                 deleteFile(downloadedFile);
                 downloadedFile = null;
@@ -341,6 +372,7 @@ public final class FluffyCustomUpdateManager {
             pageUrl = null;
             sha256 = null;
             fileName = null;
+            deltas.clear();
             if (deleteDownloadedFile && downloadedFile != null) {
                 deleteFile(downloadedFile);
             }
@@ -390,7 +422,7 @@ public final class FluffyCustomUpdateManager {
         HttpURLConnection connection = null;
         boolean success = false;
         try {
-            connection = (HttpURLConnection) new URL(snapshot.apkUrl).openConnection();
+            connection = (HttpURLConnection) new URL(snapshot.url).openConnection();
             connection.setConnectTimeout(15000);
             connection.setReadTimeout(30000);
             connection.setInstanceFollowRedirects(true);
@@ -429,13 +461,30 @@ public final class FluffyCustomUpdateManager {
             if (!TextUtils.isEmpty(snapshot.sha256) && !verifySha256(tempFile, snapshot.sha256)) {
                 throw new IOException("Downloaded update hash mismatch");
             }
-            deleteFile(targetFile);
-            if (!tempFile.renameTo(targetFile)) {
-                throw new IOException("Failed to move update file into place");
+            
+            File finalApkFile;
+            if (snapshot.isDelta) {
+                finalApkFile = new File(updatesDir, buildFileName(fileName, snapshot.version));
+                deleteFile(finalApkFile);
+                String currentApkPath = ApplicationLoader.applicationContext.getApplicationInfo().sourceDir;
+                if (!FluffyPatchUtils.applyPatch(currentApkPath, finalApkFile.getAbsolutePath(), tempFile.getAbsolutePath())) {
+                    throw new IOException("Failed to apply delta patch");
+                }
+                deleteFile(tempFile);
+                if (!TextUtils.isEmpty(sha256) && !verifySha256(finalApkFile, sha256)) {
+                    throw new IOException("Patched APK hash mismatch");
+                }
+            } else {
+                deleteFile(targetFile);
+                if (!tempFile.renameTo(targetFile)) {
+                    throw new IOException("Failed to move update file into place");
+                }
+                finalApkFile = targetFile;
             }
+
             synchronized (lock) {
-                downloadedFile = targetFile;
-                downloadedBytes = targetFile.length();
+                downloadedFile = finalApkFile;
+                downloadedBytes = finalApkFile.length();
                 totalBytes = Math.max(totalBytes, downloadedBytes);
                 persistState();
             }
@@ -516,6 +565,23 @@ public final class FluffyCustomUpdateManager {
         String parsedSha256 = firstString(updateObject, "sha256", "sha_256", "apkSha256", "apk_sha256");
         String parsedFileName = firstString(updateObject, "fileName", "file_name", "assetName", "asset_name");
 
+        List<DeltaUpdate> parsedDeltas = new ArrayList<>();
+        JSONArray deltasArray = updateObject.optJSONArray("deltas");
+        if (deltasArray != null) {
+            for (int i = 0; i < deltasArray.length(); i++) {
+                JSONObject deltaObj = deltasArray.optJSONObject(i);
+                if (deltaObj != null) {
+                    int from = deltaObj.optInt("from");
+                    String url = deltaObj.optString("url");
+                    String dSha256 = deltaObj.optString("sha256");
+                    long size = deltaObj.optLong("size");
+                    if (from > 0 && !TextUtils.isEmpty(url)) {
+                        parsedDeltas.add(new DeltaUpdate(from, url, dSha256, size));
+                    }
+                }
+            }
+        }
+
         JSONArray assets = updateObject.optJSONArray("assets");
         if (assets != null) {
             for (int i = 0; i < assets.length(); i++) {
@@ -539,7 +605,6 @@ public final class FluffyCustomUpdateManager {
                     if (TextUtils.isEmpty(parsedSha256)) {
                         parsedSha256 = firstString(asset, "sha256", "sha_256");
                     }
-                    break;
                 }
             }
         }
@@ -553,7 +618,7 @@ public final class FluffyCustomUpdateManager {
         if (TextUtils.isEmpty(version) || versionCode <= 0 || (TextUtils.isEmpty(parsedApkUrl) && TextUtils.isEmpty(parsedPageUrl))) {
             return null;
         }
-        return new ParsedUpdate(new BetaUpdate(version, versionCode, changelog), parsedApkUrl, parsedPageUrl, parsedSha256, buildFileName(parsedFileName, version));
+        return new ParsedUpdate(new BetaUpdate(version, versionCode, changelog), parsedApkUrl, parsedPageUrl, parsedSha256, buildFileName(parsedFileName, version), parsedDeltas);
     }
 
     private String fetchUrl(String url) throws Exception {
@@ -721,35 +786,53 @@ public final class FluffyCustomUpdateManager {
         }
     }
 
+    private static final class DeltaUpdate {
+        final int from;
+        final String url;
+        final String sha256;
+        final long size;
+
+        DeltaUpdate(int from, String url, String sha256, long size) {
+            this.from = from;
+            this.url = url;
+            this.sha256 = sha256;
+            this.size = size;
+        }
+    }
+
     private static final class ParsedUpdate {
         final BetaUpdate update;
         final String apkUrl;
         final String pageUrl;
         final String sha256;
         final String fileName;
+        final List<DeltaUpdate> deltas;
 
-        ParsedUpdate(BetaUpdate update, String apkUrl, String pageUrl, String sha256, String fileName) {
+        ParsedUpdate(BetaUpdate update, String apkUrl, String pageUrl, String sha256, String fileName, List<DeltaUpdate> deltas) {
             this.update = update;
             this.apkUrl = apkUrl;
             this.pageUrl = pageUrl;
             this.sha256 = sha256;
             this.fileName = fileName;
+            this.deltas = deltas;
         }
     }
 
     private static final class DownloadSnapshot {
         final String version;
         final int versionCode;
-        final String apkUrl;
+        final String url;
         final String sha256;
         final String fileName;
+        final boolean isDelta;
 
-        DownloadSnapshot(String version, int versionCode, String apkUrl, String sha256, String fileName) {
+        DownloadSnapshot(String version, int versionCode, String url, String sha256, String fileName, boolean isDelta) {
             this.version = version;
             this.versionCode = versionCode;
-            this.apkUrl = apkUrl;
+            this.url = url;
             this.sha256 = sha256;
             this.fileName = fileName;
+            this.isDelta = isDelta;
         }
     }
 }

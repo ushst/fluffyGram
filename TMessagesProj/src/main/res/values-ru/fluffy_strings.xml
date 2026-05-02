@@ -183,6 +183,7 @@
     <string name="FluffyMapProviderOpenStreetMap">OpenStreetMap</string>
     <string name="FluffyNotificationIcon">Использовать иконку уведомлений fluffyGram</string>
     <string name="FluffyUpdateReadyToInstall">Обновление загружено и готово к установке.</string>
+    <string name="FluffyUpdateDeltaInfo">Доступен патч (скачивание %1$s).</string>
     <string name="FluffyUpdateDownloadedInstall">Загружено. Установить?</string>
     <string name="FluffyUpdateDownloadStarted">Загрузка обновления...</string>
     <string name="FluffyUpdateDownloadFailed">Не удалось загрузить обновление.</string>

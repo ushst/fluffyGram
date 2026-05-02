@@ -144,6 +144,28 @@ to the same GitHub Release so the in-app updater can resolve the APK URL and che
 3. For custom collapsing headers, reuse the shared centered-title calculation instead of introducing new ad-hoc offsets.
 4. If a screen creates a custom `ActionBar`, connect it to the shared title-alignment hook path instead of implementing standalone alignment logic.
 
+## Delta Update System (Advanced)
+
+### Architecture
+1. **Format:** Optimized `BSZ40` format (modified BSDIFF40 using ZLIB instead of BZIP2).
+2. **Native Logic:** `TMessagesProj/jni/third_party/bsdiff.c` handles the `bspatch` operation.
+3. **Bridge:** `FluffyPatchUtils.java` + `fluffy_patch_utils.cpp` expose patching to Java.
+4. **Integration:** `FluffyCustomUpdateManager.java` manages downloading, hash verification (SHA-256), and applying patches to the installed APK (`context.getApplicationInfo().sourceDir`).
+
+### Automation (CI/CD)
+1. **Generation:** Automated in `.github/workflows/build-release.yml`.
+2. **Steps:**
+   - Detects `PREV_TAG` from previous release.
+   - Downloads previous APK and `update.json`.
+   - Generates delta using `scripts/generate_delta.py`.
+   - Injects delta metadata into the new `update.json`.
+   - Uploads `.patch` file as a release asset.
+
+### Maintenance
+- **Native Changes:** If modifying `bsdiff.c`, ensure compatibility with the `BSZ40` magic header and ZLIB decompression.
+- **Manifest:** The `update.json` `deltas` array is populated automatically. Do not edit manually unless CI fails.
+- **Troubleshooting:** If patching fails on device, check `Logcat` for `FluffyPatchUtils` errors. The system automatically falls back to full APK download on failure.
+
 ## Branding Standard
 1. The app name resource should be `fluffyGram`.
 2. The beta name resource should be `fluffyGram Beta`.
