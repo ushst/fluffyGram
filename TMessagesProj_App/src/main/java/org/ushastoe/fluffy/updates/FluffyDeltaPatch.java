@@ -9,8 +9,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Applies a bsdiff binary patch to an existing APK to produce the updated APK.
@@ -26,11 +28,15 @@ import java.nio.ByteOrder;
  *   x — number of bytes to read from diff stream (XOR with old data)
  *   y — number of bytes to read from extra stream (raw new data)
  *   z — signed seek delta in old file
+ *
+ * Memory usage: O(CHUNK_SIZE) — old APK is read via RandomAccessFile in chunks;
+ * the new APK is written sequentially. No full-file buffers are allocated.
  */
 public final class FluffyDeltaPatch {
 
     private static final String BSDIFF_MAGIC = "BSDIFF40";
     private static final int HEADER_SIZE = 32;
+    private static final int CHUNK = 64 * 1024;
 
     private FluffyDeltaPatch() {}
 
@@ -49,13 +55,16 @@ public final class FluffyDeltaPatch {
             throw new IllegalArgumentException("Patch file not found: " + patchFile);
         }
 
-        byte[] oldData = readFile(oldFile);
         byte[] header = new byte[HEADER_SIZE];
+        long oldLen = oldFile.length();
 
-        try (FileInputStream patchIn = new FileInputStream(patchFile)) {
+        try (RandomAccessFile oldRaf = new RandomAccessFile(oldFile, "r");
+             FileInputStream patchIn = new FileInputStream(patchFile);
+             FileOutputStream newOut = new FileOutputStream(newFile)) {
+
             readFully(patchIn, header);
 
-            String magic = new String(header, 0, 8, java.nio.charset.StandardCharsets.US_ASCII);
+            String magic = new String(header, 0, 8, StandardCharsets.US_ASCII);
             if (!BSDIFF_MAGIC.equals(magic)) {
                 throw new IOException("Invalid patch magic: " + magic);
             }
@@ -68,79 +77,82 @@ public final class FluffyDeltaPatch {
                 throw new IOException("Corrupt patch header: negative field");
             }
 
-            byte[] newData = new byte[newSize];
-
             LimitedInputStream ctrlRaw = new LimitedInputStream(patchIn, ctrlLen);
             LimitedInputStream diffRaw = new LimitedInputStream(patchIn, diffLen);
-            // extra block follows immediately after diffLen bytes
+
             BZip2CompressorInputStream ctrlBz = new BZip2CompressorInputStream(ctrlRaw);
             BZip2CompressorInputStream diffBz = new BZip2CompressorInputStream(diffRaw);
             BZip2CompressorInputStream extraBz = new BZip2CompressorInputStream(
                     new BufferedInputStream(patchIn));
 
-            int oldPos = 0;
-            int newPos = 0;
+            // Reusable chunk buffers — avoids any full-file allocation
+            byte[] diffBuf = new byte[CHUNK];
+            byte[] oldBuf = new byte[CHUNK];
+            byte[] extraBuf = new byte[CHUNK];
+
+            long newPos = 0;
+            long oldPos = 0;
 
             while (newPos < newSize) {
-                // Read ctrl triple
                 long x = readInt64BZ(ctrlBz);
                 long y = readInt64BZ(ctrlBz);
                 long z = readInt64BZ(ctrlBz);
 
-                // Bounds check
-                if (newPos + x > newSize) {
-                    throw new IOException("Corrupt patch: diff overrun");
+                if (x < 0 || y < 0 || newPos + x > newSize || newPos + x + y > newSize) {
+                    throw new IOException("Corrupt patch ctrl block at newPos=" + newPos);
                 }
 
-                // Apply diff block (XOR with old data)
-                for (int i = 0; i < (int) x; i++) {
-                    int diffByte = diffBz.read();
-                    if (diffByte == -1) {
-                        throw new IOException("Corrupt patch: diff stream ended prematurely");
+                // Diff block: read x bytes from diffBz, XOR with old[oldPos..oldPos+x)
+                long remaining = x;
+                long readOldPos = oldPos;
+                while (remaining > 0) {
+                    int chunk = (int) Math.min(remaining, CHUNK);
+                    readFully(diffBz, diffBuf, 0, chunk);
+
+                    // Compute which part of this chunk overlaps with the valid old-file range
+                    long overlapStart = Math.max(0L, readOldPos);
+                    long overlapEnd = Math.min(oldLen, readOldPos + chunk);
+                    int overlapLen = (int) Math.max(0L, overlapEnd - overlapStart);
+                    // Offset within diffBuf where old data begins
+                    int overlapBufOff = (int) Math.max(0L, -readOldPos);
+
+                    if (overlapLen > 0) {
+                        oldRaf.seek(overlapStart);
+                        readFullyRaf(oldRaf, oldBuf, 0, overlapLen);
+                        for (int i = 0; i < overlapLen; i++) {
+                            diffBuf[overlapBufOff + i] ^= oldBuf[i];
+                        }
                     }
-                    int oldByte = (oldPos + i >= 0 && oldPos + i < oldData.length)
-                            ? (oldData[oldPos + i] & 0xFF) : 0;
-                    newData[newPos + i] = (byte) (diffByte ^ oldByte);
-                }
-                newPos += (int) x;
-                oldPos += (int) x;
 
-                // Apply extra block (raw new data)
-                if (newPos + y > newSize) {
-                    throw new IOException("Corrupt patch: extra overrun");
+                    newOut.write(diffBuf, 0, chunk);
+                    remaining -= chunk;
+                    readOldPos += chunk;
                 }
-                readFully(extraBz, newData, newPos, (int) y);
-                newPos += (int) y;
+                newPos += x;
+                oldPos += x;
+
+                // Extra block: copy y raw new bytes directly to output
+                remaining = y;
+                while (remaining > 0) {
+                    int chunk = (int) Math.min(remaining, CHUNK);
+                    readFully(extraBz, extraBuf, 0, chunk);
+                    newOut.write(extraBuf, 0, chunk);
+                    remaining -= chunk;
+                }
+                newPos += y;
 
                 // Adjust old position
-                oldPos += (int) z;
+                oldPos += z;
             }
 
             ctrlBz.close();
             diffBz.close();
             extraBz.close();
-
-            // Write result
-            try (FileOutputStream out = new FileOutputStream(newFile)) {
-                out.write(newData);
-                out.getFD().sync();
-            }
+            newOut.getFD().sync();
         }
     }
 
     // ---- helpers ----
-
-    private static byte[] readFile(File file) throws IOException {
-        long len = file.length();
-        if (len > Integer.MAX_VALUE) {
-            throw new IOException("File too large: " + file);
-        }
-        byte[] data = new byte[(int) len];
-        try (FileInputStream in = new FileInputStream(file)) {
-            readFully(in, data);
-        }
-        return data;
-    }
 
     private static void readFully(InputStream in, byte[] buf) throws IOException {
         readFully(in, buf, 0, buf.length);
@@ -152,6 +164,17 @@ public final class FluffyDeltaPatch {
             int read = in.read(buf, off + (len - remaining), remaining);
             if (read == -1) {
                 throw new IOException("Unexpected end of stream (need " + remaining + " more bytes)");
+            }
+            remaining -= read;
+        }
+    }
+
+    private static void readFullyRaf(RandomAccessFile raf, byte[] buf, int off, int len) throws IOException {
+        int remaining = len;
+        while (remaining > 0) {
+            int read = raf.read(buf, off + (len - remaining), remaining);
+            if (read == -1) {
+                throw new IOException("Unexpected end of file in old APK");
             }
             remaining -= read;
         }
