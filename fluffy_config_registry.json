@@ -245,6 +245,108 @@
       ]
     },
     {
+      "name": "Custom Update Manager",
+      "storage": "SharedPreferences(\"fluffy_custom_update\")",
+      "entries": [
+        {
+          "key": "version",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "version_code",
+          "storage": "fluffy_custom_update",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "changelog",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "apk_url",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "page_url",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "sha256",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "file_name",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "downloaded_file",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "downloaded_version_code",
+          "storage": "fluffy_custom_update",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "delta_url",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "delta_sha256",
+          "storage": "fluffy_custom_update",
+          "type": "string",
+          "default": "null",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "delta_from_version_code",
+          "storage": "fluffy_custom_update",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
       "name": "Premium Settings",
       "storage": "SharedPreferences(\"fluffy_premium_settings\")",
       "entries": [
