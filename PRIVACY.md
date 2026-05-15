@@ -19,5 +19,15 @@ Our application uses Android App Actions to provide shortcuts for common tasks (
 ## 4. Open Source
 The source code for fluffyGram is public and available for audit at [https://github.com/krolchonok/fluffyGram](https://github.com/krolchonok/fluffyGram).
 
-## 5. Contact
+## 5. Account and Data Deletion
+Since fluffyGram uses the official Telegram infrastructure, all account management, including data deletion, is handled directly through Telegram.
+
+Users can delete their account and all associated data by following these steps:
+1. Visit the official Telegram Deactivation Page: [https://my.telegram.org/auth?to=delete](https://my.telegram.org/auth?to=delete)
+2. Follow the instructions to authorize and confirm account deletion.
+
+Alternatively, you can delete your account directly within the application:
+`Settings > Privacy and Security > Delete my account`
+
+## 6. Contact
 If you have any questions about this Privacy Policy, you can contact us via GitHub Issues in the repository.
