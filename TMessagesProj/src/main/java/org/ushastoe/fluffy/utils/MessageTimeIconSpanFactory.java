@@ -12,17 +12,26 @@ public final class MessageTimeIconSpanFactory {
 
     public static ColoredImageSpan create(int iconRes) {
         ColoredImageSpan span = new ColoredImageSpan(iconRes, ColoredImageSpan.ALIGN_DEFAULT);
+        configure(span);
+        return span;
+    }
+
+    public static ColoredImageSpan createInvisible(int iconRes) {
+        ColoredImageSpan span = new ColoredImageSpan(iconRes, ColoredImageSpan.ALIGN_DEFAULT);
+        configure(span);
+        span.draw = false;
+        return span;
+    }
+
+    private static void configure(ColoredImageSpan span) {
         Paint.FontMetricsInt fontMetrics = Theme.chat_timePaint != null ? Theme.chat_timePaint.getFontMetricsInt() : null;
         if (fontMetrics != null) {
-            int lineHeight = Math.abs(fontMetrics.descent) + Math.abs(fontMetrics.ascent);
-            float textSize = Theme.chat_timePaint.getTextSize();
             span.setRelativeSize(fontMetrics);
-            if (lineHeight > 0 && textSize > 0) {
-                float scale = textSize / lineHeight;
-                span.setScale(scale, scale);
+            float textSize = Theme.chat_timePaint.getTextSize();
+            if (textSize > 0) {
+                span.setSize(Math.max(1, Math.round(textSize)));
             }
         }
         span.setTopOffset(0);
-        return span;
     }
 }

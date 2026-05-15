@@ -18349,6 +18349,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
         timeTextWidth += DeletedMessageIndicatorHook.getTimeWidthAdjustment(currentMessageObject);
         timeWidth += DeletedMessageIndicatorHook.getTimeWidthAdjustment(currentMessageObject);
+        timeTextWidth += MessageTimeLabelHook.getTimeWidthAdjustment(currentMessageObject);
+        timeWidth += MessageTimeLabelHook.getTimeWidthAdjustment(currentMessageObject);
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {
             timeWidth -= dp(8);
         }

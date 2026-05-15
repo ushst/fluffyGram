@@ -11,6 +11,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.ColoredImageSpan;
 import org.ushastoe.fluffy.utils.DocumentMetadataReader;
 import org.ushastoe.fluffy.utils.MessageTimeIconSpanFactory;
@@ -43,7 +44,7 @@ public final class DocumentAuthorIndicatorPatch {
         String cachedAuthor = authorCache.get(cacheKey);
         if (cachedAuthor == null) {
             scheduleAuthorLoad(messageObject, cacheKey);
-            return "";
+            return buildReservedTimeLabel(messageObject, edited);
         }
         if (cachedAuthor.isEmpty()) {
             return "";
@@ -99,8 +100,10 @@ public final class DocumentAuthorIndicatorPatch {
             synchronized (loadingKeys) {
                 loadingKeys.remove(cacheKey);
             }
-            AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(target.currentAccount)
-                    .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_MESSAGE_TEXT));
+            if (!TextUtils.isEmpty(author)) {
+                AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(target.currentAccount)
+                        .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_MESSAGE_TEXT));
+            }
         });
     }
 
@@ -109,7 +112,7 @@ public final class DocumentAuthorIndicatorPatch {
             return null;
         }
         for (Map.Entry<String, String> entry : result.entries.entrySet()) {
-            if ("author".equals(entry.getKey()) && !TextUtils.isEmpty(entry.getValue())) {
+            if (("author".equals(entry.getKey()) || "artist".equals(entry.getKey())) && !TextUtils.isEmpty(entry.getValue())) {
                 return entry.getValue();
             }
         }
@@ -130,8 +133,49 @@ public final class DocumentAuthorIndicatorPatch {
         }
         if (mode == PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_SHORT_TEXT) {
             builder.append(LocaleController.getString(R.string.FluffyDocumentAuthorMarkerShortText));
-            return;
+        } else {
+            builder.append(LocaleController.getString(R.string.FluffyDocumentAuthorMarkerText));
         }
-        builder.append(LocaleController.getString(R.string.FluffyDocumentAuthorMarkerText));
+    }
+
+    private static CharSequence buildReservedTimeLabel(MessageObject messageObject, boolean edited) {
+        String time = LocaleController.getInstance().getFormatterDay().format((long) messageObject.messageOwner.date * 1000);
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        if (messageObject.messageOwner.silent) {
+            MessageTimeLabelPatch.appendSilentMarker(builder);
+        }
+        if (edited) {
+            MessageTimeLabelPatch.appendEditedMarker(builder);
+        }
+        appendAuthorMarker(builder);
+        if (builder.length() > 0) {
+            builder.append(" ");
+        }
+        builder.append(time);
+        return builder;
+    }
+
+    public static int getTimeWidthAdjustment(MessageObject messageObject) {
+        if (messageObject == null
+                || messageObject.messageOwner == null
+                || !MessageActionsPatch.isDocumentMetadataEnabled()
+                || !DocumentMetadataPatch.canShowForMessage(messageObject)) {
+            return 0;
+        }
+        String cacheKey = buildCacheKey(messageObject);
+        if (TextUtils.isEmpty(cacheKey)) {
+            return 0;
+        }
+        String cachedAuthor = authorCache.get(cacheKey);
+        if (cachedAuthor != null && cachedAuthor.isEmpty()) {
+            return 0;
+        }
+        int mode = PremiumSettingsPatch.getDocumentAuthorMarkerMode();
+        if (mode != PremiumSettingsPatch.DOCUMENT_AUTHOR_MARKER_MODE_ICON) {
+            return 0;
+        }
+        float placeholderWidth = Theme.chat_timePaint != null ? Theme.chat_timePaint.measureText(AUTHOR_ICON_PLACEHOLDER) : 0f;
+        float reserve = Math.max(AndroidUtilities.dp(12), Theme.chat_timePaint != null ? Theme.chat_timePaint.getTextSize() * 0.95f : AndroidUtilities.dp(12));
+        return Math.max(0, (int) Math.ceil(reserve - placeholderWidth));
     }
 }

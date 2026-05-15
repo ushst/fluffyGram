@@ -159,6 +159,44 @@ public class FluffyDocumentMetadataActivity extends BaseFragment {
                 return LocaleController.getString(R.string.FluffyDocumentMetadataTotalTime);
             case "presentation_format":
                 return LocaleController.getString(R.string.FluffyDocumentMetadataPresentationFormat);
+            case "image_width":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataImageWidth);
+            case "image_height":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataImageHeight);
+            case "make":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataCameraMake);
+            case "model":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataCameraModel);
+            case "software":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataSoftware);
+            case "orientation":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataOrientation);
+            case "date_time_original":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataDateTimeOriginal);
+            case "date_time_digitized":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataDateTimeDigitized);
+            case "artist":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataArtist);
+            case "copyright":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataCopyright);
+            case "exposure_time":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataExposureTime);
+            case "f_number":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataFNumber);
+            case "iso":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataIso);
+            case "focal_length":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataFocalLength);
+            case "lens_model":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataLensModel);
+            case "flash":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataFlash);
+            case "white_balance":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataWhiteBalance);
+            case "gps":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataGps);
+            case "gps_altitude":
+                return LocaleController.getString(R.string.FluffyDocumentMetadataGpsAltitude);
             default:
                 return key;
         }

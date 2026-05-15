@@ -44,6 +44,23 @@ function Resolve-FirstExistingPath {
     return $null
 }
 
+function Resolve-GradleUserHome {
+    $currentGradleUserHome = [Environment]::GetEnvironmentVariable('GRADLE_USER_HOME')
+    $defaultGradleUserHome = Join-Path $HOME '.gradle'
+
+    if ([string]::IsNullOrWhiteSpace($currentGradleUserHome)) {
+        return $defaultGradleUserHome
+    }
+
+    $normalized = $currentGradleUserHome.Replace('/', '\')
+    if ($normalized -match '\\scoop\\apps\\gradle\\current\\\.gradle$') {
+        Write-Warning "Overriding GRADLE_USER_HOME from scoop-managed cache: $currentGradleUserHome"
+        return $defaultGradleUserHome
+    }
+
+    return $currentGradleUserHome
+}
+
 function Load-DotEnv {
     param(
         [Parameter(Mandatory = $true)]
@@ -349,6 +366,15 @@ Push-Location $scriptRoot
 try {
     $isWindowsPlatform = $PSVersionTable.Platform -eq 'Win32NT' -or $env:OS -eq 'Windows_NT'
     $gradleWrapper = if ($isWindowsPlatform) { '.\gradlew.bat' } else { './gradlew' }
+
+    $resolvedGradleUserHome = Resolve-GradleUserHome
+    if (-not [string]::IsNullOrWhiteSpace($resolvedGradleUserHome)) {
+        $env:GRADLE_USER_HOME = $resolvedGradleUserHome
+        if (-not (Test-Path $resolvedGradleUserHome)) {
+            New-Item -ItemType Directory -Force -Path $resolvedGradleUserHome | Out-Null
+        }
+        Write-Host "Using GRADLE_USER_HOME: $resolvedGradleUserHome" -ForegroundColor Yellow
+    }
 
     $javaCandidates = @(
         $JavaHome,

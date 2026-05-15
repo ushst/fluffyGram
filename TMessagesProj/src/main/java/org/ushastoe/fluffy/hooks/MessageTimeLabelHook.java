@@ -14,4 +14,8 @@ public final class MessageTimeLabelHook {
     public static CharSequence buildCustomTimeLabel(MessageObject messageObject, boolean edited) {
         return MessageTimeLabelPatch.buildCustomTimeLabel(messageObject, edited);
     }
+
+    public static int getTimeWidthAdjustment(MessageObject messageObject) {
+        return MessageTimeLabelPatch.getTimeWidthAdjustment(messageObject);
+    }
 }

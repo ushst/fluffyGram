@@ -365,8 +365,8 @@
     <string name="FluffyQrLoginSheetTitle">Login on this device</string>
     <string name="FluffyQrLoginSheetHelp">Scan this QR code from Telegram on another device to sign in here.</string>
     <string name="FluffyQrLoginExportFailed">Failed to create a QR login code.</string>
-    <string name="FluffyDocumentMetadataAction">Document metadata</string>
-    <string name="FluffyDocumentMetadataTitle">Document metadata</string>
+    <string name="FluffyDocumentMetadataAction">File metadata</string>
+    <string name="FluffyDocumentMetadataTitle">File metadata</string>
     <string name="FluffyDocumentMetadataLoading">Reading file metadata…</string>
     <string name="FluffyDocumentMetadataEmpty">No embedded metadata found in this file.</string>
     <string name="FluffyDocumentMetadataFileMissing">Download the file first to inspect its metadata.</string>
@@ -394,4 +394,23 @@
     <string name="FluffyDocumentMetadataNotes">Notes</string>
     <string name="FluffyDocumentMetadataTotalTime">Total editing time</string>
     <string name="FluffyDocumentMetadataPresentationFormat">Presentation format</string>
+    <string name="FluffyDocumentMetadataImageWidth">Image width</string>
+    <string name="FluffyDocumentMetadataImageHeight">Image height</string>
+    <string name="FluffyDocumentMetadataCameraMake">Camera make</string>
+    <string name="FluffyDocumentMetadataCameraModel">Camera model</string>
+    <string name="FluffyDocumentMetadataSoftware">Software</string>
+    <string name="FluffyDocumentMetadataOrientation">Orientation</string>
+    <string name="FluffyDocumentMetadataDateTimeOriginal">Original date</string>
+    <string name="FluffyDocumentMetadataDateTimeDigitized">Digitized date</string>
+    <string name="FluffyDocumentMetadataArtist">Artist</string>
+    <string name="FluffyDocumentMetadataCopyright">Copyright</string>
+    <string name="FluffyDocumentMetadataExposureTime">Exposure time</string>
+    <string name="FluffyDocumentMetadataFNumber">F-number</string>
+    <string name="FluffyDocumentMetadataIso">ISO</string>
+    <string name="FluffyDocumentMetadataFocalLength">Focal length</string>
+    <string name="FluffyDocumentMetadataLensModel">Lens model</string>
+    <string name="FluffyDocumentMetadataFlash">Flash</string>
+    <string name="FluffyDocumentMetadataWhiteBalance">White balance</string>
+    <string name="FluffyDocumentMetadataGps">GPS</string>
+    <string name="FluffyDocumentMetadataGpsAltitude">GPS altitude</string>
 </resources>

@@ -1,6 +1,9 @@
 package org.ushastoe.fluffy.utils;
 
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
+
+import androidx.exifinterface.media.ExifInterface;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -20,26 +23,36 @@ public final class DocumentMetadataReader {
     private static final long PDF_FULL_READ_LIMIT = 8L * 1024L * 1024L;
     private static final int PDF_HEAD_READ_LIMIT = 256 * 1024;
     private static final int PDF_TAIL_READ_LIMIT = 1024 * 1024;
+    private static final int XML_ENTRY_READ_LIMIT = 1024 * 1024;
+    private static final int METADATA_VALUE_LIMIT = 4096;
 
     private DocumentMetadataReader() {
     }
 
     public static MetadataResult read(File file, String fileName) throws IOException {
-        String extension = getExtension(fileName);
+        String extension = getExtension(!TextUtils.isEmpty(fileName) ? fileName : file.getName());
         MetadataResult result = new MetadataResult(extension);
         if (isOpenXmlExtension(extension)) {
             result.entries.putAll(readOpenXml(file));
         } else if ("pdf".equals(extension)) {
             result.entries.putAll(readPdf(file));
+        } else if (isImageExtension(extension)) {
+            result.entries.putAll(readImage(file));
         }
         return result;
     }
 
     public static boolean isSupportedExtension(String extension) {
-        return "pdf".equals(extension) || isOpenXmlExtension(extension);
+        if (TextUtils.isEmpty(extension)) {
+            return false;
+        }
+        return "pdf".equals(extension) || isOpenXmlExtension(extension) || isImageExtension(extension);
     }
 
     private static boolean isOpenXmlExtension(String extension) {
+        if (TextUtils.isEmpty(extension)) {
+            return false;
+        }
         switch (extension) {
             case "docx":
             case "docm":
@@ -55,6 +68,25 @@ public final class DocumentMetadataReader {
             case "ppsm":
             case "potx":
             case "potm":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static boolean isImageExtension(String extension) {
+        if (TextUtils.isEmpty(extension)) {
+            return false;
+        }
+        switch (extension) {
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "webp":
+            case "heic":
+            case "heif":
+            case "tif":
+            case "tiff":
                 return true;
             default:
                 return false;
@@ -107,9 +139,48 @@ public final class DocumentMetadataReader {
         return entries;
     }
 
+    private static LinkedHashMap<String, String> readImage(File file) throws IOException {
+        LinkedHashMap<String, String> entries = new LinkedHashMap<>();
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+        putIfPositive(entries, "image_width", options.outWidth);
+        putIfPositive(entries, "image_height", options.outHeight);
+
+        ExifInterface exifInterface;
+        try {
+            exifInterface = new ExifInterface(file.getAbsolutePath());
+        } catch (Throwable ignore) {
+            return entries;
+        }
+        putIfNotEmpty(entries, "make", getExifAttribute(exifInterface, ExifInterface.TAG_MAKE));
+        putIfNotEmpty(entries, "model", getExifAttribute(exifInterface, ExifInterface.TAG_MODEL));
+        putIfNotEmpty(entries, "software", getExifAttribute(exifInterface, ExifInterface.TAG_SOFTWARE));
+        putIfNotEmpty(entries, "orientation", normalizeOrientation(getExifAttributeInt(exifInterface, ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)));
+        putIfNotEmpty(entries, "created", normalizeExifDate(getExifAttribute(exifInterface, ExifInterface.TAG_DATETIME)));
+        putIfNotEmpty(entries, "date_time_original", normalizeExifDate(getExifAttribute(exifInterface, ExifInterface.TAG_DATETIME_ORIGINAL)));
+        putIfNotEmpty(entries, "date_time_digitized", normalizeExifDate(getExifAttribute(exifInterface, ExifInterface.TAG_DATETIME_DIGITIZED)));
+        putIfNotEmpty(entries, "artist", getExifAttribute(exifInterface, ExifInterface.TAG_ARTIST));
+        putIfNotEmpty(entries, "copyright", getExifAttribute(exifInterface, ExifInterface.TAG_COPYRIGHT));
+        putIfNotEmpty(entries, "description", getExifAttribute(exifInterface, ExifInterface.TAG_IMAGE_DESCRIPTION));
+        putIfNotEmpty(entries, "exposure_time", getExifAttribute(exifInterface, ExifInterface.TAG_EXPOSURE_TIME));
+        putIfNotEmpty(entries, "f_number", getExifAttribute(exifInterface, ExifInterface.TAG_F_NUMBER));
+        putIfNotEmpty(entries, "iso", firstNonEmpty(getExifAttribute(exifInterface, ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY), getExifAttribute(exifInterface, ExifInterface.TAG_ISO_SPEED_RATINGS)));
+        putIfNotEmpty(entries, "focal_length", getExifAttribute(exifInterface, ExifInterface.TAG_FOCAL_LENGTH));
+        putIfNotEmpty(entries, "lens_model", getExifAttribute(exifInterface, ExifInterface.TAG_LENS_MODEL));
+        putIfNotEmpty(entries, "flash", getExifAttribute(exifInterface, ExifInterface.TAG_FLASH));
+        putIfNotEmpty(entries, "white_balance", getExifAttribute(exifInterface, ExifInterface.TAG_WHITE_BALANCE));
+        putIfNotEmpty(entries, "gps", getGpsValue(exifInterface));
+        putIfNotEmpty(entries, "gps_altitude", getGpsAltitudeValue(exifInterface));
+        return entries;
+    }
+
     private static String readZipEntry(ZipFile zipFile, String entryName) throws IOException {
         ZipEntry entry = zipFile.getEntry(entryName);
         if (entry == null) {
+            return null;
+        }
+        if (entry.getSize() > XML_ENTRY_READ_LIMIT) {
             return null;
         }
         try (InputStream inputStream = zipFile.getInputStream(entry);
@@ -118,6 +189,9 @@ public final class DocumentMetadataReader {
             int read;
             while ((read = inputStream.read(buffer)) >= 0) {
                 outputStream.write(buffer, 0, read);
+                if (outputStream.size() > XML_ENTRY_READ_LIMIT) {
+                    return null;
+                }
             }
             return outputStream.toString(StandardCharsets.UTF_8.name());
         }
@@ -293,12 +367,21 @@ public final class DocumentMetadataReader {
         }
     }
 
+    private static void putIfPositive(LinkedHashMap<String, String> entries, String key, int value) {
+        if (value > 0) {
+            entries.put(key, String.valueOf(value));
+        }
+    }
+
     private static String cleanValue(String value) {
         if (value == null) {
             return null;
         }
         value = value.replace('\u0000', ' ').replaceAll("[\\t\\x0B\\f\\r]+", " ");
         value = value.replaceAll("\\s*\\n\\s*", "\n").trim();
+        if (value.length() > METADATA_VALUE_LIMIT) {
+            value = value.substring(0, METADATA_VALUE_LIMIT).trim() + "...";
+        }
         return value.isEmpty() ? null : value;
     }
 
@@ -349,6 +432,81 @@ public final class DocumentMetadataReader {
             builder.append(':').append(digits, 12, 14);
         }
         return builder.toString();
+    }
+
+    private static String normalizeExifDate(String value) {
+        if (TextUtils.isEmpty(value)) {
+            return null;
+        }
+        String normalized = value.trim();
+        if (normalized.length() >= 19 && normalized.charAt(4) == ':' && normalized.charAt(7) == ':') {
+            normalized = normalized.substring(0, 4) + "-" + normalized.substring(5, 7) + "-" + normalized.substring(8);
+        }
+        return cleanValue(normalized);
+    }
+
+    private static String normalizeOrientation(int orientation) {
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_NORMAL:
+                return "Normal";
+            case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                return "Flip horizontal";
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                return "Rotate 180";
+            case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                return "Flip vertical";
+            case ExifInterface.ORIENTATION_TRANSPOSE:
+                return "Transpose";
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                return "Rotate 90";
+            case ExifInterface.ORIENTATION_TRANSVERSE:
+                return "Transverse";
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                return "Rotate 270";
+            default:
+                return null;
+        }
+    }
+
+    private static String getExifAttribute(ExifInterface exifInterface, String tag) {
+        try {
+            return exifInterface.getAttribute(tag);
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    private static int getExifAttributeInt(ExifInterface exifInterface, String tag, int defaultValue) {
+        try {
+            return exifInterface.getAttributeInt(tag, defaultValue);
+        } catch (Throwable ignore) {
+            return defaultValue;
+        }
+    }
+
+    private static String getGpsValue(ExifInterface exifInterface) {
+        float[] latLong = new float[2];
+        try {
+            if (!exifInterface.getLatLong(latLong)) {
+                return null;
+            }
+        } catch (Throwable ignore) {
+            return null;
+        }
+        return String.format(Locale.US, "%.6f, %.6f", latLong[0], latLong[1]);
+    }
+
+    private static String getGpsAltitudeValue(ExifInterface exifInterface) {
+        double altitude;
+        try {
+            altitude = exifInterface.getAltitude(Double.NaN);
+        } catch (Throwable ignore) {
+            return null;
+        }
+        if (Double.isNaN(altitude)) {
+            return null;
+        }
+        return String.format(Locale.US, "%.2f m", altitude);
     }
 
     private static String getExtension(String fileName) {

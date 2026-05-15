@@ -24,10 +24,13 @@ public final class DocumentMetadataPatch {
             return false;
         }
         TLRPC.Document document = messageObject.getDocument();
-        if (document == null || messageObject.isVoiceOnce() || messageObject.isRoundOnce()) {
+        if (messageObject.isVoiceOnce() || messageObject.isRoundOnce() || messageObject.isAnyKindOfSticker()) {
             return false;
         }
-        return DocumentMetadataReader.isSupportedExtension(getDocumentExtension(document));
+        if (document == null && !messageObject.isPhoto()) {
+            return false;
+        }
+        return DocumentMetadataReader.isSupportedExtension(getMessageExtension(messageObject));
     }
 
     public static void loadMetadata(MessageObject messageObject, MetadataCallback callback) {
@@ -39,10 +42,10 @@ public final class DocumentMetadataPatch {
             return;
         }
         final TLRPC.Document document = messageObject.getDocument();
-        final String fileName = document != null ? FileLoader.getDocumentFileName(document) : null;
+        final String fileName = getDocumentFileName(messageObject);
         final File file = resolveLocalFile(messageObject);
         if (file == null || !file.exists()) {
-            callback.onLoaded(MetadataState.error("file_missing", buildBasicRows(fileName, null, getDocumentExtension(document))));
+            callback.onLoaded(MetadataState.error("file_missing", buildBasicRows(fileName, null, getMessageExtension(messageObject))));
             return;
         }
 
@@ -56,7 +59,7 @@ public final class DocumentMetadataPatch {
                 }
                 state = rows.size() > 3 ? MetadataState.ready(rows) : MetadataState.empty(rows);
             } catch (Throwable throwable) {
-                state = MetadataState.error("parse_failed", buildBasicRows(fileName, file.getAbsolutePath(), getDocumentExtension(document)));
+                state = MetadataState.error("parse_failed", buildBasicRows(fileName, file.getAbsolutePath(), getMessageExtension(messageObject)));
             }
             final MetadataState resolvedState = state;
             AndroidUtilities.runOnUIThread(() -> callback.onLoaded(resolvedState));
@@ -106,14 +109,35 @@ public final class DocumentMetadataPatch {
             return null;
         }
         TLRPC.Document document = messageObject.getDocument();
-        return document != null ? FileLoader.getDocumentFileName(document) : null;
+        if (document != null) {
+            String fileName = FileLoader.getDocumentFileName(document);
+            if (!TextUtils.isEmpty(fileName)) {
+                return fileName;
+            }
+        }
+        String messageFileName = FileLoader.getMessageFileName(messageObject.messageOwner);
+        return !TextUtils.isEmpty(messageFileName) ? messageFileName : null;
     }
 
-    private static String getDocumentExtension(TLRPC.Document document) {
-        if (document == null) {
+    private static String getMessageExtension(MessageObject messageObject) {
+        if (messageObject == null) {
             return "";
         }
-        String fileName = FileLoader.getDocumentFileName(document);
+        TLRPC.Document document = messageObject.getDocument();
+        String extension = getFileExtension(getDocumentFileName(messageObject));
+        if (!TextUtils.isEmpty(extension)) {
+            return extension;
+        }
+        if (document != null && !TextUtils.isEmpty(document.mime_type)) {
+            return getExtensionForMimeType(document.mime_type);
+        }
+        if (messageObject.isPhoto()) {
+            return "jpg";
+        }
+        return "";
+    }
+
+    private static String getFileExtension(String fileName) {
         if (TextUtils.isEmpty(fileName)) {
             return "";
         }
@@ -122,6 +146,25 @@ public final class DocumentMetadataPatch {
             return "";
         }
         return fileName.substring(index + 1).toLowerCase(Locale.US);
+    }
+
+    private static String getExtensionForMimeType(String mimeType) {
+        switch (mimeType.toLowerCase(Locale.US)) {
+            case "image/jpeg":
+                return "jpg";
+            case "image/png":
+                return "png";
+            case "image/webp":
+                return "webp";
+            case "image/heic":
+                return "heic";
+            case "image/heif":
+                return "heif";
+            case "image/tiff":
+                return "tiff";
+            default:
+                return "";
+        }
     }
 
     public interface MetadataCallback {

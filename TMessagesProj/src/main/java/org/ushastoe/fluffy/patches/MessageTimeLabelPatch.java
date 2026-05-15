@@ -43,6 +43,10 @@ public final class MessageTimeLabelPatch {
         return DocumentAuthorIndicatorPatch.buildTimeLabel(messageObject, edited);
     }
 
+    public static int getTimeWidthAdjustment(MessageObject messageObject) {
+        return DocumentAuthorIndicatorPatch.getTimeWidthAdjustment(messageObject);
+    }
+
     static void appendSilentMarker(SpannableStringBuilder builder) {
         int mode = AppearanceSettingsPatch.getSilentMarkerMode();
         if (builder.length() > 0) {

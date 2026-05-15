@@ -370,8 +370,8 @@
     <string name="FluffyQrLoginSheetTitle">Вход на это устройство</string>
     <string name="FluffyQrLoginSheetHelp">Отсканируйте этот QR-код в Telegram на другом устройстве, чтобы войти здесь.</string>
     <string name="FluffyQrLoginExportFailed">Не удалось создать QR-код для входа.</string>
-    <string name="FluffyDocumentMetadataAction">Метаданные документа</string>
-    <string name="FluffyDocumentMetadataTitle">Метаданные документа</string>
+    <string name="FluffyDocumentMetadataAction">Метаданные файла</string>
+    <string name="FluffyDocumentMetadataTitle">Метаданные файла</string>
     <string name="FluffyDocumentMetadataLoading">Читаю метаданные файла…</string>
     <string name="FluffyDocumentMetadataEmpty">Во встроенных данных файла метаданные не найдены.</string>
     <string name="FluffyDocumentMetadataFileMissing">Сначала скачайте файл, чтобы посмотреть его метаданные.</string>
@@ -399,4 +399,23 @@
     <string name="FluffyDocumentMetadataNotes">Заметки</string>
     <string name="FluffyDocumentMetadataTotalTime">Время редактирования</string>
     <string name="FluffyDocumentMetadataPresentationFormat">Формат презентации</string>
+    <string name="FluffyDocumentMetadataImageWidth">Ширина изображения</string>
+    <string name="FluffyDocumentMetadataImageHeight">Высота изображения</string>
+    <string name="FluffyDocumentMetadataCameraMake">Производитель камеры</string>
+    <string name="FluffyDocumentMetadataCameraModel">Модель камеры</string>
+    <string name="FluffyDocumentMetadataSoftware">Программа</string>
+    <string name="FluffyDocumentMetadataOrientation">Ориентация</string>
+    <string name="FluffyDocumentMetadataDateTimeOriginal">Дата съёмки</string>
+    <string name="FluffyDocumentMetadataDateTimeDigitized">Дата оцифровки</string>
+    <string name="FluffyDocumentMetadataArtist">Автор изображения</string>
+    <string name="FluffyDocumentMetadataCopyright">Copyright</string>
+    <string name="FluffyDocumentMetadataExposureTime">Выдержка</string>
+    <string name="FluffyDocumentMetadataFNumber">Диафрагма</string>
+    <string name="FluffyDocumentMetadataIso">ISO</string>
+    <string name="FluffyDocumentMetadataFocalLength">Фокусное расстояние</string>
+    <string name="FluffyDocumentMetadataLensModel">Модель объектива</string>
+    <string name="FluffyDocumentMetadataFlash">Вспышка</string>
+    <string name="FluffyDocumentMetadataWhiteBalance">Баланс белого</string>
+    <string name="FluffyDocumentMetadataGps">GPS</string>
+    <string name="FluffyDocumentMetadataGpsAltitude">Высота GPS</string>
 </resources>
