@@ -65,7 +65,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
-import android.util.Log;
 import android.util.Property;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -176,6 +175,7 @@ import org.telegram.ui.Components.Premium.boosts.BoostRepository;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
+import org.telegram.ui.Components.chat.SendButtonBlockedByTypingView;
 import org.telegram.ui.Components.chat.layouts.ChatActivitySideControlsButtonsLayout;
 import org.telegram.ui.Components.inset.WindowInsetsInAppController;
 import org.telegram.ui.ContentPreviewViewer;
@@ -306,6 +306,10 @@ public class ChatActivityEnterView extends FrameLayout implements
         void onAttachButtonShow();
 
         void onWindowSizeChanged(int size);
+
+        default void onEmojiViewTabChanged() {
+
+        }
 
         void onStickersTab(boolean opened);
 
@@ -584,6 +588,7 @@ public class ChatActivityEnterView extends FrameLayout implements
     private SlowModeBtn slowModeButton;
     private int slowModeTimer;
     private Runnable updateSlowModeRunnable;
+    private SendButtonBlockedByTypingView sendButtonBlockedByTypingView;
     private SendButton sendButton;
     private int sendButtonBackgroundColor;
     public MessageSendPreview messageSendPreview;
@@ -2757,6 +2762,12 @@ public class ChatActivityEnterView extends FrameLayout implements
 
             attachButton = new ImageView(context) {
                 @Override
+                public ViewPropertyAnimator animate() {
+                    AndroidUtilities.printStackTrace("WTF_DEBUG");
+                    return super.animate();
+                }
+
+                @Override
                 public boolean dispatchTouchEvent(MotionEvent event) {
                     if (getAlpha() < 0.5f) return false;
                     return super.dispatchTouchEvent(event);
@@ -2839,7 +2850,7 @@ public class ChatActivityEnterView extends FrameLayout implements
 
             @Override
             public boolean dispatchTouchEvent(MotionEvent ev) {
-                if (!sendButtonEnabled) {
+                if (!isSendButtonEnabled()) {
                     return false;
                 }
                 return super.dispatchTouchEvent(ev);
@@ -2847,7 +2858,7 @@ public class ChatActivityEnterView extends FrameLayout implements
 
             @Override
             public boolean onTouchEvent(MotionEvent event) {
-                if (!sendButtonEnabled) {
+                if (!isSendButtonEnabled()) {
                     return false;
                 }
                 return super.onTouchEvent(event);
@@ -3404,6 +3415,13 @@ public class ChatActivityEnterView extends FrameLayout implements
         sendButton.setOnLongClickListener(this::onSendLongClick);
         onFluffyPersistentAttachButtonReady();
 //        ScaleStateListAnimator.apply(sendButton);
+        if (AndroidUtilities.isAccessibilityScreenReaderEnabled()) {
+            sendButtonContainer.setOnLongClickListener(this::onSendLongClick);
+        }
+
+        sendButtonBlockedByTypingView = new SendButtonBlockedByTypingView(context, resourcesProvider);
+        sendButtonBlockedByTypingView.setVisibility(View.INVISIBLE);
+        sendButtonContainer.addView(sendButtonBlockedByTypingView, LayoutHelper.createFrame(DEFAULT_HEIGHT, DEFAULT_HEIGHT, Gravity.RIGHT | Gravity.BOTTOM));
 
         slowModeButton = new SlowModeBtn(context);
         slowModeButton.setTextSize(18);
@@ -3814,6 +3832,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 return !doneButtonEnabled;
             }
         };
+        doneButton.setContentDescription(getString(R.string.EditMessage));
         if (bounceable) {
             ScaleStateListAnimator.apply(doneButton);
         }
@@ -5421,9 +5440,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                         info.path = photoEntry.path;
                     }
                     info.thumbPath = photoEntry.thumbPath;
+                    info.isLivePhoto = photoEntry.isLivePhoto();
                     info.isVideo = photoEntry.isVideo;
-                    info.isLivePhoto = photoEntry.isLivePhoto;
-                    info.discardLivePhoto = photoEntry.discardLivePhoto;
+                    info.discardLivePhoto = photoEntry.isUnalivePhoto();
                     info.livePhotoVideoOffset = photoEntry.livePhotoVideoOffset;
                     info.livePhotoTimestampUs = photoEntry.livePhotoTimestampUs;
                     info.caption = photoEntry.caption != null ? photoEntry.caption.toString() : null;
@@ -5874,6 +5893,9 @@ public class ChatActivityEnterView extends FrameLayout implements
         AiEditorButtonHook.applyEnterViewLayout(aiButton);
 
         if (shownAiButton == show) return;
+        if (show) {
+            MessagesController.getInstance(currentAccount).getTonesController().load();
+        }
         shownAiButton = show;
         aiButton.setVisibility(View.VISIBLE);
         aiButton.animate()
@@ -7862,7 +7884,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     }
                 }
             }
-        } else if (message.length() > 0 || forceShowSendButton || audioToSend != null || videoToSendMessageObject != null || slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode() || isLiveComment && getStarsPrice() > 0) {
+        } else if (message.length() > 0 || forceShowSendButton || audioToSend != null || videoToSendMessageObject != null || slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode() || isLiveComment && getStarsPrice() > 0 || animatorIsBlockedByStreaming.getValue()) {
             shownSendButton = true;
             final String caption = messageEditText == null ? null : messageEditText.getCaption();
             boolean showBotButton = caption != null && (getSendButtonInternal().getVisibility() == VISIBLE || expandStickersButton != null && expandStickersButton.getVisibility() == VISIBLE);
@@ -7880,7 +7902,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 Theme.setSelectorDrawableColor(sendButton.getBackground(), Color.argb(24, Color.red(color), Color.green(color), Color.blue(color)), true);
             }
 
-            if (audioVideoButtonContainer.getVisibility() == VISIBLE || slowModeButton.getVisibility() == VISIBLE || showBotButton || showSendButton) {
+            if (audioVideoButtonContainer.getVisibility() == VISIBLE || slowModeButton.getVisibility() == VISIBLE || showBotButton || showSendButton || animatorIsBlockedByStreaming.getValue()) {
                 if (animated) {
                     if (runningAnimationType == 1 && caption == null || runningAnimationType == 3 && caption != null) {
                         return;
@@ -9580,6 +9602,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             createDoneButton(true);
             doneButton.setOnClickListener(view -> saveBusinessLink());
 
+            doneButton.setContentDescription(getString(R.string.Done));
             doneButton.setVisibility(View.VISIBLE);
             doneButton.setScaleX(0.1f);
             doneButton.setScaleY(0.1f);
@@ -10053,6 +10076,11 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     public View getSendButtonInternal() {
         return sendButton;
+    }
+
+    public void setBlockedByStreaming(boolean blocked, boolean animated) {
+        animatorIsBlockedByStreaming.setValue(blocked, animated);
+        checkSendButton(animated);
     }
 
     public ValueAnimator animateSendButton(boolean show) {
@@ -11668,9 +11696,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                                     info.thumbPath = entry.thumbPath;
                                     info.coverPath = entry.coverPath;
                                     info.coverPhoto = entry.coverPhoto;
+                                    info.isLivePhoto = entry.isLivePhoto();
                                     info.isVideo = entry.isVideo;
-                                    info.isLivePhoto = entry.isLivePhoto;
-                                    info.discardLivePhoto = entry.discardLivePhoto;
+                                    info.discardLivePhoto = entry.isUnalivePhoto();
                                     info.livePhotoVideoOffset = entry.livePhotoVideoOffset;
                                     info.livePhotoTimestampUs = entry.livePhotoTimestampUs;
                                     info.caption = entry.caption != null ? entry.caption.toString() : null;
@@ -11737,6 +11765,7 @@ public class ChatActivityEnterView extends FrameLayout implements
 
             @Override
             public void onTabOpened(int type) {
+                delegate.onEmojiViewTabChanged();
                 delegate.onStickersTab(type == 3);
                 post(updateExpandabilityRunnable);
             }
@@ -11895,9 +11924,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                 wasExpanded = stickersExpanded;
                 stickersExpanded = true;
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 1);
-                stickersExpandedHeight = sizeNotifierLayout.getHeight() - AndroidUtilities.statusBarHeight - ActionBar.getCurrentActionBarHeight() - getHeight() + Theme.chat_composeShadowDrawable.getIntrinsicHeight();
+                stickersExpandedHeight = sizeNotifierLayout.getHeight()
+                    - AndroidUtilities.statusBarHeight
+                    - AndroidUtilities.navigationBarHeight
+                    - dp(11)
+                    - ActionBar.getCurrentActionBarHeight()
+                    - getHeight();
                 if (searchingType == 2) {
-                    stickersExpandedHeight = Math.min(stickersExpandedHeight, dp(120) + (AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight));
+                    stickersExpandedHeight = Math.min(stickersExpandedHeight, dp(175) + (AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight));
                 }
                 if (windowInsetsInAppController == null) {
                     emojiView.getLayoutParams().height = stickersExpandedHeight;
@@ -12456,6 +12490,10 @@ public class ChatActivityEnterView extends FrameLayout implements
         this.searchingType = searchingType;
     }
 
+    public boolean isCurrentPageEmoji() {
+        return emojiView != null && emojiView.getCurrentPage() == 0;
+    }
+
     public void openKeyboardInternal() {
         if (hasBotWebView() && botCommandsMenuIsShowing() || BaseFragment.hasSheets(parentFragment)) {
             return;
@@ -12595,14 +12633,19 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
             if (botKeyboardView != null) {
                 botKeyboardView.setPanelHeight(newHeight);
-                if (windowInsetsInAppController != null && newHeight > 0) {
+                if (windowInsetsInAppController != null && newHeight > 0 && currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD) {
                     windowInsetsInAppController.requestInAppKeyboardHeightIncludeNavbar(newHeight);
                 }
             }
 
             if (currentView != null) {
                 FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) currentView.getLayoutParams();
-                if (!closeAnimationInProgress && (layoutParams.width != AndroidUtilities.displaySize.x || layoutParams.height != newHeight) && !stickersExpanded) {
+
+                final boolean needRebuild = !closeAnimationInProgress && !stickersExpanded
+                    && ((layoutParams.width != AndroidUtilities.displaySize.x || layoutParams.height != newHeight) &&
+                        (windowInsetsInAppController == null || layoutParams.width != LayoutHelper.MATCH_PARENT || layoutParams.height != LayoutHelper.MATCH_PARENT));
+
+                if (needRebuild) {
                     if (windowInsetsInAppController == null) {
                         layoutParams.width = AndroidUtilities.displaySize.x;
                         layoutParams.height = newHeight;
@@ -12979,9 +13022,14 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         final int origHeight = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight;
-        int newHeight = originalViewHeight - AndroidUtilities.statusBarHeight - ActionBar.getCurrentActionBarHeight() - getHeight() + Theme.chat_composeShadowDrawable.getIntrinsicHeight();
+        int newHeight = originalViewHeight
+            - AndroidUtilities.statusBarHeight
+            - AndroidUtilities.navigationBarHeight
+            - dp(11)
+            - ActionBar.getCurrentActionBarHeight()
+            - getHeight();
         if (searchingType == 2) {
-            newHeight = Math.min(newHeight, dp(120) + origHeight);
+            newHeight = Math.min(newHeight, dp(175) + origHeight);
         }
         int currentHeight = emojiView.getLayoutParams().height;
         if (currentHeight == newHeight) {
@@ -13099,9 +13147,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 1);
             }
             originalViewHeight = sizeNotifierLayout.getHeight();
-            stickersExpandedHeight = originalViewHeight - AndroidUtilities.statusBarHeight - ActionBar.getCurrentActionBarHeight() - getHeight() + Theme.chat_composeShadowDrawable.getIntrinsicHeight();
+            stickersExpandedHeight = originalViewHeight
+                - AndroidUtilities.statusBarHeight
+                - AndroidUtilities.navigationBarHeight
+                - dp(11)
+                - ActionBar.getCurrentActionBarHeight()
+                - getHeight();
             if (searchingType == 2) {
-                stickersExpandedHeight = Math.min(stickersExpandedHeight, dp(120) + origHeight);
+                stickersExpandedHeight = Math.min(stickersExpandedHeight, dp(175) + origHeight);
             }
             if (windowInsetsInAppController == null) {
                 emojiView.getLayoutParams().height = stickersExpandedHeight;
@@ -14097,6 +14150,10 @@ public class ChatActivityEnterView extends FrameLayout implements
         }
     }
 
+    private boolean isSendButtonEnabled() {
+        return sendButtonEnabled && !animatorIsBlockedByStreaming.getValue();
+    }
+
     private void updateAttachButtonTranslationX() {
         if (attachButton == null) return;
         attachButton.setTranslationX(attachLayoutPaddingTranslationX + attachLayoutTranslationX + (sendButton != null ? (
@@ -14180,7 +14237,6 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     @SuppressLint("ViewConstructor")
     public static class SendButton extends View {
-
         public static final float INFINITE_LOADING = -3f;
 
         public final Theme.ResourcesProvider resourcesProvider;
@@ -14312,11 +14368,6 @@ public class ChatActivityEnterView extends FrameLayout implements
             emojiDrawable.set(drawable, true);
         }
 
-        @Override
-        public void invalidate(int l, int t, int r, int b) {
-            super.invalidate(l, t, r, b);
-        }
-
         public boolean isOpen() {
             return starsPrice > 0;
         }
@@ -14374,8 +14425,8 @@ public class ChatActivityEnterView extends FrameLayout implements
                 canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), 0xFF, Canvas.ALL_SAVE_FLAG);
             }
             updateColors();
+            checkBackgroundRect();
             if (isNewDesignSendButton) {
-                checkBackgroundRect();
                 canvas.drawRoundRect(backgroundRect, dp(RADIUS), dp(RADIUS), backgroundPaint);
             }
 
@@ -14754,9 +14805,11 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     private static final int ANIMATOR_ID_INPUT_FIELD_HEIGHT = 0;
     private static final int ANIMATOR_ID_TOP_VIEW_VISIBILITY = 1;
+    private static final int ANIMATOR_ID_BLOCKED_BY_BOT_TYPING = 2;
 
     private final FactorAnimator animatorInputFieldHeight = new FactorAnimator(ANIMATOR_ID_INPUT_FIELD_HEIGHT, this, ChatListItemAnimator.DEFAULT_INTERPOLATOR, ChatListItemAnimator.DEFAULT_DURATION);
     private final BoolAnimator animatorTopViewVisibility = new BoolAnimator(ANIMATOR_ID_TOP_VIEW_VISIBILITY, this, ChatListItemAnimator.DEFAULT_INTERPOLATOR, ChatListItemAnimator.DEFAULT_DURATION);
+    private final BoolAnimator animatorIsBlockedByStreaming = new BoolAnimator(ANIMATOR_ID_BLOCKED_BY_BOT_TYPING, this, CubicBezierInterpolator.EASE_OUT_QUINT, 320);
 
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
@@ -14769,6 +14822,12 @@ public class ChatActivityEnterView extends FrameLayout implements
         if (id == ANIMATOR_ID_TOP_VIEW_VISIBILITY) {
             checkUi_IslandTotalHeight();
             checkUi_TopViewVisibility();
+        }
+        if (id == ANIMATOR_ID_BLOCKED_BY_BOT_TYPING) {
+            sendButtonBlockedByTypingView.setAlpha(factor);
+            sendButtonBlockedByTypingView.setScaleX(lerp(0.5f, 1, factor));
+            sendButtonBlockedByTypingView.setScaleY(lerp(0.5f, 1, factor));
+            sendButtonBlockedByTypingView.setVisibility(factor > 0 ? View.VISIBLE : View.INVISIBLE);
         }
         invalidate();
     }

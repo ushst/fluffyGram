@@ -228,6 +228,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
         scrollNonFitText = value;
         updateFadePaints();
         requestLayout();
+        checkUi_layerType();
     }
 
     public void setEllipsizeByGradient(boolean value) {
@@ -245,6 +246,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
         ellipsizeByGradient = value;
         this.forceEllipsizeByGradientLeft = forceLeft;
         updateFadePaints();
+        checkUi_layerType();
     }
 
     public void setEllipsizeByGradient(int value, Boolean forceLeft) {
@@ -362,6 +364,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
                 }
             }
             textDoesNotFit = textWidth + rightDrawableWidth > (width - paddingRight);
+            checkUi_layerType();
 
             if (fullLayout != null && fullLayoutAdditionalWidth > 0) {
                 fullLayoutLeftCharactersOffset = fullLayout.getPrimaryHorizontal(0) - firstLineLayout.getPrimaryHorizontal(0);
@@ -507,6 +510,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
             lastWidth = AndroidUtilities.displaySize.x;
             scrollingOffset = 0;
             currentScrollDelay = SCROLL_DELAY_MS;
+            checkUi_layerType();
         }
         createLayout(width - getPaddingLeft() - getPaddingRight() - minusWidth - (leftDrawableOutside && leftDrawable != null ? leftDrawable.getIntrinsicWidth() + drawablePadding : 0) - (rightDrawableOutside && rightDrawable != null ? rightDrawable.getIntrinsicWidth() + drawablePadding : 0) - (rightDrawableOutside && rightDrawable2 != null ? rightDrawable2.getIntrinsicWidth() + drawablePadding : 0));
 
@@ -704,10 +708,12 @@ public class SimpleTextView extends View implements Drawable.Callback {
 
     public void resetScrolling() {
         scrollingOffset = 0;
+        checkUi_layerType();
     }
 
     public void copyScrolling(SimpleTextView textView) {
         scrollingOffset = textView.scrollingOffset;
+        checkUi_layerType();
     }
 
     public void setDrawablePadding(int value) {
@@ -824,6 +830,16 @@ public class SimpleTextView extends View implements Drawable.Callback {
         }
     }
 
+    private void checkUi_layerType() {
+        final boolean fade = scrollNonFitText && (textDoesNotFit || scrollingOffset != 0);
+        final boolean needHardwareLayer = fade || ellipsizeByGradient;
+        final int layerType = needHardwareLayer ? LAYER_TYPE_HARDWARE : LAYER_TYPE_NONE;
+        if (getLayerType() != layerType) {
+            setLayerType(layerType, null);
+            invalidate();
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -832,11 +848,6 @@ public class SimpleTextView extends View implements Drawable.Callback {
         layoutY = 0;
 
         boolean fade = scrollNonFitText && (textDoesNotFit || scrollingOffset != 0);
-        int restore = Integer.MIN_VALUE;
-        if (fade || ellipsizeByGradient) {
-            restore = canvas.saveLayerAlpha(0, 0, getMeasuredWidth(), getMeasuredHeight(), 255, Canvas.ALL_SAVE_FLAG);
-        }
-
         totalWidth = textWidth;
         if (leftDrawable != null && !leftDrawableOutside) {
             int x = (int) -scrollingOffset;
@@ -1090,9 +1101,6 @@ public class SimpleTextView extends View implements Drawable.Callback {
                 canvas.restore();
             }
         }
-        if (fade || ellipsizeByGradient) {
-            canvas.restoreToCount(restore);
-        }
 
         if (leftDrawable != null && leftDrawableOutside) {
             int x = 0;
@@ -1193,6 +1201,10 @@ public class SimpleTextView extends View implements Drawable.Callback {
     }
 
     private void clipOutSpoilers(Canvas canvas) {
+        if (spoilers.isEmpty()) {
+            // nothing to clip
+            return;
+        }
         path.rewind();
         for (SpoilerEffect eff : spoilers) {
             Rect b = eff.getBounds();
@@ -1234,6 +1246,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
                 scrollingOffset = 0;
                 currentScrollDelay = SCROLL_DELAY_MS;
             }
+            checkUi_layerType();
         }
         invalidate();
     }
