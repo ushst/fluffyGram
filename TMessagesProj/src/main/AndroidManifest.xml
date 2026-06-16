@@ -417,7 +417,6 @@
                   android:excludeFromRecents="true"
                 android:theme="@style/Theme.TMessages.TransparentWithAlerts"/>
 
-        <!--
         <receiver
             android:name=".AutoMessageHeardReceiver"
             android:exported="false">
@@ -425,7 +424,6 @@
                 <action android:name="org.telegram.messenger.ACTION_MESSAGE_HEARD"/>
             </intent-filter>
         </receiver>
-        -->
 
         <receiver
             android:name=".CopyCodeReceiver"
