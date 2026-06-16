@@ -32,9 +32,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.ShareBroadcastReceiver;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.Utilities;
 import org.telegram.messenger.support.customtabs.CustomTabsCallback;
 import org.telegram.messenger.support.customtabs.CustomTabsClient;
 import org.telegram.messenger.support.customtabs.CustomTabsIntent;
@@ -110,7 +108,7 @@ public class Browser {
                 @Override
                 public void onServiceConnected(CustomTabsClient client) {
                     customTabsClient = client;
-                    if (SharedConfig.customTabs) {
+                    if (MessagesController.getInstance(UserConfig.selectedAccount).isWebBrowserUseCustomTabs()) {
                         if (customTabsClient != null) {
                             try {
                                 customTabsClient.warmup(0);
@@ -380,7 +378,7 @@ public class Browser {
                     .appendQueryParameter("autologin_token", autologin_token)
                     .build();
             }
-            if (allowCustom && !(SharedConfig.inappBrowser || isInstantViewOpen()) && SharedConfig.customTabs && !internalUri && !scheme.equals("tel") && !isTonsite(uri.toString())) {
+            if (allowCustom && !(uri != null && MessagesController.getInstance(currentAccount).isWebBrowserOpenInApp(uri.toString()) || isInstantViewOpen()) && MessagesController.getInstance(currentAccount).isWebBrowserUseCustomTabs() && !internalUri && !scheme.equals("tel") && !isTonsite(uri.toString())) {
                 if (forceBrowser[0] || !openInExternalApp(context, uri.toString(), false) || !hasAppToOpen(context, uri.toString())) {
                     if (MessagesController.getInstance(currentAccount).authDomains.contains(host)) {
                         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -412,11 +410,12 @@ public class Browser {
             FileLog.e(e);
         }
         try {
+
+
             final boolean inappBrowser = (
                 allowInAppBrowser && BubbleActivity.instance == null &&
-                (SharedConfig.inappBrowser || isInstantViewOpen()) &&
+                (uri != null && MessagesController.getInstance(currentAccount).isWebBrowserOpenInApp(uri.toString()) || isInstantViewOpen()) &&
                 TextUtils.isEmpty(browserPackage) &&
-                !RestrictedDomainsList.getInstance().isRestricted(AndroidUtilities.getHostAuthority(uri, true)) &&
                 (uri.getScheme() == null || "https".equals(uri.getScheme()) || "http".equals(uri.getScheme()) || "tonsite".equals(uri.getScheme()))
                 ||
                 isTonsite(uri.toString())

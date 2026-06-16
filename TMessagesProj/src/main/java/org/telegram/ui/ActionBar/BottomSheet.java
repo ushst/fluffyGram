@@ -70,6 +70,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.camera.CameraView;
 import org.telegram.messenger.utils.LeakDetector;
+import org.telegram.messenger.utils.WindowVisibilityManager;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.AnimationProperties;
 import org.telegram.ui.Components.Bulletin;
@@ -109,8 +110,6 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
 
     private boolean dismissed;
     private int tag;
-
-    private boolean allowDrawContent = true;
 
     protected boolean useHardwareLayer = true;
 
@@ -643,7 +642,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
                 if (!fullWidth) {
                     int widthSpec;
                     if (AndroidUtilities.isTablet()) {
-                        widthSpec = MeasureSpec.makeMeasureSpec((int) (Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) * 0.8f) + backgroundPaddingLeft * 2, MeasureSpec.EXACTLY);
+                        widthSpec = MeasureSpec.makeMeasureSpec((int) Math.min(dp(500), Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) * 0.8f) + backgroundPaddingLeft * 2, MeasureSpec.EXACTLY);
                     } else {
                         widthSpec = MeasureSpec.makeMeasureSpec((getBottomSheetWidth(isPortrait, width, height)) + backgroundPaddingLeft * 2, MeasureSpec.EXACTLY);
                     }
@@ -1204,7 +1203,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
             @Override
             public boolean drawChild(Canvas canvas, View child, long drawingTime) {
                 try {
-                    return allowDrawContent && super.drawChild(canvas, child, drawingTime);
+                    return super.drawChild(canvas, child, drawingTime);
                 } catch (Exception e) {
                     FileLog.e(e);
                 }
@@ -1594,14 +1593,6 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
 
     public int getBackgroundPaddingTop() {
         return backgroundPaddingTop ;
-    }
-
-    public void setAllowDrawContent(boolean value) {
-        if (allowDrawContent != value) {
-            allowDrawContent = value;
-            container.setBackground(allowDrawContent ? backDrawable : null);
-            container.invalidate();
-        }
     }
 
     protected boolean canDismissWithSwipe() {
@@ -2453,6 +2444,9 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
         if (AndroidUtilities.isTablet()) return;
         if (fragment != null && fragment.isSupportEdgeToEdge()) return;
         this.attachedFragment = fragment;
+        if (backDrawable != null) {
+            backDrawable.bgPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
+        }
     }
 
     @Override
@@ -2468,6 +2462,15 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
         } else {
             dismiss();
         }
+    }
+
+    private WindowVisibilityManager windowVisibilityManager;
+
+    public WindowVisibilityManager.Controller obtainWindowVisibilityController() {
+        if (windowVisibilityManager == null) {
+            windowVisibilityManager = new WindowVisibilityManager(getWindow());
+        }
+        return windowVisibilityManager.obtainController();
     }
 
     public Theme.ResourcesProvider getResourcesProvider() {
