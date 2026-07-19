@@ -575,6 +575,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         // o.addGap();
         // o.add(R.drawable.msg_leave, getString(R.string.LogOut), true, () -> presentFragment(new LogoutActivity()));
         showMainTabsPopup(o);
+        return true;
     }
 
     public void showMainTabsPopup(ItemOptions options) {
@@ -589,8 +590,6 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         options.show();
 
         HintsController.Hint.AccountSwitchHint.doNotShowAgain();
-
-        return true;
     }
 
     public LinearLayout accountView(int account, boolean selected) {

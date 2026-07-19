@@ -16,7 +16,7 @@ public final class NotificationOpenNavigationPatch {
         if (!UserConfig.getInstance(account).isClientActivated()) {
             return;
         }
-        if (LaunchActivity.getMainFragmentsStackSize() > 0) {
+        if (activity.getMainFragmentsStackSize() > 0) {
             return;
         }
 

@@ -469,6 +469,16 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         return false;
     }
 
+    public void setTitleExpand(boolean titleExpand) {
+        int newRightPadding = titleExpand ? dp(10) : 0;
+        if (titleTextView.getPaddingRight() != newRightPadding) {
+            titleTextView.setPadding(0, dp(6), newRightPadding, dp(12));
+            requestLayout();
+            invalidate();
+        }
+    }
+
+
     public void setOverrideSubtitleColor(Integer overrideSubtitleColor) {
         this.overrideSubtitleColor = overrideSubtitleColor;
     }

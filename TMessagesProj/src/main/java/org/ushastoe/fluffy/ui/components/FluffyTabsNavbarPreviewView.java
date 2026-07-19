@@ -52,7 +52,7 @@ public class FluffyTabsNavbarPreviewView extends FrameLayout {
         setFocusable(false);
         setOnTouchListener((v, event) -> true);
 
-        tabsView = new MainTabsLayout(context);
+        tabsView = new MainTabsLayout(context, resourcesProvider);
         previewTabs = createPreviewTabs(context);
         tabsView.setClipChildren(false);
         tabsView.setPadding(

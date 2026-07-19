@@ -3147,7 +3147,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     shouldAnimateEditTextWithBounds = false;
                 }
                 if (!captionAbove) {
-                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), newLineCount, getEditText().getText()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(true, newLineCount, getEditText().getText()));
                 }
                 chatActivityEnterViewAnimateFromTop = frameLayout2.getTop() + captionEditTextTopOffset;
                 frameLayout2.invalidate();
@@ -3280,7 +3280,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 }
 
                 if (!captionAbove) {
-                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), commentTextView.getEditText().getLineCount(), commentTextView.getText()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(true, commentTextView.getEditText().getLineCount(), commentTextView.getText()));
                 }
                 checkIsEphemeralMessage(true);
             }
@@ -3311,7 +3311,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 super.onLineCountChanged(oldLineCount, newLineCount);
                 updatedTopCaptionHeight();
                 if (captionAbove) {
-                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), newLineCount, getEditText().getText()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(true, newLineCount, getEditText().getText()));
                 }
             }
 
@@ -3429,7 +3429,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 }
 
                 if (captionAbove) {
-                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), topCommentTextView.getEditText().getLineCount(), topCommentTextView.getText()));
+                    showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(true, topCommentTextView.getEditText().getLineCount(), topCommentTextView.getText()));
                 }
                 checkIsEphemeralMessage(true);
             }
@@ -7047,7 +7047,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
         AndroidUtilities.runOnUIThread(() -> {
             final EditTextEmoji editText = captionAbove ? topCommentTextView : commentTextView;
-            showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), editText.getEditText().getLineCount(), editText.getText()));
+            showAiButton(AiEditorButtonHook.shouldShowAuxiliaryButton(true, editText.getEditText().getLineCount(), editText.getText()));
         });
     }
 

@@ -51,7 +51,6 @@ import org.telegram.ui.ActionBar.BottomSheetTabs;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BubbleActivity;
 import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.web.RestrictedDomainsList;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 
 import java.lang.ref.WeakReference;

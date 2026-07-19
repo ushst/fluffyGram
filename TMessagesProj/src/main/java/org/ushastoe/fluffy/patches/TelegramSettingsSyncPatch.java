@@ -54,8 +54,9 @@ public final class TelegramSettingsSyncPatch {
         try {
             object.put(KEY_RAISE_TO_SPEAK, SharedConfig.raiseToSpeak);
             object.put(KEY_RAISE_TO_LISTEN, SharedConfig.raiseToListen);
-            object.put(KEY_CUSTOM_TABS, SharedConfig.customTabs);
-            object.put(KEY_INAPP_BROWSER, SharedConfig.inappBrowser);
+            MessagesController mc = MessagesController.getInstance(org.telegram.messenger.UserConfig.selectedAccount);
+            object.put(KEY_CUSTOM_TABS, mc.isWebBrowserUseCustomTabs());
+            object.put(KEY_INAPP_BROWSER, mc.isWebBrowserInAppEnabled());
             object.put(KEY_ADAPTABLE_BROWSER, SharedConfig.adaptableColorInBrowser);
             object.put(KEY_DIRECT_SHARE, SharedConfig.directShare);
             object.put(KEY_INAPP_CAMERA, SharedConfig.inappCamera);
@@ -98,8 +99,14 @@ public final class TelegramSettingsSyncPatch {
 
             applyToggleBoolean(object, KEY_RAISE_TO_SPEAK, SharedConfig.raiseToSpeak, SharedConfig::toggleRaiseToSpeak);
             applyToggleBoolean(object, KEY_RAISE_TO_LISTEN, SharedConfig.raiseToListen, SharedConfig::toggleRaiseToListen);
-            applyBooleanValue(object, KEY_CUSTOM_TABS, value -> SharedConfig.toggleCustomTabs(value));
-            applyToggleBoolean(object, KEY_INAPP_BROWSER, SharedConfig.inappBrowser, SharedConfig::toggleInappBrowser);
+            MessagesController mc = MessagesController.getInstance(org.telegram.messenger.UserConfig.selectedAccount);
+            applyBooleanValue(object, KEY_CUSTOM_TABS, mc::toggleWebBrowserUseCustomTabs);
+            if (object.has(KEY_INAPP_BROWSER)) {
+                boolean wantInApp = object.optBoolean(KEY_INAPP_BROWSER, mc.isWebBrowserInAppEnabled());
+                if (wantInApp != mc.isWebBrowserInAppEnabled()) {
+                    mc.toggleWebBrowserInAppEnabled();
+                }
+            }
             applyToggleBoolean(object, KEY_ADAPTABLE_BROWSER, SharedConfig.adaptableColorInBrowser, SharedConfig::toggleBrowserAdaptableColors);
             applyToggleBoolean(object, KEY_DIRECT_SHARE, SharedConfig.directShare, SharedConfig::toggleDirectShare);
             applyToggleBoolean(object, KEY_INAPP_CAMERA, SharedConfig.inappCamera, SharedConfig::toggleInappCamera);

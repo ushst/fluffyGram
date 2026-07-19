@@ -5490,7 +5490,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             if (isInitLineCount) {
                 lineCount = getLineCount();
-                showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), lineCount, getText()));
+                showAiButton(AiEditorButtonHook.shouldShowButton(true, lineCount, getText()));
                 showRichButton(lineCount > 2 && !TextUtils.isEmpty(getText().toString().trim()));
             }
             isInitLineCount = false;
@@ -5739,7 +5739,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
                 if (lineCount != messageEditText.getLineCount()) {
-                    showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), messageEditText.getLineCount(), messageEditText.getText()));
+                    showAiButton(AiEditorButtonHook.shouldShowButton(true, messageEditText.getLineCount(), messageEditText.getText()));
                     showRichButton(messageEditText.getLineCount() > 2 && messageEditText.getText() != null && !TextUtils.isEmpty(messageEditText.getText().toString().trim()));
                 }
             }
@@ -5904,7 +5904,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                         onLineCountChanged(lineCount, messageEditText.getLineCount());
                     }
                     lineCount = messageEditText.getLineCount();
-                    showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), lineCount, charSequence));
+                    showAiButton(AiEditorButtonHook.shouldShowButton(true, lineCount, charSequence));
                     showRichButton(lineCount > 2 && charSequence != null && !TextUtils.isEmpty(charSequence.toString().trim()));
                 } else {
                     heightShouldBeChanged = false;
@@ -6018,7 +6018,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     }
                 }
 
-                showAiButton(AiEditorButtonHook.shouldShowButton(MessagesController.getInstance(currentAccount).aiEditorAvailable(), lineCount, editable));
+                showAiButton(AiEditorButtonHook.shouldShowButton(true, lineCount, editable));
                 checkIsEphemeralMessage(true);
                 showRichButton(lineCount > 2 && editable != null && !TextUtils.isEmpty(editable.toString().trim()));
             }

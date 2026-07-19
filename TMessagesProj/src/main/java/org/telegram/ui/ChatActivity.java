@@ -4487,7 +4487,7 @@ public class ChatActivity extends BaseFragment implements
             if (searchItem != null) {
                 headerItem.lazilyAddSubItem(search, R.drawable.msg_search, LocaleController.getString(R.string.Search));
             }
-            if (AiEditorButtonHook.useActionModeEntry() && getMessagesController().aiEditorAvailable()) {
+            if (AiEditorButtonHook.useActionModeEntry() && true) {
                 headerItem.lazilyAddSubItem(R.id.menu_ai_editor, R.drawable.msg_translate, LocaleController.getString(R.string.AIEditor));
             }
             if (ChatObject.isBoostSupported(currentChat) && (getUserConfig().isPremium() || ChatObject.isBoosted(chatInfo) || ChatObject.hasAdminRights(currentChat))) {
