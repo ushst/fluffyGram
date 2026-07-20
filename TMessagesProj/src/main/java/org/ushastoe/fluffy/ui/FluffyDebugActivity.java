@@ -68,6 +68,7 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int ROW_LOCAL_STORAGE_HEADER = 6;
     private static final int ROW_ARCHIVE_DB_SIZE = 7;
     private static final int ROW_FAKE_EDIT_DB_SIZE = 8;
+    private static final int ROW_HISTORY_HOLES = 20;
     private static final int ROW_EXPORT_CONFIG = 9;
     private static final int ROW_IMPORT_CONFIG = 10;
     private static final int ROW_CONFIG_FILE_INFO = 11;
@@ -135,6 +136,8 @@ public class FluffyDebugActivity extends BaseFragment {
                 checkForUpdates();
             } else if (item.id == ROW_SHARE_APK) {
                 shareCurrentApk();
+            } else if (item.id == ROW_HISTORY_HOLES) {
+                presentFragment(new FluffyHistoryHolesActivity());
             } else if (item.id == ROW_EXPORT_CONFIG) {
                 startConfigExport();
             } else if (item.id == ROW_IMPORT_CONFIG) {
@@ -199,6 +202,8 @@ public class FluffyDebugActivity extends BaseFragment {
                 LocaleController.getString(R.string.FluffyLocalMessageArchiveDatabaseSize), formatDatabaseSize(LocalMessageArchiveStore.getDatabaseSizeBytes())));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_FAKE_EDIT_DB_SIZE,
                 LocaleController.getString(R.string.FluffyLocalFakeEditDatabaseSize), formatDatabaseSize(LocalMessageFakeEditStore.getDatabaseSizeBytes())));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_HISTORY_HOLES,
+                LocaleController.getString(R.string.FluffyHistoryHolesRowTitle), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_EXPORT_CONFIG,
                 LocaleController.getString(R.string.FluffyExportConfig), null));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_IMPORT_CONFIG,
@@ -477,7 +482,7 @@ public class FluffyDebugActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "import-config");
         } else if (item.id == ROW_SAVE_LOG || item.id == ROW_SAVE_LOG_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "save-log");
-        } else if (item.id == ROW_LOCAL_STORAGE_HEADER || item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE) {
+        } else if (item.id == ROW_LOCAL_STORAGE_HEADER || item.id == ROW_ARCHIVE_DB_SIZE || item.id == ROW_FAKE_EDIT_DB_SIZE || item.id == ROW_HISTORY_HOLES) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "local-storage");
         } else if (item.id == ROW_GOOGLE_CLOUD_HEADER || item.id == ROW_GOOGLE_CLOUD_STATUS || item.id == ROW_GOOGLE_CLOUD_INFO || item.id == ROW_SELFHOSTED_CLOUD_ENABLED) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("debug", "google-cloud");

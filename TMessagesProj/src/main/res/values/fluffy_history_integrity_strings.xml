@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyHistoryHolesRowTitle">Check history integrity</string>
+    <string name="FluffyHistoryHolesTitle">History gaps</string>
+    <string name="FluffyHistoryHolesRefresh">Refresh</string>
+    <string name="FluffyHistoryHolesLoading">Scanning local database…</string>
+    <string name="FluffyHistoryHolesEmpty">No chats with unsynced history gaps found.</string>
+    <string name="FluffyHistoryHolesInfo">A gap means part of a chat\'s history isn\'t cached locally yet and will be re-downloaded from Telegram\'s servers when you open that chat. Tap a chat below to open it and start re-downloading its history.</string>
+    <string name="FluffyHistoryHolesGapValue">%1$d gap(s), ~%2$d messages to re-download</string>
+    <string name="FluffyHistoryHolesWarningTitle">Local history gaps detected</string>
+    <string name="FluffyHistoryHolesWarning">A large chunk of your locally cached chat history disappeared since the last check (%1$d chats affected). Cloud messages aren\'t lost — tap to see which chats and reopen them to re-download.</string>
+    <string name="FluffyHistoryHolesOpen">Check</string>
+</resources>

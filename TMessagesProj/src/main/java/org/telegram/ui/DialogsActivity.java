@@ -7245,6 +7245,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateProxyButton(false, true);
         updateStoriesVisibility(false);
         checkSuggestClearDatabase();
+        checkFluffyHistoryIntegrity();
         checkUi_mainTabsVisible();
         if (filterTabsView != null && viewPages[0] != null && viewPages[0].dialogsAdapter != null) {
             int dialogsType = viewPages[0].dialogsAdapter.getDialogsType();
@@ -10923,6 +10924,26 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    private boolean fluffyHistoryIntegrityCheckedThisSession;
+
+    private void checkFluffyHistoryIntegrity() {
+        if (fluffyHistoryIntegrityCheckedThisSession) {
+            return;
+        }
+        fluffyHistoryIntegrityCheckedThisSession = true;
+        org.ushastoe.fluffy.utils.HistoryIntegrityChecker.checkAndUpdateBaseline(currentAccount, result -> {
+            if (!result.anomalous || getParentActivity() == null || isFinishing()) {
+                return;
+            }
+            BulletinFactory.of(this).createSimpleBulletin(
+                    R.raw.error,
+                    LocaleController.formatString(R.string.FluffyHistoryHolesWarning, result.affectedDialogs),
+                    LocaleController.getString(R.string.FluffyHistoryHolesOpen),
+                    () -> presentFragment(new org.ushastoe.fluffy.ui.FluffyHistoryHolesActivity())
+            ).show();
+        });
+    }
+
     View databaseMigrationHint;
 
     private String showingSuggestion;
@@ -12753,10 +12774,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     public List<FloatingDebugController.DebugItem> onGetDebugItems() {
         return Arrays.asList(
                 new FloatingDebugController.DebugItem(LocaleController.getString(R.string.DebugDialogsActivity)),
-                new FloatingDebugController.DebugItem(LocaleController.getString(R.string.ClearLocalDatabase), () -> {
-                    getMessagesStorage().clearLocalDatabase();
-                    Toast.makeText(getContext(), LocaleController.getString(R.string.DebugClearLocalDatabaseSuccess), Toast.LENGTH_SHORT).show();
-                }),
                 new FloatingDebugController.DebugItem(LocaleController.getString(R.string.DebugClearSendMessageAsPeers), () -> getMessagesController().clearSendAsPeers())
         );
     }

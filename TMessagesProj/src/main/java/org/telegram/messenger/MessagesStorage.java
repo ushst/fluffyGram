@@ -7843,6 +7843,47 @@ public class MessagesStorage extends BaseController {
         return ref.get();
     }
 
+    public static class DialogHoleInfo {
+        public final long dialogId;
+        public final int holeCount;
+        public final long totalGap;
+
+        public DialogHoleInfo(long dialogId, int holeCount, long totalGap) {
+            this.dialogId = dialogId;
+            this.holeCount = holeCount;
+            this.totalGap = totalGap;
+        }
+    }
+
+    public ArrayList<DialogHoleInfo> getMessageHolesSummary() {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        ArrayList<DialogHoleInfo> result = new ArrayList<>();
+        storageQueue.postRunnable(() -> {
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized("SELECT uid, COUNT(*), SUM(end - start) FROM messages_holes GROUP BY uid ORDER BY SUM(end - start) DESC");
+                while (cursor.next()) {
+                    result.add(new DialogHoleInfo(cursor.longValue(0), cursor.intValue(1), cursor.longValue(2)));
+                }
+                cursor.dispose();
+                cursor = null;
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (cursor != null) {
+                    cursor.dispose();
+                }
+                countDownLatch.countDown();
+            }
+        });
+        try {
+            countDownLatch.await();
+        } catch (Exception e) {
+            checkSQLException(e);
+        }
+        return result;
+    }
+
     public boolean hasInviteMeMessage(long chatId) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         boolean[] result = new boolean[1];

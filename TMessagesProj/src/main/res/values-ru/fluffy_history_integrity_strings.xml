@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyHistoryHolesRowTitle">Проверить целостность истории</string>
+    <string name="FluffyHistoryHolesTitle">Разрывы истории</string>
+    <string name="FluffyHistoryHolesRefresh">Обновить</string>
+    <string name="FluffyHistoryHolesLoading">Сканирую локальную базу…</string>
+    <string name="FluffyHistoryHolesEmpty">Чатов с несинхронизированными разрывами истории не найдено.</string>
+    <string name="FluffyHistoryHolesInfo">Разрыв означает, что часть истории чата ещё не закэширована локально и будет заново скачана с серверов Telegram при открытии этого чата. Нажмите на чат ниже, чтобы открыть его и начать докачку истории.</string>
+    <string name="FluffyHistoryHolesGapValue">Разрывов: %1$d, ~%2$d сообщений на докачку</string>
+    <string name="FluffyHistoryHolesWarningTitle">Обнаружены разрывы в локальной истории</string>
+    <string name="FluffyHistoryHolesWarning">С момента последней проверки заметно просела локально закэшированная история чатов (затронуто чатов: %1$d). Облачные сообщения не потеряны — нажмите, чтобы посмотреть какие чаты, и откройте их для докачки.</string>
+    <string name="FluffyHistoryHolesOpen">Проверить</string>
+</resources>
