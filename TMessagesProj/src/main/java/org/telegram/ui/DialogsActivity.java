@@ -271,6 +271,7 @@ import org.ushastoe.fluffy.hooks.DialogsCenteredTitleHook;
 import org.ushastoe.fluffy.hooks.DialogsFolderTitleHook;
 import org.ushastoe.fluffy.hooks.DialogFilterSelectionHook;
 import org.ushastoe.fluffy.hooks.LocalAnonStoryViewHook;
+import org.ushastoe.fluffy.hooks.PostsSearchHook;
 import org.telegram.ui.community.CommunityChatType;
 import org.telegram.ui.community.CommunityEditActivity;
 import org.telegram.ui.community.CommunityPendingRequestsActivity;
@@ -512,6 +513,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     public ActionBarMenuItem searchItem;
     private ActionBarMenuItem optionsItem;
     private ActionBarMenuItem speedItem;
+    private ActionBarMenuItem postsRefreshItem;
+    private boolean postsRefreshItemVisible;
     public static boolean switchingTheme;
     private ActionBarMenuItem doneItem;
     private ProxyDrawable proxyDrawable;
@@ -1192,6 +1195,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 } else if (child == searchViewPager) {
                     searchViewPager.setTranslationY(searchViewPagerTranslationY);
                     searchViewPager.postsSearchContainer.setKeyboardHeight(keyboardSize);
+                    searchViewPager.postsFeedContainer.setKeyboardHeight(keyboardSize);
                     final int contentWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, View.MeasureSpec.EXACTLY);
                     final int h = MeasureSpec.getSize(heightMeasureSpec) + dp(ADDITIONAL_LIST_HEIGHT_DP);
                     final int contentHeightSpec = MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY);
@@ -3089,6 +3093,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (commentView != null) {
             commentView.onDestroy();
         }
+        if (searchViewPager != null) {
+            searchViewPager.destroy();
+        }
         if (shareTopView != null) {
             shareTopView.stopHintRotation();
         }
@@ -3314,6 +3321,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             speedItem.setOnClickListener(v -> showDialog(new PremiumFeatureBottomSheet(DialogsActivity.this, PremiumPreviewFragment.PREMIUM_FEATURE_DOWNLOAD_SPEED, true)));
 
             fragmentSearchField.addAdditionalIcon(speedItem);
+
+            postsRefreshItem = PostsSearchHook.createRefreshItem(menu, () -> {
+                if (searchViewPager != null) {
+                    searchViewPager.postsSearchContainer.refresh();
+                }
+            });
+            fragmentSearchField.addAdditionalIcon(postsRefreshItem);
             fragmentSearchField.updateColors();
         }
 
@@ -3425,6 +3439,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (searchViewPager != null) {
                     searchViewPager.onTextChanged(text);
                 }
+                updatePostsRefreshItem();
             }
 
             @Override
@@ -12998,6 +13013,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             @Override
             protected void onTabPageSelected(int position) {
                 updateSpeedItem(isDownloadsTab(position));
+                updatePostsRefreshItem();
             }
 
             @Override
@@ -13282,6 +13298,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 args.putInt("storiesCount", list.getCount());
                 presentFragment(new MediaActivity(args, null));
             }
+        });
+        searchViewPager.postsSearchContainer.setOnStateUpdate(this::updatePostsRefreshItem);
+        searchViewPager.postsSearchContainer.setOnRecentQueryClick(query -> {
+            if (fragmentSearchField == null) {
+                return;
+            }
+            fragmentSearchField.editText.setText(query);
+            fragmentSearchField.editText.setSelection(fragmentSearchField.editText.getText().length());
         });
         searchViewPager.botsSearchListView.setOnItemLongClickListener((view, position) -> {
             Object obj = searchViewPager.botsSearchAdapter.getTopPeerObject(position);
@@ -14133,6 +14157,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         checkUi_itemOptionsVisibility();
         checkUi_itemDownloadsVisibility();
         checkUi_itemSpeedVisibility();
+        checkUi_itemPostsRefreshVisibility();
         checkUi_itemPasscodeVisibility();
         checkUi_itemSearchVisibility();
     }
@@ -14182,6 +14207,28 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         final float factor4 = animatorSpeedButtonVisible.getFloatValue();
         final float factor = factor1 * factor2 * factor3 * factor4;
         FragmentFloatingButton.setAnimatedVisibility(speedItem, factor);
+    }
+
+    private void checkUi_itemPostsRefreshVisibility() {
+        final float factor1 = animatorSearchVisible.getFloatValue();
+        final float factor2 = 1f - getRightSlidingProgress();
+        final float factor3 = 1f - animatorDoneButtonVisible.getFloatValue();
+        final float factor4 = postsRefreshItemVisible ? 1f : 0f;
+        final float factor = factor1 * factor2 * factor3 * factor4;
+        FragmentFloatingButton.setAnimatedVisibility(postsRefreshItem, factor);
+    }
+
+    private void updatePostsRefreshItem() {
+        if (postsRefreshItem == null) {
+            return;
+        }
+        final boolean visible = searchViewPager != null
+            && searchViewPager.isPostsTab(searchViewPager.getCurrentPosition())
+            && searchViewPager.postsSearchContainer.canRefresh();
+        if (postsRefreshItemVisible != visible) {
+            postsRefreshItemVisible = visible;
+            checkUi_itemPostsRefreshVisibility();
+        }
     }
 
     private void checkUi_itemSearchVisibility() {

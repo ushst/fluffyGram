@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyPostsHideChannel">Hide this channel</string>
+    <string name="FluffyPostsHideChannelHere">Hide in \"%1$s\"</string>
+    <string name="FluffyPostsHideChannelEverywhere">Hide in all searches</string>
+    <string name="FluffyPostsHiddenTitle">Hidden channels</string>
+    <string name="FluffyPostsHiddenCount">Hidden: %1$d</string>
+    <string name="FluffyPostsHiddenInQuery">In \"%1$s\"</string>
+    <string name="FluffyPostsHiddenEverywhere">In all searches</string>
+    <string name="FluffyPostsHiddenEmpty">No hidden channels yet. Hold a post to hide its channel.</string>
+    <string name="FluffyPostsHiddenRestore">Show again</string>
+    <string name="FluffyPostsHiddenToast">%1$s is hidden from these results</string>
+    <string name="FluffyPostsShownToast">%1$s is shown again</string>
+</resources>

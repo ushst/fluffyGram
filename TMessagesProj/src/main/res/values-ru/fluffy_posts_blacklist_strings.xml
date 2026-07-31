@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="FluffyPostsHideChannel">Скрыть этот канал</string>
+    <string name="FluffyPostsHideChannelHere">Скрыть в «%1$s»</string>
+    <string name="FluffyPostsHideChannelEverywhere">Скрыть во всех поисках</string>
+    <string name="FluffyPostsHiddenTitle">Скрытые каналы</string>
+    <string name="FluffyPostsHiddenCount">Скрыто: %1$d</string>
+    <string name="FluffyPostsHiddenInQuery">В запросе «%1$s»</string>
+    <string name="FluffyPostsHiddenEverywhere">Во всех поисках</string>
+    <string name="FluffyPostsHiddenEmpty">Скрытых каналов нет. Задержите пост, чтобы скрыть его канал.</string>
+    <string name="FluffyPostsHiddenRestore">Показывать снова</string>
+    <string name="FluffyPostsHiddenToast">%1$s скрыт из этой выдачи</string>
+    <string name="FluffyPostsShownToast">%1$s снова показывается</string>
+</resources>

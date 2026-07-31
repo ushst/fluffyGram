@@ -10,6 +10,8 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
+import org.ushastoe.fluffy.hooks.PostsBlacklistHook;
+import org.ushastoe.fluffy.hooks.PostsFeedHook;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -220,8 +222,7 @@ public class HashtagSearchController {
                 request = req;
             } else {
                 TLRPC.TL_channels_searchPosts req = new TLRPC.TL_channels_searchPosts();
-                req.flags |= 1;
-                req.hashtag = query;
+                PostsFeedHook.applyPostsSearchQuery(req, query, currentAccount);
                 req.limit = limit;
                 req.offset_peer = new TLRPC.TL_inputPeerEmpty();
                 if (search.lastOffsetPeer != null) {
@@ -245,6 +246,7 @@ public class HashtagSearchController {
                     obj.setQuery(query, false);
                     messageObjects.add(obj);
                 }
+                PostsBlacklistHook.filterMessages(currentAccount, query, messageObjects);
 
                 AndroidUtilities.runOnUIThread(() -> {
                     if (reqId[0] == search.reqId) {
@@ -283,6 +285,9 @@ public class HashtagSearchController {
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.messagesDidLoad, 0L, messageObjects.size(), messageObjects, false, 0, 0, 0, 0, 2, true, guid, loadIndex, 0, 0, ChatActivity.MODE_SEARCH);
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.hashtagSearchUpdated, guid, search.count, search.endReached, search.getMask(), search.selectedIndex, 0);
                 });
+            } else if (err != null) {
+                search.loading = false;
+                PostsFeedHook.onSearchError(currentAccount, err);
             }
         });
     }

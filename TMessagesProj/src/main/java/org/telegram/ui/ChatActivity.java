@@ -306,6 +306,8 @@ import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stars.StarsReactionsSheet;
 import org.telegram.ui.Stars.MessageSuggestionOfferSheet;
 import org.ushastoe.fluffy.hooks.AppFontHook;
+import org.ushastoe.fluffy.hooks.PostsBlacklistHook;
+import org.ushastoe.fluffy.hooks.PostsFeedHook;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.ForwardCommentOrderHook;
@@ -3208,11 +3210,15 @@ public class ChatActivity extends BaseFragment implements
         return true;
     }
 
-    protected void updateSearchingHashtag(String hashtag) {
+    public void updateSearchingHashtag(String hashtag) {
+        updateSearchingHashtag(hashtag, false);
+    }
+
+    public void updateSearchingHashtag(String hashtag, boolean force) {
         if (chatMode != MODE_SEARCH) {
             return;
         }
-        if (!TextUtils.equals(searchingHashtag, hashtag)) {
+        if (force || !TextUtils.equals(searchingHashtag, hashtag)) {
             showMessagesSearchListView(true);
             searchingHashtag = hashtag;
             searchingQuery = searchingHashtag;
@@ -12034,7 +12040,8 @@ public class ChatActivity extends BaseFragment implements
 
         final float paddingBottom;
         if (isInsideContainer && parentChatActivity == null) {
-            paddingBottom = AndroidUtilities.navigationBarHeight;
+            paddingBottom = AndroidUtilities.navigationBarHeight
+                + PostsFeedHook.getEmbeddedSearchBottomPadding(chatMode == MODE_SEARCH, searchContainer != null && searchContainer.getVisibility() == View.VISIBLE);
         } else {
             paddingBottom = blurredViewBottomOffset + dp(9 + 7)
                 + inputIslandHeightCurrent
@@ -12863,7 +12870,7 @@ public class ChatActivity extends BaseFragment implements
         return animatorSearchResultAsListVisibility.getValue();
     }
 
-    private void showMessagesSearchListView(boolean show) {
+    public void showMessagesSearchListView(boolean show) {
         if (messagesSearchListContainer == null || animatorSearchResultAsListVisibility.getValue() == show) {
             return;
         }
@@ -30943,6 +30950,8 @@ public class ChatActivity extends BaseFragment implements
                 icons.add(R.drawable.msg_calendar2);
             }
 
+            PostsBlacklistHook.fillMessageMenu(chatMode == MODE_SEARCH, searchingQuery, message, icons, items, options);
+
             if (options.isEmpty() && optionsView == null) {
                 return false;
             }
@@ -33286,6 +33295,9 @@ public class ChatActivity extends BaseFragment implements
 
     private void processSelectedOption(int option) {
         if (selectedObject == null || getParentActivity() == null) {
+            return;
+        }
+        if (PostsBlacklistHook.processOption(this, option, selectedObject, searchingQuery)) {
             return;
         }
         boolean preserveDim = false;
@@ -36082,6 +36094,15 @@ public class ChatActivity extends BaseFragment implements
         messages.remove(index);
         if (chatAdapter != null && !chatAdapter.isFiltered) {
             chatAdapter.notifyItemRemoved(chatAdapter.messagesStartRow + index);
+        }
+    }
+
+    public void hideMessagesOfDialog(long dialogId) {
+        for (int i = messages.size() - 1; i >= 0; --i) {
+            final MessageObject messageObject = messages.get(i);
+            if (messageObject != null && messageObject.getDialogId() == dialogId) {
+                removeMessageWithThanos(messageObject);
+            }
         }
     }
 

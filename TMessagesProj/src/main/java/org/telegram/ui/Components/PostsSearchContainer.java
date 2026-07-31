@@ -32,6 +32,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
@@ -48,6 +49,8 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.ushastoe.fluffy.hooks.PostsBlacklistHook;
+import org.ushastoe.fluffy.hooks.PostsSearchHook;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -73,6 +76,9 @@ public class PostsSearchContainer extends FrameLayout {
     private boolean loading;
     private String lastQuery;
 
+    private Utilities.Callback<String> onRecentQueryClick;
+    private Runnable onStateUpdate;
+
     private final FrameLayout emptyParentView;
     private final LinearLayout emptyView;
     private final BackupImageView emptyImageView;
@@ -87,7 +93,7 @@ public class PostsSearchContainer extends FrameLayout {
         this.fragment = fragment;
         this.currentAccount = fragment.getCurrentAccount();
 
-        listView = new UniversalRecyclerView(context, currentAccount, 0, this::fillItems, this::onItemClick, null, null);
+        listView = new UniversalRecyclerView(context, currentAccount, 0, this::fillItems, this::onItemClick, this::onItemLongClick, null);
         listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -272,8 +278,14 @@ public class PostsSearchContainer extends FrameLayout {
 
                 final ArrayList<MessageObject> messages = news ? newsMessages : this.messages;
                 final boolean firstMessages = messages.isEmpty();
+                if (!news && firstMessages) {
+                    PostsSearchHook.saveQuery(currentAccount, req.query);
+                }
                 for (TLRPC.Message message : r.messages) {
                     final MessageObject msg = new MessageObject(currentAccount, message, false, false);
+                    if (PostsBlacklistHook.isHidden(currentAccount, req.query, msg.getDialogId())) {
+                        continue;
+                    }
                     if (!news) {
                         msg.setQuery(req.query);
                     }
@@ -370,6 +382,43 @@ public class PostsSearchContainer extends FrameLayout {
         emptyButton.setLoading(false);
     }
 
+    public void setOnRecentQueryClick(Utilities.Callback<String> listener) {
+        this.onRecentQueryClick = listener;
+    }
+
+    public void setOnStateUpdate(Runnable listener) {
+        this.onStateUpdate = listener;
+    }
+
+    public boolean canRefresh() {
+        return !TextUtils.isEmpty(lastQuery) || !newsMessages.isEmpty();
+    }
+
+    public void refresh() {
+        if (!canRefresh()) {
+            return;
+        }
+
+        cancel();
+        queryid++;
+        if (TextUtils.isEmpty(lastQuery)) {
+            newsMessagesLastRate = 0;
+            newsMessagesEndReached = false;
+            newsMessages.clear();
+
+            load(false);
+        } else {
+            lastRate = 0;
+            endReached = false;
+            messages.clear();
+
+            loadFlood(lastQuery);
+        }
+        updateEmptyView();
+        listView.scrollToPosition(0);
+        listView.adapter.update(true);
+    }
+
     private int queryid = 0;
     public void search(String q) {
         if (TextUtils.equals(lastQuery, q))
@@ -457,6 +506,7 @@ public class PostsSearchContainer extends FrameLayout {
         }
         final boolean news = TextUtils.isEmpty(lastQuery);
         if (news) {
+            PostsSearchHook.fillRecentQueries(currentAccount, items);
             if (!newsMessages.isEmpty()) {
                 items.add(UItem.asGraySection(getString(R.string.SearchPostsHeaderNews)));
             }
@@ -495,7 +545,17 @@ public class PostsSearchContainer extends FrameLayout {
             args.putInt("message_id", msg.getId());
             ChatActivity chatActivity = new ChatActivity(args);
             fragment.presentFragment(highlightFoundQuote(chatActivity, msg));
+        } else {
+            PostsSearchHook.onRecentQueryClick(currentAccount, item, getContext(), fragment.getResourceProvider(), onRecentQueryClick, this::updateRecentQueries);
         }
+    }
+
+    private boolean onItemLongClick(UItem item, View view, int position, float x, float y) {
+        return PostsSearchHook.onRecentQueryLongClick(currentAccount, item, getContext(), fragment.getResourceProvider(), this::updateRecentQueries);
+    }
+
+    private void updateRecentQueries() {
+        listView.adapter.update(true);
     }
 
     private ColoredImageSpan searchSpan;
@@ -505,6 +565,9 @@ public class PostsSearchContainer extends FrameLayout {
     private final Runnable updateEmptyViewRunnable = this::updateEmptyView;
     private void updateEmptyView() {
         AndroidUtilities.cancelRunOnUIThread(updateEmptyViewRunnable);
+        if (onStateUpdate != null) {
+            onStateUpdate.run();
+        }
         final int now = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
         if (!UserConfig.getInstance(currentAccount).isPremium()) {
             emptyImageView.setVisibility(View.GONE);
