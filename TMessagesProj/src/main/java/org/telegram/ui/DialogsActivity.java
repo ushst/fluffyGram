@@ -13300,13 +13300,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         });
         searchViewPager.postsSearchContainer.setOnStateUpdate(this::updatePostsRefreshItem);
-        searchViewPager.postsSearchContainer.setOnRecentQueryClick(query -> {
-            if (fragmentSearchField == null) {
-                return;
-            }
-            fragmentSearchField.editText.setText(query);
-            fragmentSearchField.editText.setSelection(fragmentSearchField.editText.getText().length());
-        });
+        searchViewPager.postsSearchContainer.setOnRecentQueryClick(this::setSearchFieldQuery);
+        searchViewPager.postsFeedContainer.setOnProjectClick(this::setSearchFieldQuery);
         searchViewPager.botsSearchListView.setOnItemLongClickListener((view, position) -> {
             Object obj = searchViewPager.botsSearchAdapter.getTopPeerObject(position);
             if (obj instanceof TLRPC.User) {
@@ -14216,6 +14211,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         final float factor4 = postsRefreshItemVisible ? 1f : 0f;
         final float factor = factor1 * factor2 * factor3 * factor4;
         FragmentFloatingButton.setAnimatedVisibility(postsRefreshItem, factor);
+    }
+
+    private void setSearchFieldQuery(String query) {
+        if (fragmentSearchField == null) {
+            return;
+        }
+        fragmentSearchField.editText.setText(query);
+        fragmentSearchField.editText.setSelection(fragmentSearchField.editText.getText().length());
     }
 
     private void updatePostsRefreshItem() {

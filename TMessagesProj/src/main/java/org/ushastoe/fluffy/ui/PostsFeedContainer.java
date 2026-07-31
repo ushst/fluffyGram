@@ -22,6 +22,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.HashtagSearchController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -40,6 +41,7 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.ushastoe.fluffy.hooks.PostsBlacklistHook;
 import org.ushastoe.fluffy.hooks.PostsFeedHook;
+import org.ushastoe.fluffy.hooks.PostsSearchHook;
 
 /**
  * Search tab that shows found public posts as a feed of whole messages, the way a channel renders
@@ -61,6 +63,7 @@ public class PostsFeedContainer extends FrameLayout {
     private final ButtonWithCounterView tileButton;
     private final TextView tileUnderButtonView;
     private final TextView hiddenChannelsButton;
+    private final PostsProjectsView projectsView;
 
     private ChatActivityContainer chatContainer;
 
@@ -125,6 +128,9 @@ public class PostsFeedContainer extends FrameLayout {
 
         addView(tileView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 32, 0, 32, 0));
 
+        projectsView = new PostsProjectsView(context, currentAccount, fragment.getResourceProvider());
+        addView(projectsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
+
         hiddenChannelsButton = new TextView(context);
         hiddenChannelsButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         hiddenChannelsButton.setTypeface(AndroidUtilities.bold());
@@ -145,6 +151,7 @@ public class PostsFeedContainer extends FrameLayout {
         tileTitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         tileTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         tileUnderButtonView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+        projectsView.updateColors();
         hiddenChannelsButton.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText2));
         hiddenChannelsButton.setBackground(Theme.createRoundRectDrawable(dp(14), Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText2), .12f)));
         colorSpan = null;
@@ -154,8 +161,14 @@ public class PostsFeedContainer extends FrameLayout {
         pagesPaddingTop = top;
         pagesPaddingBottom = bottom;
 
+        projectsView.setPagesPaddings(top, bottom);
         applyChatMargins();
         applyTileTranslation();
+    }
+
+    /** Opens a saved search: the query goes back into the search field and runs as usual. */
+    public void setOnProjectClick(Utilities.Callback<String> listener) {
+        projectsView.setOnProjectClick(listener);
     }
 
     /**
@@ -260,6 +273,7 @@ public class PostsFeedContainer extends FrameLayout {
             PostsFeedHook.setPendingPaidStars(currentAccount, flood.stars_amount);
         }
         appliedQuery = query;
+        PostsSearchHook.saveQuery(currentAccount, appliedQuery);
         if (chatContainer == null) {
             createFeed(appliedQuery);
         } else {
@@ -368,11 +382,17 @@ public class PostsFeedContainer extends FrameLayout {
         updateHiddenChannelsButton();
 
         final boolean feedShown = !TextUtils.isEmpty(appliedQuery);
+        // with nothing being searched the tab is a board of saved searches
+        final boolean projectsShown = !feedShown && TextUtils.isEmpty(query);
         if (chatContainer != null) {
             chatContainer.setVisibility(feedShown ? View.VISIBLE : View.GONE);
         }
-        tileView.setVisibility(feedShown ? View.GONE : View.VISIBLE);
-        if (feedShown) {
+        projectsView.setVisibility(projectsShown ? View.VISIBLE : View.GONE);
+        if (projectsShown) {
+            projectsView.update();
+        }
+        tileView.setVisibility(feedShown || projectsShown ? View.GONE : View.VISIBLE);
+        if (feedShown || projectsShown) {
             return;
         }
 

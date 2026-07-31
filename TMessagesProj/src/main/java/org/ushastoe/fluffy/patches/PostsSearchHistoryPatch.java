@@ -86,7 +86,7 @@ public final class PostsSearchHistoryPatch {
         save(currentAccount);
     }
 
-    private static void removeQuery(int currentAccount, String query) {
+    public static void removeQuery(int currentAccount, String query) {
         if (getQueries(currentAccount).remove(query)) {
             save(currentAccount);
         }

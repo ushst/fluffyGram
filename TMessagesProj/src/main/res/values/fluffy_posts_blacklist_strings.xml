@@ -11,4 +11,8 @@
     <string name="FluffyPostsHiddenRestore">Show again</string>
     <string name="FluffyPostsHiddenToast">%1$s is hidden from these results</string>
     <string name="FluffyPostsShownToast">%1$s is shown again</string>
+    <string name="FluffyPostsProjectsEmpty">Searches you run are saved here as projects.</string>
+    <string name="FluffyPostsProjectOpen">Open search</string>
+    <string name="FluffyPostsProjectRemoveTitle">Remove project</string>
+    <string name="FluffyPostsProjectRemoveText">Remove the saved search \"%1$s\"? Its hidden channels are kept.</string>
 </resources>

@@ -11,4 +11,8 @@
     <string name="FluffyPostsHiddenRestore">Показывать снова</string>
     <string name="FluffyPostsHiddenToast">%1$s скрыт из этой выдачи</string>
     <string name="FluffyPostsShownToast">%1$s снова показывается</string>
+    <string name="FluffyPostsProjectsEmpty">Здесь сохраняются выполненные поиски — как проекты.</string>
+    <string name="FluffyPostsProjectOpen">Открыть поиск</string>
+    <string name="FluffyPostsProjectRemoveTitle">Удалить проект</string>
+    <string name="FluffyPostsProjectRemoveText">Удалить сохранённый поиск «%1$s»? Скрытые каналы останутся.</string>
 </resources>
