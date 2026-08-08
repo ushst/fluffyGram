@@ -1,0 +1,50 @@
+Monet theme templates
+=====================
+
+Files
+-----
+  monet_light.attheme
+  monet_dark.attheme
+
+These two files map Telegram theme colour keys onto Material You palette tokens
+(a1_* / a2_* / a3_* accents, n1_* / n2_* neutrals, plus the monetRed* and
+monetGreenCall call-button colours). They are resolved at runtime by
+org.ushastoe.fluffy.monet.MonetThemeGenerator; they are not valid .attheme
+files on their own.
+
+Origin
+------
+Derived from the theme templates of Telegram-Monet:
+
+  https://github.com/mi-g-alex/Telegram-Monet
+  app/src/main/assets/monet_light.attheme
+  app/src/main/assets/monet_dark.attheme
+
+  Copyright (c) the Telegram-Monet authors.
+  Licensed under the Eclipse Public License 2.0.
+  https://www.eclipse.org/legal/epl-2.0/
+
+Modifications made for fluffyGram
+---------------------------------
+  * dropped colour keys this fork's ThemeColors no longer defines
+    (chat_attachFileBackground, chat_goDownButtonIcon, dialogCameraIcon, ...)
+  * renamed kvoipgroup_overlayAlertMutedByAdmin2 to
+    voipgroup_overlayAlertMutedByAdmin2
+  * enabled the glass_* keys, which upstream ships commented out with "--",
+    and gave them separate light and dark values
+  * added keys the upstream template did not cover: avatar_nameInMessage*,
+    chat_in/outCodeBackground, chat_in/outQuote, chat_in/outBubbleSelectedOverlay,
+    chat_in/outBubbleLocationPlaceholder, code_*, color_cyan,
+    chat_wallpaper_gradient_to, stories_circle_live*, pollCreateIcons
+  * added the header comment block; lines starting with '#' are ignored
+
+Licence note
+------------
+fluffyGram is distributed under GPL-2.0-or-later, inherited from Telegram for
+Android. EPL-2.0 and GPL-2.0 are not generally considered compatible unless the
+EPL-2.0 work is offered under its Secondary Licenses clause, which the upstream
+project does not currently declare. These files are data tables rather than
+source code, but if that distinction is ever contested the fix is to regenerate
+the mapping from this fork's own day.attheme / night.attheme instead of
+deriving it from Telegram-Monet. Track this before any redistribution where the
+question matters.

@@ -122,6 +122,7 @@ import org.telegram.ui.Components.Premium.PremiumGradient;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.DialogsListSizeHook;
+import org.ushastoe.fluffy.hooks.MonetThemeHook;
 import org.telegram.ui.Components.RecordStatusDrawable;
 import org.telegram.ui.Components.RoundStatusDrawable;
 import org.telegram.ui.Components.ScamDrawable;
@@ -2486,6 +2487,11 @@ public class Theme {
                 isDark = DARK;
             } else if ("Blue".equals(name) || "Arctic Blue".equals(name) || "Day".equals(name)) {
                 isDark = LIGHT;
+            } else {
+                Boolean monetIsDark = MonetThemeHook.resolveThemeIsDark(name);
+                if (monetIsDark != null) {
+                    isDark = monetIsDark ? DARK : LIGHT;
+                }
             }
             if (isDark == UNKNOWN) {
                 String[] wallpaperLink = new String[1];
@@ -4730,6 +4736,8 @@ public class Theme {
         sortAccents(themeInfo);
         themes.add(themeInfo);
         themesDict.put("Night", themeInfo);
+
+        MonetThemeHook.registerThemes(themes, themesDict, new ThemeInfo(), new ThemeInfo());
 
         String themesString = themeConfig.getString("themes2", null);
 
@@ -7791,6 +7799,10 @@ public class Theme {
     }
 
     public static File getAssetFile(String assetName) {
+        File monetFile = MonetThemeHook.getGeneratedThemeFile(assetName);
+        if (monetFile != null) {
+            return monetFile;
+        }
         File file = new File(ApplicationLoader.getFilesDirFixed(), assetName);
         long size;
         try {
@@ -8135,6 +8147,10 @@ public class Theme {
     }
 
     public static SparseIntArray getThemeFileValues(File file, String assetName, String[] wallpaperLink) {
+        SparseIntArray monetValues = MonetThemeHook.getThemeFileValues(assetName);
+        if (monetValues != null) {
+            return monetValues;
+        }
         FileInputStream stream = null;
         SparseIntArray stringMap = new SparseIntArray();
         try {

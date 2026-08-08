@@ -44,6 +44,7 @@ import org.ushastoe.fluffy.hooks.DialogsAppTitleHook;
 import org.ushastoe.fluffy.patches.AppFontPatch;
 import org.ushastoe.fluffy.patches.AppearanceSettingsPatch;
 import org.ushastoe.fluffy.patches.FluffySettingsDeepLinkPatch;
+import org.ushastoe.fluffy.patches.MonetThemePatch;
 import org.ushastoe.fluffy.ui.components.DialogsListSizeCell;
 import org.ushastoe.fluffy.ui.components.DialogsListPreviewCell;
 import org.ushastoe.fluffy.ui.components.DoubleTapEditPreviewCell;
@@ -237,6 +238,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 showEmojiSetDialog();
             } else if (item.id == ROW_IMPORT_FONT) {
                 startFontImport();
+            } else if (item.id == ROW_MONET) {
+                presentFragment(new FluffyMonetActivity());
             } else if (item.id == ROW_TABS) {
                 presentFragment(new FluffyTabsActivity());
             } else if (item.id == ROW_DIALOGS_TITLE_MODE) {
@@ -282,6 +285,9 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 false));
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_IMPORT_FONT,
                 LocaleController.getString(R.string.FluffyImportFont),
+                false));
+        items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_MONET,
+                LocaleController.getString(R.string.FluffyMonet),
                 false));
 
         items.add(new ItemInner(VIEW_TYPE_SHADOW, ROW_DOUBLE_TAP_SECTION, "", false));
@@ -849,6 +855,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "emoji-set");
             case ROW_IMPORT_FONT:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "import-font");
+            case ROW_MONET:
+                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "monet");
             case ROW_DOUBLE_TAP_HEADER:
             case ROW_DOUBLE_TAP_EDIT_PREVIEW:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "double-tap");
@@ -920,6 +928,14 @@ public class FluffyAppearanceActivity extends BaseFragment {
         });
     }
 
+    private CharSequence getMonetValue() {
+        Theme.ThemeInfo active = Theme.getActiveTheme();
+        if (active != null && MonetThemePatch.isMonetTheme(active.name)) {
+            return active.name;
+        }
+        return "";
+    }
+
     private int getTargetRowId() {
         Bundle args = getArguments();
         if (args == null) {
@@ -942,6 +958,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_EMOJI_SET;
             case "import-font":
                 return ROW_IMPORT_FONT;
+            case "monet":
+                return ROW_MONET;
             case "double-tap":
             case "double-tap/incoming":
             case "double-tap/outgoing":
@@ -1130,6 +1148,8 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     value = getEmojiSetValue();
                 } else if (item.id == ROW_IMPORT_FONT) {
                     value = "";
+                } else if (item.id == ROW_MONET) {
+                    value = getMonetValue();
                 } else if (item.id == ROW_EDITED_MARKER_ICON) {
                     value = getEditedMarkerValue();
                 } else if (item.id == ROW_SCHEDULED_MARKER) {

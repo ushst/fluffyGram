@@ -237,6 +237,7 @@ import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.FluffySettingsDeepLinkHook;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
 import org.ushastoe.fluffy.hooks.LegacyLaunchTaskRootHook;
+import org.ushastoe.fluffy.hooks.MonetThemeHook;
 import org.ushastoe.fluffy.hooks.NotificationOpenNavigationHook;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
 
@@ -7157,6 +7158,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     public void onConfigurationChanged(Configuration newConfig) {
         AndroidUtilities.checkDisplaySize(this, newConfig);
         AndroidUtilities.setPreferredMaxRefreshRate(getWindow());
+        MonetThemeHook.onConfigurationChanged();
         super.onConfigurationChanged(newConfig);
         pipActivityHandler.onConfigurationChanged(newConfig);
         AndroidUtilities.resetTabletFlag();
