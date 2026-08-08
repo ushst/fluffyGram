@@ -420,7 +420,7 @@
     <string name="FluffyDocumentMetadataGpsAltitude">Высота GPS</string>
     <string name="FluffyMonet">Тема Monet</string>
     <string name="FluffyMonetTitle">Тема Monet</string>
-    <string name="FluffyMonetInfo">Добавляет темы Monet и Monet Dark в Настройки → Настройки чатов → Темы. Настройки ниже действуют на обе.</string>
+    <string name="FluffyMonetInfo">Добавляет шесть тем в Настройки → Настройки чатов → Темы: Monet, Monet Secondary и Monet Tertiary, каждая в светлом и тёмном варианте. Отличаются тем, какая акцентная палитра Material You ведущая. Настройки ниже действуют на все шесть.</string>
     <string name="FluffyMonetPaletteSection">Палитра</string>
     <string name="FluffyMonetPaletteSource">Источник цвета</string>
     <string name="FluffyMonetPaletteSourceSystem">Обои системы</string>

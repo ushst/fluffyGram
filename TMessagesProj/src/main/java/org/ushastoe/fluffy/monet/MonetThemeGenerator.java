@@ -60,6 +60,7 @@ public final class MonetThemeGenerator {
         public boolean useSystemPalette = true;
         public int seedColor = MonetPalette.DEFAULT_SEED;
         public int scheme = MonetPalette.SCHEME_TONAL_SPOT;
+        public int accentPalette = MonetPalette.ACCENT_PRIMARY;
 
         /** Identity of a generated theme, used as the cache key. */
         public String signature() {
@@ -72,7 +73,8 @@ public final class MonetThemeGenerator {
                     + (invertOutgoing ? "i" : "-")
                     + (useSystemPalette ? "y" : "n")
                     + Integer.toHexString(seedColor)
-                    + "/" + scheme;
+                    + "/" + scheme
+                    + "/" + accentPalette;
         }
     }
 
@@ -175,14 +177,9 @@ public final class MonetThemeGenerator {
     }
 
     public static Map<String, Integer> buildTokens(Context context, Options options) {
-        if (options.useSystemPalette) {
-            Map<String, Integer> system = MonetPalette.fromSystem(context);
-            if (system != null) {
-                return system;
-            }
-            // Pre-Android 12, or a ROM without the system palette: fall back to the seed.
-        }
-        return MonetPalette.fromSeed(options.seedColor, options.scheme);
+        // Falls back to the seed on its own when the platform has no system palette.
+        return MonetPalette.tokensFor(context, options.useSystemPalette,
+                options.seedColor, options.scheme, options.accentPalette);
     }
 
     private static Map<String, String> readTemplate(Context context, String assetName) {

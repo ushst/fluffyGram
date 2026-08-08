@@ -14,13 +14,13 @@ public final class MonetThemeHook {
     }
 
     /**
-     * {@code ThemeInfo}'s constructor is package-private, so the two instances are created
-     * on the {@code Theme} side and only filled in here.
+     * {@code ThemeInfo}'s constructor is package-private, so {@code Theme} passes a factory
+     * and the patch decides how many entries to create.
      */
     public static void registerThemes(ArrayList<Theme.ThemeInfo> themes,
                                       HashMap<String, Theme.ThemeInfo> themesDict,
-                                      Theme.ThemeInfo light, Theme.ThemeInfo dark) {
-        MonetThemePatch.registerThemes(themes, themesDict, light, dark);
+                                      MonetThemePatch.ThemeInfoFactory factory) {
+        MonetThemePatch.registerThemes(themes, themesDict, factory);
     }
 
     /** @return generated colours for a Monet asset name, or {@code null} for any other theme. */

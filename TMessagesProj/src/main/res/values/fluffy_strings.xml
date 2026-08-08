@@ -415,7 +415,7 @@
     <string name="FluffyDocumentMetadataGpsAltitude">GPS altitude</string>
     <string name="FluffyMonet">Monet theme</string>
     <string name="FluffyMonetTitle">Monet theme</string>
-    <string name="FluffyMonetInfo">Adds the themes Monet and Monet Dark to Settings → Chat Settings → Themes. Colours below apply to both.</string>
+    <string name="FluffyMonetInfo">Adds six themes to Settings → Chat Settings → Themes: Monet, Monet Secondary and Monet Tertiary, each in light and dark. They differ by which Material You accent palette leads. The settings below apply to all of them.</string>
     <string name="FluffyMonetPaletteSection">Palette</string>
     <string name="FluffyMonetPaletteSource">Colour source</string>
     <string name="FluffyMonetPaletteSourceSystem">System wallpaper</string>

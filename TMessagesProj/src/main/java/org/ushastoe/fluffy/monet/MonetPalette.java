@@ -6,6 +6,7 @@ import android.os.Build;
 
 import org.ushastoe.fluffy.monet.mcu.DynamicScheme;
 import org.ushastoe.fluffy.monet.mcu.Hct;
+import org.ushastoe.fluffy.monet.mcu.MathUtils;
 import org.ushastoe.fluffy.monet.mcu.SchemeContent;
 import org.ushastoe.fluffy.monet.mcu.SchemeExpressive;
 import org.ushastoe.fluffy.monet.mcu.SchemeFidelity;
@@ -60,7 +61,79 @@ public final class MonetPalette {
     /** Fallback seed when the system palette is unavailable and the user picked no colour. */
     public static final int DEFAULT_SEED = 0xff1a73e8;
 
+    /**
+     * Which accent a theme is built around. The obvious implementation — promoting the
+     * platform's own secondary/tertiary palette into the {@code a1_*} slot the templates are
+     * written against — does not give three distinct themes: under TonalSpot the secondary
+     * palette shares the primary's hue and only drops chroma (265°/36 vs 265°/16), and under
+     * Monochrome all three collapse to the same grey. So the variants instead rotate the key
+     * colour's hue and rebuild a full palette, which stays distinct under every scheme that
+     * has any chroma at all.
+     */
+    public static final int ACCENT_PRIMARY = 0;
+    public static final int ACCENT_SECONDARY = 1;
+    public static final int ACCENT_TERTIARY = 2;
+
+    private static final double SECONDARY_HUE_ROTATION = 60.0;
+    private static final double TERTIARY_HUE_ROTATION = 120.0;
+
+    /** The wallpaper palette's key colour, used as the seed the rotations start from. */
+    private static final String SYSTEM_KEY_TOKEN = "a1_500";
+
+    private static final Object systemCacheLock = new Object();
+    private static Map<String, Integer> systemCache;
+
     private MonetPalette() {
+    }
+
+    /** Drops the memoised system palette; call when the wallpaper colours may have changed. */
+    public static void clearCache() {
+        synchronized (systemCacheLock) {
+            systemCache = null;
+        }
+    }
+
+    /**
+     * The token table a theme is built from.
+     *
+     * <p>The primary variant is the platform palette verbatim when one is available, so it
+     * stays a faithful match for the system accent. The other two rotate that palette's key
+     * colour and rebuild through material-color-utilities, which keeps them tied to the
+     * wallpaper while guaranteeing they read as different colours.
+     *
+     * @return a fresh map the caller may modify; the cached system palette is never handed out.
+     */
+    public static Map<String, Integer> tokensFor(Context context, boolean useSystem,
+                                                 int seedArgb, int scheme, int accentPalette) {
+        Map<String, Integer> system = useSystem ? cachedSystem(context) : null;
+        if (accentPalette != ACCENT_SECONDARY && accentPalette != ACCENT_TERTIARY) {
+            return system != null ? new HashMap<>(system) : fromSeed(seedArgb, scheme);
+        }
+        int keyColor = seedArgb;
+        if (system != null) {
+            Integer systemKey = system.get(SYSTEM_KEY_TOKEN);
+            if (systemKey != null) {
+                keyColor = systemKey;
+            }
+        }
+        double rotation = accentPalette == ACCENT_SECONDARY
+                ? SECONDARY_HUE_ROTATION : TERTIARY_HUE_ROTATION;
+        return fromSeed(rotateHue(keyColor, rotation), scheme);
+    }
+
+    private static int rotateHue(int argb, double degrees) {
+        Hct hct = Hct.fromInt(argb);
+        return Hct.from(MathUtils.sanitizeDegreesDouble(hct.getHue() + degrees),
+                hct.getChroma(), hct.getTone()).toInt();
+    }
+
+    private static Map<String, Integer> cachedSystem(Context context) {
+        synchronized (systemCacheLock) {
+            if (systemCache == null) {
+                systemCache = fromSystem(context);
+            }
+            return systemCache;
+        }
     }
 
     public static boolean isSystemPaletteAvailable() {

@@ -14,16 +14,18 @@ import org.ushastoe.fluffy.monet.MonetThemeGenerator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Material You themes generated inside the app.
  *
- * <p>Two extra {@link Theme.ThemeInfo} entries are registered next to Blue/Day/Night, both
- * pointing at a token template in {@code assets/fluffy/}. {@code Theme.getThemeFileValues}
- * is intercepted for those asset names, so selecting, previewing and night-switching a
- * Monet theme all go through Telegram's own code paths — nothing is exported or imported.
+ * <p>Six extra {@link Theme.ThemeInfo} entries are registered next to Blue/Day/Night — one
+ * per accent palette (primary, secondary, tertiary) per side — all resolved from the two
+ * token templates in {@code assets/fluffy/}. {@code Theme.getThemeFileValues} is intercepted
+ * for their asset keys, so selecting, previewing and night-switching a Monet theme all go
+ * through Telegram's own code paths — nothing is exported or imported.
  */
 public final class MonetThemePatch {
 
@@ -44,9 +46,42 @@ public final class MonetThemePatch {
     public static final int PALETTE_SOURCE_SYSTEM = 0;
     public static final int PALETTE_SOURCE_CUSTOM = 1;
 
-    /** Built-in themes occupy 1..5; Monet sits right after them. */
-    private static final int SORT_INDEX_LIGHT = 6;
-    private static final int SORT_INDEX_DARK = 7;
+    /**
+     * One theme per accent palette per side. They are separate entries in the theme list
+     * rather than a colour picker, so the standard day/night selectors can point at them.
+     * Built-in themes occupy sortIndex 1..5, so Monet starts at 6.
+     */
+    private static final class Variant {
+        final String themeName;
+        final String assetKey;
+        final boolean dark;
+        final int accentPalette;
+        final int sortIndex;
+
+        Variant(String themeName, String assetKey,
+                boolean dark, int accentPalette, int sortIndex) {
+            this.themeName = themeName;
+            this.assetKey = assetKey;
+            this.dark = dark;
+            this.accentPalette = accentPalette;
+            this.sortIndex = sortIndex;
+        }
+    }
+
+    private static final Variant[] VARIANTS = {
+            new Variant("Monet", "fluffy/monet_light.attheme",
+                    false, MonetPalette.ACCENT_PRIMARY, 6),
+            new Variant("Monet Dark", "fluffy/monet_dark.attheme",
+                    true, MonetPalette.ACCENT_PRIMARY, 7),
+            new Variant("Monet Secondary", "fluffy/monet_secondary_light.attheme",
+                    false, MonetPalette.ACCENT_SECONDARY, 8),
+            new Variant("Monet Secondary Dark", "fluffy/monet_secondary_dark.attheme",
+                    true, MonetPalette.ACCENT_SECONDARY, 9),
+            new Variant("Monet Tertiary", "fluffy/monet_tertiary_light.attheme",
+                    false, MonetPalette.ACCENT_TERTIARY, 10),
+            new Variant("Monet Tertiary Dark", "fluffy/monet_tertiary_dark.attheme",
+                    true, MonetPalette.ACCENT_TERTIARY, 11),
+    };
 
     private static final CopyOnWriteArrayList<Listener> listeners = new CopyOnWriteArrayList<>();
 
@@ -59,35 +94,35 @@ public final class MonetThemePatch {
 
     // region theme registration
 
-    /**
-     * Called from {@code Theme}'s static initialiser, right after the built-in themes.
-     * The two {@code ThemeInfo} instances are supplied by the caller because their
-     * constructor is package-private to {@code org.telegram.ui.ActionBar}.
-     */
+    /** Creates a {@code ThemeInfo}; its constructor is package-private to {@code Theme}. */
+    public interface ThemeInfoFactory {
+        Theme.ThemeInfo create();
+    }
+
+    /** Called from {@code Theme}'s static initialiser, right after the built-in themes. */
     public static void registerThemes(ArrayList<Theme.ThemeInfo> themes,
                                       HashMap<String, Theme.ThemeInfo> themesDict,
-                                      Theme.ThemeInfo light, Theme.ThemeInfo dark) {
-        if (themes == null || themesDict == null || light == null || dark == null
-                || themesDict.containsKey(THEME_NAME_LIGHT)) {
+                                      ThemeInfoFactory factory) {
+        if (themes == null || themesDict == null || factory == null
+                || themesDict.containsKey(VARIANTS[0].themeName)) {
             return;
         }
-        light.name = THEME_NAME_LIGHT;
-        light.assetName = MonetThemeGenerator.ASSET_LIGHT;
-        light.sortIndex = SORT_INDEX_LIGHT;
-        themes.add(light);
-        themesDict.put(THEME_NAME_LIGHT, light);
-
-        dark.name = THEME_NAME_DARK;
-        dark.assetName = MonetThemeGenerator.ASSET_DARK;
-        dark.sortIndex = SORT_INDEX_DARK;
-        themes.add(dark);
-        themesDict.put(THEME_NAME_DARK, dark);
-
-        applyPreviewColors(light, dark);
+        for (Variant variant : VARIANTS) {
+            Theme.ThemeInfo themeInfo = factory.create();
+            if (themeInfo == null) {
+                return;
+            }
+            themeInfo.name = variant.themeName;
+            themeInfo.assetName = variant.assetKey;
+            themeInfo.sortIndex = variant.sortIndex;
+            themes.add(themeInfo);
+            themesDict.put(variant.themeName, themeInfo);
+        }
+        refreshPreviewColors();
     }
 
     public static boolean isMonetTheme(String themeName) {
-        return THEME_NAME_LIGHT.equals(themeName) || THEME_NAME_DARK.equals(themeName);
+        return variantByName(themeName) != null;
     }
 
     /**
@@ -97,26 +132,39 @@ public final class MonetThemePatch {
      * @return {@code null} for any theme that is not ours.
      */
     public static Boolean resolveThemeIsDark(String themeName) {
-        if (THEME_NAME_DARK.equals(themeName)) {
-            return Boolean.TRUE;
-        }
-        if (THEME_NAME_LIGHT.equals(themeName)) {
-            return Boolean.FALSE;
-        }
-        return null;
+        Variant variant = variantByName(themeName);
+        return variant == null ? null : variant.dark;
     }
 
     /** Resolves the token template behind {@code assetName} into live colours. */
     public static SparseIntArray getColorsForAsset(String assetName) {
-        Boolean dark = darkForAsset(assetName);
-        if (dark == null) {
+        Variant variant = variantByAsset(assetName);
+        if (variant == null) {
             return null;
         }
         Context context = ApplicationLoader.applicationContext;
         if (context == null) {
             return null;
         }
-        return MonetThemeGenerator.generate(context, buildOptions(dark));
+        return MonetThemeGenerator.generate(context, buildOptions(variant));
+    }
+
+    private static Variant variantByName(String themeName) {
+        for (Variant variant : VARIANTS) {
+            if (variant.themeName.equals(themeName)) {
+                return variant;
+            }
+        }
+        return null;
+    }
+
+    private static Variant variantByAsset(String assetName) {
+        for (Variant variant : VARIANTS) {
+            if (variant.assetKey.equals(assetName)) {
+                return variant;
+            }
+        }
+        return null;
     }
 
     /**
@@ -126,8 +174,8 @@ public final class MonetThemePatch {
      * @return {@code null} for any asset that is not ours.
      */
     public static File getGeneratedThemeFile(String assetName) {
-        Boolean dark = darkForAsset(assetName);
-        if (dark == null) {
+        Variant variant = variantByAsset(assetName);
+        if (variant == null) {
             return null;
         }
         Context context = ApplicationLoader.applicationContext;
@@ -135,30 +183,21 @@ public final class MonetThemePatch {
             return null;
         }
         File file = new File(ApplicationLoader.getFilesDirFixed(),
-                dark ? "fluffy_monet_dark.attheme" : "fluffy_monet_light.attheme");
-        if (!MonetThemeGenerator.writeTo(context, buildOptions(dark), file)) {
+                variant.themeName.toLowerCase(Locale.US).replace(' ', '_') + ".attheme");
+        if (!MonetThemeGenerator.writeTo(context, buildOptions(variant), file)) {
             return null;
         }
         return file;
-    }
-
-    private static Boolean darkForAsset(String assetName) {
-        if (MonetThemeGenerator.ASSET_DARK.equals(assetName)) {
-            return Boolean.TRUE;
-        }
-        if (MonetThemeGenerator.ASSET_LIGHT.equals(assetName)) {
-            return Boolean.FALSE;
-        }
-        return null;
     }
 
     // endregion
 
     // region settings
 
-    public static MonetThemeGenerator.Options buildOptions(boolean dark) {
+    private static MonetThemeGenerator.Options buildOptions(Variant variant) {
         MonetThemeGenerator.Options options = new MonetThemeGenerator.Options();
-        options.dark = dark;
+        options.dark = variant.dark;
+        options.accentPalette = variant.accentPalette;
         options.amoled = isAmoled();
         options.gradientBubbles = useGradientBubbles();
         options.gradientAvatars = useGradientAvatars();
@@ -322,6 +361,9 @@ public final class MonetThemePatch {
 
     /** The wallpaper-derived system palette can change under us; drop the cache when it does. */
     public static void onConfigurationChanged() {
+        // The seed swatches are read from the system palette even in custom mode, so the
+        // palette cache is dropped regardless of which source the theme itself uses.
+        MonetPalette.clearCache();
         if (getPaletteSource() != PALETTE_SOURCE_SYSTEM) {
             return;
         }
@@ -341,32 +383,42 @@ public final class MonetThemePatch {
                         active, nightTheme, null, -1));
     }
 
-    private static void refreshPreviewColors() {
-        applyPreviewColors(Theme.getTheme(THEME_NAME_LIGHT), Theme.getTheme(THEME_NAME_DARK));
-    }
-
     /**
-     * Fills the swatches shown in the theme list. Deliberately built from the palette alone
-     * rather than a full template parse, so app start does not pay for it.
+     * Fills the swatches shown in the theme list. Built from the palettes alone rather than a
+     * full template parse, and one palette per accent rather than one per theme, so app start
+     * pays for three token tables instead of six.
      */
-    private static void applyPreviewColors(Theme.ThemeInfo light, Theme.ThemeInfo dark) {
+    private static void refreshPreviewColors() {
         Context context = ApplicationLoader.applicationContext;
-        if (context == null || (light == null && dark == null)) {
+        if (context == null) {
             return;
         }
-        Map<String, Integer> tokens = MonetThemeGenerator.buildTokens(context, buildOptions(false));
-        if (tokens == null) {
-            return;
-        }
-        if (light != null) {
-            light.setPreviewBackgroundColor(token(tokens, "n1_50"));
-            light.setPreviewInColor(token(tokens, "a2_50"));
-            light.setPreviewOutColor(token(tokens, "a1_600"));
-        }
-        if (dark != null) {
-            dark.setPreviewBackgroundColor(token(tokens, isAmoled() ? "n1_1000" : "n1_900"));
-            dark.setPreviewInColor(token(tokens, "n2_800"));
-            dark.setPreviewOutColor(token(tokens, "a1_100"));
+        boolean useSystem = getPaletteSource() == PALETTE_SOURCE_SYSTEM;
+        int seed = getSeedColor();
+        int scheme = getScheme();
+        for (int accent = MonetPalette.ACCENT_PRIMARY; accent <= MonetPalette.ACCENT_TERTIARY; accent++) {
+            Map<String, Integer> tokens = MonetPalette.tokensFor(context, useSystem, seed, scheme, accent);
+            if (tokens == null) {
+                continue;
+            }
+            for (Variant variant : VARIANTS) {
+                if (variant.accentPalette != accent) {
+                    continue;
+                }
+                Theme.ThemeInfo themeInfo = Theme.getTheme(variant.themeName);
+                if (themeInfo == null) {
+                    continue;
+                }
+                if (variant.dark) {
+                    themeInfo.setPreviewBackgroundColor(token(tokens, isAmoled() ? "n1_1000" : "n1_900"));
+                    themeInfo.setPreviewInColor(token(tokens, "n2_800"));
+                    themeInfo.setPreviewOutColor(token(tokens, "a1_100"));
+                } else {
+                    themeInfo.setPreviewBackgroundColor(token(tokens, "n1_50"));
+                    themeInfo.setPreviewInColor(token(tokens, "a2_50"));
+                    themeInfo.setPreviewOutColor(token(tokens, "a1_600"));
+                }
+            }
         }
     }
 

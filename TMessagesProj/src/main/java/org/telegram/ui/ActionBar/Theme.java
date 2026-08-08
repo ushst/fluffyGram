@@ -4737,7 +4737,7 @@ public class Theme {
         themes.add(themeInfo);
         themesDict.put("Night", themeInfo);
 
-        MonetThemeHook.registerThemes(themes, themesDict, new ThemeInfo(), new ThemeInfo());
+        MonetThemeHook.registerThemes(themes, themesDict, ThemeInfo::new);
 
         String themesString = themeConfig.getString("themes2", null);
 
