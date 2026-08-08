@@ -4738,6 +4738,7 @@ public class Theme {
         themesDict.put("Night", themeInfo);
 
         MonetThemeHook.registerThemes(themes, themesDict, ThemeInfo::new);
+        MonetThemeHook.addSystemAccents(themesDict, ThemeAccent::new);
 
         String themesString = themeConfig.getString("themes2", null);
 
