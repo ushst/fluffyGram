@@ -3,7 +3,6 @@ package org.ushastoe.fluffy.hooks;
 import android.util.SparseIntArray;
 
 import org.telegram.ui.ActionBar.Theme;
-import org.ushastoe.fluffy.patches.MonetSystemAccentPatch;
 import org.ushastoe.fluffy.patches.MonetThemePatch;
 
 import java.io.File;
@@ -39,14 +38,7 @@ public final class MonetThemeHook {
         return assetName == null ? null : MonetThemePatch.getGeneratedThemeFile(assetName);
     }
 
-    /** Adds the Android system accent to the stock themes' accent rows. */
-    public static void addSystemAccents(HashMap<String, Theme.ThemeInfo> themesDict,
-                                        MonetSystemAccentPatch.ThemeAccentFactory factory) {
-        MonetSystemAccentPatch.addSystemAccents(themesDict, factory);
-    }
-
     public static void onConfigurationChanged() {
         MonetThemePatch.onConfigurationChanged();
-        MonetSystemAccentPatch.onSystemPaletteChanged();
     }
 }
