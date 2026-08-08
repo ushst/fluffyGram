@@ -64,7 +64,6 @@ import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.TopicsFragment;
-import org.ushastoe.fluffy.hooks.ChatHeaderCenteringHook;
 import org.telegram.ui.community.CommunityArrowDrawable;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -372,7 +371,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
 
         emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(24));
         botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(17));
-        ChatHeaderCenteringHook.applyMode(this);
     }
 
     public ButtonBounce bounce = new ButtonBounce(this);
@@ -468,16 +466,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     protected boolean onAvatarClick() {
         return false;
     }
-
-    public void setTitleExpand(boolean titleExpand) {
-        int newRightPadding = titleExpand ? dp(10) : 0;
-        if (titleTextView.getPaddingRight() != newRightPadding) {
-            titleTextView.setPadding(0, dp(6), newRightPadding, dp(12));
-            requestLayout();
-            invalidate();
-        }
-    }
-
 
     public void setOverrideSubtitleColor(Integer overrideSubtitleColor) {
         this.overrideSubtitleColor = overrideSubtitleColor;
@@ -669,9 +657,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (ChatHeaderCenteringHook.onMeasure(this, widthMeasureSpec, heightMeasureSpec)) {
-            return;
-        }
         final int width = MeasureSpec.getSize(widthMeasureSpec);
         final int availableWidth = width - dp((avatarImageView.getVisibility() == VISIBLE ? 54 : 0) + 16);
         avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
@@ -723,7 +708,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         titleTextLargerCopyView.setRightDrawableOutside(titleTextView.getRightDrawableOutside());
         titleTextLargerCopyView.setLeftDrawable(titleTextView.getLeftDrawable());
         titleTextLargerCopyView.setText(titleTextView.getText());
-        ChatHeaderCenteringHook.applyFadeCopyMode(this, titleTextLargerCopyView, null);
         titleTextLargerCopyView.animate().alpha(0).setDuration(350).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).withEndAction(() -> {
             SimpleTextView titleTextLargerCopyView2 = this.titleTextLargerCopyView.get();
             if (titleTextLargerCopyView2 != null) {
@@ -748,7 +732,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         } else if (animatedSubtitleTextView != null) {
             subtitleTextLargerCopyView.setText(animatedSubtitleTextView.getText());
         }
-        ChatHeaderCenteringHook.applyFadeCopyMode(this, null, subtitleTextLargerCopyView);
         subtitleTextLargerCopyView.animate().alpha(0).setDuration(350).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).withEndAction(() -> {
             SimpleTextView subtitleTextLargerCopyView2 = this.subtitleTextLargerCopyView.get();
             if (subtitleTextLargerCopyView2 != null) {
@@ -777,9 +760,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        if (ChatHeaderCenteringHook.onLayout(this, changed, left, top, right, bottom)) {
-            return;
-        }
         final int actionBarHeight = ActionBar.getCurrentActionBarHeight();
         final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
         final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
@@ -1002,7 +982,6 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
             titleTextView.setRightDrawable(null);
             rightDrawableContentDescription = null;
         }
-        ChatHeaderCenteringHook.onTitleChanged(this);
         checkActionBar(animated);
     }
 

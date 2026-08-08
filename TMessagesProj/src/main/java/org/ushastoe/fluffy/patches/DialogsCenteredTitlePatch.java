@@ -311,6 +311,11 @@ public final class DialogsCenteredTitlePatch {
     }
 
     private static View findCustomTitleView(ActionBar actionBar) {
+        if (actionBar.managesChatAvatarContainer()) {
+            // The glass pill positions the avatar container itself; centering it here would fight
+            // that and leave the avatar hanging outside the pill.
+            return null;
+        }
         for (int i = 0; i < actionBar.getChildCount(); i++) {
             View child = actionBar.getChildAt(i);
             if (child instanceof ChatAvatarContainer) {
