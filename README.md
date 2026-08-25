@@ -40,6 +40,8 @@ Telegram core files should contain only minimal hook points.
 
 ## Build Setup
 
+You will require Android Studio 2025.1.4, Android NDK 27.2.12479018 and Android SDK 36.
+
 Private local assets live in `fluffyGram_dev/` and are not meant to be committed as public app secrets.
 
 Expected local files:
