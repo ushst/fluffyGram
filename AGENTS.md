@@ -76,18 +76,22 @@ public final class FluffyFeaturePatch {
 3. If conflict appears, preserve hook call and resolve patch logic in `org.ushastoe.fluffy`.
 
 ## Build/Deploy Standard
-1. For Android verification, prefer:
-`.\build_and_deploy_debug.ps1`
-2. After code changes, run the debug build/deploy script unless the user explicitly says not to build.
-3. Prefer the project script over ad-hoc Gradle install commands so device selection and Java setup stay consistent.
-4. If a change is docs-only or the user forbids builds, state that the build was not run.
-5. For remote devices over ADB/VPN, prefer the dedicated staged installer:
+1. For day-to-day Android verification, prefer:
+`./build_and_deploy_fast.sh` (signed `org.ushastoe.fluffy`, single app-level R8)
+2. Library-module minify is intentionally off for `release`/`standalone`; app R8 still minifies. This removes a duplicate ~2–3 min R8 pass.
+3. Debug/beta (`.beta`, no R8):
+`./build_and_deploy_debug.sh`
+4. After code changes, run a deploy script unless the user explicitly says not to build.
+5. Prefer the project scripts over ad-hoc Gradle install commands so device selection and Java setup stay consistent.
+6. Optional: `-PFLUFFY_FAST_BUILD=true` / `--skip-r8` skips app R8 too — often **slower** here because full unminified dex is huge. Avoid unless debugging R8 itself.
+7. For remote devices over ADB/VPN, prefer the dedicated staged installer:
 `.\build_and_install_debug_remote.ps1 -Serial <host:port>`
-6. The remote installer should keep upload and install separate:
+8. The remote installer should keep upload and install separate:
 - `gradlew assemble`
 - `adb push`
 - package session `install-create / install-write / install-commit`
-7. For slow or unstable remote ADB links, prefer the staged remote installer over `gradlew install...` because it exposes where time is spent and where failures occur.
+9. For slow or unstable remote ADB links, prefer the staged remote installer over `gradlew install...` because it exposes where time is spent and where failures occur.
+10. Optional native speedup: install `ccache` and export `NDK_CCACHE=ccache`.
 
 ## Command Execution Style
 1. For user-requested terminal actions, execute commands sequentially, not as a bundled batch of unrelated steps.
