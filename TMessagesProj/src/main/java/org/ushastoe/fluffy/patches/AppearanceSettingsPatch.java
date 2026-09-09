@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
+import org.ushastoe.fluffy.hooks.SmartReplyHook;
 import org.ushastoe.fluffy.patches.EmojiAssetPatch;
 
 import java.nio.charset.StandardCharsets;
@@ -45,6 +46,7 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_HIDE_STORIES = "hide_stories";
     private static final String KEY_SHOW_FORWARDED_ORIGINAL_DATE = "show_forwarded_original_date";
     private static final String KEY_CHAT_ENTER_SPOILER_MENU_ENABLED = "chat_enter_spoiler_menu_enabled";
+    private static final String KEY_SMART_REPLY_ENABLED = "smart_reply_enabled";
     private static final String KEY_INLINE_CODE_CHIP_ENABLED = "inline_code_chip_enabled";
     private static final String KEY_CHAT_AI_BUTTON_SHORT_TEXT_ENABLED = "chat_ai_button_short_text_enabled";
     private static final String KEY_EMOJI_SET = "emoji_set";
@@ -338,8 +340,6 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
-
-
     public static int getMapProvider() {
         SharedPreferences preferences = getPreferences();
         if (preferences == null) {
@@ -537,6 +537,21 @@ public final class AppearanceSettingsPatch {
         }
         preferences.edit().putBoolean(KEY_CHAT_ENTER_SPOILER_MENU_ENABLED, enabled).apply();
         notifyListeners();
+    }
+
+    public static boolean isSmartReplyEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences == null || preferences.getBoolean(KEY_SMART_REPLY_ENABLED, true);
+    }
+
+    public static void setSmartReplyEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_SMART_REPLY_ENABLED, enabled).apply();
+        notifyListeners();
+        SmartReplyHook.onSettingChanged();
     }
 
     public static boolean isInlineCodeChipEnabled() {

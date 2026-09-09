@@ -11,6 +11,7 @@ import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.CustomUpdateUiHook;
 import org.ushastoe.fluffy.hooks.MapsProviderHook;
 import org.ushastoe.fluffy.hooks.SyncSettingsHook;
+import org.ushastoe.fluffy.smartreply.SmartReplyPredictor;
 import org.ushastoe.fluffy.updates.FluffyCustomUpdateManager;
 import org.telegram.messenger.regular.BuildConfig;
 import org.telegram.tgnet.TLRPC;
@@ -26,6 +27,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
         AppFontHook.onFontChanged();
         SyncSettingsHook.initialize(this);
         customUpdateManager.init(this);
+        SmartReplyPredictor.getInstance().preload(this);
     }
 
     @Override

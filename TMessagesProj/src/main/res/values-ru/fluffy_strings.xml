@@ -287,6 +287,8 @@
     <string name="FluffyForwardedOriginalReactionsInfo">При просмотре пересланного поста канала подгружает и показывает реакции с оригинала, если пост ещё существует. По умолчанию выключено.</string>
     <string name="FluffyForwardedOriginalReactions">Показывать реакции оригинала на пересланных постах канала</string>
     <string name="FluffyChatEnterSpoilerMenu">Показывать меню спойлера по долгому нажатию на кнопку эмодзи</string>
+    <string name="FluffySmartReplyInfo">Показывать подсказки быстрых ответов в личных чатах, когда последнее сообщение — входящий текст. Также работает при ответе или цитировании.</string>
+    <string name="FluffySmartReply">Быстрые ответы</string>
     <string name="FluffyInlineCodeChip">Выделять встроенный код в сообщениях</string>
     <string name="FluffyReactionTodayAt">реакция в %s</string>
     <string name="FluffyReactionYesterdayAt">реакция вчера в %s</string>

@@ -21,6 +21,7 @@ import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.CombineMessagesHook;
@@ -65,6 +66,8 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_QUICK_SHARE_MEDIA_INFO = 16;
     private static final int ROW_UNLIMITED_PINS = 17;
     private static final int ROW_UNLIMITED_PINS_INFO = 18;
+    private static final int ROW_SMART_REPLY = 21;
+    private static final int ROW_SMART_REPLY_INFO = 22;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -172,6 +175,12 @@ public class FluffyGeneralActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_SMART_REPLY) {
+                boolean enabled = !AppearanceSettingsHook.isSmartReplyEnabled();
+                AppearanceSettingsHook.setSmartReplyEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -214,6 +223,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_QUICK_SHARE_MEDIA_INFO, LocaleController.getString(R.string.FluffyQuickSharePrivateMediaInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_UNLIMITED_PINS, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPins), UnlimitedPinsHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_UNLIMITED_PINS_INFO, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPinsInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SMART_REPLY, LocaleController.getString(R.string.FluffySmartReply), AppearanceSettingsHook.isSmartReplyEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_INFO, LocaleController.getString(R.string.FluffySmartReplyInfo), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -245,6 +256,8 @@ public class FluffyGeneralActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "quick-share-private-media");
         } else if (item.id == ROW_UNLIMITED_PINS || item.id == ROW_UNLIMITED_PINS_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "unlimited-unarchived-pins");
+        } else if (item.id == ROW_SMART_REPLY || item.id == ROW_SMART_REPLY_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "smart-reply");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general");
         }
@@ -309,6 +322,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("unlimited-unarchived-pins".equals(target)) {
             return ROW_UNLIMITED_PINS;
+        }
+        if ("smart-reply".equals(target)) {
+            return ROW_SMART_REPLY;
         }
         return -1;
     }

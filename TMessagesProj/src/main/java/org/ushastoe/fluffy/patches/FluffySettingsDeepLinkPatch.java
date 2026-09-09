@@ -136,6 +136,9 @@ public final class FluffySettingsDeepLinkPatch {
             if (segments.size() >= 2 && "tabs".equals(segments.get(1))) {
                 return new FluffyTabsActivity();
             }
+            if (segments.size() >= 2 && "smart-reply".equals(segments.get(1))) {
+                return FluffyGeneralActivity.createForTarget("smart-reply");
+            }
             return FluffyAppearanceActivity.createForTarget(joinSegments(segments, 1));
         }
         if ("general".equals(root)) {

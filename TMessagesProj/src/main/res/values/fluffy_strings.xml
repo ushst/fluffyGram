@@ -358,6 +358,8 @@
     <string name="FluffyForwardedOriginalReactionsInfo">When viewing a forwarded channel post, load and show reactions from the original post if it still exists. Disabled by default.</string>
     <string name="FluffyForwardedOriginalReactions">Show original reactions on forwarded channel posts</string>
     <string name="FluffyChatEnterSpoilerMenu">Show the spoiler menu on long press of the emoji button</string>
+    <string name="FluffySmartReplyInfo">Show quick reply suggestions in private chats when the last message is incoming text. Also works while replying or quoting.</string>
+    <string name="FluffySmartReply">Smart Reply</string>
     <string name="FluffyInlineCodeChip">Highlight inline code in messages</string>
     <string name="FluffyReactionTodayAt">reacted at %s</string>
     <string name="FluffyReactionYesterdayAt">reacted yesterday at %s</string>

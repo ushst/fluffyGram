@@ -121,8 +121,6 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setDialogsListScale(scale);
     }
 
-
-
     public static int getMapProvider() {
         return AppearanceSettingsPatch.getMapProvider();
     }
@@ -217,6 +215,14 @@ public final class AppearanceSettingsHook {
 
     public static void setChatEnterSpoilerMenuEnabled(boolean enabled) {
         AppearanceSettingsPatch.setChatEnterSpoilerMenuEnabled(enabled);
+    }
+
+    public static boolean isSmartReplyEnabled() {
+        return AppearanceSettingsPatch.isSmartReplyEnabled();
+    }
+
+    public static void setSmartReplyEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setSmartReplyEnabled(enabled);
     }
 
     public static boolean isInlineCodeChipEnabled() {

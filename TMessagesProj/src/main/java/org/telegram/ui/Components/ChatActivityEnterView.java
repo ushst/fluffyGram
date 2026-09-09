@@ -6240,6 +6240,83 @@ public class ChatActivityEnterView extends FrameLayout implements
         }
     }
 
+    public void fluffyUpdateTopViewHeight(int heightPx) {
+        if (topView == null) {
+            return;
+        }
+        ViewGroup.LayoutParams lp = topView.getLayoutParams();
+        if (lp == null) {
+            return;
+        }
+        boolean heightChanged = lp.height != heightPx;
+        if (heightChanged) {
+            lp.height = heightPx;
+            topView.setLayoutParams(lp);
+        }
+        if (topViewShowed || needShowTopView || (topView.getVisibility() == VISIBLE)) {
+            LayoutParams layoutParams = (LayoutParams) textFieldContainer.getLayoutParams();
+            int desiredTopMargin = heightPx + dp(9);
+            if (layoutParams.topMargin != desiredTopMargin) {
+                layoutParams.topMargin = desiredTopMargin;
+                textFieldContainer.setLayoutParams(layoutParams);
+            }
+            setMinimumHeight(dp(44) + heightPx);
+            resizeForTopViewLastShow = true;
+        }
+        if (heightChanged) {
+            requestLayout();
+            checkUi_IslandTotalHeight();
+        }
+    }
+
+    /**
+     * Expand the input island upward (same topView path as reply/edit panel).
+     * Does not open the keyboard.
+     */
+    public void fluffyShowTopViewForSmartReply(int heightPx, boolean animated) {
+        if (topView == null) {
+            return;
+        }
+        fluffyUpdateTopViewHeight(heightPx);
+        needShowTopView = true;
+        if (!topViewShowed) {
+            topViewShowed = true;
+            if (allowShowTopView) {
+                animatorTopViewVisibility.setValue(true, animated);
+            } else {
+                checkUi_TopViewVisibility();
+            }
+        } else if (allowShowTopView) {
+            // Height may have changed while already visible.
+            LayoutParams layoutParams = (LayoutParams) textFieldContainer.getLayoutParams();
+            layoutParams.topMargin = heightPx + dp(9);
+            textFieldContainer.setLayoutParams(layoutParams);
+            setMinimumHeight(dp(44) + heightPx);
+            resizeForTopViewLastShow = true;
+            requestLayout();
+            checkUi_IslandTotalHeight();
+        }
+    }
+
+    /**
+     * Hide topView only when it was kept open solely for smart replies
+     * (no reply/edit/forward panel from Telegram).
+     */
+    public void fluffyHideTopViewForSmartReply(boolean animated) {
+        if (topView == null || !topViewShowed) {
+            return;
+        }
+        if (replyingMessageObject != null || editingMessageObject != null) {
+            fluffyUpdateTopViewHeight(dp(48));
+            return;
+        }
+        hideTopView(animated);
+    }
+
+    public View getTopView() {
+        return topView;
+    }
+
     public void addTopView(View view, int height) {
         if (view == null) {
             return;

@@ -265,6 +265,7 @@ import org.telegram.ui.Components.Reactions.ReactionsEffectOverlay;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.ushastoe.fluffy.hooks.AiEditorButtonHook;
+import org.ushastoe.fluffy.hooks.SmartReplyHook;
 import org.telegram.ui.Components.blur3.BlurredBackgroundWithFadeDrawable;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
@@ -3385,6 +3386,7 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+        SmartReplyHook.detach(ChatActivity.this);
         if (messageMetricsView != null) {
             messageMetricsView.finish();
         }
@@ -8332,6 +8334,7 @@ public class ChatActivity extends BaseFragment implements
             LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 160, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0)
         );
         suggestEmojiPanel.setVisibility(allowStickersPanel && !isInPreviewMode() && (chatActivityEnterView == null || !chatActivityEnterView.isStickersExpanded()) ? View.VISIBLE : View.GONE);
+        SmartReplyHook.attach(ChatActivity.this, contentView, glassBackgroundDrawableFactory);
 
         final ChatActivityEnterTopView.EditView editView = new ChatActivityEnterTopView.EditView(context);
         editView.setMotionEventSplittingEnabled(false);
@@ -10918,6 +10921,7 @@ public class ChatActivity extends BaseFragment implements
                 - dp(ChatInputViewsContainer.INPUT_BUBBLE_BOTTOM + 7);
             suggestEmojiPanel.setTranslationY(baseTranslationY2);
         }
+        SmartReplyHook.updatePosition(ChatActivity.this, windowInsetsStateHolder.getAnimatedMaxBottomInset());
     }
 
     private void updateReactionsMentionButton(boolean animated) {
@@ -12043,7 +12047,8 @@ public class ChatActivity extends BaseFragment implements
             paddingBottom = blurredViewBottomOffset + dp(9 + 7)
                 + inputIslandHeightCurrent
                 + getTopicTabsSideSize(TopicsTabsView.Position.BOTTOM)
-                + windowInsetsStateHolder.getAnimatedMaxBottomInset();
+                + windowInsetsStateHolder.getAnimatedMaxBottomInset()
+                + SmartReplyHook.getExtraChatListBottomPadding(ChatActivity.this);
         }
 
         final int paddingTop = (int) chatListViewPaddingTop;
@@ -15562,6 +15567,7 @@ public class ChatActivity extends BaseFragment implements
         if (chatActivityEnterView != null) {
             chatActivityEnterView.updateSendButtonPaid();
         }
+        SmartReplyHook.onFieldPanelChanged(ChatActivity.this);
     }
 
     private void moveScrollToLastMessage(boolean skipSponsored) {
@@ -16815,6 +16821,30 @@ public class ChatActivity extends BaseFragment implements
 
     public void scrollToMessageId(int id, int fromMessageId, boolean select, int loadIndex, boolean forceScroll, int forcePinnedMessageId) {
         scrollToMessageId(id, fromMessageId, select, loadIndex, forceScroll, forcePinnedMessageId, null, null);
+    }
+
+    public MessageObject fluffyGetReplyingMessageObject() {
+        if (replyingMessageObject == null || replyingMessageObject == threadMessageObject) {
+            return null;
+        }
+        if (replyingMessageObject.isTopicMainMessage) {
+            return null;
+        }
+        return replyingMessageObject;
+    }
+
+    public void fluffyInvalidateSmartReplyLayout() {
+        // Island-embedded chips don't change list bottom padding — avoid scroll thrash.
+        invalidateChatListViewTopPadding = true;
+        updateChatListViewTopPadding();
+    }
+
+    public ChatActivityEnterTopView fluffyGetEnterTopView() {
+        return chatActivityEnterTopView;
+    }
+
+    public ImageView fluffyGetReplyCloseImageView() {
+        return replyCloseImageView;
     }
 
     public void fluffyStartEditingMessageObject(MessageObject messageObject) {
@@ -21789,6 +21819,7 @@ public class ChatActivity extends BaseFragment implements
                 }
             }
         }
+        SmartReplyHook.onChatReady(ChatActivity.this);
     }
 
     private void didReceivedNotification2(int id, int account, final Object... args) {
@@ -26150,6 +26181,7 @@ public class ChatActivity extends BaseFragment implements
         if (currentUser != null && currentUser.bot) {
             updateTopPanel(true);
         }
+        SmartReplyHook.onNewMessages(ChatActivity.this, arr);
     }
 
     private int getStableIdForDateObject(int date) {
@@ -29711,6 +29743,7 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        SmartReplyHook.onResume(ChatActivity.this);
         checkShowBlur(false);
         activityResumeTime = System.currentTimeMillis();
         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
@@ -29925,6 +29958,7 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onPause() {
         super.onPause();
+        SmartReplyHook.onPause(ChatActivity.this);
         scrolling = false;
         if (scrimPopupWindow != null) {
             scrimPopupWindow.setPauseNotifications(false);
