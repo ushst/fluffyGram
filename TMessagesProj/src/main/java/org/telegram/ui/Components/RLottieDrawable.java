@@ -1357,6 +1357,10 @@ public class RLottieDrawable extends BitmapDrawable implements Animatable, Bitma
             }
             return getNextFrame(bitmap);
         }
+        // Permanent native failure (corrupt Lottie / caught C++ exception) — stop cache generation.
+        if (result < 0) {
+            return 0;
+        }
         generateCacheFramePointer += framesPerUpdates;
         if (generateCacheFramePointer > metaData[0]) {
             return 0;

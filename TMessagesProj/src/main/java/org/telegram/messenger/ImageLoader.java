@@ -1657,40 +1657,67 @@ public class ImageLoader {
         }
 
         private void loadLastFrame(RLottieDrawable lottieDrawable, int w, int h, boolean lastFrame, boolean reaction) {
-            Bitmap bitmap;
-            Canvas canvas;
-            if (lastFrame && reaction) {
-                bitmap = Bitmap.createBitmap((int) (w * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE), (int) (h * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE), Bitmap.Config.ARGB_8888);
-                canvas = new Canvas(bitmap);
-                canvas.scale(2f, 2f, w * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE / 2f, h * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE / 2f);
-            } else {
-                bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-                canvas = new Canvas(bitmap);
-            }
+            Bitmap bitmap = null;
+            Bitmap currentBitmap = null;
+            try {
+                Canvas canvas;
+                if (lastFrame && reaction) {
+                    bitmap = Bitmap.createBitmap((int) (w * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE), (int) (h * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE), Bitmap.Config.ARGB_8888);
+                    canvas = new Canvas(bitmap);
+                    canvas.scale(2f, 2f, w * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE / 2f, h * ImageReceiver.ReactionLastFrame.LAST_FRAME_SCALE / 2f);
+                } else {
+                    bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                    canvas = new Canvas(bitmap);
+                }
 
-            lottieDrawable.prepareForGenerateCache();
-            Bitmap currentBitmap = Bitmap.createBitmap(lottieDrawable.getIntrinsicWidth(), lottieDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-            lottieDrawable.setGeneratingFrame(lastFrame ? lottieDrawable.getFramesCount() - 1 : 0);
-            lottieDrawable.getNextFrame(currentBitmap);
-            lottieDrawable.releaseForGenerateCache();
-            canvas.save();
-            if (!(lastFrame && reaction)) {
-                canvas.scale(currentBitmap.getWidth() / w, currentBitmap.getHeight() / h, w / 2f, h / 2f);
-            }
-            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            paint.setFilterBitmap(true);
-            BitmapDrawable bitmapDrawable = null;
-            if (lastFrame && reaction) {
-                canvas.drawBitmap(currentBitmap, (bitmap.getWidth() - currentBitmap.getWidth()) / 2f, (bitmap.getHeight() - currentBitmap.getHeight()) / 2f, paint);
-                bitmapDrawable = new ImageReceiver.ReactionLastFrame(bitmap);
-            } else {
-                canvas.drawBitmap(currentBitmap, 0, 0, paint);
-                bitmapDrawable = new BitmapDrawable(bitmap);
-            }
+                lottieDrawable.prepareForGenerateCache();
+                currentBitmap = Bitmap.createBitmap(lottieDrawable.getIntrinsicWidth(), lottieDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                lottieDrawable.setGeneratingFrame(lastFrame ? lottieDrawable.getFramesCount() - 1 : 0);
+                int frameResult = lottieDrawable.getNextFrame(currentBitmap);
+                lottieDrawable.releaseForGenerateCache();
+                if (frameResult < 0) {
+                    lottieDrawable.recycle(false);
+                    currentBitmap.recycle();
+                    currentBitmap = null;
+                    bitmap.recycle();
+                    bitmap = null;
+                    onPostExecute(null);
+                    return;
+                }
+                canvas.save();
+                if (!(lastFrame && reaction)) {
+                    canvas.scale(currentBitmap.getWidth() / w, currentBitmap.getHeight() / h, w / 2f, h / 2f);
+                }
+                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                paint.setFilterBitmap(true);
+                BitmapDrawable bitmapDrawable;
+                if (lastFrame && reaction) {
+                    canvas.drawBitmap(currentBitmap, (bitmap.getWidth() - currentBitmap.getWidth()) / 2f, (bitmap.getHeight() - currentBitmap.getHeight()) / 2f, paint);
+                    bitmapDrawable = new ImageReceiver.ReactionLastFrame(bitmap);
+                } else {
+                    canvas.drawBitmap(currentBitmap, 0, 0, paint);
+                    bitmapDrawable = new BitmapDrawable(bitmap);
+                }
 
-            lottieDrawable.recycle(false);
-            currentBitmap.recycle();
-            onPostExecute(bitmapDrawable);
+                lottieDrawable.recycle(false);
+                currentBitmap.recycle();
+                currentBitmap = null;
+                bitmap = null;
+                onPostExecute(bitmapDrawable);
+            } catch (Throwable e) {
+                FileLog.e(e);
+                try {
+                    lottieDrawable.recycle(false);
+                } catch (Throwable ignore) {
+                }
+                if (currentBitmap != null && !currentBitmap.isRecycled()) {
+                    currentBitmap.recycle();
+                }
+                if (bitmap != null && !bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+                onPostExecute(null);
+            }
         }
 
         private void onPostExecute(final Drawable drawable) {

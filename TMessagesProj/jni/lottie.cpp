@@ -9,9 +9,13 @@
 #include <map>
 #include <sys/stat.h>
 #include <utime.h>
+#include <exception>
+#include <android/log.h>
 #include "tgnet/FileLog.h"
 #include "tgnet/ConnectionsManager.h"
 #include "c_utils.h"
+
+#define LOTTIE_LOG_TAG "RLottieNative"
 
 extern "C" {
 using namespace rlottie;
@@ -91,14 +95,22 @@ JNIEXPORT jlong Java_org_telegram_ui_Components_RLottieNative_nCreate(JNIEnv *en
     }
     char const *srcString = env->GetStringUTFChars(src, nullptr);
     info->path = srcString;
-    if (json != nullptr) {
-        char const *jsonString = env->GetStringUTFChars(json, nullptr);
-        if (jsonString) {
-            info->animation = rlottie::Animation::loadFromData(jsonString, info->path, colors, modifier);
-            env->ReleaseStringUTFChars(json, jsonString);
+    try {
+        if (json != nullptr) {
+            char const *jsonString = env->GetStringUTFChars(json, nullptr);
+            if (jsonString) {
+                info->animation = rlottie::Animation::loadFromData(jsonString, info->path, colors, modifier);
+                env->ReleaseStringUTFChars(json, jsonString);
+            }
+        } else {
+            info->animation = rlottie::Animation::loadFromFile(info->path, colors, modifier);
         }
-    } else {
-        info->animation = rlottie::Animation::loadFromFile(info->path, colors, modifier);
+    } catch (const std::exception &e) {
+        __android_log_print(ANDROID_LOG_ERROR, LOTTIE_LOG_TAG, "nCreate load failed: %s", e.what());
+        info->animation.reset();
+    } catch (...) {
+        __android_log_print(ANDROID_LOG_ERROR, LOTTIE_LOG_TAG, "nCreate load failed: unknown C++ exception");
+        info->animation.reset();
     }
     if (srcString) {
         env->ReleaseStringUTFChars(src, srcString);
@@ -230,7 +242,15 @@ JNIEXPORT jlong Java_org_telegram_ui_Components_RLottieNative_nCreateWithJson(JN
 
     char const *jsonString = env->GetStringUTFChars(json, nullptr);
     char const *nameString = env->GetStringUTFChars(name, nullptr);
-    info->animation = rlottie::Animation::loadFromData(jsonString, nameString, colors);
+    try {
+        info->animation = rlottie::Animation::loadFromData(jsonString, nameString, colors);
+    } catch (const std::exception &e) {
+        __android_log_print(ANDROID_LOG_ERROR, LOTTIE_LOG_TAG, "nCreateWithJson load failed: %s", e.what());
+        info->animation.reset();
+    } catch (...) {
+        __android_log_print(ANDROID_LOG_ERROR, LOTTIE_LOG_TAG, "nCreateWithJson load failed: unknown C++ exception");
+        info->animation.reset();
+    }
     if (jsonString) {
         env->ReleaseStringUTFChars(json, jsonString);
     }
@@ -297,6 +317,9 @@ JNIEXPORT jint Java_org_telegram_ui_Components_RLottieNative_nGetFrame(JNIEnv *e
         return 0;
     }
     auto info = (LottieInfo *) (intptr_t) ptr;
+    if (info->animation == nullptr) {
+        return -1;
+    }
 
     AndroidBitmapInfo bitmapInfo;
     if (__builtin_expect(AndroidBitmap_getInfo(env, bitmap, &bitmapInfo) != ANDROID_BITMAP_RESULT_SUCCESS, 0)) {
@@ -306,11 +329,27 @@ JNIEXPORT jint Java_org_telegram_ui_Components_RLottieNative_nGetFrame(JNIEnv *e
     void *pixels;
     bool result = false;
     if (AndroidBitmap_lockPixels(env, bitmap, &pixels) >= 0) {
-        Surface surface((uint32_t *) pixels,
-                        static_cast<size_t>(bitmapInfo.width),
-                        static_cast<size_t>(bitmapInfo.height),
-                        static_cast<size_t>(bitmapInfo.stride));
-        info->animation->renderSync((size_t) frame, surface, clear, &result);
+        try {
+            Surface surface((uint32_t *) pixels,
+                            static_cast<size_t>(bitmapInfo.width),
+                            static_cast<size_t>(bitmapInfo.height),
+                            static_cast<size_t>(bitmapInfo.stride));
+            info->animation->renderSync((size_t) frame, surface, clear, &result);
+        } catch (const std::exception &e) {
+            // Corrupt / malicious Lottie can throw (e.g. std::length_error: vector).
+            // Catch here so the process does not SIGABRT from an uncaught C++ exception.
+            __android_log_print(ANDROID_LOG_ERROR, LOTTIE_LOG_TAG,
+                                "nGetFrame failed frame=%d: %s", frame, e.what());
+            result = false;
+            AndroidBitmap_unlockPixels(env, bitmap);
+            return -1;
+        } catch (...) {
+            __android_log_print(ANDROID_LOG_ERROR, LOTTIE_LOG_TAG,
+                                "nGetFrame failed frame=%d: unknown C++ exception", frame);
+            result = false;
+            AndroidBitmap_unlockPixels(env, bitmap);
+            return -1;
+        }
         AndroidBitmap_unlockPixels(env, bitmap);
     }
     if (!result) {
