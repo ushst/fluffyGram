@@ -1238,5 +1238,6 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                 tabView.updateColorsLottie();
             }
         }
+        MainTabsUiHook.updateQuickDialogTabColors(fluffyTabsHost, fluffyTabsState);
     }
 }

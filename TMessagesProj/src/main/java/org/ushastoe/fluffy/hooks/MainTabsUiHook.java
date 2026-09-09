@@ -48,6 +48,10 @@ public final class MainTabsUiHook {
         MainTabsUiPatch.updateQuickDialogTabs(host, state);
     }
 
+    public static void updateQuickDialogTabColors(MainTabsUiHost host, MainTabsUiState state) {
+        MainTabsUiPatch.updateQuickDialogTabColors(host, state);
+    }
+
     public static void updateQuickDialogCounters(MainTabsUiHost host, MainTabsUiState state, boolean animated) {
         MainTabsUiPatch.updateQuickDialogCounters(host, state, animated);
     }

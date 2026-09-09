@@ -190,6 +190,21 @@ public final class MainTabsUiPatch {
         }
     }
 
+    /** Refresh label/icon tint colors for Fluffy-added quick chats after day/night theme switch. */
+    public static void updateQuickDialogTabColors(MainTabsUiHost host, MainTabsUiState state) {
+        if (state == null) {
+            return;
+        }
+        for (int i = 0; i < state.quickDialogTabs.size(); i++) {
+            GlassTabView view = state.quickDialogTabs.valueAt(i);
+            if (view != null) {
+                view.updateColorsLottie();
+            }
+        }
+        // Rebind so AvatarDrawable / Saved icon pick up the new theme palette.
+        updateQuickDialogTabs(host, state);
+    }
+
     public static void updateQuickDialogCounters(MainTabsUiHost host, MainTabsUiState state, boolean animated) {
         if (host == null || host.getActivity() == null || state == null) {
             return;
