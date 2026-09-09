@@ -18,6 +18,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.LaunchActivity;
+import org.ushastoe.fluffy.hooks.NotificationDiagnosticsHook;
 
 import java.util.ArrayList;
 
@@ -35,6 +36,7 @@ public class LocationSharingService extends Service implements NotificationCente
     @Override
     public void onCreate() {
         super.onCreate();
+        NotificationDiagnosticsHook.onBackgroundTaskStart("location_sharing_service", "onCreate");
         handler = new Handler();
         runnable = () -> {
             handler.postDelayed(runnable, 1000);
@@ -59,6 +61,7 @@ public class LocationSharingService extends Service implements NotificationCente
         stopForeground(true);
         NotificationManagerCompat.from(ApplicationLoader.applicationContext).cancel(6);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.liveLocationsChanged);
+        NotificationDiagnosticsHook.onBackgroundTaskEnd("location_sharing_service", "onDestroy");
     }
 
     @Override

@@ -245,6 +245,7 @@ public class NotificationsController extends BaseController implements Notificat
             try {
                 if (notificationDelayWakelock.isHeld()) {
                     notificationDelayWakelock.release();
+                    NotificationDiagnosticsHook.onWakeLockRelease("telegram:notification_delay_lock", "notificationDelayRunnable");
                 }
             } catch (Exception e) {
                 FileLog.e(e);
@@ -393,6 +394,7 @@ public class NotificationsController extends BaseController implements Notificat
             try {
                 if (notificationDelayWakelock.isHeld()) {
                     notificationDelayWakelock.release();
+                    NotificationDiagnosticsHook.onWakeLockRelease("telegram:notification_delay_lock", "cleanup");
                 }
             } catch (Exception e) {
                 FileLog.e(e);
@@ -1019,10 +1021,11 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     public void processNewMessages(ArrayList<MessageObject> messageObjects, boolean isLast, boolean isFcm, CountDownLatch countDownLatch) {
+        long processNewMessagesStartMs = System.currentTimeMillis();
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("NotificationsController: processNewMessages msgs.size()=" + (messageObjects == null ? "null" : messageObjects.size()) + " isLast=" + isLast + " isFcm=" + isFcm + ")");
         }
-        NotificationDiagnosticsHook.onProcessNewMessages(currentAccount, messageObjects, isLast, isFcm);
+        NotificationDiagnosticsHook.onProcessNewMessages(currentAccount, messageObjects, isLast, isFcm, processNewMessagesStartMs);
 
         if (messageObjects != null) {
             for (int i = 0; i < messageObjects.size(); ++i) {
@@ -1051,6 +1054,7 @@ public class NotificationsController extends BaseController implements Notificat
         }
 
         if (messageObjects.isEmpty()) {
+            NotificationDiagnosticsHook.onProcessNewMessagesResolved(currentAccount, isFcm, 0, processNewMessagesStartMs);
             if (countDownLatch != null) {
                 countDownLatch.countDown();
             }
@@ -1362,6 +1366,7 @@ public class NotificationsController extends BaseController implements Notificat
             if (storiesUpdated) {
                 updateStoryPushesRunnable();
             }
+            NotificationDiagnosticsHook.onProcessNewMessagesResolved(currentAccount, isFcm, messageObjects.size(), processNewMessagesStartMs);
             if (countDownLatch != null) {
                 countDownLatch.countDown();
             }
@@ -3304,9 +3309,12 @@ public class NotificationsController extends BaseController implements Notificat
             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
             int minutes = preferences.getInt("repeat_messages", 60);
             if (minutes > 0 && personalCount > 0) {
+                long triggerAtMs = System.currentTimeMillis() + minutes * 60 * 1000L;
                 alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + minutes * 60 * 1000, pintent);
+                NotificationDiagnosticsHook.onAlarmScheduled("NotificationsController.scheduleNotificationRepeat", triggerAtMs, "ELAPSED_REALTIME_WAKEUP");
             } else {
                 alarmManager.cancel(pintent);
+                NotificationDiagnosticsHook.onAlarmCancelled("NotificationsController.scheduleNotificationRepeat");
             }
         } catch (Exception e) {
             FileLog.e(e);
@@ -3449,6 +3457,7 @@ public class NotificationsController extends BaseController implements Notificat
                 FileLog.d("delay notification start, onlineReason = " + onlineReason);
             }
             notificationDelayWakelock.acquire(10000);
+            NotificationDiagnosticsHook.onWakeLockAcquire("telegram:notification_delay_lock", "scheduleNotificationDelay", 10000);
             notificationsQueue.cancelRunnable(notificationDelayRunnable);
             notificationsQueue.postRunnable(notificationDelayRunnable, (onlineReason ? 3 * 1000 : 1000));
         } catch (Exception e) {
@@ -4167,14 +4176,16 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     private void showOrUpdateNotification(boolean notifyAboutLast) {
-        NotificationDiagnosticsHook.onShowOrUpdateNotificationStart(currentAccount, notifyAboutLast, pushMessages.size(), storyPushMessages.size());
+        long showOrUpdateNotificationStartMs = System.currentTimeMillis();
+        NotificationDiagnosticsHook.onShowOrUpdateNotificationStart(currentAccount, notifyAboutLast, pushMessages.size(), storyPushMessages.size(), showOrUpdateNotificationStartMs);
         if (!getUserConfig().isClientActivated() || pushMessages.isEmpty() && storyPushMessages.isEmpty() || !SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) {
             NotificationDiagnosticsHook.onShowOrUpdateNotificationSkipped(
                     currentAccount,
                     !getUserConfig().isClientActivated() ? "client_not_activated" :
                             pushMessages.isEmpty() && storyPushMessages.isEmpty() ? "no_push_messages" : "account_not_selected",
                     pushMessages.size(),
-                    storyPushMessages.size()
+                    storyPushMessages.size(),
+                    showOrUpdateNotificationStartMs
             );
             dismissNotification();
             return;
@@ -4199,7 +4210,7 @@ public class NotificationsController extends BaseController implements Notificat
                 }
             }
             if (lastNotification == null) {
-                NotificationDiagnosticsHook.onShowOrUpdateNotificationSkipped(currentAccount, "last_notification_null", pushMessages.size(), storyPushMessages.size());
+                NotificationDiagnosticsHook.onShowOrUpdateNotificationSkipped(currentAccount, "last_notification_null", pushMessages.size(), storyPushMessages.size(), showOrUpdateNotificationStartMs);
                 return;
             }
 
@@ -4262,7 +4273,7 @@ public class NotificationsController extends BaseController implements Notificat
                 resolvedMessageId = lastMessageObject.getId();
                 resolvedStory = false;
             }
-            NotificationDiagnosticsHook.onShowOrUpdateNotificationResolved(currentAccount, resolvedDialogId, resolvedMessageId, resolvedStory, maxDate);
+            NotificationDiagnosticsHook.onShowOrUpdateNotificationResolved(currentAccount, resolvedDialogId, resolvedMessageId, resolvedStory, maxDate, showOrUpdateNotificationStartMs);
             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
             int dismissDate = preferences.getInt("dismissDate", 0);
             if (!lastMessageObject.isStoryPush && lastMessageObject.messageOwner.date <= dismissDate) {

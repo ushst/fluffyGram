@@ -112,6 +112,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.ushastoe.fluffy.hooks.NotificationDiagnosticsHook;
 import org.telegram.messenger.StatsController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
@@ -460,6 +461,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 				isHeadsetPlugged = intent.getIntExtra("state", 0) == 1;
 				if (isHeadsetPlugged && proximityWakelock != null && proximityWakelock.isHeld()) {
 					proximityWakelock.release();
+					NotificationDiagnosticsHook.onWakeLockRelease("telegram-voip-prx", "VoIPService.headsetPlugged");
 				}
 				if (isHeadsetPlugged) {
 					AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -4154,6 +4156,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 		}
 		if (proximityWakelock != null && proximityWakelock.isHeld()) {
 			proximityWakelock.release();
+			NotificationDiagnosticsHook.onWakeLockRelease("telegram-voip-prx", "VoIPService.onDestroy");
 		}
 		if (updateNotificationRunnable != null) {
 			Utilities.globalQueue.cancelRunnable(updateNotificationRunnable);
@@ -4212,6 +4215,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			}
 		}
 		cpuWakelock.release();
+		NotificationDiagnosticsHook.onWakeLockRelease("telegram-voip", "VoIPService.onDestroy");
 		AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
 		if (!playingSound) {
 			VoipAudioManager vam = VoipAudioManager.get();
@@ -4647,6 +4651,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 
 			cpuWakelock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "telegram-voip");
 			cpuWakelock.acquire();
+			NotificationDiagnosticsHook.onWakeLockAcquire("telegram-voip", "VoIPService.startAudioOrVideo", 0);
 
 			btAdapter = am.isBluetoothScoAvailableOffCall() ? BluetoothAdapter.getDefaultAdapter() : null;
 
@@ -4961,8 +4966,10 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			try {
 				if (isProximityNear) {
 					proximityWakelock.acquire();
+					NotificationDiagnosticsHook.onWakeLockAcquire("telegram-voip-prx", "VoIPService.checkIsNear:near", 0);
 				} else {
 					proximityWakelock.release(1); // this is non-public API before L
+					NotificationDiagnosticsHook.onWakeLockRelease("telegram-voip-prx", "VoIPService.checkIsNear:far");
 				}
 			} catch (Exception x) {
 				FileLog.e(x);

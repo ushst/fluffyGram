@@ -11,6 +11,7 @@ package org.telegram.messenger;
 import android.content.Intent;
 
 import org.telegram.messenger.support.JobIntentService;
+import org.ushastoe.fluffy.hooks.NotificationDiagnosticsHook;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -73,6 +74,7 @@ public class KeepAliveJob extends JobIntentService {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("started keep-alive job");
         }
+        NotificationDiagnosticsHook.onBackgroundTaskStart("keepalive_job", "onHandleWork");
         Utilities.globalQueue.postRunnable(finishJobByTimeoutRunnable, 60 * 1000);
         try {
             countDownLatch.await();
@@ -83,6 +85,7 @@ public class KeepAliveJob extends JobIntentService {
         synchronized (sync) {
             countDownLatch = null;
         }
+        NotificationDiagnosticsHook.onBackgroundTaskEnd("keepalive_job", "onHandleWork");
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("ended keep-alive job");
         }

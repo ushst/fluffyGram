@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.Utilities;
+import org.ushastoe.fluffy.patches.NotificationDiagnosticsPatch;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -36,6 +37,7 @@ public final class FluffySyncBackendClient {
 
     private static void request(String method, String url, JSONObject body, String bearerToken, JsonCallback callback) {
         Utilities.globalQueue.postRunnable(() -> {
+            NotificationDiagnosticsPatch.onSyncNetworkCall("FluffySyncManager", method, url);
             JSONObject response = null;
             String errorMessage = null;
             HttpURLConnection connection = null;

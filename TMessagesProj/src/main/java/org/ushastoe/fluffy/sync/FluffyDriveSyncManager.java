@@ -21,6 +21,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.ushastoe.fluffy.patches.NotificationDiagnosticsPatch;
 import org.ushastoe.fluffy.utils.FluffyConfigFileStore;
 
 import java.io.ByteArrayOutputStream;
@@ -220,6 +221,7 @@ public final class FluffyDriveSyncManager {
             return;
         }
         Utilities.globalQueue.postRunnable(() -> {
+            NotificationDiagnosticsPatch.onSyncNetworkCall("FluffyDriveSyncManager", "backup", "uploading config snapshot to appDataFolder");
             String errorMessage = null;
             boolean success = false;
             try {
@@ -251,6 +253,7 @@ public final class FluffyDriveSyncManager {
             return;
         }
         Utilities.globalQueue.postRunnable(() -> {
+            NotificationDiagnosticsPatch.onSyncNetworkCall("FluffyDriveSyncManager", "delete_backup", "fileId=" + backupFileId);
             String errorMessage = null;
             boolean success = false;
             try {
@@ -284,6 +287,7 @@ public final class FluffyDriveSyncManager {
             return;
         }
         Utilities.globalQueue.postRunnable(() -> {
+            NotificationDiagnosticsPatch.onSyncNetworkCall("FluffyDriveSyncManager", "restore", "fileId=" + (TextUtils.isEmpty(backupFileId) ? "latest" : backupFileId));
             String errorMessage = null;
             boolean success = false;
             try {
@@ -323,6 +327,7 @@ public final class FluffyDriveSyncManager {
             return;
         }
         Utilities.globalQueue.postRunnable(() -> {
+            NotificationDiagnosticsPatch.onSyncNetworkCall("FluffyDriveSyncManager", "list_backups", "");
             ArrayList<BackupEntry> backups = new ArrayList<>();
             String errorMessage = null;
             try {

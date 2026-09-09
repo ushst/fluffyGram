@@ -10,10 +10,19 @@ import android.util.Log;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.web.BotWebViewContainer;
+import org.ushastoe.fluffy.hooks.NotificationDiagnosticsHook;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 public class BotSensors {
 
     private final SensorManager sensorManager;
+    private final long botId;
 
     private Sensor accelerometer;
     private long accelerometerDesiredRefreshRate;
@@ -25,8 +34,60 @@ public class BotSensors {
     private Sensor rotation;
     private long relativeOrientationDesiredRefreshRate;
 
+    // Tracks every live BotSensors instance so that a whole-app background transition
+    // (Home button) can pause sensors that are visible but not minimized into a
+    // BottomSheetTabs "tab" -- the only place that previously called pause()/resume().
+    private static final Map<BotSensors, Boolean> activeInstances = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Set<BotSensors> autoPausedForBackground = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
     public BotSensors(Context context, long bot_id) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        botId = bot_id;
+        activeInstances.put(this, Boolean.TRUE);
+    }
+
+    public long getBotId() {
+        return botId;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    // Called from LaunchActivity.onPause() when the whole app (not just this bot
+    // sheet) goes to background. Pauses any bot sensor listener that is still
+    // active and wasn't already paused via the tab-minimize path (pause() is a
+    // no-op if already paused), remembering only the ones *we* paused so that
+    // resumeAutoPaused() doesn't wake up sensors that are legitimately parked
+    // in a background tab.
+    public static void pauseAllForBackground() {
+        List<BotSensors> snapshot;
+        synchronized (activeInstances) {
+            snapshot = new ArrayList<>(activeInstances.keySet());
+        }
+        for (BotSensors sensors : snapshot) {
+            if (sensors != null && !sensors.isPaused()) {
+                sensors.pause();
+                autoPausedForBackground.add(sensors);
+                NotificationDiagnosticsHook.onBotSensorsAutoPause(sensors.getBotId());
+            }
+        }
+    }
+
+    // Called from LaunchActivity.onResume(). Only resumes the instances that were
+    // auto-paused by pauseAllForBackground() above, not ones minimized into tabs.
+    public static void resumeAutoPaused() {
+        List<BotSensors> snapshot;
+        synchronized (autoPausedForBackground) {
+            snapshot = new ArrayList<>(autoPausedForBackground);
+        }
+        for (BotSensors sensors : snapshot) {
+            autoPausedForBackground.remove(sensors);
+            if (sensors != null && sensors.isPaused()) {
+                sensors.resume();
+                NotificationDiagnosticsHook.onBotSensorsAutoResume(sensors.getBotId());
+            }
+        }
     }
 
     private BotWebViewContainer.MyWebView webView;

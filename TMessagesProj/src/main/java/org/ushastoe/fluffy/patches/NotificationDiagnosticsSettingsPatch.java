@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 
 public final class NotificationDiagnosticsSettingsPatch {
 
@@ -14,6 +15,11 @@ public final class NotificationDiagnosticsSettingsPatch {
     }
 
     public static boolean isNotificationDiagnosticsEnabled() {
+        // Same convention as BuildVars.LOGS_ENABLED: always on for debug builds,
+        // otherwise follow the persisted user preference (default on).
+        if (BuildVars.DEBUG_VERSION) {
+            return true;
+        }
         SharedPreferences preferences = getPreferences();
         return preferences == null || preferences.getBoolean(KEY_NOTIFICATION_DIAGNOSTICS_ENABLED, true);
     }
