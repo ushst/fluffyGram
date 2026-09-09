@@ -4,7 +4,7 @@
     <string name="info_fork">кастомный fluffyGram messenger с твиками</string>
     <string name="FluffySettingsSection">Fluffy</string>
     <string name="FluffySettings">Fluffy Settings</string>
-    <string name="FluffySettingsInfo">Пользовательские функции и эксперименты</string>
+    <string name="FluffySettingsInfo">Дополнительные настройки</string>
     <string name="FluffyAppearanceSection">Внешний вид</string>
     <string name="FluffyAppearance">Внешний вид</string>
     <string name="FluffyAppearanceInfo">Настройки внешнего вида и оформления интерфейса fluffyGram.</string>

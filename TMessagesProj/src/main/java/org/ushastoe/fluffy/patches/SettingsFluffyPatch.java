@@ -24,13 +24,13 @@ public final class SettingsFluffyPatch {
         if (insertIndex > 0 && items.get(insertIndex - 1).viewType != UniversalAdapter.VIEW_TYPE_SHADOW) {
             fluffyItems.add(UItem.asShadow(null));
         }
-        fluffyItems.add(UItem.asHeader(LocaleController.getString(R.string.FluffySettingsSection)));
         fluffyItems.add(SettingsActivity.SettingCell.Factory.of(
                 FLUFFY_SETTINGS_ITEM_ID,
                 0xFF2BB5A8,
                 0xFF168F84,
                 R.drawable.fluffy_settings_icon,
-                LocaleController.getString(R.string.FluffySettings)
+                LocaleController.getString(R.string.FluffySettings),
+                LocaleController.getString(R.string.FluffySettingsInfo)
         ));
         fluffyItems.add(UItem.asShadow(null));
         items.addAll(insertIndex, fluffyItems);
