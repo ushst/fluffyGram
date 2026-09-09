@@ -36,6 +36,14 @@ public final class ShareFoldersHook {
         return ShareFoldersPatch.getFoldersTopMargin(currentAccount, hasTopSwitch);
     }
 
+    public static int getFrameHeaderHeight(int currentAccount, boolean hasTopSwitch) {
+        return ShareFoldersPatch.getFrameHeaderHeight(currentAccount, hasTopSwitch);
+    }
+
+    public static int getTopicsHeaderHeight(boolean hasTopSwitch) {
+        return ShareFoldersPatch.getTopicsHeaderHeight(hasTopSwitch);
+    }
+
     public static List<TLRPC.Dialog> filterDialogs(int currentAccount, List<TLRPC.Dialog> source, int tabId, int defaultTabId) {
         return ShareFoldersPatch.filterDialogs(currentAccount, source, tabId, defaultTabId);
     }

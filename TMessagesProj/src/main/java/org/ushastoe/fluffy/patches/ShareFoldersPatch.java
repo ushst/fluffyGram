@@ -15,6 +15,8 @@ public final class ShareFoldersPatch {
     private static final int SEARCH_TOP_MARGIN_WITH_SWITCH = 47;
     private static final int FOLDERS_TOP_MARGIN = 47;
     private static final int FOLDERS_TOP_MARGIN_WITH_SWITCH = 87;
+    private static final int BASE_HEADER_HEIGHT = 58;
+    private static final int BASE_HEADER_HEIGHT_WITH_SWITCH = 111;
 
     private ShareFoldersPatch() {
     }
@@ -44,6 +46,24 @@ public final class ShareFoldersPatch {
             return 0;
         }
         return hasTopSwitch ? FOLDERS_TOP_MARGIN_WITH_SWITCH : FOLDERS_TOP_MARGIN;
+    }
+
+    /** Header height for the dialogs list (search + optional folder tabs). */
+    public static int getFrameHeaderHeight(int currentAccount, boolean hasTopSwitch) {
+        return getBaseHeaderHeight(hasTopSwitch) + getSearchContainerPadding(currentAccount);
+    }
+
+    /**
+     * Header height while picking a forum topic. Folder tabs are hidden here, so we must
+     * drop the folder padding — otherwise {@code topicsBackActionBar} shares the taller
+     * frame with still-visible folder tabs and they overlap.
+     */
+    public static int getTopicsHeaderHeight(boolean hasTopSwitch) {
+        return getBaseHeaderHeight(hasTopSwitch);
+    }
+
+    public static int getBaseHeaderHeight(boolean hasTopSwitch) {
+        return hasTopSwitch ? BASE_HEADER_HEIGHT_WITH_SWITCH : BASE_HEADER_HEIGHT;
     }
 
     public static List<TLRPC.Dialog> filterDialogs(int currentAccount, List<TLRPC.Dialog> source, int tabId, int defaultTabId) {

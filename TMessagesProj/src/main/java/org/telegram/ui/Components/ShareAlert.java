@@ -1264,14 +1264,14 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
             @Override
             protected boolean allowSelectChildAtPosition(float x, float y) {
-                return y >= dp(darkTheme && linkToCopy[1] != null ? 111 + ShareFoldersHook.getSearchContainerPadding(currentAccount) : 58 + ShareFoldersHook.getSearchContainerPadding(currentAccount)) + systemInsets.top;
+                return y >= dp(getShareHeaderHeightDp()) + systemInsets.top;
             }
 
             @Override
             public void draw(Canvas canvas) {
                 if (topicsGridView.getVisibility() != View.GONE) {
                     canvas.save();
-                    canvas.clipRect(0, scrollOffsetY + dp(darkTheme && linkToCopy[1] != null ? 111 + ShareFoldersHook.getSearchContainerPadding(currentAccount) : 58 + ShareFoldersHook.getSearchContainerPadding(currentAccount)), getWidth(), getHeight());
+                    canvas.clipRect(0, scrollOffsetY + dp(getShareHeaderHeightDp()), getWidth(), getHeight());
                 }
                 super.draw(canvas);
                 if (topicsGridView.getVisibility() != View.GONE) {
@@ -1349,14 +1349,14 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
             @Override
             protected boolean allowSelectChildAtPosition(float x, float y) {
-                return y >= dp(darkTheme && linkToCopy[1] != null ? 111 + ShareFoldersHook.getSearchContainerPadding(currentAccount) : 58 + ShareFoldersHook.getSearchContainerPadding(currentAccount)) + systemInsets.top;
+                return y >= dp(getShareHeaderHeightDp()) + systemInsets.top;
             }
 
             @Override
             public void draw(Canvas canvas) {
                 if (topicsGridView.getVisibility() != View.GONE) {
                     canvas.save();
-                    canvas.clipRect(0, scrollOffsetY + dp(darkTheme && linkToCopy[1] != null ? 111 + ShareFoldersHook.getSearchContainerPadding(currentAccount) : 58 + ShareFoldersHook.getSearchContainerPadding(currentAccount)), getWidth(), getHeight());
+                    canvas.clipRect(0, scrollOffsetY + dp(getShareHeaderHeightDp()), getWidth(), getHeight());
                 }
                 super.draw(canvas);
                 if (topicsGridView.getVisibility() != View.GONE) {
@@ -1448,14 +1448,14 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         containerView.addView(bottomFadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 300, Gravity.BOTTOM));
 
         FrameLayout.LayoutParams frameLayoutParams = new FrameLayout.LayoutParams(LayoutHelper.MATCH_PARENT, AndroidUtilities.getShadowHeight(), Gravity.TOP | Gravity.LEFT);
-        frameLayoutParams.topMargin = dp(darkTheme && linkToCopy[1] != null ? 111 + ShareFoldersHook.getSearchContainerPadding(currentAccount) : 58 + ShareFoldersHook.getSearchContainerPadding(currentAccount));
+        frameLayoutParams.topMargin = dp(ShareFoldersHook.getFrameHeaderHeight(currentAccount, hasShareTopSwitch()));
         shadow[0] = new View(context);
         shadow[0].setBackgroundColor(getThemedColor(Theme.key_dialogShadowLine));
         shadow[0].setAlpha(0.0f);
         shadow[0].setTag(1);
         containerView.addView(shadow[0], frameLayoutParams);
 
-        containerView.addView(frameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, darkTheme && linkToCopy[1] != null ? 111 + ShareFoldersHook.getSearchContainerPadding(currentAccount) : 58 + ShareFoldersHook.getSearchContainerPadding(currentAccount), Gravity.LEFT | Gravity.TOP));
+        containerView.addView(frameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, ShareFoldersHook.getFrameHeaderHeight(currentAccount, hasShareTopSwitch()), Gravity.LEFT | Gravity.TOP));
 
         frameLayoutParams = new FrameLayout.LayoutParams(LayoutHelper.MATCH_PARENT, AndroidUtilities.getShadowHeight(), Gravity.BOTTOM | Gravity.LEFT);
         frameLayoutParams.bottomMargin = dp(48);
@@ -2132,11 +2132,12 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                                 NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.topicsDidLoaded);
                             }
 
-                            if (animate) {
+                                if (animate) {
                                 topicsGridView.setVisibility(View.VISIBLE);
                                 topicsGridView.setAlpha(0);
                                 topicsBackActionBar.setVisibility(View.VISIBLE);
                                 topicsBackActionBar.setAlpha(0);
+                                applyShareHeaderLayout(true);
                                 if (UserObject.isBotForum(currentAccount, dialog.id)) {
                                     topicsBackActionBar.setTitle(DialogObject.getShortName(MessagesController.getInstance(currentAccount).getUser(dialog.id)));
                                     topicsBackActionBar.setSubtitle(LocaleController.getString(R.string.SelectChat));
@@ -2167,6 +2168,10 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                                     gridView.setVisibility(View.GONE);
                                     searchGridView.setVisibility(View.GONE);
                                     searchView.setVisibility(View.GONE);
+                                    if (filterTabsView != null) {
+                                        filterTabsView.setVisibility(View.GONE);
+                                        filterTabsView.setAlpha(1f);
+                                    }
 
                                     topicsAnimation = null;
                                 });
@@ -2262,6 +2267,11 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
         getMainGridView().setVisibility(View.VISIBLE);
         searchView.setVisibility(View.VISIBLE);
+        applyShareHeaderLayout(false);
+        if (ShareFoldersHook.hasFolders(currentAccount) && filterTabsView != null) {
+            filterTabsView.setVisibility(View.VISIBLE);
+            filterTabsView.setAlpha(0f);
+        }
 
         if (searchIsVisible || searchWasVisibleBeforeTopics) {
             sizeNotifierFrameLayout.adjustPanLayoutHelper.ignoreOnce();
@@ -2283,6 +2293,9 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         topicsAnimation.addEndListener((animation, canceled, value, velocity) -> {
             topicsGridView.setVisibility(View.GONE);
             topicsBackActionBar.setVisibility(View.GONE);
+            if (filterTabsView != null && ShareFoldersHook.hasFolders(currentAccount)) {
+                filterTabsView.setAlpha(1f);
+            }
 
             shareTopicsAdapter.topics = null;
             shareTopicsAdapter.notifyDataSetChanged();
@@ -2312,6 +2325,9 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         searchView.setScaleX(0.9f + (1f - value) * 0.1f);
         searchView.setScaleY(0.9f + (1f - value) * 0.1f);
         searchView.setAlpha(1f - value);
+        if (filterTabsView != null && filterTabsView.getVisibility() != View.GONE) {
+            filterTabsView.setAlpha(1f - value);
+        }
 
         topicsBackActionBar.getBackButton().setTranslationX(-dp(16) * (1f - value));
         topicsBackActionBar.getTitleTextView().setTranslationY(dp(16) * (1f - value));
@@ -4088,8 +4104,51 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         collapseTopics();
     }
 
+    private boolean hasShareTopSwitch() {
+        return darkTheme && linkToCopy[1] != null;
+    }
+
+    private boolean isTopicsPickerVisible() {
+        return topicsBackActionBar != null && topicsBackActionBar.getVisibility() == View.VISIBLE
+                || selectedTopicDialog != null;
+    }
+
+    private int getShareHeaderHeightDp() {
+        if (isTopicsPickerVisible()) {
+            return ShareFoldersHook.getTopicsHeaderHeight(hasShareTopSwitch());
+        }
+        return ShareFoldersHook.getFrameHeaderHeight(currentAccount, hasShareTopSwitch());
+    }
+
+    private void applyShareHeaderLayout(boolean forTopics) {
+        if (frameLayout == null) {
+            return;
+        }
+        int heightDp = forTopics
+                ? ShareFoldersHook.getTopicsHeaderHeight(hasShareTopSwitch())
+                : ShareFoldersHook.getFrameHeaderHeight(currentAccount, hasShareTopSwitch());
+        int height = dp(heightDp);
+        ViewGroup.LayoutParams lp = frameLayout.getLayoutParams();
+        if (lp != null && lp.height != height) {
+            lp.height = height;
+            frameLayout.setLayoutParams(lp);
+        }
+        if (shadow[0] != null && shadow[0].getLayoutParams() instanceof FrameLayout.LayoutParams) {
+            FrameLayout.LayoutParams sp = (FrameLayout.LayoutParams) shadow[0].getLayoutParams();
+            if (sp.topMargin != height) {
+                sp.topMargin = height;
+                shadow[0].setLayoutParams(sp);
+            }
+        }
+    }
+
     private void updateFilterTabs(boolean force, boolean animated) {
         if (filterTabsView == null || searchAdapter == null || searchAdapter.isSearching()) {
+            return;
+        }
+        // Don't resurrect folder tabs while the topic picker header is active —
+        // they share frameLayout with topicsBackActionBar and overlap.
+        if (isTopicsPickerVisible()) {
             return;
         }
 
