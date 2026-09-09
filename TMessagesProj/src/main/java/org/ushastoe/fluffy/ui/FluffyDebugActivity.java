@@ -37,6 +37,7 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.patches.CloudDebugSettingsPatch;
+import org.ushastoe.fluffy.patches.EmojiPackPreviewPatch;
 import org.ushastoe.fluffy.patches.GlobalLogsPatch;
 import org.ushastoe.fluffy.patches.NotificationDiagnosticsSettingsPatch;
 import org.ushastoe.fluffy.hooks.FluffyLocalLogHook;
@@ -80,6 +81,7 @@ public class FluffyDebugActivity extends BaseFragment {
     private static final int ROW_SELFHOSTED_CLOUD_ENABLED = 17;
     private static final int ROW_NOTIFICATION_DIAGNOSTICS_ENABLED = 18;
     private static final int ROW_GLOBAL_LOGS_ENABLED = 19;
+    private static final int ROW_DISABLE_EMOJI_PACK_PREVIEW = 21;
     private static final int REQUEST_CODE_EXPORT_CONFIG = 510;
     private static final int REQUEST_CODE_IMPORT_CONFIG = 511;
     private RecyclerListView listView;
@@ -163,6 +165,13 @@ public class FluffyDebugActivity extends BaseFragment {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
                 updateItems();
+            } else if (item.id == ROW_DISABLE_EMOJI_PACK_PREVIEW) {
+                boolean disabled = !EmojiPackPreviewPatch.isEmojiPackLinkPreviewDisabled();
+                EmojiPackPreviewPatch.setEmojiPackLinkPreviewDisabled(disabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(disabled);
+                }
+                updateItems();
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -217,6 +226,9 @@ public class FluffyDebugActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_GLOBAL_LOGS_ENABLED,
                 LocaleController.getString(R.string.FluffyGlobalLogsEnabled),
                 GlobalLogsPatch.isLogsEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_DISABLE_EMOJI_PACK_PREVIEW,
+                LocaleController.getString(R.string.FluffyDisableEmojiPackLinkPreview),
+                EmojiPackPreviewPatch.isEmojiPackLinkPreviewDisabled()));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_NOTIFICATION_DIAGNOSTICS_ENABLED,
                 LocaleController.getString(R.string.FluffyNotificationDiagnosticsEnabled),
                 NotificationDiagnosticsSettingsPatch.isNotificationDiagnosticsEnabled()));

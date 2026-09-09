@@ -31,13 +31,18 @@ public class StickerSetLinkIcon extends Drawable {
 
     public StickerSetLinkIcon(int currentAccount, boolean out, ArrayList<TLRPC.Document> documents, boolean text_color) {
         this.out = out;
-        N = (int) Math.max(1, Math.sqrt(documents.size()));
-        count = Math.min(N * N, documents.size());
+        final int size = documents == null ? 0 : documents.size();
+        N = (int) Math.max(1, Math.sqrt(size));
+        count = Math.min(N * N, size);
         drawables = new AnimatedEmojiDrawable[count];
-        final boolean emoji = !documents.isEmpty() && MessageObject.isAnimatedEmoji(documents.get(0));
+        final boolean emoji = size > 0 && MessageObject.isAnimatedEmoji(documents.get(0));
         final int cacheType = N < 2 ? AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES_LARGE : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES;
         for (int i = 0; i < count; ++i) {
-            drawables[i] = AnimatedEmojiDrawable.make(currentAccount, cacheType, documents.get(i));
+            TLRPC.Document document = documents.get(i);
+            if (document == null) {
+                continue;
+            }
+            drawables[i] = AnimatedEmojiDrawable.make(currentAccount, cacheType, document);
         }
     }
 
@@ -57,13 +62,17 @@ public class StickerSetLinkIcon extends Drawable {
 
     public void attach(View parentView) {
         for (int i = 0; i < count; ++i) {
-            drawables[i].addView(parentView);
+            if (drawables[i] != null) {
+                drawables[i].addView(parentView);
+            }
         }
     }
 
     public void detach(View parentView) {
         for (int i = 0; i < count; ++i) {
-            drawables[i].removeView(parentView);
+            if (drawables[i] != null) {
+                drawables[i].removeView(parentView);
+            }
         }
     }
 

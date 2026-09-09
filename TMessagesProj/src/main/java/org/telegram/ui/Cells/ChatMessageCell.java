@@ -217,6 +217,7 @@ import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.hooks.EditedMessageIndicatorHook;
 import org.ushastoe.fluffy.hooks.DeletedMessageIndicatorHook;
+import org.ushastoe.fluffy.hooks.EmojiPackPreviewHook;
 import org.ushastoe.fluffy.hooks.MessageTimeLabelHook;
 import org.ushastoe.fluffy.hooks.ScheduledMessageIndicatorHook;
 import org.ushastoe.fluffy.hooks.SilentMessageIndicatorHook;
@@ -7621,10 +7622,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         } else {
                             drawInstantViewType = 23;
                         }
-                        isSmallImage = true;
-                        if (attr != null) {
-                            stickers = attr.stickers;
-                            stickersTextColor = attr.text_color;
+                        // fluffy: optional skip of emoji-pack mosaic when a pack crashes StickerSetLinkIcon
+                        if (EmojiPackPreviewHook.shouldSkipEmojiPackMosaic(webpage)) {
+                            isSmallImage = false;
+                            stickers = null;
+                        } else {
+                            isSmallImage = true;
+                            if (attr != null) {
+                                stickers = attr.stickers;
+                                stickersTextColor = attr.text_color;
+                            }
                         }
                     } else if ("telegram_collection".equals(webpageType)) {
                         TLRPC.TL_webPageAttributeStarGiftCollection attr =

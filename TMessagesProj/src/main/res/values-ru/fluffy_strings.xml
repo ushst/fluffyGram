@@ -224,6 +224,7 @@
     <string name="FluffySaveLog">Сохранить лог</string>
     <string name="FluffySaveLogInfo">Сохраняет текущий локальный лог сессии вместе с последними логами приложения Telegram и MTProto.</string>
     <string name="FluffyGlobalLogsEnabled">Включить все логи приложения</string>
+    <string name="FluffyDisableEmojiPackLinkPreview">Отключить превью эмодзи-паков в ссылках</string>
     <string name="FluffyNotificationDiagnosticsEnabled">Диагностическое логирование уведомлений</string>
     <string name="FluffyLocalLogsTitle">Локальные логи</string>
     <string name="FluffyLocalLogsUnavailable">Этот аккаунт еще не полностью авторизован, поэтому локальный лог создать нельзя.</string>
