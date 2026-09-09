@@ -5,6 +5,7 @@ import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.tgnet.tl.TL_update;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Stories.StoriesStorage;
+import org.ushastoe.fluffy.hooks.ForwardedOriginalReactionsHook;
 
 import java.util.ArrayList;
 
@@ -59,6 +60,7 @@ public class ChatMessagesMetadataController {
                 }
             }
             loadReactionsForMessages(chatActivity.getDialogId(), reactionsToCheck);
+            ForwardedOriginalReactionsHook.maybeLoadForVisibleMessages(chatActivity, reactionsToCheck);
             loadExtendedMediaForMessages(chatActivity.getDialogId(), extendedMediaToCheck);
             loadStoriesForMessages(chatActivity.getDialogId(), storiesToCheck);
         }

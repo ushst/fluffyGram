@@ -26,6 +26,7 @@ import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.CombineMessagesHook;
 import org.ushastoe.fluffy.hooks.ForceCopyHook;
 import org.ushastoe.fluffy.hooks.ForwardCommentOrderHook;
+import org.ushastoe.fluffy.hooks.ForwardedOriginalReactionsHook;
 import org.ushastoe.fluffy.hooks.InAppCameraSettingsHook;
 import org.ushastoe.fluffy.hooks.QuickShareMediaHook;
 import org.ushastoe.fluffy.hooks.TextUndoRedoHook;
@@ -58,6 +59,8 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_TEXT_UNDO_REDO_INFO = 12;
     private static final int ROW_FORWARD_COMMENT_ORDER = 13;
     private static final int ROW_FORWARD_COMMENT_ORDER_INFO = 14;
+    private static final int ROW_FORWARDED_ORIGINAL_REACTIONS = 19;
+    private static final int ROW_FORWARDED_ORIGINAL_REACTIONS_INFO = 20;
     private static final int ROW_QUICK_SHARE_MEDIA = 15;
     private static final int ROW_QUICK_SHARE_MEDIA_INFO = 16;
     private static final int ROW_UNLIMITED_PINS = 17;
@@ -151,6 +154,12 @@ public class FluffyGeneralActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_FORWARDED_ORIGINAL_REACTIONS) {
+                boolean enabled = !ForwardedOriginalReactionsHook.isEnabled();
+                ForwardedOriginalReactionsHook.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             } else if (item.id == ROW_QUICK_SHARE_MEDIA) {
                 boolean enabled = !QuickShareMediaHook.isEnabled();
                 QuickShareMediaHook.setEnabled(enabled);
@@ -199,6 +208,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_TEXT_UNDO_REDO_INFO, LocaleController.getString(R.string.FluffyTextUndoRedoInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_FORWARD_COMMENT_ORDER, LocaleController.getString(R.string.FluffySendCommentAfterForward), ForwardCommentOrderHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FORWARD_COMMENT_ORDER_INFO, LocaleController.getString(R.string.FluffySendCommentAfterForwardInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_FORWARDED_ORIGINAL_REACTIONS, LocaleController.getString(R.string.FluffyForwardedOriginalReactions), ForwardedOriginalReactionsHook.isEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_FORWARDED_ORIGINAL_REACTIONS_INFO, LocaleController.getString(R.string.FluffyForwardedOriginalReactionsInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_QUICK_SHARE_MEDIA, LocaleController.getString(R.string.FluffyQuickSharePrivateMedia), QuickShareMediaHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_QUICK_SHARE_MEDIA_INFO, LocaleController.getString(R.string.FluffyQuickSharePrivateMediaInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_UNLIMITED_PINS, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPins), UnlimitedPinsHook.isEnabled()));
@@ -228,6 +239,8 @@ public class FluffyGeneralActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "text-undo-redo");
         } else if (item.id == ROW_FORWARD_COMMENT_ORDER || item.id == ROW_FORWARD_COMMENT_ORDER_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "send-comment-after-forward");
+        } else if (item.id == ROW_FORWARDED_ORIGINAL_REACTIONS || item.id == ROW_FORWARDED_ORIGINAL_REACTIONS_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "forwarded-original-reactions");
         } else if (item.id == ROW_QUICK_SHARE_MEDIA || item.id == ROW_QUICK_SHARE_MEDIA_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "quick-share-private-media");
         } else if (item.id == ROW_UNLIMITED_PINS || item.id == ROW_UNLIMITED_PINS_INFO) {
@@ -287,6 +300,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("send-comment-after-forward".equals(target)) {
             return ROW_FORWARD_COMMENT_ORDER;
+        }
+        if ("forwarded-original-reactions".equals(target)) {
+            return ROW_FORWARDED_ORIGINAL_REACTIONS;
         }
         if ("quick-share-private-media".equals(target)) {
             return ROW_QUICK_SHARE_MEDIA;

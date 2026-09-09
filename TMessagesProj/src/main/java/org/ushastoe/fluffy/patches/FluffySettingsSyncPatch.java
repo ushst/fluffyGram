@@ -15,6 +15,7 @@ public final class FluffySettingsSyncPatch {
     private static final String KEY_CHAT_VIDEO_VOLUME_BUTTONS = "chat_video_volume_buttons";
     private static final String KEY_CHAT_FIRST_MESSAGE = "chat_first_message";
     private static final String KEY_FORWARD_COMMENT_ORDER = "forward_comment_order";
+    private static final String KEY_FORWARDED_ORIGINAL_REACTIONS = "forwarded_original_reactions";
     private static final String KEY_QUICK_SHARE_MEDIA = "quick_share_media";
     private static final String KEY_UNLIMITED_PINS = "unlimited_pins";
     private static final String KEY_TELEGRAM_SETTINGS = "telegram_settings";
@@ -34,6 +35,7 @@ public final class FluffySettingsSyncPatch {
             putSection(root, KEY_CHAT_VIDEO_VOLUME_BUTTONS, ChatVideoVolumeButtonsPatch.exportSettingsJson());
             putSection(root, KEY_CHAT_FIRST_MESSAGE, ChatFirstMessagePatch.exportSettingsJson());
             putSection(root, KEY_FORWARD_COMMENT_ORDER, ForwardCommentOrderPatch.exportSettingsJson());
+            putSection(root, KEY_FORWARDED_ORIGINAL_REACTIONS, ForwardedOriginalReactionsPatch.exportSettingsJson());
             putSection(root, KEY_QUICK_SHARE_MEDIA, QuickShareMediaPatch.exportSettingsJson());
             putSection(root, KEY_UNLIMITED_PINS, UnlimitedPinsPatch.exportSettingsJson());
             putSection(root, KEY_TELEGRAM_SETTINGS, TelegramSettingsSyncPatch.exportSettingsJson());
@@ -54,6 +56,7 @@ public final class FluffySettingsSyncPatch {
             importSection(root, KEY_CHAT_VIDEO_VOLUME_BUTTONS, ChatVideoVolumeButtonsPatch::importSettingsJson);
             importSection(root, KEY_CHAT_FIRST_MESSAGE, ChatFirstMessagePatch::importSettingsJson);
             importSection(root, KEY_FORWARD_COMMENT_ORDER, ForwardCommentOrderPatch::importSettingsJson);
+            importSection(root, KEY_FORWARDED_ORIGINAL_REACTIONS, ForwardedOriginalReactionsPatch::importSettingsJson);
             importSection(root, KEY_QUICK_SHARE_MEDIA, QuickShareMediaPatch::importSettingsJson);
             importSection(root, KEY_UNLIMITED_PINS, UnlimitedPinsPatch::importSettingsJson);
             importSection(root, KEY_TELEGRAM_SETTINGS, TelegramSettingsSyncPatch::importSettingsJson);

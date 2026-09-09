@@ -355,6 +355,8 @@
     <string name="FluffyForwardOriginalDate">Original: %1$s</string>
     <string name="FluffyForwardedOriginalDateThirdLine">Original date in forwarded header</string>
     <string name="FluffyForwardedOriginalDateMenu">Forwarded original date</string>
+    <string name="FluffyForwardedOriginalReactionsInfo">When viewing a forwarded channel post, load and show reactions from the original post if it still exists. Disabled by default.</string>
+    <string name="FluffyForwardedOriginalReactions">Show original reactions on forwarded channel posts</string>
     <string name="FluffyChatEnterSpoilerMenu">Show the spoiler menu on long press of the emoji button</string>
     <string name="FluffyInlineCodeChip">Highlight inline code in messages</string>
     <string name="FluffyReactionTodayAt">reacted at %s</string>
