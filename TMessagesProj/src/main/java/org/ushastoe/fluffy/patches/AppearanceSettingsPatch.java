@@ -34,7 +34,6 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_DISABLE_ROUNDED_NUMBERS = "disable_rounded_numbers";
     private static final String KEY_THOUSANDS_SEPARATOR = "thousands_separator";
     private static final String KEY_DIALOGS_LIST_SCALE = "dialogs_list_scale";
-    private static final String KEY_CENTER_CHAT_HEADER = "center_chat_header";
     private static final String KEY_MAP_PROVIDER = "map_provider";
     private static final String KEY_EDITED_MARKER_ICON = "edited_marker_icon";
     private static final String KEY_EDITED_MARKER_MODE = "edited_marker_mode";
@@ -105,7 +104,6 @@ public final class AppearanceSettingsPatch {
             KEY_DISABLE_ROUNDED_NUMBERS,
             KEY_THOUSANDS_SEPARATOR,
             KEY_DIALOGS_LIST_SCALE,
-            KEY_CENTER_CHAT_HEADER,
             KEY_MAP_PROVIDER,
             KEY_EDITED_MARKER_MODE,
             KEY_SCHEDULED_MARKER_MODE,
@@ -340,19 +338,7 @@ public final class AppearanceSettingsPatch {
         notifyListeners();
     }
 
-    public static boolean isCenterChatHeaderEnabled() {
-        SharedPreferences preferences = getPreferences();
-        return preferences != null && preferences.getBoolean(KEY_CENTER_CHAT_HEADER, false);
-    }
 
-    public static void setCenterChatHeaderEnabled(boolean enabled) {
-        SharedPreferences preferences = getPreferences();
-        if (preferences == null) {
-            return;
-        }
-        preferences.edit().putBoolean(KEY_CENTER_CHAT_HEADER, enabled).apply();
-        notifyListeners();
-    }
 
     public static int getMapProvider() {
         SharedPreferences preferences = getPreferences();
@@ -783,7 +769,6 @@ public final class AppearanceSettingsPatch {
             case KEY_TIME_WITH_SECONDS:
             case KEY_DISABLE_ROUNDED_NUMBERS:
             case KEY_THOUSANDS_SEPARATOR:
-            case KEY_CENTER_CHAT_HEADER:
             case KEY_ROUND_VIDEO_CAMERA_FEATURE_ENABLED:
             case KEY_HIDE_STORIES:
             case KEY_SHOW_FORWARDED_ORIGINAL_DATE:

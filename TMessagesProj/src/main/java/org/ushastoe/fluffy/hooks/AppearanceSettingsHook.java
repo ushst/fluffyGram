@@ -121,13 +121,7 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setDialogsListScale(scale);
     }
 
-    public static boolean isCenterChatHeaderEnabled() {
-        return AppearanceSettingsPatch.isCenterChatHeaderEnabled();
-    }
 
-    public static void setCenterChatHeaderEnabled(boolean enabled) {
-        AppearanceSettingsPatch.setCenterChatHeaderEnabled(enabled);
-    }
 
     public static int getMapProvider() {
         return AppearanceSettingsPatch.getMapProvider();

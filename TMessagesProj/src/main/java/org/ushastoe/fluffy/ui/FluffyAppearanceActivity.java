@@ -86,7 +86,6 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_CHAT_UI_SECTION = 18;
     private static final int ROW_CHAT_UI_HEADER = 19;
     private static final int ROW_TABS = 20;
-    private static final int ROW_CENTER_CHAT_HEADER = 21;
     private static final int ROW_CHAT_ENTER_SPOILER_MENU = 22;
     private static final int ROW_INLINE_CODE_CHIP = 23;
     private static final int ROW_CHAT_AI_BUTTON_SHORT_TEXT = 37;
@@ -103,6 +102,7 @@ public class FluffyAppearanceActivity extends BaseFragment {
     private static final int ROW_SILENT_MARKER = 34;
     private static final int ROW_MESSAGE_ACTIONS_SECTION = 35;
     private static final int ROW_MESSAGE_ACTIONS = 36;
+    private static final int ROW_MONET = 38;
 
     private static final int REQUEST_CODE_PICK_FONT = 4201;
 
@@ -185,12 +185,6 @@ public class FluffyAppearanceActivity extends BaseFragment {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
                 onFormattingChanged();
-            } else if (item.id == ROW_CENTER_CHAT_HEADER) {
-                boolean enabled = !AppearanceSettingsHook.isCenterChatHeaderEnabled();
-                AppearanceSettingsHook.setCenterChatHeaderEnabled(enabled);
-                if (view instanceof TextCheckCell) {
-                    ((TextCheckCell) view).setChecked(enabled);
-                }
             } else if (item.id == ROW_CHAT_ENTER_SPOILER_MENU) {
                 boolean enabled = !AppearanceSettingsHook.isChatEnterSpoilerMenuEnabled();
                 AppearanceSettingsHook.setChatEnterSpoilerMenuEnabled(enabled);
@@ -322,9 +316,6 @@ public class FluffyAppearanceActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_TEXT, ROW_TABS,
                 LocaleController.getString(R.string.FluffyTabs),
                 false));
-        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CENTER_CHAT_HEADER,
-                LocaleController.getString(R.string.FluffyCenterChatHeader),
-                AppearanceSettingsHook.isCenterChatHeaderEnabled()));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_ENTER_SPOILER_MENU,
                 LocaleController.getString(R.string.FluffyChatEnterSpoilerMenu),
                 AppearanceSettingsHook.isChatEnterSpoilerMenuEnabled()));
@@ -877,8 +868,6 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "chat-ui");
             case ROW_TABS:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "tabs");
-            case ROW_CENTER_CHAT_HEADER:
-                return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "center-chat-header");
             case ROW_CHAT_ENTER_SPOILER_MENU:
                 return FluffySettingsDeepLinkPatch.buildSettingsLink("appearance", "chat-enter-spoiler-menu");
             case ROW_CHAT_AI_BUTTON_SHORT_TEXT:
@@ -978,8 +967,6 @@ public class FluffyAppearanceActivity extends BaseFragment {
                 return ROW_DIALOGS_LIST_SIZE;
             case "chat-ui":
                 return ROW_CHAT_UI_HEADER;
-            case "center-chat-header":
-                return ROW_CENTER_CHAT_HEADER;
             case "chat-enter-spoiler-menu":
                 return ROW_CHAT_ENTER_SPOILER_MENU;
             case "chat-ai-button":
