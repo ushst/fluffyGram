@@ -299,7 +299,9 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
             for (int a = 0; a < count; a++) {
                 View child = getChildAt(a);
                 if (child instanceof ActionBar) {
-                    child.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.UNSPECIFIED));
+                    child.measure(
+                        MeasureSpec.makeMeasureSpec(width - getPaddingLeft() - getPaddingRight(), MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.UNSPECIFIED));
                     actionBarHeight = child.getMeasuredHeight();
                     break;
                 }
@@ -328,7 +330,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                 View child = getChildAt(a);
                 if (child instanceof ActionBar) {
                     actionBarHeight = child.getMeasuredHeight();
-                    child.layout(0, 0, child.getMeasuredWidth(), actionBarHeight);
+                    child.layout(getPaddingLeft(), 0, getPaddingLeft() + child.getMeasuredWidth(), actionBarHeight);
                     break;
                 }
             }
