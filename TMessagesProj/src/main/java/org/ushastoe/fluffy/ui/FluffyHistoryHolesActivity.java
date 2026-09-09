@@ -16,51 +16,60 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
-import org.telegram.ui.ActionBar.BaseFragment;
 import org.ushastoe.fluffy.utils.HistoryIntegrityChecker;
 
 import java.util.ArrayList;
 
 /**
- * Lists local chats whose cached message history currently has gaps ("holes") that
- * still need to be re-downloaded from the server, so gaps like the one produced by
- * an accidental cache wipe don't go unnoticed. Tapping a chat opens it, which is
- * enough to make the client fetch the missing history back from Telegram's servers.
+ * Lists chats with mid-history gaps in the local cache (not the normal
+ * "older history not loaded yet" hole). Tapping a chat opens it so Telegram can
+ * re-download the missing range.
  */
 public class FluffyHistoryHolesActivity extends BaseFragment {
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_TEXT = 1;
     private static final int VIEW_TYPE_INFO = 2;
+    private static final int VIEW_TYPE_SHADOW = 3;
 
     private static final int ROW_HEADER = 0;
-    private static final int ROW_REFRESH = 1;
-    private static final int ROW_INFO = 2;
+    private static final int ROW_STATUS = 1;
+    private static final int ROW_SHADOW = 2;
+    private static final int ROW_INFO = 3;
     private static final int DIALOG_ROW_BASE = 100;
+    private static final int MENU_REFRESH = 1;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
     private final ArrayList<RowItem> items = new ArrayList<>();
     private ArrayList<MessagesStorage.DialogHoleInfo> holes = new ArrayList<>();
     private boolean loading;
+    private boolean loaded;
 
     @Override
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString(R.string.FluffyHistoryHolesTitle));
+        ActionBarMenu menu = actionBar.createMenu();
+        menu.addItem(MENU_REFRESH, LocaleController.getString(R.string.FluffyHistoryHolesRefresh));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
+                } else if (id == MENU_REFRESH) {
+                    load(true);
                 }
             }
         });
@@ -69,8 +78,6 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
         frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new RecyclerListView(context);
-        listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
         listView.setAdapter(adapter = new ListAdapter());
@@ -79,9 +86,7 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
                 return;
             }
             RowItem item = items.get(position);
-            if (item.id == ROW_REFRESH) {
-                load();
-            } else if (item.dialogId != 0) {
+            if (item.dialogId != 0) {
                 openDialog(item.dialogId);
             }
         });
@@ -89,24 +94,31 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
 
         fragmentView = frameLayout;
         updateItems();
+        load(false);
         return fragmentView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        load();
+        if (loaded) {
+            updateItems();
+        }
     }
 
-    private void load() {
+    private void load(boolean force) {
         if (loading) {
+            return;
+        }
+        if (loaded && !force) {
             return;
         }
         loading = true;
         updateItems();
         HistoryIntegrityChecker.loadSummaryAsync(currentAccount, result -> {
             loading = false;
-            holes = result.dialogs;
+            loaded = true;
+            holes = result.dialogs != null ? result.dialogs : new ArrayList<>();
             updateItems();
         });
     }
@@ -131,12 +143,12 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
-        items.add(new RowItem(VIEW_TYPE_HEADER, ROW_HEADER, LocaleController.getString(R.string.FluffyHistoryHolesTitle), null, 0));
-        items.add(new RowItem(VIEW_TYPE_TEXT, ROW_REFRESH, LocaleController.getString(R.string.FluffyHistoryHolesRefresh), null, 0));
-        if (loading) {
-            items.add(new RowItem(VIEW_TYPE_INFO, ROW_INFO, LocaleController.getString(R.string.FluffyHistoryHolesLoading), null, 0));
+        items.add(new RowItem(VIEW_TYPE_HEADER, ROW_HEADER, LocaleController.getString(R.string.FluffyHistoryHolesSection), null, 0, false));
+
+        if (loading && !loaded) {
+            items.add(new RowItem(VIEW_TYPE_INFO, ROW_STATUS, LocaleController.getString(R.string.FluffyHistoryHolesLoading), null, 0, false));
         } else if (holes.isEmpty()) {
-            items.add(new RowItem(VIEW_TYPE_INFO, ROW_INFO, LocaleController.getString(R.string.FluffyHistoryHolesEmpty), null, 0));
+            items.add(new RowItem(VIEW_TYPE_INFO, ROW_STATUS, LocaleController.getString(R.string.FluffyHistoryHolesEmpty), null, 0, false));
         } else {
             for (int i = 0; i < holes.size(); i++) {
                 MessagesStorage.DialogHoleInfo info = holes.get(i);
@@ -144,11 +156,19 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
                 if (TextUtils.isEmpty(name)) {
                     name = String.valueOf(info.dialogId);
                 }
-                CharSequence value = LocaleController.formatString(R.string.FluffyHistoryHolesGapValue, info.holeCount, info.totalGap);
-                items.add(new RowItem(VIEW_TYPE_TEXT, DIALOG_ROW_BASE + i, name, value, info.dialogId));
+                CharSequence value = LocaleController.formatString(
+                        R.string.FluffyHistoryHolesGapValue,
+                        info.holeCount,
+                        info.totalGap,
+                        info.rangeStart,
+                        info.rangeEnd);
+                boolean divider = i < holes.size() - 1;
+                items.add(new RowItem(VIEW_TYPE_TEXT, DIALOG_ROW_BASE + i, name, value, info.dialogId, divider));
             }
+            items.add(new RowItem(VIEW_TYPE_SHADOW, ROW_SHADOW, null, null, 0, false));
+            items.add(new RowItem(VIEW_TYPE_INFO, ROW_INFO, LocaleController.getString(R.string.FluffyHistoryHolesInfo), null, 0, false));
         }
-        items.add(new RowItem(VIEW_TYPE_INFO, ROW_INFO + 1, LocaleController.getString(R.string.FluffyHistoryHolesInfo), null, 0));
+
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -160,13 +180,15 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
         final CharSequence text;
         final CharSequence value;
         final long dialogId;
+        final boolean divider;
 
-        RowItem(int viewType, int id, CharSequence text, CharSequence value, long dialogId) {
+        RowItem(int viewType, int id, CharSequence text, CharSequence value, long dialogId, boolean divider) {
             this.viewType = viewType;
             this.id = id;
             this.text = text;
             this.value = value;
             this.dialogId = dialogId;
+            this.divider = divider;
         }
     }
 
@@ -178,11 +200,7 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            int position = holder.getAdapterPosition();
-            if (position < 0 || position >= items.size()) {
-                return false;
-            }
-            return items.get(position).viewType == VIEW_TYPE_TEXT;
+            return holder.getItemViewType() == VIEW_TYPE_TEXT;
         }
 
         @Override
@@ -199,6 +217,8 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
             } else if (viewType == VIEW_TYPE_TEXT) {
                 view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_SHADOW) {
+                view = new ShadowSectionCell(parent.getContext(), 12);
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
             }
@@ -208,16 +228,17 @@ public class FluffyHistoryHolesActivity extends BaseFragment {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             RowItem item = items.get(position);
-            if (holder.itemView instanceof HeaderCell) {
+            int viewType = holder.getItemViewType();
+            if (viewType == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
-            } else if (holder.itemView instanceof TextSettingsCell) {
+            } else if (viewType == VIEW_TYPE_TEXT) {
                 TextSettingsCell cell = (TextSettingsCell) holder.itemView;
                 if (!TextUtils.isEmpty(item.value)) {
-                    cell.setTextAndValue(item.text, item.value, false);
+                    cell.setTextAndValue(item.text, item.value, item.divider);
                 } else {
-                    cell.setText(item.text, false);
+                    cell.setText(item.text, item.divider);
                 }
-            } else if (holder.itemView instanceof TextInfoPrivacyCell) {
+            } else if (viewType == VIEW_TYPE_INFO) {
                 ((TextInfoPrivacyCell) holder.itemView).setText(item.text);
             }
         }

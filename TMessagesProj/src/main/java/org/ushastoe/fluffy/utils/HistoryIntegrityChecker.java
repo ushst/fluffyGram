@@ -12,10 +12,10 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * Detects sudden mass gaps ("holes") in locally cached message history, the kind
- * produced by MessagesStorage#clearLocalDatabase(). A single dialog having an
- * unloaded-history hole is normal; a large jump in total hole coverage across many
- * dialogs between two checks is the signature of an accidental cache wipe.
+ * Detects mid-history gaps in the local message cache. Normal "haven't scrolled
+ * back far enough" holes ({@code start IN (0,1)}) are ignored — every chat has
+ * those. A sudden jump in interior-hole coverage across many dialogs is the
+ * signature of cache corruption (e.g. after a bad local wipe / hole close).
  */
 public final class HistoryIntegrityChecker {
 

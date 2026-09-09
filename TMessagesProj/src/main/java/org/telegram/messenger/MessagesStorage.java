@@ -7847,23 +7847,46 @@ public class MessagesStorage extends BaseController {
         public final long dialogId;
         public final int holeCount;
         public final long totalGap;
+        public final int rangeStart;
+        public final int rangeEnd;
 
-        public DialogHoleInfo(long dialogId, int holeCount, long totalGap) {
+        public DialogHoleInfo(long dialogId, int holeCount, long totalGap, int rangeStart, int rangeEnd) {
             this.dialogId = dialogId;
             this.holeCount = holeCount;
             this.totalGap = totalGap;
+            this.rangeStart = rangeStart;
+            this.rangeEnd = rangeEnd;
         }
     }
 
+    /**
+     * Summarizes true mid-history holes only: {@code start > 1}, with locally cached
+     * messages both below and above the hole. Prefix unloaded-history holes
+     * ({@code start IN (0,1)}) and the {@code (1,1)} "fully loaded" marker are ignored.
+     */
     public ArrayList<DialogHoleInfo> getMessageHolesSummary() {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         ArrayList<DialogHoleInfo> result = new ArrayList<>();
         storageQueue.postRunnable(() -> {
             SQLiteCursor cursor = null;
             try {
-                cursor = database.queryFinalized("SELECT uid, COUNT(*), SUM(end - start) FROM messages_holes GROUP BY uid ORDER BY SUM(end - start) DESC");
+                // Require messages on both sides so search-jump stubs / one-sided ranges
+                // don't look like corruption. Tiny gaps (< 20 ids) are noise.
+                cursor = database.queryFinalized(
+                        "SELECT h.uid, COUNT(*), SUM(h.end - h.start), MIN(h.start), MAX(h.end) " +
+                                "FROM messages_holes h " +
+                                "WHERE h.start > 1 " +
+                                "AND EXISTS (SELECT 1 FROM messages_v2 m WHERE m.uid = h.uid AND m.mid > 0 AND m.mid < h.start) " +
+                                "AND EXISTS (SELECT 1 FROM messages_v2 m WHERE m.uid = h.uid AND m.mid > h.end) " +
+                                "GROUP BY h.uid HAVING SUM(h.end - h.start) >= 20 " +
+                                "ORDER BY SUM(h.end - h.start) DESC");
                 while (cursor.next()) {
-                    result.add(new DialogHoleInfo(cursor.longValue(0), cursor.intValue(1), cursor.longValue(2)));
+                    result.add(new DialogHoleInfo(
+                            cursor.longValue(0),
+                            cursor.intValue(1),
+                            cursor.longValue(2),
+                            cursor.intValue(3),
+                            cursor.intValue(4)));
                 }
                 cursor.dispose();
                 cursor = null;
@@ -14601,7 +14624,11 @@ public class MessagesStorage extends BaseController {
                 if (!savedMessagesByDialogs.isEmpty()) {
                     AndroidUtilities.runOnUIThread(() -> getMessagesController().getSavedMessagesController().updateDeleted(savedMessagesByDialogs));
                 }
-                database.executeFast(String.format(Locale.US, "DELETE FROM messages_seq WHERE mid IN(%s)", ids)).stepThis().dispose();
+                // Keep messages_seq in sync with preserved rows — deleting seq while
+                // leaving messages_v2 behind creates fake history gaps on later loads.
+                if (!preserveLocallyDeletedMessages) {
+                    database.executeFast(String.format(Locale.US, "DELETE FROM messages_seq WHERE mid IN(%s)", ids)).stepThis().dispose();
+                }
                 if (!unknownMessages.isEmpty()) {
                     if (dialogId == 0) {
                         database.executeFast("UPDATE media_counts_v2 SET old = 1 WHERE 1").stepThis().dispose();

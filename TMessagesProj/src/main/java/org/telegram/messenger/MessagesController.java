@@ -11997,7 +11997,6 @@ public class MessagesController extends BaseController implements NotificationCe
                 return;
             }
         }
-        LocalMessageArchiveHook.restoreDeletedMessages(dialogId, threadMessageId, mode, messagesRes.messages);
         int size = messagesRes.messages.size();
         if (!isCache) {
             Integer inboxValue = dialogs_read_inbox_max.get(dialogId);
@@ -12041,6 +12040,10 @@ public class MessagesController extends BaseController implements NotificationCe
                 getSavedMessagesController().update(threadMessageId, messagesRes);
             }
         }
+        // Restore archived deleted messages only after putMessages so hole
+        // closing uses the real server/cache page bounds, not the archive.
+        LocalMessageArchiveHook.restoreDeletedMessages(dialogId, threadMessageId, mode, messagesRes.messages);
+        size = messagesRes.messages.size();
 
         if (!needProcess && DialogObject.isEncryptedDialog(dialogId)) {
             AndroidUtilities.runOnUIThread(() -> {

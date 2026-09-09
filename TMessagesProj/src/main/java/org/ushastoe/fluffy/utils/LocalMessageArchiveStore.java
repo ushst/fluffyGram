@@ -189,21 +189,42 @@ public final class LocalMessageArchiveStore {
         if (mode != ChatActivity.MODE_DEFAULT && mode != ChatActivity.MODE_SAVED) {
             return;
         }
-        if (messages == null) {
+        // Only splice archived deletes into the already-loaded ID window.
+        // Injecting the whole dialog archive (or doing it before putMessages)
+        // makes Telegram close history holes across huge empty ranges and the
+        // real cached history looks like it vanished.
+        if (messages == null || messages.isEmpty()) {
             return;
         }
+        int minId = Integer.MAX_VALUE;
+        int maxId = Integer.MIN_VALUE;
         synchronized (LOCK) {
             SQLiteDatabase database = getDatabaseLocked();
             Cursor cursor = null;
             HashSet<Integer> existingIds = new HashSet<>();
             for (int i = 0; i < messages.size(); i++) {
-                existingIds.add(messages.get(i).id);
+                TLRPC.Message existing = messages.get(i);
+                if (existing == null || existing.id <= 0) {
+                    continue;
+                }
+                existingIds.add(existing.id);
+                if (existing.id < minId) {
+                    minId = existing.id;
+                }
+                if (existing.id > maxId) {
+                    maxId = existing.id;
+                }
+            }
+            if (minId == Integer.MAX_VALUE) {
+                return;
             }
             ArrayList<TLRPC.Message> restored = new ArrayList<>();
             try {
-                String selection = COL_DIALOG_ID + " = ?";
+                String selection = COL_DIALOG_ID + " = ? AND " + COL_MESSAGE_ID + " >= ? AND " + COL_MESSAGE_ID + " <= ?";
                 ArrayList<String> args = new ArrayList<>();
                 args.add(String.valueOf(dialogId));
+                args.add(String.valueOf(minId));
+                args.add(String.valueOf(maxId));
                 if (topicId != 0) {
                     selection += " AND " + COL_TOPIC_ID + " = ?";
                     args.add(String.valueOf(topicId));
