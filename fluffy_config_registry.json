@@ -103,14 +103,6 @@
           "sync": "sync"
         },
         {
-          "key": "center_chat_header",
-          "storage": "fluffy_appearance_settings",
-          "type": "boolean",
-          "default": false,
-          "scope": "global",
-          "sync": "sync"
-        },
-        {
           "key": "map_provider",
           "storage": "fluffy_appearance_settings",
           "type": "int",
@@ -189,6 +181,38 @@
           "default": true,
           "scope": "global",
           "sync": "sync"
+        },
+        {
+          "key": "chat_enter_spoiler_menu_enabled",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "smart_reply_enabled",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "inline_code_chip_enabled",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "chat_ai_button_short_text_enabled",
+          "storage": "fluffy_appearance_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
         }
       ]
     },
@@ -255,6 +279,226 @@
           "default": false,
           "scope": "global",
           "sync": "sync"
+        },
+        {
+          "key": "local_message_fake_edit_enabled",
+          "storage": "fluffy_premium_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "local_message_history_enabled",
+          "storage": "fluffy_premium_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "save_deleted_messages_enabled",
+          "storage": "fluffy_premium_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "deleted_message_marker_mode",
+          "storage": "fluffy_premium_settings",
+          "type": "int",
+          "default": 1,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "document_author_marker_mode",
+          "storage": "fluffy_premium_settings",
+          "type": "int",
+          "default": 2,
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "Google AI Settings",
+      "storage": "SharedPreferences(\"fluffy_google_ai_settings\")",
+      "entries": [
+        {
+          "key": "google_ai_api_key",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_enabled",
+          "storage": "fluffy_google_ai_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_api_key_validated",
+          "storage": "fluffy_google_ai_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_api_base_url",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "https://generativelanguage.googleapis.com",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_model",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "gemini-2.5-flash",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_prompt_presets_json",
+          "storage": "fluffy_google_ai_settings",
+          "type": "json<array>",
+          "default": [],
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_compose_prompt_presets_json",
+          "storage": "fluffy_google_ai_settings",
+          "type": "json<array>",
+          "default": "built-in defaults (Neutral/Friendly/Formal)",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_prompt_library_language",
+          "storage": "fluffy_google_ai_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_translate_prompt",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "built-in default",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_explain_prompt",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "built-in default",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_identify_prompt",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "built-in default",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "google_ai_custom_prompt",
+          "storage": "fluffy_google_ai_settings",
+          "type": "string",
+          "default": "",
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "Muted Notification Senders",
+      "storage": "SharedPreferences(\"fluffy_sender_notification_mutes\")",
+      "entries": [
+        {
+          "key": "muted_notification_senders_v1_<accountId>_<dialogId>",
+          "storage": "fluffy_sender_notification_mutes",
+          "type": "string_set",
+          "default": [],
+          "scope": "account_dialog",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "Local Message Fake Edit Storage",
+      "storage": "SQLite(\"fluffy_local_fake_edit.db\")",
+      "entries": [
+        {
+          "key": "fake_edit_records",
+          "storage": "fluffy_local_fake_edit.db",
+          "type": "table",
+          "default": "empty",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "fake_edit_meta",
+          "storage": "fluffy_local_fake_edit.db",
+          "type": "table",
+          "default": "empty",
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ],
+      "legacy_migration": [
+        {
+          "key": "local_message_fake_edit_records_v1",
+          "storage": "fluffy_fake_edit_storage",
+          "type": "json<object>",
+          "default": {},
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "Local Message Archive Storage",
+      "storage": "SQLite(\"fluffy_local_message_archive.db\")",
+      "entries": [
+        {
+          "key": "message_archive_entries",
+          "storage": "fluffy_local_message_archive.db",
+          "type": "table",
+          "default": "empty",
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "message_archive_meta",
+          "storage": "fluffy_local_message_archive.db",
+          "type": "table",
+          "default": "empty",
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ],
+      "legacy_migration": [
+        {
+          "key": "local_message_archive_records_v1",
+          "storage": "fluffy_message_archive_storage",
+          "type": "json<object>",
+          "default": {},
+          "scope": "global",
+          "sync": "local-only"
         }
       ]
     },
@@ -285,6 +529,22 @@
           "sync": "sync"
         },
         {
+          "key": "chat_video_volume_buttons_enabled",
+          "storage": "fluffy_general_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "send_comment_after_forward_enabled",
+          "storage": "fluffy_general_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
           "key": "quick_share_private_media_enabled",
           "storage": "fluffy_general_settings",
           "type": "boolean",
@@ -294,6 +554,14 @@
         },
         {
           "key": "unlimited_unarchived_pins_enabled",
+          "storage": "fluffy_general_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "sync"
+        },
+        {
+          "key": "forwarded_original_reactions_enabled",
           "storage": "fluffy_general_settings",
           "type": "boolean",
           "default": false,
@@ -340,6 +608,36 @@
       "managed_files": [
         "files/fluffy_logs/session_account_<accountId>_<timestamp>.log",
         "files/fluffy_logs/saved_account_<accountId>_<timestamp>.log"
+      ]
+    },
+    {
+      "name": "Debug Settings",
+      "storage": "SharedPreferences(\"fluffy_debug_settings\")",
+      "entries": [
+        {
+          "key": "selfhosted_cloud_enabled",
+          "storage": "fluffy_debug_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "notification_diagnostics_enabled",
+          "storage": "fluffy_debug_settings",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "disable_emoji_pack_link_preview",
+          "storage": "fluffy_debug_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only"
+        }
       ]
     },
     {
@@ -450,6 +748,84 @@
           "default": false,
           "scope": "global",
           "sync": "sync"
+        },
+        {
+          "key": "message_details_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "message_translit_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "local_message_history_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "message_google_ai_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "message_stats_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        },
+        {
+          "key": "document_metadata_enabled",
+          "storage": "MessagesController.getGlobalMainSettings()",
+          "type": "boolean",
+          "default": true,
+          "scope": "global",
+          "sync": "local-only"
+        }
+      ]
+    },
+    {
+      "name": "Posts Search History",
+      "storage": "MessagesController.getMainSettings(account)",
+      "entries": [
+        {
+          "key": "postssearch_recent",
+          "storage": "MessagesController.getMainSettings(account) / mainconfig<accountId>",
+          "type": "string",
+          "default": "",
+          "scope": "per-account",
+          "sync": "local-only"
+        },
+        {
+          "key": "postssearch_blacklist_all",
+          "storage": "MessagesController.getMainSettings(account) / mainconfig<accountId>",
+          "type": "string",
+          "default": "",
+          "scope": "per-account",
+          "sync": "local-only"
+        },
+        {
+          "key": "postssearch_blacklist_q_<query>",
+          "storage": "MessagesController.getMainSettings(account) / mainconfig<accountId>",
+          "type": "string",
+          "default": "",
+          "scope": "per-account, per search query",
+          "sync": "local-only"
         }
       ]
     },
@@ -649,6 +1025,93 @@
           "default": true,
           "scope": "global",
           "sync": "sync-via-bundle"
+        }
+      ]
+    },
+    {
+      "name": "Monet Theme",
+      "storage": "SharedPreferences(\"fluffy_monet_settings\")",
+      "entries": [
+        {
+          "key": "monet_palette_source",
+          "storage": "fluffy_monet_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "0 = system wallpaper palette, 1 = custom seed colour"
+        },
+        {
+          "key": "monet_seed_color",
+          "storage": "fluffy_monet_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "ARGB seed; 0 means the built-in default (#1a73e8)"
+        },
+        {
+          "key": "monet_scheme",
+          "storage": "fluffy_monet_settings",
+          "type": "int",
+          "default": 0,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "material-color-utilities variant, 0 = Tonal Spot"
+        },
+        {
+          "key": "monet_amoled",
+          "storage": "fluffy_monet_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "pure black background for the dark Monet theme"
+        },
+        {
+          "key": "monet_gradient_bubbles",
+          "storage": "fluffy_monet_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "gradient outgoing bubbles"
+        },
+        {
+          "key": "monet_gradient_avatars",
+          "storage": "fluffy_monet_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "lighter avatar backgrounds"
+        },
+        {
+          "key": "monet_monochrome_names",
+          "storage": "fluffy_monet_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "single accent for in-message sender names"
+        },
+        {
+          "key": "monet_visible_dividers",
+          "storage": "fluffy_monet_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "higher-contrast list dividers"
+        },
+        {
+          "key": "monet_invert_outgoing",
+          "storage": "fluffy_monet_settings",
+          "type": "boolean",
+          "default": false,
+          "scope": "global",
+          "sync": "local-only",
+          "notes": "outgoing bubbles taken from the opposite template"
         }
       ]
     },
