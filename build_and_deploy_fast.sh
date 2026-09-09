@@ -2,19 +2,21 @@
 
 set -euo pipefail
 
+# Fast local release install for day-to-day work.
+# Uses signed afatRelease with a single app-level R8 pass
+# (library minify is disabled — that alone cuts ~2–3 minutes).
+#
+# Optional: FLUFFY_FAST_BUILD=true skips R8 entirely, but on this
+# codebase full dex is often slower than one R8 pass — not recommended.
+
 CLEAN=0
 LAUNCH=1
+SERIAL=""
+SKIP_R8=0
 JAVA_HOME_OVERRIDE=""
 ANDROID_SDK_ROOT_OVERRIDE=""
 GRADLE_MAX_HEAP="${GRADLE_MAX_HEAP:-8192m}"
-# Default to a healthy fraction of cores; override with GRADLE_MAX_WORKERS if needed.
-if [[ -z "${GRADLE_MAX_WORKERS:-}" ]]; then
-  cpu_count="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 8)"
-  GRADLE_MAX_WORKERS=$((cpu_count > 2 ? cpu_count / 2 : cpu_count))
-  if [[ "$GRADLE_MAX_WORKERS" -gt 16 ]]; then
-    GRADLE_MAX_WORKERS=16
-  fi
-fi
+GRADLE_MAX_WORKERS="${GRADLE_MAX_WORKERS:-16}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,6 +26,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-launch)
       LAUNCH=0
+      shift
+      ;;
+    --serial)
+      SERIAL="${2:?Missing value for --serial}"
+      shift 2
+      ;;
+    --skip-r8)
+      SKIP_R8=1
       shift
       ;;
     --java-home)
@@ -36,17 +46,19 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       cat <<'EOF'
-Usage: ./build_and_deploy_debug.sh [options]
+Usage: ./build_and_deploy_fast.sh [options]
+
+Builds signed afatRelease (org.ushastoe.fluffy) and installs it.
+Library-module R8 is disabled; app R8 still runs (best speed/size tradeoff).
 
 Options:
   --clean                     Run clean before build/install
   --no-launch                 Skip app launch after install
+  --serial <serial>           adb device serial (default: single connected device)
+  --skip-r8                   Also skip app R8 (-PFLUFFY_FAST_BUILD=true); often slower
   --java-home <path>          Override JAVA_HOME
   --android-sdk-root <path>   Override ANDROID_SDK_ROOT / ANDROID_HOME
   -h, --help                  Show this help
-
-Tip: for production package id (org.ushastoe.fluffy) without R8, use:
-  ./build_and_deploy_fast.sh
 EOF
       exit 0
       ;;
@@ -95,7 +107,6 @@ JAVA_CANDIDATES=(
 if resolved_java_home="$(resolve_first_existing_path "${JAVA_CANDIDATES[@]}")"; then
   export JAVA_HOME="$resolved_java_home"
   add_to_path "$JAVA_HOME/bin"
-  export GRADLE_OPTS="-Dorg.gradle.java.home=\"$JAVA_HOME\""
   printf 'Using JAVA_HOME: %s\n' "$JAVA_HOME"
 else
   echo "Warning: no JAVA_HOME candidate found. Falling back to current environment." >&2
@@ -116,57 +127,74 @@ if resolved_sdk_root="$(resolve_first_existing_path "${SDK_CANDIDATES[@]}")"; th
   export ANDROID_HOME="${ANDROID_HOME:-$resolved_sdk_root}"
   add_to_path "$resolved_sdk_root/platform-tools"
   printf 'Using Android SDK: %s\n' "$resolved_sdk_root"
-else
-  echo "Warning: Android SDK root not found in common locations. Gradle may rely on local.properties." >&2
 fi
 
-echo "== FluffyGram Debug Build & Deploy =="
+if [[ -z "${NDK_CCACHE:-}" ]] && command -v ccache >/dev/null 2>&1; then
+  export NDK_CCACHE="$(command -v ccache)"
+  printf 'Using NDK_CCACHE: %s\n' "$NDK_CCACHE"
+fi
+
+echo "== FluffyGram Fast Release Build & Deploy =="
 java -version
 
 gradle_tasks=()
 if [[ "$CLEAN" -eq 1 ]]; then
   gradle_tasks+=("clean")
 fi
-gradle_tasks+=(":TMessagesProj_App:assembleAfatDebug")
+gradle_tasks+=(":TMessagesProj_App:assembleAfatRelease")
+
+extra_props=()
+if [[ "$SKIP_R8" -eq 1 ]]; then
+  extra_props+=(-PFLUFFY_FAST_BUILD=true)
+  echo "Note: --skip-r8 enabled (full dex may be slower than single app R8)."
+fi
 
 printf 'Running Gradle tasks: %s\n' "${gradle_tasks[*]}"
 printf 'Gradle heap: %s, max workers: %s\n' "$GRADLE_MAX_HEAP" "$GRADLE_MAX_WORKERS"
-# Keep the Gradle daemon warm; workers default higher for local machines.
+START=$(date +%s)
 ./gradlew --console=plain --max-workers="$GRADLE_MAX_WORKERS" \
   "-Dorg.gradle.jvmargs=-Xmx${GRADLE_MAX_HEAP} -XX:+UseParallelGC -Dfile.encoding=UTF-8" \
+  "${extra_props[@]}" \
   "${gradle_tasks[@]}"
+END=$(date +%s)
+printf 'Gradle finished in %ss\n' "$((END - START))"
 
 if ! command -v adb >/dev/null 2>&1; then
-  echo "adb was not found in PATH. Set ANDROID_SDK_ROOT/ANDROID_HOME or install platform-tools." >&2
+  echo "adb was not found in PATH." >&2
   exit 1
 fi
 
-apk_path="$script_root/TMessagesProj_App/build/outputs/apk/afat/debug/app.apk"
+apk_path="$script_root/TMessagesProj_App/build/outputs/apk/afat/release/app.apk"
 if [[ ! -f "$apk_path" ]]; then
   echo "APK not found: $apk_path" >&2
   exit 1
 fi
 
-mapfile -t adb_devices < <(adb devices | awk 'NR > 1 && $2 == "device" { print $1 }')
-if [[ "${#adb_devices[@]}" -eq 0 ]]; then
-  echo "No connected adb devices found." >&2
-  exit 1
-fi
-if [[ "${#adb_devices[@]}" -gt 1 ]]; then
-  echo "Multiple adb devices are connected. Disconnect extras or extend the script with device selection." >&2
-  printf 'Devices: %s\n' "${adb_devices[*]}" >&2
-  exit 1
+if [[ -n "$SERIAL" ]]; then
+  target_device="$SERIAL"
+else
+  mapfile -t adb_devices < <(adb devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  if [[ "${#adb_devices[@]}" -eq 0 ]]; then
+    echo "No connected adb devices found." >&2
+    exit 1
+  fi
+  if [[ "${#adb_devices[@]}" -gt 1 ]]; then
+    echo "Multiple adb devices are connected. Pass --serial <id>." >&2
+    printf 'Devices: %s\n' "${adb_devices[*]}" >&2
+    exit 1
+  fi
+  target_device="${adb_devices[0]}"
 fi
 
-target_device="${adb_devices[0]}"
 printf 'Installing APK on %s...\n' "$target_device"
 adb -s "$target_device" install -r -d "$apk_path"
 
-echo "Debug build installed successfully."
+echo "Fast release build installed successfully (org.ushastoe.fluffy)."
 
 if [[ "$LAUNCH" -eq 1 ]]; then
   echo "Launching app..."
-  adb -s "$target_device" shell am start -n org.ushastoe.fluffy.beta/org.telegram.ui.LaunchActivity >/dev/null
+  adb -s "$target_device" shell am force-stop org.ushastoe.fluffy >/dev/null 2>&1 || true
+  adb -s "$target_device" shell am start -n org.ushastoe.fluffy/org.telegram.ui.LaunchActivity >/dev/null
   echo "App launched on device."
 else
   echo "Launch skipped."

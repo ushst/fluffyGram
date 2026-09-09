@@ -46,6 +46,7 @@ def fluffyAllAbisEnabled = (project.findProperty("FLUFFY_ALL_ABIS") ?: "false").
 def fluffyNativeAbis = fluffyAllAbisEnabled
         ? ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
         : ["arm64-v8a"]
+def fluffyFastBuild = (project.findProperty("FLUFFY_FAST_BUILD") ?: "false").toString().toBoolean()
 
 android {
     compileSdkVersion 35
@@ -90,7 +91,7 @@ android {
             jniDebuggable true
             signingConfig signingConfigs.debug
             applicationIdSuffix ".beta"
-            minifyEnabled true
+            minifyEnabled false
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
@@ -102,22 +103,22 @@ android {
             jniDebuggable false
             signingConfig signingConfigs.release
             applicationIdSuffix ".web"
-            minifyEnabled true
+            minifyEnabled !fluffyFastBuild
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = fluffyFastBuild ? 'NONE' : 'FULL'
         }
 
         release {
             debuggable false
             jniDebuggable false
             signingConfig signingConfigs.release
-            minifyEnabled true
+            minifyEnabled !fluffyFastBuild
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = fluffyFastBuild ? 'NONE' : 'FULL'
         }
     }
 

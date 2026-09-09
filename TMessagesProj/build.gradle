@@ -105,6 +105,7 @@ def fluffyAllAbisEnabled = (project.findProperty("FLUFFY_ALL_ABIS") ?: "false").
 def fluffyNativeAbis = fluffyAllAbisEnabled
         ? ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
         : ["arm64-v8a"]
+def fluffyFastBuild = (project.findProperty("FLUFFY_FAST_BUILD") ?: "false").toString().toBoolean()
 def nativeCcache = (System.getenv("NDK_CCACHE") ?: "").trim()
 def nativeCmakeArguments = ['-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21']
 if (!nativeCcache.isEmpty()) {
@@ -160,6 +161,7 @@ android {
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
         multiDexEnabled true
+        consumerProguardFiles 'proguard-rules.pro'
 
         buildConfigField "int", "TELEGRAM_APP_ID", getDevLocalProp("TELEGRAM_APP_ID", "4")
         buildConfigField "String", "TELEGRAM_APP_HASH", "\"" + getDevLocalProp("TELEGRAM_APP_HASH", "014b35b6184100b085b0d0572f9b5103") + "\""
@@ -178,7 +180,8 @@ android {
     buildTypes {
         debug {
             jniDebuggable true
-            minifyEnabled true
+            // Local debug iteration: skip R8 (was the main slowdown even for .beta).
+            minifyEnabled false
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro', '../TMessagesProj/proguard-rules-beta.pro'
@@ -243,10 +246,11 @@ android {
 
         standalone {
             jniDebuggable false
-            minifyEnabled true
+            // Library minify is redundant: the app module R8-processes project deps once.
+            minifyEnabled false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = fluffyFastBuild ? 'NONE' : 'FULL'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
             buildConfigField "String", "BETA_URL", "\"\""
@@ -259,11 +263,12 @@ android {
 
         release {
             jniDebuggable false
-            minifyEnabled true
+            // Library minify is redundant: the app module R8-processes project deps once.
+            minifyEnabled false
             shrinkResources false
             multiDexEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../TMessagesProj/proguard-rules.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = fluffyFastBuild ? 'NONE' : 'FULL'
             buildConfigField "String", "BUILD_VERSION_STRING", "\"" + fluffyVersionName + "\""
             buildConfigField "String", "APP_CENTER_HASH", "\"\""
             buildConfigField "String", "BETA_URL", "\"\""
