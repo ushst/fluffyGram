@@ -2,3 +2,6 @@
 	path = fluffyGram_dev
 	url = git@github.com:krolchonok/fluffyGram_dev
 	branch = main
+[submodule "TMessagesProj/lib/jlatexmath"]
+	path = TMessagesProj/lib/jlatexmath
+	url = https://github.com/dkaraush/jlatexmath-android.git
