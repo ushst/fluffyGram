@@ -315,11 +315,14 @@ def getProps(String propName) {
 def requestedTaskNames = gradle.startParameter.taskNames
 def isPublicAllowed = !hasProperty("IS_PRIVATE") || !property("IS_PRIVATE").toString().toBoolean()
 
-def syncLocalGoogleServices = tasks.register("syncLocalGoogleServices", Copy) {
+def syncLocalGoogleServices = tasks.register("syncLocalGoogleServices") {
     onlyIf { localGoogleServices.exists() }
-    from(localGoogleServices)
-    into(layout.projectDirectory)
-    rename { "google-services.json" }
+    def destFile = layout.projectDirectory.file("google-services.json")
+    inputs.file(localGoogleServices)
+    outputs.file(destFile)
+    doLast {
+        destFile.asFile.bytes = localGoogleServices.bytes
+    }
 }
 
 apply plugin: 'com.google.gms.google-services'
