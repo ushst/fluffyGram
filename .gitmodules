@@ -14,3 +14,12 @@
 [submodule "TMessagesProj/jni/third_party/openh264"]
 	path = TMessagesProj/jni/third_party/openh264
 	url = https://github.com/cisco/openh264.git
+[submodule "TMessagesProj/jni/third_party/xiph/ogg"]
+	path = TMessagesProj/jni/third_party/xiph/ogg
+	url = https://github.com/xiph/ogg.git
+[submodule "TMessagesProj/jni/third_party/xiph/opus"]
+	path = TMessagesProj/jni/third_party/xiph/opus
+	url = https://github.com/xiph/opus.git
+[submodule "TMessagesProj/jni/third_party/xiph/opusfile"]
+	path = TMessagesProj/jni/third_party/xiph/opusfile
+	url = https://github.com/xiph/opusfile.git
