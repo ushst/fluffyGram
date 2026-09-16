@@ -24,6 +24,8 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.DynamicDrawableSpan;
 import android.text.style.ImageSpan;
+import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -105,6 +107,8 @@ public class Emoji {
         }
     }
 
+    private static int memoryUsage;
+
     private static void loadEmoji(final byte page, final short page2) {
         if (emojiBmp[page][page2] == null) {
             if (loadingEmoji[page][page2]) {
@@ -112,8 +116,41 @@ public class Emoji {
             }
             loadingEmoji[page][page2] = true;
             Utilities.globalQueue.postRunnable(() -> {
-                Bitmap bitmap = loadBitmap("emoji/" + String.format(Locale.US, "%d_%d.png", page, page2));
-                bitmap = EmojiAssetHook.applyOptionalAlphaMask(bitmap, page, page2);
+                Bitmap bitmap = null;
+                try {
+                    final EmojiPack emojiPack = EmojiPack.getInstance();
+                    bitmap = emojiPack.getEmoji(page, page2);
+
+                    final int maskIndex = emojiPack.getMaskId(page, page2);
+                    if (bitmap != null && maskIndex != -1) {
+                        final Bitmap alphaBitmap = emojiPack.getMask(maskIndex);
+                        if (alphaBitmap != null) {
+                            final int w = bitmap.getWidth();
+                            final int h = bitmap.getHeight();
+
+                            final int[] rgbPixels = new int[w * h];
+                            final int[] alphaPixels = new int[w * h];
+
+                            bitmap.getPixels(rgbPixels, 0, w, 0, 0, w, h);
+                            alphaBitmap.getPixels(alphaPixels, 0, w, 0, 0, w, h);
+                            alphaBitmap.recycle();
+
+                            for (int i = 0; i < rgbPixels.length; i++) {
+                                int c = rgbPixels[i];
+                                c = (c & 0x00FFFFFF) | ((alphaPixels[i] & 0xFF) << 24);
+
+                                rgbPixels[i] = c;
+                            }
+
+                            bitmap.recycle();
+                            bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                            bitmap.setPixels(rgbPixels, 0, w, 0, 0, w, h);
+                        }
+                    }
+                    bitmap = EmojiAssetHook.applyOptionalAlphaMask(bitmap, page, page2);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
                 if (bitmap != null) {
                     emojiBmp[page][page2] = bitmap;
                     AndroidUtilities.cancelRunOnUIThread(invalidateUiRunnable);
