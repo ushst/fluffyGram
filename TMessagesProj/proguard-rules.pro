@@ -56,3 +56,4 @@
 
 # Fluffy Delta Update System
 -keep class org.ushastoe.fluffy.utils.** { *; }
+-keep class org.telegram.tgnet.** { *; }
