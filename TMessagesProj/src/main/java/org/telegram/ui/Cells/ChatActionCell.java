@@ -96,6 +96,7 @@ import org.telegram.messenger.utils.tlutils.TlUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.tl.TL_keyboard;
 import org.telegram.tgnet.tl.TL_payments;
 import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.tgnet.tl.TL_stories;
@@ -185,6 +186,8 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.startSpoilers) {
             setSpoilersSuppressed(false);
+        } else if (id == NotificationCenter.emojiLoaded) {
+            invalidate();
         } else if (id == NotificationCenter.stopSpoilers) {
             setSpoilersSuppressed(true);
         } else if (id == NotificationCenter.didUpdatePremiumGiftStickers || id == NotificationCenter.starGiftsLoaded || id == NotificationCenter.didUpdateTonGiftStickers) {
@@ -239,7 +242,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         default void needOpenUserProfile(long uid) {
         }
 
-        default void didPressBotButton(MessageObject messageObject, TLRPC.KeyboardButton button) {
+        default void didPressBotButton(MessageObject messageObject, TL_keyboard.KeyboardButtonProto button) {
         }
 
         default void didPressReplyMessage(ChatActionCell cell, int id) {
@@ -779,7 +782,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                 forceWasUnread = messageObject.wasUnread;
                 imageReceiver.setAllowStartLottieAnimation(false);
                 imageReceiver.setDelegate(giftStickerDelegate);
-                imageReceiver.setImageBitmap(new RLottieDrawable(R.raw.premium_gift, messageObject.getId() + "_" + R.raw.premium_gift, dp(160), dp(160)));
+                imageReceiver.setImageBitmap(new RLottieDrawable(R.raw.premium_gift, dp(160), dp(160)));
             } else {
                 TLRPC.TL_messages_stickerSet set = null;
                 TLRPC.Document document = null;
@@ -1154,6 +1157,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didUpdateTonGiftStickers);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.starGiftsLoaded);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.diceStickersDidLoad);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
         avatarStoryParams.onDetachFromWindow();
 
         transitionParams.onDetach();
@@ -1187,6 +1191,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdateTonGiftStickers);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.starGiftsLoaded);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.diceStickersDidLoad);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
 
         if (currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_SUGGEST_PHOTO) {
             setMessageObject(currentMessageObject, true);

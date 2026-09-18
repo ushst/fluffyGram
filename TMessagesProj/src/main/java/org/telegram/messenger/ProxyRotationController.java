@@ -52,7 +52,7 @@ public class ProxyRotationController implements NotificationCenter.NotificationC
             }
             startedCheck = true;
             proxyInfo.checking = true;
-            proxyInfo.proxyCheckPingId = ConnectionsManager.getInstance(currentAccount).checkProxy(proxyInfo.address, proxyInfo.port, proxyInfo.username, proxyInfo.password, proxyInfo.secret, time -> AndroidUtilities.runOnUIThread(() -> {
+            ConnectionsManager.getInstance(currentAccount).checkProxy(proxyInfo.settings, time -> AndroidUtilities.runOnUIThread(() -> {
                 proxyInfo.availableCheckTime = SystemClock.elapsedRealtime();
                 proxyInfo.checking = false;
                 if (time == -1) {
@@ -113,14 +113,9 @@ public class ProxyRotationController implements NotificationCenter.NotificationC
         }
 
         SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
-        editor.putString("proxy_ip", bestProxy.address);
-        editor.putString("proxy_pass", bestProxy.password);
-        editor.putString("proxy_user", bestProxy.username);
-        editor.putInt("proxy_port", bestProxy.port);
-        editor.putString("proxy_secret", bestProxy.secret);
         editor.putBoolean("proxy_enabled", true);
-
-        if (!bestProxy.secret.isEmpty()) {
+        bestProxy.settings.toSharedPreferences(editor);
+        if (!bestProxy.settings.getSecret().isEmpty()) {
             editor.putBoolean("proxy_enabled_calls", false);
         }
         editor.apply();
@@ -128,7 +123,7 @@ public class ProxyRotationController implements NotificationCenter.NotificationC
         SharedConfig.currentProxy = bestProxy;
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxyChangedByRotation);
-        ConnectionsManager.setProxySettings(true, SharedConfig.currentProxy.address, SharedConfig.currentProxy.port, SharedConfig.currentProxy.username, SharedConfig.currentProxy.password, SharedConfig.currentProxy.secret);
+        ConnectionsManager.setProxySettings(true, SharedConfig.currentProxy.settings);
     }
 
     private boolean shouldUseProxyRotation() {

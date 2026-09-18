@@ -60,7 +60,7 @@ public class FilesMigrationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         NotificationsController.checkOtherNotificationsChannel();
         Notification notification = new Notification.Builder(this, NotificationsController.OTHER_NOTIFICATIONS_CHANNEL)
-                .setContentTitle(getText(R.string.MigratingFiles))
+                .setContentTitle(LocaleController.getString(R.string.MigratingFiles))
                 .setAutoCancel(false)
                 .setSmallIcon(NotificationIconHook.getNotificationSmallIcon())
                 .build();
@@ -174,7 +174,7 @@ public class FilesMigrationService extends Service {
             int currentCount = movedFilesCount;
             AndroidUtilities.runOnUIThread(() -> {
                 Notification notification = new Notification.Builder(FilesMigrationService.this, NotificationsController.OTHER_NOTIFICATIONS_CHANNEL)
-                        .setContentTitle(getText(R.string.MigratingFiles))
+                        .setContentTitle(LocaleController.getString(R.string.MigratingFiles))
                         .setContentText(String.format("%s/%s", currentCount, totalFilesCount))
                         .setSmallIcon(NotificationIconHook.getNotificationSmallIcon())
                         .setAutoCancel(false)

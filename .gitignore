@@ -28,3 +28,4 @@ scripts/__pycache__/
 account*_cache*.db
 user*.xml
 .github/workflows/.secrets
+TMessagesProj/jni/ffmpeg/build_android
