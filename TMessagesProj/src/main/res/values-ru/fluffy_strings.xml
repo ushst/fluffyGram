@@ -289,6 +289,13 @@
     <string name="FluffyChatEnterSpoilerMenu">Показывать меню спойлера по долгому нажатию на кнопку эмодзи</string>
     <string name="FluffySmartReplyInfo">Показывать подсказки быстрых ответов в личных чатах, когда последнее сообщение — входящий текст. Также работает при ответе или цитировании.</string>
     <string name="FluffySmartReply">Быстрые ответы</string>
+    <string name="FluffySmartReplySemantic">Понимать смысл сообщений</string>
+    <string name="FluffySmartReplySemanticInfo">Подбирать подсказки по смыслу, а не только по совпадающим словам. Один раз скачивается модель rubert-tiny2 (около %1$d МБ) с Hugging Face; работает она только на устройстве. При выключении модель удаляется.</string>
+    <string name="FluffySmartReplySemanticDownloading">Загрузка модели… %1$d%%</string>
+    <string name="FluffySmartReplySemanticReady">Модель загружена.</string>
+    <string name="FluffySmartReplySemanticFailed">Не удалось скачать модель. Выключите и снова включите опцию, чтобы повторить.</string>
+    <string name="FluffySmartReplyHistory">Учиться на моей переписке</string>
+    <string name="FluffySmartReplyHistoryInfo">Предлагать ответы, которые вы уже отправляли в похожих ситуациях. Анализируются только сообщения, сохранённые на этом устройстве, — никуда не передаются. Секретные чаты, боты и пересланные сообщения не учитываются.</string>
     <string name="FluffyInlineCodeChip">Выделять встроенный код в сообщениях</string>
     <string name="FluffyReactionTodayAt">реакция в %s</string>
     <string name="FluffyReactionYesterdayAt">реакция вчера в %s</string>

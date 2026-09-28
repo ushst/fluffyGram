@@ -54,6 +54,14 @@ public final class SmartReplyHook {
         SmartReplyPredictorPatch.onSettingChanged();
     }
 
+    public static void onHistorySettingChanged(boolean enabled) {
+        SmartReplyPredictorPatch.onHistorySettingChanged(enabled);
+    }
+
+    public static void onSemanticSettingChanged(boolean enabled) {
+        SmartReplyPredictorPatch.onSemanticSettingChanged(enabled);
+    }
+
     public static float getExtraChatListBottomPadding(ChatActivity activity) {
         return SmartReplyPredictorPatch.getExtraChatListBottomPadding(activity);
     }

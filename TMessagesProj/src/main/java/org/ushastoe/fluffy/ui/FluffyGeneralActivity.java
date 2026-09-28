@@ -22,6 +22,7 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
+import org.ushastoe.fluffy.smartreply.EmbeddingModelStore;
 import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.CombineMessagesHook;
@@ -68,6 +69,10 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_UNLIMITED_PINS_INFO = 18;
     private static final int ROW_SMART_REPLY = 21;
     private static final int ROW_SMART_REPLY_INFO = 22;
+    private static final int ROW_SMART_REPLY_HISTORY = 23;
+    private static final int ROW_SMART_REPLY_HISTORY_INFO = 24;
+    private static final int ROW_SMART_REPLY_SEMANTIC = 25;
+    private static final int ROW_SMART_REPLY_SEMANTIC_INFO = 26;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -181,6 +186,19 @@ public class FluffyGeneralActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
+            } else if (item.id == ROW_SMART_REPLY_SEMANTIC) {
+                boolean enabled = !AppearanceSettingsHook.isSmartReplySemanticEnabled();
+                AppearanceSettingsHook.setSmartReplySemanticEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+                updateItems();
+            } else if (item.id == ROW_SMART_REPLY_HISTORY) {
+                boolean enabled = !AppearanceSettingsHook.isSmartReplyHistoryEnabled();
+                AppearanceSettingsHook.setSmartReplyHistoryEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
             }
         });
         listView.setOnItemLongClickListener((view, position) -> copyDeepLinkForPosition(position));
@@ -196,8 +214,15 @@ public class FluffyGeneralActivity extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        EmbeddingModelStore.setListener(this::updateItems);
         updateItems();
         applyTargetScroll();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        EmbeddingModelStore.setListener(null);
     }
 
     private void updateItems() {
@@ -225,9 +250,35 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_UNLIMITED_PINS_INFO, LocaleController.getString(R.string.FluffyUnlimitedUnarchivedPinsInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SMART_REPLY, LocaleController.getString(R.string.FluffySmartReply), AppearanceSettingsHook.isSmartReplyEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_INFO, LocaleController.getString(R.string.FluffySmartReplyInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SMART_REPLY_HISTORY, LocaleController.getString(R.string.FluffySmartReplyHistory), AppearanceSettingsHook.isSmartReplyHistoryEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_HISTORY_INFO, LocaleController.getString(R.string.FluffySmartReplyHistoryInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SMART_REPLY_SEMANTIC, LocaleController.getString(R.string.FluffySmartReplySemantic), AppearanceSettingsHook.isSmartReplySemanticEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_SEMANTIC_INFO, semanticInfoText(), false));
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private static String semanticInfoText() {
+        String info = LocaleController.formatString(R.string.FluffySmartReplySemanticInfo, EmbeddingModelStore.DOWNLOAD_MB);
+        if (!AppearanceSettingsHook.isSmartReplySemanticEnabled()) {
+            return info;
+        }
+        String status;
+        switch (EmbeddingModelStore.getState()) {
+            case DOWNLOADING:
+                status = LocaleController.formatString(R.string.FluffySmartReplySemanticDownloading, EmbeddingModelStore.getProgressPercent());
+                break;
+            case READY:
+                status = LocaleController.getString(R.string.FluffySmartReplySemanticReady);
+                break;
+            case FAILED:
+                status = LocaleController.getString(R.string.FluffySmartReplySemanticFailed);
+                break;
+            default:
+                return info;
+        }
+        return info + "\n\n" + status;
     }
 
     private boolean copyDeepLinkForPosition(int position) {
@@ -258,6 +309,10 @@ public class FluffyGeneralActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "unlimited-unarchived-pins");
         } else if (item.id == ROW_SMART_REPLY || item.id == ROW_SMART_REPLY_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "smart-reply");
+        } else if (item.id == ROW_SMART_REPLY_SEMANTIC || item.id == ROW_SMART_REPLY_SEMANTIC_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "smart-reply-semantic");
+        } else if (item.id == ROW_SMART_REPLY_HISTORY || item.id == ROW_SMART_REPLY_HISTORY_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "smart-reply-history");
         } else {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general");
         }
@@ -325,6 +380,12 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("smart-reply".equals(target)) {
             return ROW_SMART_REPLY;
+        }
+        if ("smart-reply-semantic".equals(target)) {
+            return ROW_SMART_REPLY_SEMANTIC;
+        }
+        if ("smart-reply-history".equals(target)) {
+            return ROW_SMART_REPLY_HISTORY;
         }
         return -1;
     }

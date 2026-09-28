@@ -225,6 +225,22 @@ public final class AppearanceSettingsHook {
         AppearanceSettingsPatch.setSmartReplyEnabled(enabled);
     }
 
+    public static boolean isSmartReplyHistoryEnabled() {
+        return AppearanceSettingsPatch.isSmartReplyHistoryEnabled();
+    }
+
+    public static void setSmartReplyHistoryEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setSmartReplyHistoryEnabled(enabled);
+    }
+
+    public static boolean isSmartReplySemanticEnabled() {
+        return AppearanceSettingsPatch.isSmartReplySemanticEnabled();
+    }
+
+    public static void setSmartReplySemanticEnabled(boolean enabled) {
+        AppearanceSettingsPatch.setSmartReplySemanticEnabled(enabled);
+    }
+
     public static boolean isInlineCodeChipEnabled() {
         return AppearanceSettingsPatch.isInlineCodeChipEnabled();
     }

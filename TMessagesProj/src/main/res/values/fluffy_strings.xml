@@ -360,6 +360,13 @@
     <string name="FluffyChatEnterSpoilerMenu">Show the spoiler menu on long press of the emoji button</string>
     <string name="FluffySmartReplyInfo">Show quick reply suggestions in private chats when the last message is incoming text. Also works while replying or quoting.</string>
     <string name="FluffySmartReply">Smart Reply</string>
+    <string name="FluffySmartReplySemantic">Understand message meaning</string>
+    <string name="FluffySmartReplySemanticInfo">Match suggestions by meaning, not only by shared words. Downloads the rubert-tiny2 model (about %1$d MB) from Hugging Face once; it runs only on this device. Turning this off deletes the model.</string>
+    <string name="FluffySmartReplySemanticDownloading">Downloading model… %1$d%%</string>
+    <string name="FluffySmartReplySemanticReady">Model is ready.</string>
+    <string name="FluffySmartReplySemanticFailed">Could not download the model. Turn the option off and on to retry.</string>
+    <string name="FluffySmartReplyHistory">Learn from my chats</string>
+    <string name="FluffySmartReplyHistoryInfo">Suggest replies you have already sent in similar situations. Only messages cached on this device are analyzed, nothing leaves it. Secret chats, bots and forwarded messages are skipped.</string>
     <string name="FluffyInlineCodeChip">Highlight inline code in messages</string>
     <string name="FluffyReactionTodayAt">reacted at %s</string>
     <string name="FluffyReactionYesterdayAt">reacted yesterday at %s</string>

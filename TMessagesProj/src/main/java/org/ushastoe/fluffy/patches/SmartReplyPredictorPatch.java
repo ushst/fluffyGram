@@ -16,7 +16,9 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.smartreply.SmartReplyLog;
-import org.ushastoe.fluffy.smartreply.SmartReplyPredictor;
+import org.ushastoe.fluffy.smartreply.EmbeddingModelStore;
+import org.ushastoe.fluffy.smartreply.SmartReplyContext;
+import org.ushastoe.fluffy.smartreply.SmartReplyEngine;
 import org.ushastoe.fluffy.ui.components.SmartReplyBarView;
 
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ public final class SmartReplyPredictorPatch {
 
     private static final WeakHashMap<ChatActivity, SmartReplyBarView> BARS = new WeakHashMap<>();
     private static final WeakHashMap<ChatActivity, String> LAST_INCOMING = new WeakHashMap<>();
+    private static final WeakHashMap<ChatActivity, String> PENDING = new WeakHashMap<>();
+    private static final int RECENT_TURNS = 8;
     private static final WeakHashMap<ChatActivity, Boolean> SMART_REPLY_HOLDING_TOP = new WeakHashMap<>();
 
     private enum HideReason {
@@ -74,13 +78,7 @@ public final class SmartReplyPredictorPatch {
             return;
         }
 
-        SmartReplyPredictor.getInstance().preload(activity.getContext());
-        SmartReplyPredictor.getInstance().whenReady(() ->
-                AndroidUtilities.runOnUIThread(() -> {
-                    if (BARS.get(activity) != null) {
-                        refreshFromLastIncoming(activity);
-                    }
-                }));
+        SmartReplyEngine.getInstance().preload(activity.getCurrentAccount());
 
         SmartReplyBarView bar = new SmartReplyBarView(activity.getContext(), activity.getResourceProvider());
         bar.setListener(text -> onChipClick(activity, text));
@@ -100,6 +98,7 @@ public final class SmartReplyPredictorPatch {
     public static void detach(ChatActivity activity) {
         SmartReplyBarView bar = BARS.remove(activity);
         LAST_INCOMING.remove(activity);
+        PENDING.remove(activity);
         SMART_REPLY_HOLDING_TOP.remove(activity);
         if (activity != null) {
             ChatActivityEnterView enterView = activity.getChatActivityEnterView();
@@ -225,6 +224,7 @@ public final class SmartReplyPredictorPatch {
             bar.clear();
         }
         LAST_INCOMING.remove(activity);
+        PENDING.remove(activity);
         updateIslandPlacement(activity);
     }
 
@@ -265,6 +265,23 @@ public final class SmartReplyPredictorPatch {
             }
             SmartReplyLog.d("setting on — refreshed " + activities.size() + " bars");
         });
+    }
+
+    public static void onHistorySettingChanged(boolean enabled) {
+        if (!enabled) {
+            SmartReplyEngine.getInstance().clearLocalHistory();
+        }
+        onSettingChanged();
+    }
+
+    public static void onSemanticSettingChanged(boolean enabled) {
+        if (enabled) {
+            EmbeddingModelStore.download();
+        } else {
+            SmartReplyEngine.getInstance().releaseSemantic();
+            EmbeddingModelStore.delete();
+        }
+        onSettingChanged();
     }
 
     private static boolean isPrivateUserChat(ChatActivity activity) {
@@ -344,19 +361,23 @@ public final class SmartReplyPredictorPatch {
             updateIslandPlacement(activity);
             return;
         }
-        SmartReplyPredictor predictor = SmartReplyPredictor.getInstance();
-        if (!predictor.isReady()) {
-            SmartReplyLog.d("applySuggestions: db not ready, defer");
-            predictor.preload(activity.getContext());
-            predictor.whenReady(() -> AndroidUtilities.runOnUIThread(() -> {
-                if (BARS.get(activity) == bar) {
-                    LAST_INCOMING.remove(activity);
-                    refreshFromLastIncoming(activity);
-                }
-            }));
+        if (TextUtils.equals(PENDING.get(activity), cacheKey)) {
             return;
         }
-        List<String> chips = predictor.getSuggestions(incoming);
+        PENDING.put(activity, cacheKey);
+        SmartReplyContext ctx = new SmartReplyContext(activity.getCurrentAccount(), activity.getDialogId(),
+                incoming, collectRecentTurns(activity.messages));
+        SmartReplyEngine.getInstance().request(ctx, chips -> {
+            if (BARS.get(activity) != bar || !TextUtils.equals(PENDING.get(activity), cacheKey)) {
+                return;
+            }
+            PENDING.remove(activity);
+            showSuggestions(activity, bar, incoming, cacheKey, chips);
+        });
+    }
+
+    private static void showSuggestions(ChatActivity activity, SmartReplyBarView bar, String incoming,
+                                        String cacheKey, List<String> chips) {
         if (chips.isEmpty()) {
             SmartReplyLog.d("applySuggestions chips=0 for \"" + preview(incoming) + "\"");
             // Keep already visible chips (e.g. opened reply on the same message).
@@ -381,6 +402,24 @@ public final class SmartReplyPredictorPatch {
         LAST_INCOMING.put(activity, cacheKey);
         bar.setSuggestions(chips);
         updateIslandPlacement(activity);
+    }
+
+    private static List<SmartReplyContext.Turn> collectRecentTurns(ArrayList<MessageObject> messages) {
+        ArrayList<SmartReplyContext.Turn> turns = new ArrayList<>();
+        if (messages == null) {
+            return turns;
+        }
+        for (int i = 0; i < messages.size() && turns.size() < RECENT_TURNS; i++) {
+            MessageObject msg = messages.get(i);
+            if (!isRealChatMessage(msg)) {
+                continue;
+            }
+            String text = extractText(msg);
+            if (!TextUtils.isEmpty(text)) {
+                turns.add(0, new SmartReplyContext.Turn(msg.isOutOwner(), text, msg.messageOwner != null ? msg.messageOwner.date : 0));
+            }
+        }
+        return turns;
     }
 
     private static void onBarVisibilityChanged(ChatActivity activity, boolean visible) {

@@ -47,6 +47,8 @@ public final class AppearanceSettingsPatch {
     private static final String KEY_SHOW_FORWARDED_ORIGINAL_DATE = "show_forwarded_original_date";
     private static final String KEY_CHAT_ENTER_SPOILER_MENU_ENABLED = "chat_enter_spoiler_menu_enabled";
     private static final String KEY_SMART_REPLY_ENABLED = "smart_reply_enabled";
+    private static final String KEY_SMART_REPLY_HISTORY_ENABLED = "smart_reply_history_enabled";
+    private static final String KEY_SMART_REPLY_SEMANTIC_ENABLED = "smart_reply_semantic_enabled";
     private static final String KEY_INLINE_CODE_CHIP_ENABLED = "inline_code_chip_enabled";
     private static final String KEY_CHAT_AI_BUTTON_SHORT_TEXT_ENABLED = "chat_ai_button_short_text_enabled";
     private static final String KEY_EMOJI_SET = "emoji_set";
@@ -552,6 +554,34 @@ public final class AppearanceSettingsPatch {
         preferences.edit().putBoolean(KEY_SMART_REPLY_ENABLED, enabled).apply();
         notifyListeners();
         SmartReplyHook.onSettingChanged();
+    }
+
+    public static boolean isSmartReplyHistoryEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_SMART_REPLY_HISTORY_ENABLED, false);
+    }
+
+    public static void setSmartReplyHistoryEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_SMART_REPLY_HISTORY_ENABLED, enabled).apply();
+        SmartReplyHook.onHistorySettingChanged(enabled);
+    }
+
+    public static boolean isSmartReplySemanticEnabled() {
+        SharedPreferences preferences = getPreferences();
+        return preferences != null && preferences.getBoolean(KEY_SMART_REPLY_SEMANTIC_ENABLED, false);
+    }
+
+    public static void setSmartReplySemanticEnabled(boolean enabled) {
+        SharedPreferences preferences = getPreferences();
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit().putBoolean(KEY_SMART_REPLY_SEMANTIC_ENABLED, enabled).apply();
+        SmartReplyHook.onSemanticSettingChanged(enabled);
     }
 
     public static boolean isInlineCodeChipEnabled() {
