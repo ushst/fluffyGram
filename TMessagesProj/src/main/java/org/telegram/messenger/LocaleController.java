@@ -46,6 +46,7 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.RestrictedLanguagesSelectActivity;
 import org.ushastoe.fluffy.hooks.LocaleFormattingHook;
+import org.ushastoe.fluffy.hooks.LocalizationFallbackHook;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.BufferedWriter;
@@ -4526,7 +4527,8 @@ public class LocaleController {
 
     private String getLocalizedString(@StringRes int stringRes) {
         checkLocalizationInternal();
-        return localizationInternal.getByResId(ApplicationLoader.applicationContext, stringRes);
+        String value = localizationInternal.getByResId(ApplicationLoader.applicationContext, stringRes);
+        return LocalizationFallbackHook.orAndroidResource(stringRes, value);
     }
 
 
