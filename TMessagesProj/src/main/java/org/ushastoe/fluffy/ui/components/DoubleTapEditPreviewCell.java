@@ -21,6 +21,7 @@ import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.MessageDrawable;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.Easings;
 import org.ushastoe.fluffy.patches.AppearanceSettingsPatch;
@@ -46,9 +47,9 @@ public class DoubleTapEditPreviewCell extends FrameLayout {
     private final Rect drawRect = new Rect();
     private final Paint bubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint outlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Theme.MessageDrawable[] bubbles = new Theme.MessageDrawable[] {
-            new Theme.MessageDrawable(Theme.MessageDrawable.TYPE_TEXT, false, false),
-            new Theme.MessageDrawable(Theme.MessageDrawable.TYPE_TEXT, true, false)
+    private final MessageDrawable[] bubbles = new MessageDrawable[] {
+            new MessageDrawable(MessageDrawable.TYPE_TEXT, false, false),
+            new MessageDrawable(MessageDrawable.TYPE_TEXT, true, false)
     };
     private final float[] iconProgress = new float[] {1.0f, 1.0f};
     private final int[] actions = new int[] {

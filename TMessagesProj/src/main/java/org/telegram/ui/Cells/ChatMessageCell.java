@@ -20150,7 +20150,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public boolean doNotDraw;
 
-    public boolean getBotButtonBounds(TLRPC.KeyboardButton targetButton, Rect outRect) {
+    public boolean getBotButtonBounds(TL_keyboard.KeyboardButtonProto targetButton, Rect outRect) {
         if (targetButton == null || outRect == null || botButtons == null || botButtons.isEmpty()) {
             return false;
         }

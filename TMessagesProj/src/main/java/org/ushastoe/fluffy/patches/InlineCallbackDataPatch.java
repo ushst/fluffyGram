@@ -12,7 +12,8 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
-import org.telegram.tgnet.TLRPC;
+import org.telegram.messenger.utils.tlutils.TLKeyboardHelper;
+import org.telegram.tgnet.tl.TL_keyboard;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.BulletinFactory;
@@ -30,8 +31,9 @@ public final class InlineCallbackDataPatch {
     private InlineCallbackDataPatch() {
     }
 
-    public static boolean showMenu(ChatActivity fragment, ChatMessageCell cell, TLRPC.KeyboardButton button) {
-        if (fragment == null || cell == null || !(button instanceof TLRPC.TL_keyboardButtonCallback)) {
+    public static boolean showMenu(ChatActivity fragment, ChatMessageCell cell, TL_keyboard.KeyboardButtonProto button) {
+        if (fragment == null || cell == null
+                || !TLKeyboardHelper.isType(button, TL_keyboard.TL_inlineButtonTypeCallback.class)) {
             return false;
         }
 
@@ -40,12 +42,13 @@ public final class InlineCallbackDataPatch {
             return false;
         }
 
-        byte[] data = button.data != null ? button.data : new byte[0];
+        byte[] data = button.getData() != null ? button.getData() : new byte[0];
         String hexData = Utilities.bytesToHex(data);
         final String hexDataValue = TextUtils.isEmpty(hexData)
                 ? LocaleController.getString(R.string.FluffyInlineCallbackDataEmpty)
                 : hexData;
         String utf8Text = decodeUtf8Text(data);
+        String buttonText = button.getText();
 
         View anchorView = createAnchorView(fragment, cell, button);
         if (anchorView == null) {
@@ -55,10 +58,10 @@ public final class InlineCallbackDataPatch {
         final View dismissAnchorView = anchorView;
         ItemOptions options = ItemOptions.makeOptions(fragment, anchorView)
                 .setOnDismiss(() -> removeAnchor(dismissAnchorView));
-        if (!TextUtils.isEmpty(button.text)) {
+        if (!TextUtils.isEmpty(buttonText)) {
             options.add(
                     LocaleController.getString(R.string.FluffyInlineCallbackButtonText),
-                    trimPreview(button.text, TEXT_PREVIEW_LIMIT),
+                    trimPreview(buttonText, TEXT_PREVIEW_LIMIT),
                     null
             ).makeMultiline(true);
         }
@@ -93,7 +96,7 @@ public final class InlineCallbackDataPatch {
         BulletinFactory.of(fragment).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
     }
 
-    private static View createAnchorView(ChatActivity fragment, ChatMessageCell cell, TLRPC.KeyboardButton button) {
+    private static View createAnchorView(ChatActivity fragment, ChatMessageCell cell, TL_keyboard.KeyboardButtonProto button) {
         ViewGroup container = fragment.getLayoutContainer();
         if (container == null) {
             return null;
