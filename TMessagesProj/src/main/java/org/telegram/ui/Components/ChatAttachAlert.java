@@ -175,6 +175,7 @@ import org.telegram.ui.web.BotWebViewContainer;
 import org.telegram.ui.bots.BotWebViewMenuContainer;
 import org.telegram.ui.bots.ChatAttachAlertBotWebViewLayout;
 import org.ushastoe.fluffy.hooks.AiEditorButtonHook;
+import org.ushastoe.fluffy.hooks.SendAsRoundVideoHook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -3982,6 +3983,18 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                             messageSendPreview = null;
                         }
                     }).show();
+                });
+            }
+            if (editingMessageObject == null && (currentAttachLayout == photoLayout || currentAttachLayout == photoPreviewLayout) && SendAsRoundVideoHook.canShowAttachMenuItem(chatActivity, photoLayout.getSelectedPhotos())) {
+                options.add(R.drawable.msg_video, getString(R.string.FluffySendAsRoundVideo), () -> {
+                    SendAsRoundVideoHook.markAttachRoundSend(photoLayout.getSelectedPhotos());
+                    final long effectId = messageSendPreview != null ? messageSendPreview.getSelectedEffect() : 0;
+                    writeButton.setEffect(ChatAttachAlert.this.effectId = effectId);
+                    final boolean shownDialog = sendPressed(true, 0, 0, effectId, isCaptionAbove());
+                    if (messageSendPreview != null) {
+                        messageSendPreview.dismiss(!shownDialog);
+                        messageSendPreview = null;
+                    }
                 });
             }
             if (editingMessageObject == null && !self) {

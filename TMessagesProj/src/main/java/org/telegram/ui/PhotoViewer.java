@@ -329,6 +329,7 @@ import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.ushastoe.fluffy.hooks.ProfilePhotoDateHook;
 import org.ushastoe.fluffy.hooks.AppFontHook;
 import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
+import org.ushastoe.fluffy.hooks.SendAsRoundVideoHook;
 import org.ushastoe.fluffy.hooks.ForceCopyHook;
 
 import java.io.ByteArrayInputStream;
@@ -7454,9 +7455,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             final boolean showSchedule = !canEdit && canScheduleMessage && !hasTtl;
             final boolean showWithoutSound = !(canEdit && canReplace) && !userIsSelf;
             final boolean multipleSelected = placeProvider != null && placeProvider.getSelectedCount() > 1;
+            final boolean showSendAsRound = SendAsRoundVideoHook.canShowMenuItem(isCurrentVideo, canEdit, captionEdit.hasTimer(), sendPhotoType, parentChatActivity, placeProvider, currentIndex);
 
             final ItemOptions options = ItemOptions.makeOptions(containerView, new DarkThemeResourceProvider(), view)
                 .addIf(showSendAsFile, R.drawable.msg_sendfile, getString(multipleSelected ? R.string.SendAsFiles : R.string.SendAsFile), () -> sendPressed(true, 0, 0, false, true, false))
+                .addIf(showSendAsRound, R.drawable.msg_video, getString(R.string.FluffySendAsRoundVideo), this::sendAsRoundPressed)
                 .addIf(canReplace, R.drawable.msg_send, getString(R.string.SendAsNewPhoto), () -> sendPressed(true, 0, 0))
                 .addIf(canReplace, R.drawable.msg_replace, getString(R.string.ReplacePhoto), this::replacePressed)
                 .addIf(showSchedule, R.drawable.msg_calendar2, getString(userIsSelf ? R.string.SetReminder : R.string.ScheduleMessage), this::showScheduleDatePickerDialog)
@@ -7991,6 +7994,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         sendPressed(notify, scheduleDate, scheduleRepeatPeriod, false, false, false);
     }
 
+    private void sendAsRoundPressed() {
+        SendAsRoundVideoHook.beginRoundSend();
+        try {
+            sendPressed(true, 0, 0);
+        } finally {
+            SendAsRoundVideoHook.endRoundSend();
+        }
+    }
+
     private void replacePressed() {
         sendPressed(false, 0, 0, true, false, false);
     }
@@ -8098,6 +8110,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             VideoEditedInfo videoEditedInfo = getCurrentVideoEditedInfo();
             if (!imagesArrLocals.isEmpty() && currentIndex >= 0 && currentIndex < imagesArrLocals.size()) {
                 Object entry = imagesArrLocals.get(currentIndex);
+                videoEditedInfo = SendAsRoundVideoHook.onSendPressed(videoEditedInfo, entry);
                 if (entry instanceof MediaController.MediaEditState) {
                     ((MediaController.MediaEditState) entry).editedInfo = videoEditedInfo;
                 }

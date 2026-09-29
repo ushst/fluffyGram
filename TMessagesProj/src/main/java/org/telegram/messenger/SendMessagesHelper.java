@@ -105,6 +105,7 @@ import org.telegram.ui.PaymentFormActivity;
 import org.telegram.ui.Stories.MessageMediaStoryFull;
 import org.telegram.ui.TwoStepVerificationActivity;
 import org.telegram.ui.TwoStepVerificationSetupActivity;
+import org.ushastoe.fluffy.hooks.SendAsRoundVideoHook;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11030,6 +11031,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         } else {
                             videoEditedInfo = info.videoEditedInfo != null ? info.videoEditedInfo : createCompressionSettings(info.path, info.livePhotoVideoOffset);
                         }
+                        SendAsRoundVideoHook.prepareMediaInfo(info, videoEditedInfo);
 
                         if (!forceDocument && (videoEditedInfo != null || info.path.endsWith("mp4")) || info.isLivePhoto) {
                             if (info.path == null && info.searchImage != null) {
@@ -11149,6 +11151,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     attributeVideo = new TLRPC.TL_documentAttributeVideo();
                                     attributeVideo.supports_streaming = true;
                                 }
+                                SendAsRoundVideoHook.applyVideoAttribute(attributeVideo, videoEditedInfo);
                                 document.attributes.add(attributeVideo);
                                 if (videoEditedInfo != null && (videoEditedInfo.needConvert() || !info.isVideo)) {
                                     if (info.isVideo && videoEditedInfo.muted) {
