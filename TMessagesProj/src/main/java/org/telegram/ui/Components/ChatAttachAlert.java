@@ -3986,8 +3986,8 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 });
             }
             if (editingMessageObject == null && (currentAttachLayout == photoLayout || currentAttachLayout == photoPreviewLayout) && SendAsRoundVideoHook.canShowAttachMenuItem(chatActivity, photoLayout.getSelectedPhotos())) {
-                options.add(R.drawable.msg_video, getString(R.string.FluffySendAsRoundVideo), () -> {
-                    SendAsRoundVideoHook.markAttachRoundSend(photoLayout.getSelectedPhotos());
+                options.add(R.drawable.msg_video, getString(R.string.FluffySendAsRoundVideo), () -> SendAsRoundVideoHook.showQualityPicker(getContext(), resourcesProvider, quality -> {
+                    SendAsRoundVideoHook.markAttachRoundSend(photoLayout.getSelectedPhotos(), quality);
                     final long effectId = messageSendPreview != null ? messageSendPreview.getSelectedEffect() : 0;
                     writeButton.setEffect(ChatAttachAlert.this.effectId = effectId);
                     final boolean shownDialog = sendPressed(true, 0, 0, effectId, isCaptionAbove());
@@ -3995,7 +3995,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                         messageSendPreview.dismiss(!shownDialog);
                         messageSendPreview = null;
                     }
-                });
+                }));
             }
             if (editingMessageObject == null && !self) {
                 options.add(R.drawable.input_notify_off, getString(R.string.SendWithoutSound), () -> {

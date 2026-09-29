@@ -201,6 +201,10 @@
     <string name="FluffyRoundVideoCameraUseFront">Use Front camera</string>
     <string name="FluffyRoundVideoCameraUseBack">Use Back camera</string>
     <string name="FluffySendAsRoundVideo">Send as video message</string>
+    <string name="FluffyRoundVideoQuality">Video message quality</string>
+    <string name="FluffyRoundVideoQualityLow">Low · %1$dp</string>
+    <string name="FluffyRoundVideoQualityMedium">Medium · %1$dp</string>
+    <string name="FluffyRoundVideoQualityHigh">High · %1$dp</string>
     <string name="FluffyStoryViewAnonLocal">View Anon (local)</string>
     <string name="FluffyStoryViewAnonLocalInfo">Adds a long-press story action that opens the viewer without sending story view requests from this device. It is local-only and can desync with server-side read state.</string>
     <string name="FluffyEditMessageLocally">Edit locally</string>

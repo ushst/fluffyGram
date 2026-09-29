@@ -7995,12 +7995,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private void sendAsRoundPressed() {
-        SendAsRoundVideoHook.beginRoundSend();
-        try {
-            sendPressed(true, 0, 0);
-        } finally {
-            SendAsRoundVideoHook.endRoundSend();
-        }
+        SendAsRoundVideoHook.showQualityPicker(parentActivity, new DarkThemeResourceProvider(), quality -> {
+            SendAsRoundVideoHook.beginRoundSend(quality);
+            try {
+                sendPressed(true, 0, 0);
+            } finally {
+                SendAsRoundVideoHook.endRoundSend();
+            }
+        });
     }
 
     private void replacePressed() {

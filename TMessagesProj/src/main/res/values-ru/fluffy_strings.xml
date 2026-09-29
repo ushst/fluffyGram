@@ -198,6 +198,10 @@
     <string name="FluffyRoundVideoCameraUseFront">Использовать фронтальную камеру</string>
     <string name="FluffyRoundVideoCameraUseBack">Использовать заднюю камеру</string>
     <string name="FluffySendAsRoundVideo">Отправить кружком</string>
+    <string name="FluffyRoundVideoQuality">Качество кружка</string>
+    <string name="FluffyRoundVideoQualityLow">Низкое · %1$dp</string>
+    <string name="FluffyRoundVideoQualityMedium">Среднее · %1$dp</string>
+    <string name="FluffyRoundVideoQualityHigh">Высокое · %1$dp</string>
     <string name="FluffyStoryViewAnonLocal">View Anon (local)</string>
     <string name="FluffyStoryViewAnonLocalInfo">Добавляет действие по долгому нажатию на сторис, которое открывает просмотр без отправки запросов о просмотре с этого устройства. Режим работает только локально и может рассинхронизироваться с состоянием прочтения на сервере.</string>
     <string name="FluffyEditMessageLocally">Изменить локально</string>

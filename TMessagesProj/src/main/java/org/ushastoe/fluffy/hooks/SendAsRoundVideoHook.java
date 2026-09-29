@@ -1,8 +1,12 @@
 package org.ushastoe.fluffy.hooks;
 
+import android.content.Context;
+
 import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.PhotoViewer;
 import org.ushastoe.fluffy.patches.SendAsRoundVideoPatch;
@@ -23,12 +27,16 @@ public final class SendAsRoundVideoHook {
         return SendAsRoundVideoPatch.canShowAttachMenuItem(chatActivity, selectedPhotos);
     }
 
-    public static void markAttachRoundSend(HashMap<Object, Object> selectedPhotos) {
-        SendAsRoundVideoPatch.markAttachRoundSend(selectedPhotos);
+    public static void showQualityPicker(Context context, Theme.ResourcesProvider resourcesProvider, Utilities.Callback<Integer> onPicked) {
+        SendAsRoundVideoPatch.showQualityPicker(context, resourcesProvider, onPicked);
     }
 
-    public static void beginRoundSend() {
-        SendAsRoundVideoPatch.beginRoundSend();
+    public static void markAttachRoundSend(HashMap<Object, Object> selectedPhotos, int quality) {
+        SendAsRoundVideoPatch.markAttachRoundSend(selectedPhotos, quality);
+    }
+
+    public static void beginRoundSend(int quality) {
+        SendAsRoundVideoPatch.beginRoundSend(quality);
     }
 
     public static void endRoundSend() {
