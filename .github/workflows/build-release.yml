@@ -39,9 +39,9 @@ jobs:
 
     env:
       JAVA_VERSION: '21'
-      ANDROID_PLATFORM: '35'
-      ANDROID_BUILD_TOOLS: '35.0.0'
-      ANDROID_NDK_VERSION: '21.4.7075529'
+      ANDROID_PLATFORM: '36'
+      ANDROID_BUILD_TOOLS: '36.0.0'
+      ANDROID_NDK_VERSION: '27.2.12479018'
       CCACHE_KEY_SCOPE: global
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_BASEDIR: ${{ github.workspace }}
@@ -53,7 +53,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          repository: krolchonok/fluffyGram
           token: ${{ secrets.GH_PAT || github.token }}
           ref: ${{ github.ref }}
           fetch-depth: 100
@@ -71,6 +70,22 @@ jobs:
           git config --global url."https://${GH_PAT}@github.com/".insteadOf "git@github.com:"
           git submodule sync -- fluffyGram_dev
           git submodule update --init --remote --depth 1 fluffyGram_dev
+
+      - name: Checkout public build submodules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PYTHON'
+          import subprocess
+          result = subprocess.check_output(
+              ["git", "config", "--file", ".gitmodules", "--get-regexp", r"^submodule\..*\.path$"],
+              text=True,
+          )
+          paths = [line.split(None, 1)[1] for line in result.splitlines()
+                   if line.split(None, 1)[1] != "fluffyGram_dev"]
+          subprocess.run(["git", "submodule", "sync", "--", *paths], check=True)
+          subprocess.run(["git", "submodule", "update", "--init", "--depth", "1", "--", *paths], check=True)
+          PYTHON
 
       - name: Fetch tags for release notes
         run: git -c fetch.recurseSubmodules=false fetch --force --tags origin
