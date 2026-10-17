@@ -146,14 +146,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
 import com.android.internal.telephony.ITelephony;
-import androidx.media3.common.util.Consumer;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.Task;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
-import org.telegram.proxy.ProxySettings;
+import org.telegram.utils.proxy.ProxySettings;
 import org.telegram.messenger.utils.CustomHtml;
 import org.telegram.messenger.utils.DebugRecordingCanvas;
 import org.telegram.tgnet.ConnectionsManager;
@@ -1502,7 +1501,7 @@ public class AndroidUtilities {
             return 0;
         }
         try {
-            Bitmap b = Bitmaps.createScaledBitmap(bitmap, 1, 1, true);
+            Bitmap b = Bitmap.createScaledBitmap(bitmap, 1, 1, true);
             if (b != null) {
                 int bitmapColor = b.getPixel(0, 0);
                 if (bitmap != b) {
@@ -2900,6 +2899,16 @@ public class AndroidUtilities {
                 }
             }
         }
+    }
+
+    public static int getAccountInProduction() {
+        if (UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated() && !ConnectionsManager.getInstance(UserConfig.selectedAccount).isTestBackend())
+            return UserConfig.selectedAccount;
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
+            if (UserConfig.getInstance(i).isClientActivated() && !ConnectionsManager.getInstance(i).isTestBackend())
+                return i;
+        }
+        return UserConfig.selectedAccount;
     }
 
     public static float getPixelsInCM(float cm, boolean isX) {
@@ -6330,33 +6339,33 @@ public class AndroidUtilities {
         return new Pair<>(0, 0);
     }
 
-    public static void forEachViews(View view, Consumer<View> consumer) {
+    public static void forEachViews(View view, Utilities.Callback<View> consumer) {
         if (view instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) view;
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                consumer.accept(view);
+                consumer.run(view);
                 forEachViews(viewGroup.getChildAt(i), consumer);
             }
         } else {
-            consumer.accept(view);
+            consumer.run(view);
         }
     }
 
-    public static void forEachViews(RecyclerView recyclerView, Consumer<View> consumer) {
+    public static void forEachViews(RecyclerView recyclerView, Utilities.Callback<View> consumer) {
         if (recyclerView == null) {
             return;
         }
         for (int i = 0; i < recyclerView.getChildCount(); i++) {
-            consumer.accept(recyclerView.getChildAt(i));
+            consumer.run(recyclerView.getChildAt(i));
         }
         for (int i = 0; i < recyclerView.getCachedChildCount(); i++) {
-            consumer.accept(recyclerView.getCachedChildAt(i));
+            consumer.run(recyclerView.getCachedChildAt(i));
         }
         for (int i = 0; i < recyclerView.getHiddenChildCount(); i++) {
-            consumer.accept(recyclerView.getHiddenChildAt(i));
+            consumer.run(recyclerView.getHiddenChildAt(i));
         }
         for (int i = 0; i < recyclerView.getAttachedScrapChildCount(); i++) {
-            consumer.accept(recyclerView.getAttachedScrapChildAt(i));
+            consumer.run(recyclerView.getAttachedScrapChildAt(i));
         }
     }
 
@@ -6677,14 +6686,25 @@ public class AndroidUtilities {
         return null;
     }
 
+    public static StackTraceElement[] dumpStackTrace() {
+        return Thread.currentThread().getStackTrace();
+    }
 
     public static void printStackTrace(String tag) {
         if (!BuildConfig.DEBUG_PRIVATE_VERSION) {
             return;
         }
 
-        final String t = "[" + tag + "]";
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        printStackTrace(elements, tag);
+    }
+
+    public static void printStackTrace(StackTraceElement[] elements, String tag) {
+        if (!BuildConfig.DEBUG_PRIVATE_VERSION) {
+            return;
+        }
+
+        final String t = "[" + tag + "]";
         for (int a = 3, N = Math.min(elements.length, 14); a < N; a++) {
             FileLog.d(t + " " + elements[a]);
         }
@@ -6834,7 +6854,9 @@ public class AndroidUtilities {
 
     public static Insets getDefaultWindowInsets(WindowInsetsCompat insets, boolean withIme) {
         final int insetsType = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
-        final Insets systemInsets = insets.getInsetsIgnoringVisibility(insetsType);
+        final Insets systemInsets = Insets.max(
+            insets.getInsetsIgnoringVisibility(insetsType),
+            insets.getInsets(insetsType));
 
         if (withIme) {
             final Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());

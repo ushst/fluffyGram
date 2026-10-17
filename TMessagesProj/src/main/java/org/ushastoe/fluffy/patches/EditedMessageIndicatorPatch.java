@@ -21,6 +21,18 @@ public final class EditedMessageIndicatorPatch {
             return "";
         }
         String time = LocaleController.getInstance().getFormatterDay().format((long) messageObject.messageOwner.date * 1000);
+        return buildEditedTimeLabel(messageObject, time);
+    }
+
+    public static CharSequence buildEditedTimeLabel(MessageObject messageObject, int editDate) {
+        if (AppearanceSettingsPatch.getEditedMarkerMode() == AppearanceSettingsPatch.EDITED_MARKER_MODE_TEXT) {
+            return LocaleController.formatPmEditedDate(editDate);
+        }
+        String time = LocaleController.getInstance().getFormatterDay().format((long) editDate * 1000);
+        return buildEditedTimeLabel(messageObject, time);
+    }
+
+    private static CharSequence buildEditedTimeLabel(MessageObject messageObject, String time) {
         int mode = AppearanceSettingsPatch.getEditedMarkerMode();
         if (mode == AppearanceSettingsPatch.EDITED_MARKER_MODE_ICON_STAMP
                 || mode == AppearanceSettingsPatch.EDITED_MARKER_MODE_ICON_EDIT) {
