@@ -2948,14 +2948,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 //                            push_story_id = intent.getIntExtra("storyId", 0);
                             showDialogsList = true;
                         } else if (chatId != 0) {
-                            NotificationCenter.getInstance(intentAccount[0]).postNotificationName(NotificationCenter.closeChats);
+                            NotificationOpenNavigationHook.closeChatsForPush(this, -chatId, topicId);
                             push_chat_id = chatId;
                             push_topic_id = topicId;
                         } else if (userId != 0) {
-                            NotificationCenter.getInstance(intentAccount[0]).postNotificationName(NotificationCenter.closeChats);
+                            NotificationOpenNavigationHook.closeChatsForPush(this, userId, 0);
                             push_user_id = userId;
                         } else if (encId != 0) {
-                            NotificationCenter.getInstance(intentAccount[0]).postNotificationName(NotificationCenter.closeChats);
+                            NotificationOpenNavigationHook.closeChatsForPush(this, DialogObject.makeEncryptedDialogId(encId), 0);
                             push_enc_id = encId;
                         } else {
                             showDialogsList = true;
