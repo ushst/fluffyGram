@@ -34,8 +34,9 @@ public class ChatActivitySideControlsButtonsLayout extends FrameLayout implement
     public static final int BUTTON_POLL_VOTES = 4;
     public static final int BUTTON_SEARCH_DOWN = 5;
     public static final int BUTTON_SEARCH_UP = 6;
+    public static final int BUTTON_READ_AND_NEXT = 7;
 
-    private static final int BUTTONS_COUNT = 7;
+    private static final int BUTTONS_COUNT = 8;
 
     private static final int ANIMATOR_ID_VISIBILITY = 1;
     private static final int ANIMATOR_ID_COUNTER_VISIBILITY = 2;
@@ -47,7 +48,8 @@ public class ChatActivitySideControlsButtonsLayout extends FrameLayout implement
         R.drawable.reactionbutton,
         R.drawable.menu_poll_notify,
         R.drawable.pagedown,
-        R.drawable.pagedown
+        R.drawable.pagedown,
+        R.drawable.msg_markread
     };
 
     private final String[] buttonDescriptions = new String[] {
@@ -57,7 +59,8 @@ public class ChatActivitySideControlsButtonsLayout extends FrameLayout implement
         LocaleController.getString(R.string.AccDescrReactionMentionDown),
         LocaleController.getString(R.string.AccDescrPollVotesMentionDown),
         LocaleController.getString(R.string.AccDescrSearchPrev),
-        LocaleController.getString(R.string.AccDescrSearchNext)
+        LocaleController.getString(R.string.AccDescrSearchNext),
+        LocaleController.getString(R.string.FluffyReadAndNextChannel)
     };
 
     private final Theme.ResourcesProvider resourcesProvider;

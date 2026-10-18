@@ -474,4 +474,7 @@
     <string name="FluffyMonetColorRed">Красный</string>
     <string name="FluffyMonetColorPink">Розовый</string>
     <string name="FluffyMonetColorPurple">Фиолетовый</string>
+    <string name="FluffyReadAndNextChannel">Прочитать и перейти к следующему каналу</string>
+    <string name="FluffyReadAndNextChannelButton">Кнопка «Прочитать и дальше» в каналах</string>
+    <string name="FluffyReadAndNextChannelButtonInfo">Показывает в каналах кнопку, которая отмечает канал прочитанным и открывает следующий непрочитанный — как свайп вверх в конце ленты.</string>
 </resources>

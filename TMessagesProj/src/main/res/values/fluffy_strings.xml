@@ -469,4 +469,7 @@
     <string name="FluffyMonetColorRed">Red</string>
     <string name="FluffyMonetColorPink">Pink</string>
     <string name="FluffyMonetColorPurple">Purple</string>
+    <string name="FluffyReadAndNextChannel">Read and go to next channel</string>
+    <string name="FluffyReadAndNextChannelButton">Read and next button in channels</string>
+    <string name="FluffyReadAndNextChannelButtonInfo">Shows a button in channels that marks the channel as read and opens the next unread channel, like swiping up at the end of the feed.</string>
 </resources>

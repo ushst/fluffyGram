@@ -23,6 +23,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import org.ushastoe.fluffy.smartreply.EmbeddingModelStore;
+import org.ushastoe.fluffy.hooks.ChannelReadAndNextHook;
 import org.ushastoe.fluffy.hooks.ChatVideoVolumeButtonsHook;
 import org.ushastoe.fluffy.hooks.ChatFirstMessageHook;
 import org.ushastoe.fluffy.hooks.CombineMessagesHook;
@@ -73,6 +74,8 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_SMART_REPLY_HISTORY_INFO = 24;
     private static final int ROW_SMART_REPLY_SEMANTIC = 25;
     private static final int ROW_SMART_REPLY_SEMANTIC_INFO = 26;
+    private static final int ROW_CHANNEL_READ_AND_NEXT = 28;
+    private static final int ROW_CHANNEL_READ_AND_NEXT_INFO = 29;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -135,6 +138,12 @@ public class FluffyGeneralActivity extends BaseFragment {
             } else if (item.id == ROW_CHAT_FIRST_MESSAGE) {
                 boolean enabled = !ChatFirstMessageHook.isEnabled();
                 ChatFirstMessageHook.setEnabled(enabled);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(enabled);
+                }
+            } else if (item.id == ROW_CHANNEL_READ_AND_NEXT) {
+                boolean enabled = !ChannelReadAndNextHook.isEnabled();
+                ChannelReadAndNextHook.setEnabled(enabled);
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(enabled);
                 }
@@ -234,6 +243,8 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHAT_VIDEO_VOLUME_BUTTONS_INFO, LocaleController.getString(R.string.FluffyChatVideoVolumeButtonsInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHAT_FIRST_MESSAGE, LocaleController.getString(R.string.FluffyGoToFirstMessage), ChatFirstMessageHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHAT_FIRST_MESSAGE_INFO, LocaleController.getString(R.string.FluffyGoToFirstMessageInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_CHANNEL_READ_AND_NEXT, LocaleController.getString(R.string.FluffyReadAndNextChannelButton), ChannelReadAndNextHook.isEnabled()));
+        items.add(new ItemInner(VIEW_TYPE_INFO, ROW_CHANNEL_READ_AND_NEXT_INFO, LocaleController.getString(R.string.FluffyReadAndNextChannelButtonInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_COMBINE_MESSAGES, LocaleController.getString(R.string.FluffyCombineMessages), CombineMessagesHook.isEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_COMBINE_MESSAGES_INFO, LocaleController.getString(R.string.FluffyCombineMessagesInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_FORCE_COPY, LocaleController.getString(R.string.FluffyForceCopy), ForceCopyHook.isEnabled()));
@@ -293,6 +304,8 @@ public class FluffyGeneralActivity extends BaseFragment {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "chat-video-volume-buttons");
         } else if (item.id == ROW_CHAT_FIRST_MESSAGE || item.id == ROW_CHAT_FIRST_MESSAGE_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "go-to-first-message");
+        } else if (item.id == ROW_CHANNEL_READ_AND_NEXT || item.id == ROW_CHANNEL_READ_AND_NEXT_INFO) {
+            link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "channel-read-and-next");
         } else if (item.id == ROW_COMBINE_MESSAGES || item.id == ROW_COMBINE_MESSAGES_INFO) {
             link = FluffySettingsDeepLinkPatch.buildSettingsLink("general", "combine-messages");
         } else if (item.id == ROW_FORCE_COPY || item.id == ROW_FORCE_COPY_INFO) {
@@ -356,6 +369,9 @@ public class FluffyGeneralActivity extends BaseFragment {
         }
         if ("go-to-first-message".equals(target)) {
             return ROW_CHAT_FIRST_MESSAGE;
+        }
+        if ("channel-read-and-next".equals(target)) {
+            return ROW_CHANNEL_READ_AND_NEXT;
         }
         if ("combine-messages".equals(target)) {
             return ROW_COMBINE_MESSAGES;

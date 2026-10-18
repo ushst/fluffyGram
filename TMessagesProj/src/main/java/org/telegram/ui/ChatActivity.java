@@ -276,6 +276,7 @@ import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.ushastoe.fluffy.hooks.AiEditorButtonHook;
 import org.ushastoe.fluffy.hooks.SmartReplyHook;
+import org.ushastoe.fluffy.hooks.ChannelReadAndNextHook;
 import org.telegram.ui.Components.blur3.BlurredBackgroundWithFadeDrawable;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
@@ -7319,6 +7320,7 @@ public class ChatActivity extends BaseFragment implements
             final int indexToAdd = chatActivityFadeView != null ? contentView.indexOfChild(chatActivityFadeView) : -1;
             contentView.addView(sideControlsButtonsLayout, indexToAdd, LayoutHelper.createFrame(57, 300, Gravity.RIGHT | Gravity.BOTTOM));
         }
+        ChannelReadAndNextHook.attach(this, sideControlsButtonsLayout);
 
         updateMessageListAccessibilityVisibility();
         mentionContainer = new MentionsContainerView(context, dialog_id, threadMessageId, ChatActivity.this, themeDelegate) {
@@ -11368,6 +11370,30 @@ public class ChatActivity extends BaseFragment implements
             replacingChatActivity = true;
             presentFragment(chatActivity, true);
         }
+    }
+
+    // fluffy: same transition as the pull-up swipe; false when there is no next chat
+    public boolean fluffyAnimateToNextChat() {
+        if (pullingDownDrawable == null) {
+            if (fragmentView == null) {
+                return false;
+            }
+            pullingDownDrawable = new ChatPullingDownDrawable(currentAccount, fragmentView, dialog_id, dialogFolderId, dialogFilterId, getTopicId(), themeDelegate);
+            pullingDownDrawable.progressToBottomPanel = animatorPullingDownContainerVisibility.getFloatValue();
+            pullingDownDrawable.onAttach();
+        }
+        if (nextChannels != null && !nextChannels.isEmpty()) {
+            pullingDownDrawable.updateDialog(nextChannels.get(0));
+        } else if (isTopic) {
+            pullingDownDrawable.updateTopic();
+        } else {
+            pullingDownDrawable.updateDialog();
+        }
+        if (pullingDownDrawable.emptyStub) {
+            return false;
+        }
+        animateToNextChat();
+        return true;
     }
 
     private ArrayList<TLRPC.Chat> nextChannels;
@@ -47393,6 +47419,8 @@ public class ChatActivity extends BaseFragment implements
             goToNextOrPrevSearchMessage(true);
         } else if (buttonId == ChatActivitySideControlsButtonsLayout.BUTTON_SEARCH_DOWN) {
             goToNextOrPrevSearchMessage(false);
+        } else if (buttonId == ChatActivitySideControlsButtonsLayout.BUTTON_READ_AND_NEXT) {
+            ChannelReadAndNextHook.onClick(this);
         } else if (buttonId == ChatActivitySideControlsButtonsLayout.BUTTON_ATTACH) {
             if (chatAttachAlert != null) {
                 chatAttachAlert.setEditingMessageObject(0, null);
