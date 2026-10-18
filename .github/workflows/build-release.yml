@@ -387,8 +387,9 @@ jobs:
             # Generate deltas if previous release exists
             if [ -n "$PREV_TAG" ]; then
               mkdir -p previous_release
-              if gh release download "$PREV_TAG" -R "$GH_REPO" -p "fluffyGram-*.apk" -D previous_release --clobber; then
-                OLD_APK=$(ls previous_release/fluffyGram-*.apk | head -n 1)
+              # Exact asset name: a glob also matches the -debug APK, which sorts first.
+              OLD_APK="previous_release/fluffyGram-${PREV_TAG#fluffy-v}.apk"
+              if gh release download "$PREV_TAG" -R "$GH_REPO" -p "$(basename "$OLD_APK")" -D previous_release --clobber; then
                 if [ -f "$OLD_APK" ]; then
                   PATCH_NAME="fluffyGram-${{ steps.meta.outputs.version_name }}.patch"
                   python scripts/generate_delta.py "$OLD_APK" "artifacts/${{ steps.meta.outputs.apk_name }}" "artifacts/$PATCH_NAME"
