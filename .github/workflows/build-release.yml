@@ -402,8 +402,9 @@ jobs:
                     PATCH_SHA256="$(sha256sum "artifacts/$PATCH_NAME" | cut -d ' ' -f 1)"
                     PATCH_SIZE=$(stat -c%s "artifacts/$PATCH_NAME")
                     PATCH_URL="https://github.com/${GH_REPO}/releases/download/${{ steps.meta.outputs.release_tag }}/$PATCH_NAME"
-                    
-                    echo "[{\"from\": $OLD_VERSION_CODE, \"url\": \"$PATCH_URL\", \"sha256\": \"$PATCH_SHA256\", \"size\": $PATCH_SIZE}]" > artifacts/deltas.json
+                    OLD_APK_SHA256="$(sha256sum "$OLD_APK" | cut -d ' ' -f 1)"
+
+                    echo "[{\"from\": $OLD_VERSION_CODE, \"fromSha256\": \"$OLD_APK_SHA256\", \"url\": \"$PATCH_URL\", \"sha256\": \"$PATCH_SHA256\", \"size\": $PATCH_SIZE}]" > artifacts/deltas.json
                   fi
                 fi
               fi
