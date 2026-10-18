@@ -132,7 +132,11 @@ gradle_tasks+=(":TMessagesProj_App:assembleAfatDebug")
 printf 'Running Gradle tasks: %s\n' "${gradle_tasks[*]}"
 printf 'Gradle heap: %s, max workers: %s\n' "$GRADLE_MAX_HEAP" "$GRADLE_MAX_WORKERS"
 # Keep the Gradle daemon warm; workers default higher for local machines.
+# Gradle reuses a daemon only when the client locale matches; SSH sessions
+# forward their own LC_*, which used to spawn a second 8 GB daemon.
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 ./gradlew --console=plain --max-workers="$GRADLE_MAX_WORKERS" \
+  -Dorg.gradle.daemon.idletimeout=1800000 \
   "-Dorg.gradle.jvmargs=-Xmx${GRADLE_MAX_HEAP} -XX:+UseParallelGC -Dfile.encoding=UTF-8" \
   "${gradle_tasks[@]}"
 
