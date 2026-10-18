@@ -18,6 +18,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -46,6 +47,7 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_INFO = 2;
+    private static final int VIEW_TYPE_ACTION = 3;
 
     private static final int ROW_GENERAL_HEADER = 0;
     private static final int ROW_IN_APP_CAMERA = 1;
@@ -74,6 +76,8 @@ public class FluffyGeneralActivity extends BaseFragment {
     private static final int ROW_SMART_REPLY_HISTORY_INFO = 24;
     private static final int ROW_SMART_REPLY_SEMANTIC = 25;
     private static final int ROW_SMART_REPLY_SEMANTIC_INFO = 26;
+
+    private static final int ROW_SMART_REPLY_HISTORY_VIEW = 27;
     private static final int ROW_CHANNEL_READ_AND_NEXT = 28;
     private static final int ROW_CHANNEL_READ_AND_NEXT_INFO = 29;
 
@@ -123,7 +127,9 @@ public class FluffyGeneralActivity extends BaseFragment {
                 return;
             }
             ItemInner item = items.get(position);
-            if (item.id == ROW_IN_APP_CAMERA) {
+            if (item.id == ROW_SMART_REPLY_HISTORY_VIEW) {
+                presentFragment(new SmartReplyHistoryActivity());
+            } else if (item.id == ROW_IN_APP_CAMERA) {
                 boolean enabled = !InAppCameraSettingsHook.isEnabled();
                 InAppCameraSettingsHook.setEnabled(enabled);
                 if (view instanceof TextCheckCell) {
@@ -263,6 +269,7 @@ public class FluffyGeneralActivity extends BaseFragment {
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_INFO, LocaleController.getString(R.string.FluffySmartReplyInfo), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SMART_REPLY_HISTORY, LocaleController.getString(R.string.FluffySmartReplyHistory), AppearanceSettingsHook.isSmartReplyHistoryEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_HISTORY_INFO, LocaleController.getString(R.string.FluffySmartReplyHistoryInfo), false));
+        items.add(new ItemInner(VIEW_TYPE_ACTION, ROW_SMART_REPLY_HISTORY_VIEW, LocaleController.getString(R.string.FluffySmartReplyHistoryView), false));
         items.add(new ItemInner(VIEW_TYPE_CHECK, ROW_SMART_REPLY_SEMANTIC, LocaleController.getString(R.string.FluffySmartReplySemantic), AppearanceSettingsHook.isSmartReplySemanticEnabled()));
         items.add(new ItemInner(VIEW_TYPE_INFO, ROW_SMART_REPLY_SEMANTIC_INFO, semanticInfoText(), false));
         if (adapter != null) {
@@ -437,7 +444,7 @@ public class FluffyGeneralActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_CHECK;
+            return holder.getItemViewType() == VIEW_TYPE_CHECK || holder.getItemViewType() == VIEW_TYPE_ACTION;
         }
 
         @Override
@@ -451,6 +458,9 @@ public class FluffyGeneralActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
+            } else if (viewType == VIEW_TYPE_ACTION) {
+                view = new TextSettingsCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -465,6 +475,8 @@ public class FluffyGeneralActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
+            } else if (holder.getItemViewType() == VIEW_TYPE_ACTION) {
+                ((TextSettingsCell) holder.itemView).setText(item.text.toString(), false);
             } else if (holder.getItemViewType() == VIEW_TYPE_CHECK) {
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, item.checked, false);
             } else {

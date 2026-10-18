@@ -474,6 +474,14 @@
     <string name="FluffyMonetColorRed">Красный</string>
     <string name="FluffyMonetColorPink">Розовый</string>
     <string name="FluffyMonetColorPurple">Фиолетовый</string>
+    <string name="FluffySmartReplyHistoryView">Собранные ответы</string>
+    <string name="FluffySmartReplyHistoryCount">Собрано пар: %1$d</string>
+    <string name="FluffySmartReplyHistoryUpdated">Обновлено: %1$s</string>
+    <string name="FluffySmartReplyHistoryEmpty">Пары пока не собраны. Если использование истории включено, откройте личный чат: ответы будут собраны из локального кэша сообщений.</string>
+    <string name="FluffySmartReplyHistoryOff">Использование истории отключено. Включите его в общих настройках, чтобы собирать ваши ответы.</string>
+    <string name="FluffySmartReplyHistoryClear">Очистить и отключить историю</string>
+    <string name="FluffySmartReplyHistoryClearConfirm">Удалить собранные пары ответов всех аккаунтов и отключить использование истории? Сами сообщения сохранятся.</string>
+    <string name="FluffySmartReplyHistoryPair">Сообщение: %1$s\n\nВаш ответ: %2$s</string>
     <string name="FluffyReadAndNextChannel">Прочитать и перейти к следующему каналу</string>
     <string name="FluffyReadAndNextChannelButton">Кнопка «Прочитать и дальше» в каналах</string>
     <string name="FluffyReadAndNextChannelButtonInfo">Показывает в каналах кнопку, которая отмечает канал прочитанным и открывает следующий непрочитанный — как свайп вверх в конце ленты.</string>

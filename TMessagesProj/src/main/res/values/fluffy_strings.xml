@@ -469,6 +469,14 @@
     <string name="FluffyMonetColorRed">Red</string>
     <string name="FluffyMonetColorPink">Pink</string>
     <string name="FluffyMonetColorPurple">Purple</string>
+    <string name="FluffySmartReplyHistoryView">Collected replies</string>
+    <string name="FluffySmartReplyHistoryCount">Collected pairs: %1$d</string>
+    <string name="FluffySmartReplyHistoryUpdated">Updated: %1$s</string>
+    <string name="FluffySmartReplyHistoryEmpty">No pairs collected yet. When chat history is enabled, open a private chat to collect replies from locally cached messages.</string>
+    <string name="FluffySmartReplyHistoryOff">Chat history is disabled. Enable it in General settings to collect your replies.</string>
+    <string name="FluffySmartReplyHistoryClear">Clear and disable chat history</string>
+    <string name="FluffySmartReplyHistoryClearConfirm">Delete all collected reply pairs for all accounts and disable chat history? Your messages will remain unchanged.</string>
+    <string name="FluffySmartReplyHistoryPair">Message: %1$s\n\nYour reply: %2$s</string>
     <string name="FluffyReadAndNextChannel">Read and go to next channel</string>
     <string name="FluffyReadAndNextChannelButton">Read and next button in channels</string>
     <string name="FluffyReadAndNextChannelButtonInfo">Shows a button in channels that marks the channel as read and opens the next unread channel, like swiping up at the end of the feed.</string>

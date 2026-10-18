@@ -9,6 +9,7 @@ import org.telegram.messenger.Utilities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.ushastoe.fluffy.hooks.AppearanceSettingsHook;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -77,6 +78,51 @@ public final class SmartReplyEngine {
         queue.postRunnable(() -> {
             List<String> chips = compute(ctx);
             AndroidUtilities.runOnUIThread(() -> onResult.run(chips));
+        });
+    }
+
+    public static final class HistoryEntry {
+        public final String incoming;
+        public final String reply;
+        public final int date;
+
+        private HistoryEntry(LocalReplyCorpus.CorpusPair pair) {
+            incoming = pair.context;
+            reply = pair.reply;
+            date = pair.date;
+        }
+    }
+
+    public static final class HistoryView {
+        public final List<HistoryEntry> entries;
+        public final long builtAt;
+        public final boolean enabled;
+
+        private HistoryView(List<HistoryEntry> entries, long builtAt, boolean enabled) {
+            this.entries = Collections.unmodifiableList(entries);
+            this.builtAt = builtAt;
+            this.enabled = enabled;
+        }
+    }
+
+    /** Loads the corpus, collecting it on first use only when history consent is enabled. */
+    public void inspectHistory(int account, Utilities.Callback<HistoryView> onResult) {
+        queue.postRunnable(() -> {
+            boolean enabled = AppearanceSettingsHook.isSmartReplyHistoryEnabled();
+            LocalReplyCorpus.Snapshot snapshot = enabled ? corpus.peek(account) : null;
+            if (enabled && snapshot == null) {
+                // get() also retains small corpora that are below the suggestion threshold.
+                corpus.get(account);
+                snapshot = corpus.peek(account);
+            }
+            List<HistoryEntry> entries = new ArrayList<>();
+            if (snapshot != null) {
+                for (LocalReplyCorpus.CorpusPair pair : snapshot.pairs) {
+                    entries.add(new HistoryEntry(pair));
+                }
+            }
+            HistoryView view = new HistoryView(entries, snapshot == null ? 0 : snapshot.builtAt, enabled);
+            AndroidUtilities.runOnUIThread(() -> onResult.run(view));
         });
     }
 
