@@ -1,5 +1,15 @@
 # Fluffy Patch Workflow
 
+## Project Index / Fast Navigation
+Before broad source searches, use `python3 scripts/project_index.py '<class-or-method>'`.
+The local `.project-index.json` maps source paths and declaration names to line numbers.
+Refresh at session start and after source edits with `python3 scripts/project_index.py --update`;
+unchanged files are cached. Run from any directory using the script's absolute path.
+It covers tracked and non-ignored untracked files in this checkout; submodule contents
+are indexed separately from their own checkout. Declarations use regex heuristics, not
+a compiler AST; use `rg` on the resulting paths for references, overloads, and missed declarations.
+The older `fluffy_symbol_index.json` only covers part of Fluffy and is not the full-project index.
+
 ## Goal
 All custom changes in Telegram core code must be implemented as patches.
 
