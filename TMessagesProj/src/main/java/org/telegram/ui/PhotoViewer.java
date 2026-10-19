@@ -10759,6 +10759,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         }
 
+        org.ushastoe.fluffy.patches.VideoViewerAudioFocusPatch.apply(videoPlayer);
         Boolean savedLooping = VideoPlayer.getLooping(currentMessageObject);
         if (livePhoto) {
             playerLooping = false;
